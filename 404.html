@@ -26,11 +26,12 @@
     h1 { font-family: var(--serif); font-size: clamp(24px, 4vw, 34px); font-weight: 400; margin-top: 12px; }
     p { color: rgba(255,255,255,.7); font-size: 15px; margin-top: 14px; max-width: 420px; line-height: 1.6; }
     a.btn {
-      display: inline-block; margin-top: 32px; background: var(--coral); color: #fff;
+      display: inline-block; margin-top: 32px; background: linear-gradient(135deg, #d4763f, var(--coral)); color: #fff;
       padding: 14px 32px; border-radius: 100px; font-weight: 600; font-size: 14.5px;
-      text-decoration: none; transition: background .2s, transform .15s;
+      text-decoration: none; transition: transform .15s, box-shadow .2s;
+      box-shadow: 0 10px 30px rgba(201,106,59,.4);
     }
-    a.btn:hover { background: #b85a2e; transform: translateY(-2px); }
+    a.btn:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(201,106,59,.5); }
   </style>
 </head>
 <body>
