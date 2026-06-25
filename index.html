@@ -369,7 +369,7 @@
     .pricing-note strong { color: var(--ink); }
 
     /* ── BOOKING STEPS ── */
-    .booking-steps { display: flex; align-items: center; justify-content: center; gap: 0; margin: -28px 0 44px; flex-wrap: wrap; row-gap: 10px; }
+    .booking-steps { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -20px 0 44px; flex-wrap: wrap; row-gap: 12px; }
     .bstep { display: flex; align-items: center; gap: 10px; }
     .bstep-num { width: 28px; height: 28px; border-radius: 50%; background: var(--sea); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
     .bstep-label { font-size: 13.5px; color: var(--ink-mid); font-weight: 500; }
@@ -393,6 +393,8 @@
       .form-row, .form-row.three { grid-template-columns: 1fr; }
       .footer-top { flex-direction: column; gap: 28px; }
       .bstep-arrow { display: none; }
+      .booking-steps { flex-direction: column; align-items: flex-start; gap: 16px; width: fit-content; max-width: 100%; margin: 4px auto 40px; }
+      .bstep-label { font-size: 15px; }
     }
   </style>
 </head>
