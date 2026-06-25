@@ -309,7 +309,7 @@
     .footer-brand-text strong { display: block; color: #fff; font-size: 23px; font-weight: 600; letter-spacing: .4px; }
     .footer-brand-text span { font-size: 15px; color: rgba(255,255,255,.4); }
     .footer-links { display: flex; flex-direction: column; gap: 10px; }
-    .footer-links a { color: rgba(255,255,255,.5); font-size: 13.5px; text-decoration: none; transition: color .2s; }
+    .footer-links a { color: rgba(255,255,255,.5); font-size: 13.5px; text-decoration: none; transition: color .2s; padding: 5px 0; }
     .footer-links a:hover { color: rgba(255,255,255,.9); }
     .footer-social { display: flex; align-items: center; gap: 12px; }
     .social-link {
@@ -384,7 +384,8 @@
     @media (max-width: 600px) {
       .hl-grid { grid-template-columns: 1fr; }
       .gallery-grid { grid-template-columns: 1fr; }
-      .gallery-cell:first-child { grid-column: auto; }
+      .gallery-cell:first-child { grid-column: auto; aspect-ratio: 4/3; }
+      .gallery-cell:not(:first-child) { aspect-ratio: 3/2; }
       .form-row, .form-row.three { grid-template-columns: 1fr; }
       .footer-top { flex-direction: column; gap: 28px; }
       .bstep-arrow { display: none; }
