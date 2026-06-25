@@ -63,7 +63,7 @@
     .nav-ham { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
     .nav-ham span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: .3s; }
     .mobile-menu {
-      display: none; position: fixed; inset: 0; z-index: 99;
+      display: none; position: fixed; inset: 0; z-index: 101;
       background: rgba(11,29,33,.96); backdrop-filter: blur(20px);
       flex-direction: column; align-items: center; justify-content: center; gap: 32px;
     }
@@ -406,7 +406,7 @@
     <a href="#location">Location</a>
     <a href="#book" class="nav-cta">Book Now</a>
   </div>
-  <div class="nav-ham" id="navHam" onclick="document.getElementById('mobileMenu').classList.add('open')">
+  <div class="nav-ham" id="navHam" onclick="document.getElementById('mobileMenu').classList.toggle('open')">
     <span></span><span></span><span></span>
   </div>
 </nav>
