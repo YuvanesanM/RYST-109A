@@ -1,0 +1,9 @@
+# robots.txt for stay.ryst.in
+# Allow all well-behaved crawlers full access.
+User-agent: *
+Allow: /
+
+# Block nothing — this is a public marketing site.
+
+# Sitemap location (absolute URL, per spec)
+Sitemap: https://stay.ryst.in/sitemap.xml
