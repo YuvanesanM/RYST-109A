@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RYST 109A · Private Beach Villa · Cheyyur, Tamil Nadu</title>
+  <meta name="description" content="A private coastal retreat on Pearl Beach, Cheyyur. Wake up to the sound of waves. Exclusive stays for up to 10 guests — 70 km south of Chennai.">
+  <meta property="og:title" content="RYST 109A · Private Beach Villa">
+  <meta property="og:description" content="A private coastal retreat on Pearl Beach, Cheyyur. Exclusive stays for up to 10 guests.">
+  <meta property="og:image" content="/assets/stay-logo.png">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #0e2420;
+      --ink-mid:    #2a4440;
+      --sea:        #0b3d52;
+      --sea-mid:    #1a6a7a;
+      --sea-light:  #4da8b8;
+      --foam:       #e8f2f0;
+      --sand:       #c8a97a;
+      --sand-light: #f5ede0;
+      --coral:      #c96a3b;
+      --white:      #fbfaf8;
+      --muted:      #6b8480;
+      --line:       rgba(14,36,32,.1);
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+      --ease: cubic-bezier(.22,1,.36,1);
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--sans); background: var(--white); color: var(--ink); overflow-x: hidden; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 5vw; height: 68px;
+      background: rgba(11,29,33,.0); backdrop-filter: blur(0px);
+      transition: background .4s var(--ease), backdrop-filter .4s var(--ease);
+    }
+    nav.scrolled {
+      background: rgba(11,29,33,.88); backdrop-filter: blur(16px);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 36px; filter: brightness(0) invert(1); }
+    .nav-logo-text { color: #fff; font-family: var(--sans); font-size: 15px; font-weight: 600; letter-spacing: .5px; }
+    .nav-links { display: flex; align-items: center; gap: 28px; }
+    .nav-links a { color: rgba(255,255,255,.82); font-size: 13.5px; font-weight: 500; text-decoration: none; letter-spacing: .2px; transition: color .2s; }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--coral); color: #fff !important; padding: 9px 22px;
+      border-radius: 100px; font-weight: 600 !important; letter-spacing: .3px;
+      transition: background .2s, transform .15s !important;
+    }
+    .nav-cta:hover { background: #b85a2e !important; transform: translateY(-1px); }
+    .nav-ham { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
+    .nav-ham span { display: block; width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: .3s; }
+    .mobile-menu {
+      display: none; position: fixed; inset: 0; z-index: 99;
+      background: rgba(11,29,33,.96); backdrop-filter: blur(20px);
+      flex-direction: column; align-items: center; justify-content: center; gap: 32px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a { color: #fff; font-size: 22px; font-weight: 400; font-family: var(--serif); text-decoration: none; letter-spacing: .3px; }
+    .mobile-menu .m-cta { background: var(--coral); padding: 12px 36px; border-radius: 100px; font-size: 16px; font-family: var(--sans); font-weight: 600; }
+    .mob-close { position: absolute; top: 20px; right: 24px; color: rgba(255,255,255,.6); font-size: 28px; cursor: pointer; background: none; border: none; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100svh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; text-align: center;
+      position: relative; overflow: hidden;
+      background: linear-gradient(160deg, #061c24 0%, #0b3d52 35%, #1a6a7a 65%, #2d5a4a 85%, #1a3828 100%);
+    }
+    .hero-orb {
+      position: absolute; border-radius: 50%; filter: blur(80px); opacity: .35; pointer-events: none;
+    }
+    .orb1 { width: 600px; height: 600px; background: radial-gradient(circle, #4da8b8, transparent); top: -100px; right: -100px; }
+    .orb2 { width: 500px; height: 500px; background: radial-gradient(circle, #c8a97a, transparent); bottom: -80px; left: -80px; }
+    .orb3 { width: 400px; height: 400px; background: radial-gradient(circle, #c96a3b44, transparent); top: 40%; left: 40%; }
+    .hero-waves {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 200px;
+      background: linear-gradient(to top, rgba(6,28,36,.6) 0%, transparent 100%);
+    }
+    .hero-waves svg { position: absolute; bottom: 0; width: 100%; }
+    .hero-tag {
+      font-family: var(--sans); font-size: 11.5px; font-weight: 600; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--sand); margin-bottom: 20px;
+      opacity: 0; animation: fadeUp .8s var(--ease) .2s forwards;
+    }
+    .hero-title {
+      font-family: var(--serif); font-size: clamp(52px, 9vw, 110px); font-weight: 300;
+      color: #fff; line-height: 1; letter-spacing: -1px;
+      opacity: 0; animation: fadeUp .9s var(--ease) .4s forwards;
+    }
+    .hero-title em { font-style: italic; color: var(--sand); }
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px); color: rgba(255,255,255,.68); font-weight: 300;
+      margin-top: 20px; max-width: 480px; line-height: 1.65;
+      opacity: 0; animation: fadeUp .8s var(--ease) .6s forwards;
+    }
+    .hero-actions {
+      display: flex; align-items: center; gap: 14px; margin-top: 36px; flex-wrap: wrap; justify-content: center;
+      opacity: 0; animation: fadeUp .8s var(--ease) .8s forwards;
+    }
+    .btn-primary {
+      background: var(--coral); color: #fff; padding: 14px 32px; border-radius: 100px;
+      font-weight: 600; font-size: 14.5px; letter-spacing: .3px; text-decoration: none;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 6px 28px rgba(201,106,59,.4);
+    }
+    .btn-primary:hover { background: #b85a2e; transform: translateY(-2px); box-shadow: 0 10px 36px rgba(201,106,59,.5); }
+    .btn-outline {
+      border: 1.5px solid rgba(255,255,255,.38); color: #fff; padding: 13px 28px;
+      border-radius: 100px; font-weight: 500; font-size: 14px; text-decoration: none;
+      transition: border-color .2s, background .2s;
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,.7); background: rgba(255,255,255,.08); }
+    .hero-scroll {
+      position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      color: rgba(255,255,255,.4); font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      animation: bounce 2s infinite;
+    }
+    .hero-scroll svg { opacity: .5; }
+    .hero-pills {
+      display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; justify-content: center;
+      opacity: 0; animation: fadeUp .8s var(--ease) 1s forwards;
+    }
+    .pill {
+      background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+      backdrop-filter: blur(8px); border-radius: 100px; padding: 6px 16px;
+      font-size: 12.5px; color: rgba(255,255,255,.75); font-weight: 500;
+    }
+
+    @keyframes fadeUp { from { opacity:0; transform: translateY(22px); } to { opacity:1; transform: none; } }
+    @keyframes bounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(6px); } }
+
+    /* ── SECTIONS ── */
+    section { padding: clamp(64px, 10vw, 120px) 5vw; }
+    .section-tag { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--sea-mid); margin-bottom: 14px; }
+    .section-title { font-family: var(--serif); font-size: clamp(34px, 5vw, 60px); font-weight: 300; color: var(--ink); line-height: 1.15; }
+    .section-title em { font-style: italic; color: var(--sea-mid); }
+    .section-lead { font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 580px; margin-top: 16px; }
+
+    /* ── ABOUT ── */
+    #about { background: var(--white); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1200px; margin: 0 auto; }
+    .about-visual {
+      position: relative; border-radius: 24px; overflow: hidden; aspect-ratio: 4/5;
+      background: linear-gradient(145deg, #0b3d52 0%, #1a6a7a 40%, #4da8b8 70%, #c8a97a 100%);
+    }
+    .about-img-inner {
+      position: absolute; inset: 0;
+      background: url('/assets/stay-logo.png') center/60% no-repeat, radial-gradient(ellipse at 60% 40%, rgba(77,168,184,.3), transparent 70%);
+    }
+    .about-float {
+      position: absolute; bottom: 24px; left: 24px; right: 24px;
+      background: rgba(11,29,33,.75); backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 16px;
+      padding: 20px 22px;
+    }
+    .about-float-row { display: flex; gap: 24px; }
+    .about-stat { text-align: center; flex: 1; }
+    .about-stat .num { font-family: var(--serif); font-size: 32px; font-weight: 400; color: var(--sand); line-height: 1; }
+    .about-stat .lbl { font-size: 11px; color: rgba(255,255,255,.55); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
+    .about-text { padding: 20px 0; }
+    .about-text p { font-size: 16px; color: var(--ink-mid); line-height: 1.8; margin-top: 18px; }
+    .about-text p:first-child { margin-top: 0; }
+    .about-badges { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 100px; background: var(--foam); border: 1px solid var(--line); font-size: 13px; color: var(--sea); font-weight: 500; }
+    .badge svg { flex-shrink: 0; }
+
+    /* ── HIGHLIGHTS ── */
+    #highlights { background: var(--foam); }
+    .highlights-head { text-align: center; max-width: 600px; margin: 0 auto 56px; }
+    .hl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; max-width: 1100px; margin: 0 auto; }
+    .hl-card {
+      background: var(--white); border-radius: 20px; padding: 32px 28px;
+      border: 1px solid rgba(14,36,32,.06);
+      transition: transform .3s var(--ease), box-shadow .3s var(--ease);
+    }
+    .hl-card:hover { transform: translateY(-6px); box-shadow: 0 20px 50px rgba(14,36,32,.08); }
+    .hl-icon {
+      width: 52px; height: 52px; border-radius: 14px; background: var(--foam);
+      display: flex; align-items: center; justify-content: center; margin-bottom: 20px;
+    }
+    .hl-card h3 { font-family: var(--serif); font-size: 22px; font-weight: 500; color: var(--ink); margin-bottom: 10px; }
+    .hl-card p { font-size: 14.5px; color: var(--muted); line-height: 1.7; }
+
+    /* ── GALLERY ── */
+    #gallery { background: var(--white); }
+    .gallery-head { text-align: center; max-width: 560px; margin: 0 auto 48px; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto; gap: 12px; max-width: 1100px; margin: 0 auto; }
+    .gallery-cell {
+      border-radius: 16px; overflow: hidden; position: relative;
+      cursor: pointer; transition: transform .3s var(--ease);
+    }
+    .gallery-cell:hover { transform: scale(1.02); }
+    .gallery-cell:first-child { grid-column: 1 / 3; grid-row: 1 / 3; aspect-ratio: 1; }
+    .gallery-cell:not(:first-child) { aspect-ratio: 4/3; }
+    .gc-inner { position: absolute; inset: 0; }
+    .gc1 { background: linear-gradient(145deg, #061c24 0%, #0b3d52 40%, #1a6a7a 70%, #4da8b8 100%); }
+    .gc2 { background: linear-gradient(135deg, #c8a97a 0%, #d4b896 40%, #b87a3a 80%); }
+    .gc3 { background: linear-gradient(160deg, #1a3828 0%, #2d5a4a 50%, #4d8a6a 100%); }
+    .gc4 { background: linear-gradient(130deg, #c96a3b 0%, #d4825a 40%, #e8a07a 70%, #c8a97a 100%); }
+    .gc5 { background: linear-gradient(150deg, #0b3d52 0%, #1a6a7a 30%, #c8a97a 100%); }
+    .gc-overlay {
+      position: absolute; inset: 0; background: linear-gradient(to top, rgba(6,28,36,.7) 0%, transparent 50%);
+      opacity: 0; transition: opacity .3s; display: flex; align-items: flex-end; padding: 20px;
+    }
+    .gallery-cell:hover .gc-overlay { opacity: 1; }
+    .gc-caption { color: #fff; font-family: var(--serif); font-size: 16px; font-style: italic; }
+    .gallery-wave {
+      position: absolute; top: 30%; left: 50%; transform: translate(-50%,-50%);
+      width: 180px; opacity: .12;
+    }
+    .gc-logo { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 40%; opacity: .15; filter: brightness(0) invert(1); }
+    .gallery-note { text-align: center; margin-top: 20px; font-size: 13px; color: var(--muted); font-style: italic; }
+
+    /* ── LOCATION ── */
+    #location { background: var(--ink); color: #fff; }
+    .location-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; max-width: 1100px; margin: 0 auto; }
+    .location-map {
+      border-radius: 20px; overflow: hidden; aspect-ratio: 4/3;
+      background: linear-gradient(140deg, #0b2d38 0%, #0b3d52 50%, #1a5a6a 100%);
+      position: relative; cursor: pointer; text-decoration: none; display: block;
+    }
+    .location-map:hover .map-btn { background: var(--coral); }
+    .map-pin-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-60%); filter: drop-shadow(0 4px 12px rgba(0,0,0,.5)); }
+    .map-grid {
+      position: absolute; inset: 0; opacity: .08;
+      background-image: linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .map-glow { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(77,168,184,.4), transparent 70%); border-radius: 50%; }
+    .map-btn {
+      position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: var(--sea-mid); color: #fff; padding: 10px 24px; border-radius: 100px;
+      font-size: 13px; font-weight: 600; letter-spacing: .3px; transition: background .2s;
+      white-space: nowrap;
+    }
+    .location-text .section-tag { color: var(--sand); }
+    .location-text .section-title { color: #fff; }
+    .location-details { margin-top: 28px; display: flex; flex-direction: column; gap: 16px; }
+    .loc-row { display: flex; gap: 14px; align-items: flex-start; }
+    .loc-icon { width: 38px; height: 38px; border-radius: 10px; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+    .loc-info strong { display: block; font-size: 14px; font-weight: 600; color: rgba(255,255,255,.9); }
+    .loc-info span { font-size: 13.5px; color: rgba(255,255,255,.5); line-height: 1.5; }
+    .drive-row { display: flex; gap: 12px; margin-top: 28px; flex-wrap: wrap; }
+    .drive-chip { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 12px 16px; }
+    .drive-chip .city { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 1px; }
+    .drive-chip .dist { font-size: 15px; font-weight: 600; color: #fff; margin-top: 2px; }
+    .drive-chip .sub { font-size: 12px; color: rgba(255,255,255,.4); }
+
+    /* ── BOOKING ── */
+    #book { background: var(--sand-light); }
+    .book-wrap { max-width: 820px; margin: 0 auto; }
+    .book-head { text-align: center; margin-bottom: 48px; }
+    .book-form {
+      background: var(--white); border-radius: 28px; padding: clamp(28px,5vw,52px);
+      box-shadow: 0 8px 60px rgba(14,36,32,.08);
+      border: 1px solid rgba(14,36,32,.06);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .f-group { display: flex; flex-direction: column; gap: 7px; }
+    .f-group label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; }
+    .f-group input, .f-group select, .f-group textarea {
+      border: 1.5px solid rgba(14,36,32,.12); border-radius: 12px;
+      padding: 13px 16px; font-family: var(--sans); font-size: 14.5px; color: var(--ink);
+      background: var(--white); outline: none; transition: border-color .2s, box-shadow .2s;
+      width: 100%;
+    }
+    .f-group input:focus, .f-group select:focus, .f-group textarea:focus {
+      border-color: var(--sea-mid); box-shadow: 0 0 0 3px rgba(26,106,122,.1);
+    }
+    .f-group textarea { resize: vertical; min-height: 100px; }
+    .form-divider { border: none; border-top: 1px solid var(--line); margin: 24px 0; }
+    .form-submit {
+      width: 100%; padding: 17px; border: none; border-radius: 14px;
+      background: var(--coral); color: #fff; font-family: var(--sans);
+      font-size: 15px; font-weight: 600; letter-spacing: .3px; cursor: pointer;
+      transition: background .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 6px 24px rgba(201,106,59,.3); margin-top: 8px;
+    }
+    .form-submit:hover { background: #b85a2e; transform: translateY(-1px); box-shadow: 0 10px 30px rgba(201,106,59,.4); }
+    .form-note { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
+    .form-note a { color: var(--sea-mid); text-decoration: none; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink); color: rgba(255,255,255,.55);
+      padding: 48px 5vw 32px;
+    }
+    .footer-inner { max-width: 1100px; margin: 0 auto; }
+    .footer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; flex-wrap: wrap; border-bottom: 1px solid rgba(255,255,255,.08); padding-bottom: 32px; margin-bottom: 28px; }
+    .footer-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .footer-brand img { height: 38px; filter: brightness(0) invert(1); opacity: .8; }
+    .footer-brand-text { }
+    .footer-brand-text strong { display: block; color: #fff; font-size: 15px; font-weight: 600; letter-spacing: .4px; }
+    .footer-brand-text span { font-size: 12.5px; color: rgba(255,255,255,.4); }
+    .footer-links { display: flex; flex-direction: column; gap: 10px; }
+    .footer-links a { color: rgba(255,255,255,.5); font-size: 13.5px; text-decoration: none; transition: color .2s; }
+    .footer-links a:hover { color: rgba(255,255,255,.9); }
+    .footer-social { display: flex; align-items: center; gap: 12px; }
+    .social-link {
+      display: inline-flex; align-items: center; gap: 8px; color: rgba(255,255,255,.6);
+      text-decoration: none; font-size: 13.5px; padding: 9px 16px; border-radius: 100px;
+      border: 1px solid rgba(255,255,255,.12); transition: border-color .2s, color .2s;
+    }
+    .social-link:hover { border-color: rgba(255,255,255,.35); color: #fff; }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+    .footer-copy { font-size: 12.5px; color: rgba(255,255,255,.3); }
+
+    /* ── WHATSAPP FLOAT ── */
+    .wa-float {
+      position: fixed; bottom: 24px; right: 24px; z-index: 200;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: #25d366; box-shadow: 0 4px 20px rgba(37,211,102,.4);
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; transition: transform .2s, box-shadow .2s;
+    }
+    .wa-float:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(37,211,102,.5); }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed; bottom: 88px; right: 24px; z-index: 300;
+      background: var(--ink); color: #fff; padding: 14px 20px; border-radius: 12px;
+      font-size: 14px; font-weight: 500; max-width: 320px; line-height: 1.4;
+      box-shadow: 0 8px 30px rgba(0,0,0,.25);
+      transform: translateY(16px); opacity: 0; pointer-events: none;
+      transition: transform .35s var(--ease), opacity .35s;
+    }
+    .toast.show { transform: none; opacity: 1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .about-grid, .location-grid { grid-template-columns: 1fr; gap: 40px; }
+      .hl-grid { grid-template-columns: repeat(2, 1fr); }
+      .gallery-grid { grid-template-columns: 1fr 1fr; }
+      .gallery-cell:first-child { grid-column: 1 / 3; grid-row: auto; aspect-ratio: 3/2; }
+      .form-row.three { grid-template-columns: 1fr 1fr; }
+      .nav-links { display: none; }
+      .nav-ham { display: flex; }
+    }
+    @media (max-width: 600px) {
+      .hl-grid { grid-template-columns: 1fr; }
+      .gallery-grid { grid-template-columns: 1fr; }
+      .gallery-cell:first-child { grid-column: auto; }
+      .form-row, .form-row.three { grid-template-columns: 1fr; }
+      .footer-top { flex-direction: column; gap: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="nav">
+  <a href="#" class="nav-logo">
+    <img src="/assets/stay-logo.png" alt="RYST 109A">
+    <span class="nav-logo-text">RYST 109A</span>
+  </a>
+  <div class="nav-links">
+    <a href="#about">About</a>
+    <a href="#highlights">Highlights</a>
+    <a href="#gallery">Gallery</a>
+    <a href="#location">Location</a>
+    <a href="#book" class="nav-cta">Book Now</a>
+  </div>
+  <div class="nav-ham" id="navHam" onclick="document.getElementById('mobileMenu').classList.add('open')">
+    <span></span><span></span><span></span>
+  </div>
+</nav>
+
+<!-- ── MOBILE MENU ── -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mob-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
+  <a href="#about" onclick="document.getElementById('mobileMenu').classList.remove('open')">About</a>
+  <a href="#highlights" onclick="document.getElementById('mobileMenu').classList.remove('open')">Highlights</a>
+  <a href="#gallery" onclick="document.getElementById('mobileMenu').classList.remove('open')">Gallery</a>
+  <a href="#location" onclick="document.getElementById('mobileMenu').classList.remove('open')">Location</a>
+  <a href="#book" class="m-cta" onclick="document.getElementById('mobileMenu').classList.remove('open')">Book Now</a>
+</div>
+
+<!-- ── HERO ── -->
+<section id="hero">
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+  <p class="hero-tag">Pearl Beach · Cheyyur · Tamil Nadu</p>
+  <h1 class="hero-title">RYST <em>109A</em></h1>
+  <p class="hero-sub">A private coastal retreat where the Bay of Bengal meets your living room. Exclusively yours.</p>
+  <div class="hero-actions">
+    <a href="#book" class="btn-primary">Request a Stay</a>
+    <a href="#about" class="btn-outline">Explore the Villa</a>
+  </div>
+  <div class="hero-pills">
+    <span class="pill">Up to 10 Guests</span>
+    <span class="pill">Private Villa</span>
+    <span class="pill">Beach Access</span>
+    <span class="pill">70 km from Chennai</span>
+  </div>
+  <div class="hero-waves">
+    <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <path d="M0,40 C240,80 480,0 720,40 C960,80 1200,0 1440,40 L1440,80 L0,80 Z" fill="rgba(6,28,36,.5)"/>
+    </svg>
+  </div>
+  <div class="hero-scroll">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ── ABOUT ── -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-visual">
+      <div class="about-img-inner"></div>
+      <div class="about-float">
+        <div class="about-float-row">
+          <div class="about-stat"><div class="num">10</div><div class="lbl">Max Guests</div></div>
+          <div class="about-stat"><div class="num">∞</div><div class="lbl">Sea View</div></div>
+          <div class="about-stat"><div class="num">100%</div><div class="lbl">Private</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="about-text">
+      <p class="section-tag">The Villa</p>
+      <h2 class="section-title">Where the coast<br><em>is all yours</em></h2>
+      <p>RYST 109A is a private beach villa tucked away on Pearl Beach in Parmankeni, Cheyyur — a pristine stretch of the Coromandel Coast about 70 km south of Chennai.</p>
+      <p>The villa is exclusively yours for your entire stay. No shared lobbies, no strangers, no schedules — just you, your people, and the sea. Wake up to the sound of waves, spend afternoons under open skies, and watch the sun melt into the Bay of Bengal each evening.</p>
+      <p>Ideal for families, close-knit friend groups, and anyone who needs to truly get away.</p>
+      <div class="about-badges">
+        <span class="badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg>Cheyyur, TN</span>
+        <span class="badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>Entire Villa</span>
+        <span class="badge"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>Up to 10 Guests</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── HIGHLIGHTS ── -->
+<section id="highlights">
+  <div class="highlights-head">
+    <p class="section-tag">Why RYST 109A</p>
+    <h2 class="section-title">Everything you need,<br><em>nothing you don't</em></h2>
+  </div>
+  <div class="hl-grid">
+    <div class="hl-card">
+      <div class="hl-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20M2 12c0-5.5 4.5-10 10-10s10 4.5 10 10M2 12c0 5.5 4.5 10 10 10s10-4.5 10-10"/><path d="M12 2v20"/></svg>
+      </div>
+      <h3>Private Beach Access</h3>
+      <p>Step out to a quiet stretch of Pearl Beach — one of the Coromandel Coast's most unspoilt shores. Early morning walks, evening bonfires, the water entirely to yourself.</p>
+    </div>
+    <div class="hl-card">
+      <div class="hl-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <h3>Exclusive Occupancy</h3>
+      <p>The entire property is yours for the duration of your stay. No shared spaces, no other guests, no interruptions — absolute privacy from check-in to check-out.</p>
+    </div>
+    <div class="hl-card">
+      <div class="hl-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <h3>Spacious for Groups</h3>
+      <p>Comfortably hosts up to 10 guests, making it perfect for family getaways, milestone celebrations, or a weekend retreat with your closest circle.</p>
+    </div>
+    <div class="hl-card">
+      <div class="hl-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2h18l-3 7H6L3 2zM6 9l-1 13h14L18 9"/><line x1="12" y1="9" x2="12" y2="22"/></svg>
+      </div>
+      <h3>Fully Furnished Kitchen</h3>
+      <p>Cook your favourite meals with a fully equipped kitchen. Stock up at local markets and enjoy home-cooked food with a sea breeze — no dining schedule, no restaurant queue.</p>
+    </div>
+    <div class="hl-card">
+      <div class="hl-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      </div>
+      <h3>Outdoor Living</h3>
+      <p>Open-air sit-outs, sea-facing terraces, and space to breathe. Watch the sunrise over the Bay, stargaze on clear nights, or just do nothing — loudly or quietly, as the mood demands.</p>
+    </div>
+    <div class="hl-card">
+      <div class="hl-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/></svg>
+      </div>
+      <h3>Easy Getaway</h3>
+      <p>About 70 km south of Chennai via the ECR or GST Road — a pleasant drive that puts you in a completely different world within 90 minutes. No airports, no long journeys.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── GALLERY ── -->
+<section id="gallery">
+  <div class="gallery-head">
+    <p class="section-tag">The Space</p>
+    <h2 class="section-title">Life at <em>109A</em></h2>
+    <p class="section-lead" style="margin: 14px auto 0; text-align:center;">The villa. The beach. The light at 6 am.</p>
+  </div>
+  <div class="gallery-grid">
+    <div class="gallery-cell">
+      <div class="gc-inner gc1">
+        <img class="gc-logo" src="/assets/stay-logo.png" alt="">
+        <svg class="gallery-wave" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,30 C40,60 80,0 120,30 C160,60 200,0 240,30" stroke="white" stroke-width="1.5" opacity=".5"/><path d="M0,44 C40,74 80,14 120,44 C160,74 200,14 240,44" stroke="white" stroke-width="1" opacity=".3"/></svg>
+      </div>
+      <div class="gc-overlay"><span class="gc-caption">The Bay of Bengal from your doorstep</span></div>
+    </div>
+    <div class="gallery-cell">
+      <div class="gc-inner gc2"></div>
+      <div class="gc-overlay"><span class="gc-caption">Pearl Beach at dawn</span></div>
+    </div>
+    <div class="gallery-cell">
+      <div class="gc-inner gc3"></div>
+      <div class="gc-overlay"><span class="gc-caption">The garden & outdoor sit-out</span></div>
+    </div>
+    <div class="gallery-cell">
+      <div class="gc-inner gc4"></div>
+      <div class="gc-overlay"><span class="gc-caption">Sunset from the terrace</span></div>
+    </div>
+    <div class="gallery-cell">
+      <div class="gc-inner gc5"></div>
+      <div class="gc-overlay"><span class="gc-caption">The living space</span></div>
+    </div>
+  </div>
+  <p class="gallery-note">More photos available on <a href="https://www.instagram.com/stay.ryst" target="_blank" style="color:var(--sea-mid);text-decoration:none">@stay.ryst</a></p>
+</section>
+
+<!-- ── LOCATION ── -->
+<section id="location">
+  <div class="location-grid">
+    <a class="location-map" href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank">
+      <div class="map-grid"></div>
+      <div class="map-glow"></div>
+      <svg class="map-pin-svg" width="44" height="56" viewBox="0 0 44 56" fill="none">
+        <path d="M22 0C9.85 0 0 9.85 0 22c0 16.5 22 34 22 34S44 38.5 44 22C44 9.85 34.15 0 22 0z" fill="#c96a3b"/>
+        <circle cx="22" cy="22" r="9" fill="white" opacity=".95"/>
+      </svg>
+      <div class="map-btn">Open in Google Maps →</div>
+    </a>
+    <div class="location-text">
+      <p class="section-tag">Find Us</p>
+      <h2 class="section-title">Pearl Beach,<br><em>Cheyyur</em></h2>
+      <div class="location-details">
+        <div class="loc-row">
+          <div class="loc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div class="loc-info"><strong>Address</strong><span>109A, Pearl Beach Site, Parmankeni<br>Cheyyur – 603305, Tamil Nadu</span></div>
+        </div>
+        <div class="loc-row">
+          <div class="loc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+          <div class="loc-info"><strong>Check-in / Check-out</strong><span>Check-in from 2:00 PM · Check-out by 11:00 AM</span></div>
+        </div>
+        <div class="loc-row">
+          <div class="loc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 16l.42.92z"/></svg></div>
+          <div class="loc-info"><strong>Contact</strong><span><a href="https://www.instagram.com/stay.ryst" target="_blank" style="color:rgba(255,255,255,.5);text-decoration:none">@stay.ryst</a> on Instagram</span></div>
+        </div>
+      </div>
+      <div class="drive-row">
+        <div class="drive-chip"><div class="city">Chennai</div><div class="dist">~70 km</div><div class="sub">via ECR / GST Road</div></div>
+        <div class="drive-chip"><div class="city">Mahabalipuram</div><div class="dist">~35 km</div><div class="sub">south on ECR</div></div>
+        <div class="drive-chip"><div class="city">Pondicherry</div><div class="dist">~90 km</div><div class="sub">north on ECR</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── BOOKING FORM ── -->
+<section id="book">
+  <div class="book-wrap">
+    <div class="book-head">
+      <p class="section-tag">Request a Stay</p>
+      <h2 class="section-title">Plan your <em>escape</em></h2>
+      <p class="section-lead" style="margin: 14px auto 0; text-align:center;">Fill in your details and we'll get back to you within a few hours to confirm availability and share the booking details.</p>
+    </div>
+    <div class="book-form">
+      <form id="bookForm">
+        <div class="form-row">
+          <div class="f-group">
+            <label for="f-name">Your Name *</label>
+            <input id="f-name" name="name" type="text" placeholder="Full name" required>
+          </div>
+          <div class="f-group">
+            <label for="f-phone">WhatsApp / Phone *</label>
+            <input id="f-phone" name="phone" type="tel" placeholder="+91 98765 43210" required>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="f-group">
+            <label for="f-email">Email Address</label>
+            <input id="f-email" name="email" type="email" placeholder="you@example.com">
+          </div>
+        </div>
+        <hr class="form-divider">
+        <div class="form-row three">
+          <div class="f-group">
+            <label for="f-checkin">Check-in Date *</label>
+            <input id="f-checkin" name="checkin" type="date" required>
+          </div>
+          <div class="f-group">
+            <label for="f-checkout">Check-out Date *</label>
+            <input id="f-checkout" name="checkout" type="date" required>
+          </div>
+          <div class="f-group">
+            <label for="f-guests">No. of Guests *</label>
+            <input id="f-guests" name="guests" type="number" min="1" max="10" placeholder="4" required>
+          </div>
+        </div>
+        <hr class="form-divider">
+        <div class="form-row full">
+          <div class="f-group">
+            <label for="f-occasion">Occasion</label>
+            <select id="f-occasion" name="occasion">
+              <option value="">Select (optional)</option>
+              <option value="Family Vacation">Family Vacation</option>
+              <option value="Friends Getaway">Friends Getaway</option>
+              <option value="Birthday / Celebration">Birthday / Celebration</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Corporate Retreat">Corporate Retreat</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row full" style="margin-top:4px">
+          <div class="f-group">
+            <label for="f-message">Special Requests or Questions</label>
+            <textarea id="f-message" name="message" placeholder="Anything specific you'd like us to know — special celebrations, dietary needs, early check-in requests, etc."></textarea>
+          </div>
+        </div>
+        <button type="submit" class="form-submit">Send Booking Request →</button>
+      </form>
+      <p class="form-note">
+        We'll respond via WhatsApp or email within a few hours.<br>
+        Or reach us directly on <a href="https://www.instagram.com/stay.ryst" target="_blank">@stay.ryst</a> on Instagram.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <a href="#" class="footer-brand">
+          <img src="/assets/stay-logo.png" alt="RYST 109A">
+          <div class="footer-brand-text">
+            <strong>RYST 109A</strong>
+            <span>Private Beach Villa · Cheyyur</span>
+          </div>
+        </a>
+      </div>
+      <div class="footer-links">
+        <a href="#about">About the Villa</a>
+        <a href="#highlights">Highlights</a>
+        <a href="#location">How to Reach</a>
+        <a href="#book">Request a Stay</a>
+      </div>
+      <div>
+        <a href="https://www.instagram.com/stay.ryst" target="_blank" class="social-link">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+          @stay.ryst
+        </a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2025 RYST 109A. All rights reserved.</span>
+      <span class="footer-copy">109A, Pearl Beach Site, Parmankeni, Cheyyur – 603305</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ── WHATSAPP FLOAT ── -->
+<!-- Update the phone number below to your WhatsApp number (without + or spaces) -->
+<a class="wa-float" href="https://wa.me/91XXXXXXXXXX?text=Hi%2C%20I%27m%20interested%20in%20booking%20RYST%20109A%20Beach%20Villa." target="_blank" id="waBtn" title="Chat on WhatsApp">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+</a>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── NAV SCROLL EFFECT ──
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
+
+  // ── DATE DEFAULTS ──
+  (function(){
+    const today = new Date().toISOString().slice(0,10);
+    const tomorrow = new Date(Date.now()+86400000).toISOString().slice(0,10);
+    document.getElementById('f-checkin').min = today;
+    document.getElementById('f-checkout').min = tomorrow;
+    document.getElementById('f-checkin').addEventListener('change', e => {
+      const next = new Date(new Date(e.target.value).getTime()+86400000).toISOString().slice(0,10);
+      document.getElementById('f-checkout').min = next;
+      if(document.getElementById('f-checkout').value <= e.target.value)
+        document.getElementById('f-checkout').value = next;
+    });
+  })();
+
+  // ── GUEST CAP ──
+  document.getElementById('f-guests').addEventListener('input', e => {
+    if(parseInt(e.target.value) > 10){ e.target.value = '10'; showToast('Maximum capacity is 10 guests.'); }
+  });
+
+  // ── TOAST ──
+  function showToast(msg, dur=4000){
+    const t = document.getElementById('toast'); t.textContent = msg;
+    t.classList.add('show'); clearTimeout(t._t);
+    t._t = setTimeout(() => t.classList.remove('show'), dur);
+  }
+
+  // ── BOOKING FORM ──
+  // Update WHATSAPP_NUMBER to your actual WhatsApp number (digits only, with country code, no +)
+  const WHATSAPP_NUMBER = '91XXXXXXXXXX';
+
+  document.getElementById('bookForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const name     = document.getElementById('f-name').value.trim();
+    const phone    = document.getElementById('f-phone').value.trim();
+    const email    = document.getElementById('f-email').value.trim();
+    const checkin  = document.getElementById('f-checkin').value;
+    const checkout = document.getElementById('f-checkout').value;
+    const guests   = document.getElementById('f-guests').value;
+    const occasion = document.getElementById('f-occasion').value;
+    const message  = document.getElementById('f-message').value.trim();
+
+    if(!name||!phone||!checkin||!checkout||!guests){ showToast('Please fill in all required fields.'); return; }
+    if(new Date(checkout) <= new Date(checkin)){ showToast('Check-out must be after check-in.'); return; }
+
+    const nights = Math.round((new Date(checkout)-new Date(checkin))/(1000*60*60*24));
+    const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
+
+    let text = `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n`;
+    text += `*Name:* ${name}\n`;
+    text += `*Phone:* ${phone}\n`;
+    if(email) text += `*Email:* ${email}\n`;
+    text += `\n*Check-in:* ${fmtDate(checkin)}\n`;
+    text += `*Check-out:* ${fmtDate(checkout)} (${nights} night${nights!==1?'s':''})\n`;
+    text += `*Guests:* ${guests}\n`;
+    if(occasion) text += `*Occasion:* ${occasion}\n`;
+    if(message) text += `\n*Notes:* ${message}`;
+
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+    showToast('Opening WhatsApp with your request details…', 5000);
+  });
+
+  // ── ANIMATE ON SCROLL ──
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if(en.isIntersecting){ en.target.style.opacity='1'; en.target.style.transform='none'; observer.unobserve(en.target); }
+    });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.hl-card, .gallery-cell').forEach(el => {
+    el.style.opacity='0'; el.style.transform='translateY(24px)';
+    el.style.transition='opacity .6s ease, transform .6s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
