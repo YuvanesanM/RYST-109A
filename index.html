@@ -508,13 +508,27 @@
     .drive-chip .sub { font-size: 12px; color: rgba(255,255,255,.4); }
 
     /* ── BOOKING ── */
-    #book { background: var(--sand-light); position: relative; }
-    .book-wrap { max-width: 820px; margin: 0 auto; }
+    #book {
+      background: linear-gradient(168deg, #0b3d52 0%, #0e3a47 45%, #08222b 100%);
+      position: relative; overflow: hidden;
+    }
+    #book .section-tag { color: var(--sand); }
+    #book .section-title { color: #fff; }
+    #book .section-title em { color: var(--sand); }
+    #book .section-lead { color: rgba(255,255,255,.72) !important; }
+    .book-orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .4; pointer-events: none; z-index: 0; }
+    .book-orb.bo1 { width: 460px; height: 460px; background: radial-gradient(circle, #4da8b8, transparent); top: -130px; right: -90px; }
+    .book-orb.bo2 { width: 400px; height: 400px; background: radial-gradient(circle, #c8a97a, transparent); bottom: -130px; left: -110px; }
+    .book-wrap { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; }
     .book-head { text-align: center; margin-bottom: 48px; }
     .book-form {
-      background: var(--white); border-radius: 28px; padding: clamp(28px,5vw,52px);
-      box-shadow: 0 8px 60px rgba(14,36,32,.08);
-      border: 1px solid rgba(14,36,32,.06);
+      position: relative; background: var(--white); border-radius: 28px; padding: clamp(28px,5vw,52px);
+      box-shadow: 0 40px 90px rgba(6,20,24,.45);
+      border: 1px solid rgba(255,255,255,.5); overflow: hidden;
+    }
+    .book-form::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--sea), var(--sea-light), var(--sand));
     }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .form-row.full { grid-template-columns: 1fr; }
@@ -533,13 +547,28 @@
     .f-group textarea { resize: vertical; min-height: 100px; }
     .form-divider { border: none; border-top: 1px solid var(--line); margin: 24px 0; }
     .form-submit {
+      position: relative; overflow: hidden;
       width: 100%; padding: 17px; border: none; border-radius: 14px;
-      background: var(--coral); color: #fff; font-family: var(--sans);
+      background: linear-gradient(135deg, #d4763f, var(--coral)); color: #fff; font-family: var(--sans);
       font-size: 15px; font-weight: 600; letter-spacing: .3px; cursor: pointer;
-      transition: background .2s, transform .15s, box-shadow .2s;
-      box-shadow: 0 6px 24px rgba(201,106,59,.3); margin-top: 8px;
+      transition: transform .15s var(--ease), box-shadow .2s;
+      box-shadow: 0 10px 30px rgba(201,106,59,.4); margin-top: 8px;
     }
-    .form-submit:hover { background: #b85a2e; transform: translateY(-1px); box-shadow: 0 10px 30px rgba(201,106,59,.4); }
+    .form-submit::after {
+      content: ''; position: absolute; top: 0; left: -60%; width: 45%; height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent);
+      transform: skewX(-20deg); transition: left .65s var(--ease-out);
+    }
+    .form-submit:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(201,106,59,.5); }
+    .form-submit:hover::after { left: 130%; }
+    .form-submit:active { transform: translateY(0); }
+
+    /* ── SCROLL PROGRESS ── */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 3px; width: 100%; z-index: 300;
+      transform: scaleX(0); transform-origin: left;
+      background: linear-gradient(90deg, var(--sea-light), var(--sand));
+    }
     .form-note { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
     .form-note a { color: var(--sea-mid); text-decoration: none; }
 
@@ -616,15 +645,15 @@
     .t-author span { font-size: 12px; color: var(--muted); }
 
     /* ── PRICING NOTE ── */
-    .pricing-note { background: var(--foam); border: 1px solid var(--line); border-radius: 14px; padding: 14px 22px; margin-bottom: 36px; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.6; }
-    .pricing-note strong { color: var(--ink); }
+    .pricing-note { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16); backdrop-filter: blur(10px); border-radius: 14px; padding: 14px 22px; margin-bottom: 36px; font-size: 14px; color: rgba(255,255,255,.74); text-align: center; line-height: 1.6; }
+    .pricing-note strong { color: #fff; }
 
     /* ── BOOKING STEPS ── */
     .booking-steps { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -20px 0 44px; flex-wrap: wrap; row-gap: 12px; }
     .bstep { display: flex; align-items: center; gap: 10px; }
-    .bstep-num { width: 28px; height: 28px; border-radius: 50%; background: var(--sea); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
-    .bstep-label { font-size: 13.5px; color: var(--ink-mid); font-weight: 500; }
-    .bstep-arrow { color: var(--muted); font-size: 20px; margin: 0 14px; line-height: 1; }
+    .bstep-num { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(150deg, var(--sea-light), var(--sea-mid)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; flex-shrink: 0; box-shadow: 0 4px 14px rgba(77,168,184,.4); }
+    .bstep-label { font-size: 13.5px; color: rgba(255,255,255,.82); font-weight: 500; }
+    .bstep-arrow { color: rgba(255,255,255,.35); font-size: 20px; margin: 0 14px; line-height: 1; }
 
     @media (max-width: 900px) {
       .about-grid, .location-grid { grid-template-columns: 1fr; gap: 40px; }
@@ -650,6 +679,8 @@
   </style>
 </head>
 <body>
+
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 
 <!-- ── NAV ── -->
 <nav id="nav">
@@ -902,7 +933,9 @@
 
 <!-- ── BOOKING FORM ── -->
 <section id="book">
-  <div class="wave-top" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,80 L0,42 C240,78 480,8 720,40 C960,72 1200,12 1440,42 L1440,80 Z" fill="#f5ede0"/></svg></div>
+  <div class="wave-top" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,80 L0,42 C240,78 480,8 720,40 C960,72 1200,12 1440,42 L1440,80 Z" fill="#0b3d52"/></svg></div>
+  <div class="book-orb bo1" aria-hidden="true"></div>
+  <div class="book-orb bo2" aria-hidden="true"></div>
   <div class="book-wrap">
     <div class="book-head">
       <p class="section-tag">Request a Stay</p>
@@ -1033,10 +1066,18 @@
 <script defer src="/assets/gsap/ScrollTrigger.min.js"></script>
 
 <script>
-  // ── NAV SCROLL EFFECT ──
+  // ── NAV SCROLL EFFECT + SCROLL PROGRESS ──
   const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => {
+  const progress = document.getElementById('scrollProgress');
+  let ticking = false;
+  const onScroll = () => {
     nav.classList.toggle('scrolled', window.scrollY > 60);
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    if (progress) progress.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
+    ticking = false;
+  };
+  window.addEventListener('scroll', () => {
+    if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
   }, { passive: true });
 
   // ── DATE DEFAULTS ──
