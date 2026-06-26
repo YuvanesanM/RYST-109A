@@ -42,24 +42,77 @@
         "url": "https://stay.ryst.in/nearby.html",
         "name": "Weekend Getaways from Chennai — Beaches, Heritage & ECR Drive near RYST 109A",
         "description": "A curated guide to weekend getaways from Chennai along the ECR — Mahabalipuram, Pondicherry, Auroville, backwaters and coastal attractions near RYST 109A.",
-        "isPartOf": { "@type": "WebSite", "name": "RYST 109A", "url": "https://stay.ryst.in" }
+        "isPartOf": { "@id": "https://stay.ryst.in/#website" },
+        "about": { "@id": "https://stay.ryst.in/#villa" },
+        "breadcrumb": { "@id": "https://stay.ryst.in/nearby.html#breadcrumb" },
+        "inLanguage": "en-IN",
+        "dateModified": "2026-06-26",
+        "author": { "@id": "https://stay.ryst.in/#organization" }
       },
       {
         "@type": "BreadcrumbList",
+        "@id": "https://stay.ryst.in/nearby.html#breadcrumb",
         "itemListElement": [
-          { "@type": "ListItem", "position": 1, "name": "Home",               "item": "https://stay.ryst.in" },
+          { "@type": "ListItem", "position": 1, "name": "Home",               "item": "https://stay.ryst.in/" },
           { "@type": "ListItem", "position": 2, "name": "Nearby Attractions", "item": "https://stay.ryst.in/nearby.html" }
         ]
       },
       {
         "@type": "ItemList",
-        "name": "Tourist attractions near RYST 109A",
+        "@id": "https://stay.ryst.in/nearby.html#attractions",
+        "name": "Weekend getaway destinations from Chennai near RYST 109A",
+        "description": "Beaches, UNESCO heritage sites and coastal experiences reachable on a day trip from RYST 109A on the ECR.",
         "itemListElement": [
-          { "@type": "TouristAttraction", "name": "Alamparai Fort" },
-          { "@type": "TouristAttraction", "name": "Mahabalipuram" },
-          { "@type": "TouristAttraction", "name": "Shore Temple" },
-          { "@type": "TouristAttraction", "name": "White Town, Pondicherry" },
-          { "@type": "TouristAttraction", "name": "Auroville" }
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "item": {
+              "@type": "TouristAttraction",
+              "name": "Alamparai Fort",
+              "description": "A 17th-century coastal fort ruin straddling a tidal creek on the Coromandel Coast — 5 km south of RYST 109A.",
+              "geo": { "@type": "GeoCoordinates", "latitude": 12.3317, "longitude": 80.0983 }
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "item": {
+              "@type": "TouristAttraction",
+              "name": "Mahabalipuram (Mamallapuram)",
+              "description": "UNESCO World Heritage Site with Pallava-era stone temples, Shore Temple and the famous bas-relief Arjuna's Penance — 45 km north on the ECR.",
+              "geo": { "@type": "GeoCoordinates", "latitude": 12.6269, "longitude": 80.1927 }
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "item": {
+              "@type": "TouristAttraction",
+              "name": "Paramankeni Backwaters",
+              "description": "A serene tidal estuary beside Pearl Beach — ideal for kayaking and birdwatching, a short walk from RYST 109A.",
+              "geo": { "@type": "GeoCoordinates", "latitude": 12.3698373, "longitude": 80.0782188 }
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 4,
+            "item": {
+              "@type": "TouristAttraction",
+              "name": "White Town, Pondicherry",
+              "description": "The French Quarter of Pondicherry with colonial-era streets, cafés and the promenade — 90 km south of RYST 109A.",
+              "geo": { "@type": "GeoCoordinates", "latitude": 11.9339, "longitude": 79.8353 }
+            }
+          },
+          {
+            "@type": "ListItem",
+            "position": 5,
+            "item": {
+              "@type": "TouristAttraction",
+              "name": "Auroville",
+              "description": "An international township founded in 1968, home to the iconic Matrimandir golden sphere — near Pondicherry.",
+              "geo": { "@type": "GeoCoordinates", "latitude": 12.0057, "longitude": 79.8105 }
+            }
+          }
         ]
       }
     ]
