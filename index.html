@@ -825,6 +825,9 @@
     .btrust-item { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: var(--ink-mid); }
     .btrust-check { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #27a06e, #1e8a5a); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .btrust-check svg { stroke: #fff; }
+    @media (max-width: 600px) {
+      .book-trust { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; justify-items: start; padding: 0 4px; }
+    }
 
     /* ── BOOKING STEPS ── */
     .booking-steps { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -20px 0 44px; flex-wrap: wrap; row-gap: 12px; }
