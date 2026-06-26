@@ -545,6 +545,8 @@
     .no-gsap .gallery-cell:hover { transform: scale(1.02); }
     .gallery-cell:first-child { grid-column: 1 / 3; grid-row: 1 / 3; aspect-ratio: 1; }
     .gallery-cell:not(:first-child) { aspect-ratio: 4/3; }
+    /* Garden & sit-out photo is portrait — give its cell a portrait ratio so it fits fully */
+    .gallery-grid .gallery-cell:nth-child(3) { aspect-ratio: 3/4; }
     .gc-inner { position: absolute; inset: 0; transition: transform .85s var(--ease-out); }
     .gallery-cell:hover .gc-inner { transform: scale(1.07); }
     .gc1 { background: url('/assets/gallery-1.jpg') center/cover no-repeat, linear-gradient(145deg, #061c24 0%, #0b3d52 40%, #1a6a7a 70%, #4da8b8 100%); }
