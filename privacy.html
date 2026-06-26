@@ -21,10 +21,28 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://stay.ryst.in/" },
-      { "@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "https://stay.ryst.in/privacy.html" }
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://stay.ryst.in/privacy.html#webpage",
+        "url": "https://stay.ryst.in/privacy.html",
+        "name": "Privacy Policy · RYST 109A",
+        "description": "Privacy Policy for RYST 109A — how we collect, use and protect the information you share when requesting a stay.",
+        "isPartOf": { "@id": "https://stay.ryst.in/#website" },
+        "about": { "@id": "https://stay.ryst.in/#organization" },
+        "breadcrumb": { "@id": "https://stay.ryst.in/privacy.html#breadcrumb" },
+        "inLanguage": "en-IN",
+        "dateModified": "2026-06-26",
+        "author": { "@id": "https://stay.ryst.in/#organization" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://stay.ryst.in/privacy.html#breadcrumb",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home",           "item": "https://stay.ryst.in/" },
+          { "@type": "ListItem", "position": 2, "name": "Privacy Policy", "item": "https://stay.ryst.in/privacy.html" }
+        ]
+      }
     ]
   }
   </script>

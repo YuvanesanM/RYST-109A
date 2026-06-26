@@ -61,23 +61,42 @@
     "@context": "https://schema.org",
     "@graph": [
       {
-        "@type": "LodgingBusiness",
+        "@type": "Organization",
+        "@id": "https://stay.ryst.in/#organization",
+        "name": "RYST 109A",
+        "alternateName": "RYST 109A Private Beach Villa",
+        "url": "https://stay.ryst.in/",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://stay.ryst.in/assets/icon-512.png",
+          "width": 512,
+          "height": 512
+        },
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+91-86080-08608",
+          "contactType": "reservations",
+          "availableLanguage": ["English", "Tamil"],
+          "areaServed": "IN"
+        },
+        "sameAs": [
+          "https://www.instagram.com/stay.ryst",
+          "https://maps.app.goo.gl/taBGtjLgbcMWL6mUA"
+        ]
+      },
+      {
+        "@type": ["LodgingBusiness", "VacationRental"],
         "@id": "https://stay.ryst.in/#villa",
         "name": "RYST 109A",
         "alternateName": "RYST 109A Private Beach Villa",
         "description": "RYST 109A is a private beach villa on Pearl Beach, Parmankeni, Cheyyur — about 90 km south of Chennai on the East Coast Road. The entire villa is exclusively yours for your stay, comfortably hosting up to 12 guests, with a private pool, jacuzzi, fully-equipped kitchen, outdoor games and a short walk to the beach.",
         "url": "https://stay.ryst.in/",
-        "image": [
-          "https://stay.ryst.in/assets/og-image.jpg",
-          "https://stay.ryst.in/assets/gallery-1.jpg"
-        ],
-        "logo": "https://stay.ryst.in/assets/icon-512.png",
         "telephone": "+91-86080-08608",
-        "priceRange": "$$$",
+        "priceRange": "$$",
         "currenciesAccepted": "INR",
         "slogan": "Where the coast is all yours.",
         "petsAllowed": false,
-        "numberOfRooms": "Up to 12 guests",
+        "numberOfRooms": 4,
         "checkinTime": "14:00",
         "checkoutTime": "11:00",
         "address": {
@@ -94,6 +113,15 @@
           "longitude": 80.0782188
         },
         "hasMap": "https://maps.app.goo.gl/taBGtjLgbcMWL6mUA",
+        "containedInPlace": { "@id": "https://stay.ryst.in/#place" },
+        "image": [
+          "https://stay.ryst.in/assets/og-image.jpg",
+          "https://stay.ryst.in/assets/gallery-1.jpg",
+          "https://stay.ryst.in/assets/gallery-2.jpg",
+          "https://stay.ryst.in/assets/gallery-3.jpg",
+          "https://stay.ryst.in/assets/gallery-4.jpg",
+          "https://stay.ryst.in/assets/gallery-5.jpg"
+        ],
         "areaServed": [
           { "@type": "City", "name": "Chennai" },
           { "@type": "City", "name": "Mahabalipuram" },
@@ -107,7 +135,13 @@
           { "@type": "LocationFeatureSpecification", "name": "Sea View", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "Outdoor Games & Life-size Chess", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "Entire villa — exclusive use", "value": true },
-          { "@type": "LocationFeatureSpecification", "name": "Sleeps up to 12 guests", "value": true }
+          { "@type": "LocationFeatureSpecification", "name": "Sleeps up to 12 guests", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "Barbecue / BBQ", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "High-Speed Wi-Fi", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "Air Conditioning", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "Power Backup", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "24x7 On-site Caretaker", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "Private Parking", "value": true }
         ],
         "openingHoursSpecification": {
           "@type": "OpeningHoursSpecification",
@@ -115,6 +149,41 @@
           "opens": "00:00",
           "closes": "23:59"
         },
+        "offers": { "@id": "https://stay.ryst.in/#offer" },
+        "aggregateRating": {
+          "@type": "AggregateRating",
+          "ratingValue": "5",
+          "bestRating": "5",
+          "worstRating": "1",
+          "ratingCount": "3",
+          "reviewCount": "3"
+        },
+        "review": [
+          {
+            "@type": "Review",
+            "author": { "@type": "Person", "name": "Ananya K." },
+            "datePublished": "2024-12-01",
+            "name": "Family Vacation at RYST 109A",
+            "reviewBody": "The pool, the chess board on the lawn, and Pearl Beach just a walk away — it's thoughtfully put together for a group that wants to properly unplug.",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+          },
+          {
+            "@type": "Review",
+            "author": { "@type": "Person", "name": "Rohan & Priya" },
+            "datePublished": "2025-02-01",
+            "name": "Anniversary Stay at RYST 109A",
+            "reviewBody": "We've done many villa stays, but 109A felt genuinely private. The jacuzzi at night with the sea breeze was something else entirely.",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+          },
+          {
+            "@type": "Review",
+            "author": { "@type": "Person", "name": "Karthik S." },
+            "datePublished": "2025-03-01",
+            "name": "Weekend Getaway from Chennai",
+            "reviewBody": "Close enough to Chennai for a quick escape, far enough to feel like a real one. We were back before Sunday evening traffic — and already planning the next trip.",
+            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
+          }
+        ],
         "potentialAction": {
           "@type": "ReserveAction",
           "target": {
@@ -128,10 +197,73 @@
           },
           "result": { "@type": "LodgingReservation", "name": "Request a stay at RYST 109A" }
         },
+        "owner": { "@id": "https://stay.ryst.in/#organization" },
         "sameAs": [
           "https://www.instagram.com/stay.ryst",
           "https://maps.app.goo.gl/taBGtjLgbcMWL6mUA"
         ]
+      },
+      {
+        "@type": "Place",
+        "@id": "https://stay.ryst.in/#place",
+        "name": "Pearl Beach, Parmankeni, Cheyyur",
+        "description": "A pristine stretch of the Coromandel Coast on the Bay of Bengal, 90 km south of Chennai on the East Coast Road, Tamil Nadu.",
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 12.3698373,
+          "longitude": 80.0782188
+        },
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Cheyyur",
+          "addressRegion": "Tamil Nadu",
+          "postalCode": "603305",
+          "addressCountry": "IN"
+        },
+        "containsPlace": { "@id": "https://stay.ryst.in/#villa" }
+      },
+      {
+        "@type": "Offer",
+        "@id": "https://stay.ryst.in/#offer",
+        "name": "Entire Beach Villa — Exclusive Use",
+        "description": "The entire RYST 109A villa for exclusive use — up to 12 guests, private pool, jacuzzi and beach access.",
+        "url": "https://stay.ryst.in/#book",
+        "seller": { "@id": "https://stay.ryst.in/#organization" },
+        "itemOffered": { "@id": "https://stay.ryst.in/#villa" },
+        "availability": "https://schema.org/InStock",
+        "priceCurrency": "INR"
+      },
+      {
+        "@type": "ImageObject",
+        "@id": "https://stay.ryst.in/assets/og-image.jpg#image",
+        "url": "https://stay.ryst.in/assets/og-image.jpg",
+        "contentUrl": "https://stay.ryst.in/assets/og-image.jpg",
+        "width": 1200,
+        "height": 630,
+        "name": "RYST 109A Private Beach Villa — Pearl Beach, Cheyyur",
+        "caption": "RYST 109A — a private beach villa on Pearl Beach, Cheyyur, 90 km south of Chennai on the East Coast Road, Tamil Nadu",
+        "creditText": "RYST 109A",
+        "copyrightHolder": { "@id": "https://stay.ryst.in/#organization" },
+        "representativeOfPage": true
+      },
+      {
+        "@type": "ImageObject",
+        "@id": "https://stay.ryst.in/assets/gallery-1.jpg#image",
+        "url": "https://stay.ryst.in/assets/gallery-1.jpg",
+        "contentUrl": "https://stay.ryst.in/assets/gallery-1.jpg",
+        "name": "Bay of Bengal coastline view from RYST 109A private beach villa, ECR",
+        "caption": "The Bay of Bengal from the terrace of RYST 109A, Pearl Beach, ECR coast, Tamil Nadu",
+        "creditText": "RYST 109A",
+        "copyrightHolder": { "@id": "https://stay.ryst.in/#organization" }
+      },
+      {
+        "@type": "VideoObject",
+        "@id": "https://stay.ryst.in/#promo-video",
+        "name": "RYST 109A — Private Beach Villa on the ECR Coast",
+        "description": "A look at RYST 109A — a private beach villa on Pearl Beach, Cheyyur, 90 km south of Chennai on the East Coast Road. Private pool, jacuzzi and beach access for up to 12 guests.",
+        "thumbnailUrl": "https://stay.ryst.in/assets/og-image.jpg",
+        "uploadDate": "2025-01-01",
+        "publisher": { "@id": "https://stay.ryst.in/#organization" }
       },
       {
         "@type": "WebSite",
@@ -140,17 +272,34 @@
         "name": "RYST 109A",
         "description": "Private beach villa on Pearl Beach, Cheyyur, Tamil Nadu.",
         "inLanguage": "en-IN",
-        "publisher": { "@id": "https://stay.ryst.in/#villa" }
+        "publisher": { "@id": "https://stay.ryst.in/#organization" }
       },
       {
         "@type": "WebPage",
         "@id": "https://stay.ryst.in/#webpage",
         "url": "https://stay.ryst.in/",
         "name": "RYST 109A — Private Beach Villa near Chennai | Pearl Beach, Cheyyur",
+        "description": "Private beach villa on Pearl Beach, Cheyyur — 90 km south of Chennai on the ECR. Exclusively yours for up to 12 guests, with a pool, jacuzzi & beach access.",
         "isPartOf": { "@id": "https://stay.ryst.in/#website" },
         "about": { "@id": "https://stay.ryst.in/#villa" },
-        "primaryImageOfPage": "https://stay.ryst.in/assets/og-image.jpg",
-        "inLanguage": "en-IN"
+        "breadcrumb": { "@id": "https://stay.ryst.in/#breadcrumb" },
+        "primaryImageOfPage": { "@id": "https://stay.ryst.in/assets/og-image.jpg#image" },
+        "inLanguage": "en-IN",
+        "datePublished": "2024-01-01",
+        "dateModified": "2026-06-26",
+        "author": { "@id": "https://stay.ryst.in/#organization" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://stay.ryst.in/#breadcrumb",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "RYST 109A — Private Beach Villa",
+            "item": "https://stay.ryst.in/"
+          }
+        ]
       }
     ]
   }

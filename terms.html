@@ -21,10 +21,28 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://stay.ryst.in/" },
-      { "@type": "ListItem", "position": 2, "name": "Terms & Conditions", "item": "https://stay.ryst.in/terms.html" }
+    "@graph": [
+      {
+        "@type": "WebPage",
+        "@id": "https://stay.ryst.in/terms.html#webpage",
+        "url": "https://stay.ryst.in/terms.html",
+        "name": "Terms & Conditions · RYST 109A",
+        "description": "Terms & Conditions for booking and staying at RYST 109A private beach villa, Cheyyur.",
+        "isPartOf": { "@id": "https://stay.ryst.in/#website" },
+        "about": { "@id": "https://stay.ryst.in/#organization" },
+        "breadcrumb": { "@id": "https://stay.ryst.in/terms.html#breadcrumb" },
+        "inLanguage": "en-IN",
+        "dateModified": "2026-06-26",
+        "author": { "@id": "https://stay.ryst.in/#organization" }
+      },
+      {
+        "@type": "BreadcrumbList",
+        "@id": "https://stay.ryst.in/terms.html#breadcrumb",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Home",                 "item": "https://stay.ryst.in/" },
+          { "@type": "ListItem", "position": 2, "name": "Terms & Conditions",   "item": "https://stay.ryst.in/terms.html" }
+        ]
+      }
     ]
   }
   </script>
