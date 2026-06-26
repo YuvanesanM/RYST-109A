@@ -936,12 +936,12 @@
             <text x="0" y="-17" fill="#6b8480" font-family="'DM Sans',sans-serif" font-size="9" font-weight="700" text-anchor="middle">N</text>
           </g>
         </svg>
-        <button class="map-pin-btn"         style="left:41%;top:14%" data-cat="Heritage" data-place="Mahabalipuram" data-desc="UNESCO rock-cut temples and craft lanes, 38 km north of RYST 109A."><span>M</span></button>
-        <button class="map-pin-btn"         style="left:49%;top:31%" data-cat="Beaches"  data-place="Alamparai Fort"  data-desc="Sea-facing fort ruins with dramatic views, 10 km from RYST 109A."><span>A</span></button>
-        <button class="map-pin-btn is-base" style="left:55%;top:50%" data-cat="Beaches"  data-place="RYST 109A"       data-desc="Your base — Pearl Beach, Cheyyur. Private villa on the Bay of Bengal."><span>R</span></button>
-        <button class="map-pin-btn"         style="left:49%;top:65%" data-cat="Nature"   data-place="Marakkanam"      data-desc="Salt pans and coastal seafood kitchens, 28 km south of RYST 109A."><span>S</span></button>
-        <button class="map-pin-btn"         style="left:54%;top:82%" data-cat="Culture"  data-place="White Town"      data-desc="Pondicherry's French Quarter — promenades and cafés, 63 km away."><span>P</span></button>
-        <button class="map-pin-btn"         style="left:33%;top:78%" data-cat="Nature"   data-place="Auroville"       data-desc="Forest trails, design stores and conscious living, 75 km south."><span>Au</span></button>
+        <button class="map-pin-btn"         style="left:41%;top:14%" data-cat="Heritage" data-place="Mahabalipuram" data-desc="UNESCO rock-cut temples and craft lanes, 38 km north of RYST 109A." data-mapq="Mahabalipuram Tamil Nadu"><span>M</span></button>
+        <button class="map-pin-btn"         style="left:49%;top:31%" data-cat="Beaches"  data-place="Alamparai Fort"  data-desc="Sea-facing fort ruins with dramatic views, 10 km from RYST 109A." data-mapq="Alamparai Fort ECR Tamil Nadu"><span>A</span></button>
+        <button class="map-pin-btn is-base" style="left:55%;top:50%" data-cat="Beaches"  data-place="RYST 109A"       data-desc="Your base — Pearl Beach, Cheyyur. Private villa on the Bay of Bengal." data-mapq="RYST 109A Pearl Beach Cheyyur Tamil Nadu"><span>R</span></button>
+        <button class="map-pin-btn"         style="left:49%;top:65%" data-cat="Nature"   data-place="Marakkanam"      data-desc="Salt pans and coastal seafood kitchens, 28 km south of RYST 109A." data-mapq="Marakkanam Salt Pans Tamil Nadu"><span>S</span></button>
+        <button class="map-pin-btn"         style="left:54%;top:82%" data-cat="Culture"  data-place="White Town"      data-desc="Pondicherry's French Quarter — promenades and cafés, 63 km away." data-mapq="White Town Pondicherry Tamil Nadu"><span>P</span></button>
+        <button class="map-pin-btn"         style="left:33%;top:78%" data-cat="Nature"   data-place="Auroville"       data-desc="Forest trails, design stores and conscious living, 75 km south." data-mapq="Auroville Tamil Nadu"><span>Au</span></button>
       </div>
       <aside class="map-panel reveal">
         <h3 id="mapPlace">RYST 109A coastal radius</h3>
@@ -952,9 +952,9 @@
           <span><i class="map-dot" style="background:#a66c42"></i>Heritage</span>
           <span><i class="map-dot" style="background:#7d6fa8"></i>Culture</span>
         </div>
-        <iframe title="Google Map showing RYST 109A and nearby attractions on the ECR coast" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+        <iframe id="mapIframe" title="Google Map showing selected destination near RYST 109A on the ECR coast" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
                 src="https://www.google.com/maps?q=RYST+109A+Pearl+Beach+Cheyyur+Tamil+Nadu&output=embed"></iframe>
-        <a class="btn-gold" href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank" rel="noopener">
+        <a id="mapLink" class="btn-gold" href="https://www.google.com/maps/search/?api=1&query=RYST+109A+Pearl+Beach+Cheyyur+Tamil+Nadu" target="_blank" rel="noopener">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
           Open in Google Maps
         </a>
@@ -1179,15 +1179,25 @@
   document.querySelectorAll('#expGrid .reveal').forEach(el => revealObs.observe(el));
 
   /* Map pin interaction */
-  const mapPins = document.querySelectorAll('.map-pin-btn');
-  mapPins.forEach(pin => {
-    pin.addEventListener('click', () => {
-      mapPins.forEach(p => p.classList.remove('active'));
-      pin.classList.add('active');
-      document.getElementById('mapPlace').textContent = pin.dataset.place;
-      document.getElementById('mapDesc').textContent  = pin.dataset.desc;
-    });
-  });
+  const mapPins   = document.querySelectorAll('.map-pin-btn');
+  const mapIframe = document.getElementById('mapIframe');
+  const mapLink   = document.getElementById('mapLink');
+
+  function selectPin(pin) {
+    mapPins.forEach(p => p.classList.remove('active'));
+    pin.classList.add('active');
+    document.getElementById('mapPlace').textContent = pin.dataset.place;
+    document.getElementById('mapDesc').textContent  = pin.dataset.desc;
+    const q = encodeURIComponent(pin.dataset.mapq);
+    mapIframe.src = 'https://www.google.com/maps?q=' + q + '&output=embed';
+    mapLink.href  = 'https://www.google.com/maps/search/?api=1&query=' + q;
+  }
+
+  mapPins.forEach(pin => pin.addEventListener('click', () => selectPin(pin)));
+
+  /* Initialise with RYST 109A selected */
+  const basePin = document.querySelector('.map-pin-btn.is-base');
+  if (basePin) selectPin(basePin);
 </script>
 </body>
 </html>
