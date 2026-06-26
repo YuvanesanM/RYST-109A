@@ -52,7 +52,8 @@
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/dm-sans-latin-wght-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-latin-400-normal.woff2" crossorigin>
-  <link rel="preload" as="image" href="/assets/hero-bg.jpg" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/hero-bg-mobile.webp" media="(max-width: 768px)" fetchpriority="high">
+  <link rel="preload" as="image" href="/assets/hero-bg.webp" media="(min-width: 769px)" fetchpriority="high">
 
   <!-- ── STRUCTURED DATA (schema.org) ── -->
   <script type="application/ld+json">
@@ -301,9 +302,10 @@
     /* Real coastline photo as the hero backdrop, graded by the veil + vignette above it */
     .hero-photo {
       z-index: 0; inset: -8% 0 -8% 0; opacity: 0; will-change: transform, opacity;
-      background: url('/assets/hero-bg.jpg') center/cover no-repeat;
+      background: url('/assets/hero-bg.webp') center/cover no-repeat;
       animation: heroPhoto 1.9s var(--ease-out) .15s forwards;
     }
+    @media (max-width: 768px) { .hero-photo { background-image: url('/assets/hero-bg-mobile.webp'); } }
     @keyframes heroPhoto { from { opacity: 0; transform: scale(1.07); } to { opacity: 1; transform: none; } }
     .hero-sun {
       z-index: 1; opacity: 0; mix-blend-mode: screen; will-change: transform;
@@ -1378,9 +1380,9 @@
       });
     }
 
-    // Floating particles
+    // Floating particles (desktop only — skip the rAF loop on mobile for performance/battery)
     const canvas = document.getElementById('heroParticles');
-    if (canvas && !reduce) {
+    if (canvas && !reduce && window.matchMedia('(min-width: 768px)').matches) {
       const ctx = canvas.getContext('2d');
       let w, h, dpr, parts = [], anim = null;
       const COUNT = 38;
