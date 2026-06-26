@@ -482,14 +482,17 @@
       background: linear-gradient(145deg, #0b3d52 0%, #1a6a7a 40%, #4da8b8 70%, #c8a97a 100%);
       box-shadow: var(--sh-lg);
     }
-    .about-img-inner {
-      position: absolute; inset: 0;
-      background: url('/assets/stay-logo-bg.webp') center/58% no-repeat, radial-gradient(ellipse at 60% 40%, rgba(77,168,184,.32), transparent 70%);
-      transition: transform 1.2s var(--ease-out);
+    /* Layered Discover visual: villa behind, leaf frame in front (parallax on scroll) */
+    .av-building {
+      position: absolute; inset: -6%; z-index: 1; will-change: transform;
+      background: url('/assets/stay-logo-bg.webp') center 48%/54% no-repeat, radial-gradient(ellipse at 60% 42%, rgba(77,168,184,.32), transparent 70%);
     }
-    .about-visual:hover .about-img-inner { transform: scale(1.04); }
+    .av-leaves {
+      position: absolute; inset: -9%; z-index: 2; pointer-events: none; will-change: transform;
+      background: url('/assets/leaf-frame.webp') center/cover no-repeat;
+    }
     .about-float {
-      position: absolute; bottom: 22px; left: 22px; right: 22px;
+      position: absolute; bottom: 22px; left: 22px; right: 22px; z-index: 3;
       background: linear-gradient(160deg, rgba(11,29,33,.82), rgba(11,29,33,.64));
       backdrop-filter: blur(14px) saturate(120%);
       border: 1px solid rgba(255,255,255,.14); border-radius: 18px;
@@ -894,7 +897,8 @@
 <section id="about">
   <div class="about-grid">
     <div class="about-visual">
-      <div class="about-img-inner"></div>
+      <div class="av-building" aria-hidden="true"></div>
+      <div class="av-leaves" aria-hidden="true"></div>
       <div class="about-float">
         <div class="about-float-row">
           <div class="about-stat"><div class="num" data-count="12">12</div><div class="lbl">Max Guests</div></div>
@@ -1473,6 +1477,13 @@
         })
       });
     });
+
+    // ── DISCOVER: layered parallax (villa behind drifts down, leaf frame in front drifts up) ──
+    if (document.querySelector('.av-leaves')) {
+      const avScrub = { trigger: '#about', start: 'top bottom', end: 'bottom top', scrub: true };
+      gsap.to('.av-building', { yPercent: 7,   ease: 'none', scrollTrigger: avScrub });
+      gsap.to('.av-leaves',   { yPercent: -11, ease: 'none', scrollTrigger: avScrub });
+    }
 
     // ── PARALLAX (hero orbs drift at different rates) ──
     const heroScrub = { trigger:'#hero', start:'top top', end:'bottom top', scrub:true };
