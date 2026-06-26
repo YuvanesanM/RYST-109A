@@ -301,12 +301,11 @@
     @keyframes heroSky { from { opacity: 0; } to { opacity: 1; } }
     /* Real coastline photo as the hero backdrop, graded by the veil + vignette above it */
     .hero-photo {
-      z-index: 0; inset: -8% 0 -8% 0; opacity: 0; will-change: transform, opacity;
-      background: url('/assets/hero-bg.webp') center/cover no-repeat;
-      animation: heroPhoto 1.9s var(--ease-out) .15s forwards;
+      z-index: 0; inset: -8% 0 -8% 0; overflow: hidden; display: block; will-change: transform;
+      animation: heroPhoto 2s var(--ease-out) both;
     }
-    @media (max-width: 768px) { .hero-photo { background-image: url('/assets/hero-bg-mobile.webp'); } }
-    @keyframes heroPhoto { from { opacity: 0; transform: scale(1.07); } to { opacity: 1; transform: none; } }
+    .hero-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    @keyframes heroPhoto { from { transform: scale(1.08); } to { transform: none; } }
     .hero-sun {
       z-index: 1; opacity: 0; mix-blend-mode: screen; will-change: transform;
       background: radial-gradient(40% 32% at 24% 70%, rgba(250,230,188,.9), rgba(247,216,158,.34) 36%, transparent 64%);
@@ -356,25 +355,25 @@
     .hero-eyebrow {
       font-family: var(--sans); font-size: clamp(10px,1.1vw,12.5px); font-weight: 600; letter-spacing: 5px;
       text-transform: uppercase; color: rgba(246,241,230,.78); margin-bottom: clamp(20px,4vh,40px);
-      opacity: 0; transform: translateY(14px); animation: hrUp 1s var(--ease-out) 1s forwards;
+      opacity: 0; transform: translateY(14px); animation: hrUp .7s var(--ease-out) .25s forwards;
     }
     .hero-title { display: flex; flex-direction: column; align-items: center; line-height: .9; }
     .ht-main {
       font-family: var(--serif); font-weight: 300; color: var(--ivory);
       font-size: clamp(68px, 15vw, 196px); letter-spacing: clamp(4px,1.4vw,18px); text-indent: clamp(4px,1.4vw,18px);
       text-shadow: 0 2px 44px rgba(4,16,24,.4);
-      opacity: 0; transform: translateY(28px); animation: hrUp 1.2s var(--ease-out) 1.2s forwards;
+      opacity: 0; transform: translateY(28px); animation: hrUp .8s var(--ease-out) .4s forwards;
     }
     .ht-sub {
       font-family: var(--serif); font-style: italic; font-weight: 400;
       font-size: clamp(34px, 7vw, 104px); letter-spacing: 1px; margin-top: -.06em;
       background: linear-gradient(180deg, #f3ddae 0%, var(--gold) 48%, var(--gold-deep) 100%);
       -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--gold);
-      opacity: 0; transform: translateY(22px); animation: hrUp 1.2s var(--ease-out) 1.45s forwards;
+      opacity: 0; transform: translateY(22px); animation: hrUp .8s var(--ease-out) .6s forwards;
     }
     .hero-divider {
       display: flex; align-items: center; gap: 14px; margin: clamp(22px,4vh,38px) 0 clamp(18px,3vh,28px);
-      opacity: 0; animation: hrFade 1.1s var(--ease-out) 1.7s forwards;
+      opacity: 0; animation: hrFade .8s var(--ease-out) .8s forwards;
     }
     .hero-divider span { width: clamp(40px,8vw,90px); height: 1px; background: linear-gradient(90deg, transparent, rgba(230,205,151,.7)); }
     .hero-divider span:last-child { background: linear-gradient(90deg, rgba(230,205,151,.7), transparent); }
@@ -382,11 +381,11 @@
     .hero-tagline {
       font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(17px,2.2vw,23px);
       color: rgba(246,241,230,.85); line-height: 1.55; max-width: 600px;
-      opacity: 0; transform: translateY(16px); animation: hrUp 1.1s var(--ease-out) 1.85s forwards;
+      opacity: 0; transform: translateY(16px); animation: hrUp .8s var(--ease-out) .9s forwards;
     }
     .hero-actions {
       display: flex; gap: 16px; margin-top: clamp(30px,5vh,46px); flex-wrap: wrap; justify-content: center;
-      opacity: 0; transform: translateY(16px); animation: hrUp 1s var(--ease-out) 2.1s forwards;
+      opacity: 0; transform: translateY(16px); animation: hrUp .8s var(--ease-out) 1.05s forwards;
     }
     .btn-stay, .btn-explore {
       position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 10px;
@@ -416,7 +415,7 @@
     .btn-stay svg, .btn-explore svg { width: 16px; height: 16px; flex-shrink: 0; }
     .hero-concierge {
       margin-top: clamp(20px,3vh,30px); font-size: 13px; color: rgba(246,241,230,.62);
-      opacity: 0; animation: hrFade 1s var(--ease-out) 2.35s forwards;
+      opacity: 0; animation: hrFade .8s var(--ease-out) 1.2s forwards;
     }
     .hero-concierge a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(230,205,151,.4); padding-bottom: 1px; transition: color .2s, border-color .2s; }
     .hero-concierge a:hover { color: #f3ddae; border-color: rgba(230,205,151,.9); }
@@ -428,7 +427,7 @@
       border: 1px solid rgba(246,241,230,.18);
       -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%);
       box-shadow: 0 18px 50px rgba(4,16,24,.45), inset 0 1px 0 rgba(255,255,255,.18);
-      opacity: 0; transform: translate(-50%, 18px); animation: hrUpX 1.1s var(--ease-out) 2.5s forwards;
+      opacity: 0; transform: translate(-50%, 18px); animation: hrUpX .9s var(--ease-out) 1.3s forwards;
       overflow-x: auto; scrollbar-width: none;
     }
     .hero-feature-bar::-webkit-scrollbar { display: none; }
@@ -437,10 +436,10 @@
       position: relative; flex: 1 0 auto; min-width: 90px;
       opacity: 0; animation: hrFade .7s var(--ease-out) forwards;
     }
-    .hf-item:nth-child(1){animation-delay:2.6s}.hf-item:nth-child(2){animation-delay:2.68s}
-    .hf-item:nth-child(3){animation-delay:2.76s}.hf-item:nth-child(4){animation-delay:2.84s}
-    .hf-item:nth-child(5){animation-delay:2.92s}.hf-item:nth-child(6){animation-delay:3s}
-    .hf-item:nth-child(7){animation-delay:3.08s}.hf-item:nth-child(8){animation-delay:3.16s}
+    .hf-item:nth-child(1){animation-delay:1.4s}.hf-item:nth-child(2){animation-delay:1.47s}
+    .hf-item:nth-child(3){animation-delay:1.54s}.hf-item:nth-child(4){animation-delay:1.61s}
+    .hf-item:nth-child(5){animation-delay:1.68s}.hf-item:nth-child(6){animation-delay:1.75s}
+    .hf-item:nth-child(7){animation-delay:1.82s}.hf-item:nth-child(8){animation-delay:1.89s}
     .hf-item + .hf-item::before {
       content: ''; position: absolute; left: 0; top: 18%; height: 64%; width: 1px;
       background: linear-gradient(180deg, transparent, rgba(246,241,230,.22), transparent);
@@ -460,7 +459,7 @@
         margin: clamp(22px,4vh,32px) auto 0; width: min(440px, 94vw);
         justify-content: center; overflow: visible;
         border-radius: 18px; padding: 6px 2px;
-        opacity: 0; animation: hrFade 1s var(--ease-out) 2.4s forwards;
+        opacity: 0; animation: hrFade .8s var(--ease-out) 1.3s forwards;
       }
       .hf-item { flex: 1 1 0; min-width: 0; padding: 9px 4px; gap: 5px; }
       .hf-item svg { width: 18px; height: 18px; }
@@ -881,7 +880,10 @@
 
 <!-- ── HERO (cinematic) ── -->
 <section id="hero">
-  <div class="hero-layer hero-photo" aria-hidden="true"></div>
+  <picture class="hero-layer hero-photo">
+    <source media="(max-width: 768px)" srcset="/assets/hero-bg-mobile.webp">
+    <img src="/assets/hero-bg.webp" alt="RYST 109A private beachfront villa at sunset — Pearl Beach, Cheyyur" fetchpriority="high" decoding="async" width="1717" height="916">
+  </picture>
   <div class="hero-layer hero-sky"   aria-hidden="true"></div>
   <div class="hero-layer hero-haze"  data-depth="14" aria-hidden="true"></div>
   <div class="hero-layer hero-glow"  data-depth="10" aria-hidden="true"></div>
