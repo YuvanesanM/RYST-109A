@@ -1,38 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
   <url>
     <loc>https://stay.ryst.in/</loc>
-    <lastmod>2026-06-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2026-06-26</lastmod>
     <image:image>
       <image:loc>https://stay.ryst.in/assets/og-image.jpg</image:loc>
       <image:title>RYST 109A — Private Beach Villa, Pearl Beach, Cheyyur</image:title>
     </image:image>
   </url>
+
   <url>
     <loc>https://stay.ryst.in/nearby.html</loc>
     <lastmod>2026-06-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
   </url>
+
   <url>
     <loc>https://stay.ryst.in/faq.html</loc>
     <lastmod>2026-06-26</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
   </url>
+
   <url>
     <loc>https://stay.ryst.in/privacy.html</loc>
-    <lastmod>2026-06-25</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2026-06-26</lastmod>
   </url>
+
   <url>
     <loc>https://stay.ryst.in/terms.html</loc>
-    <lastmod>2026-06-25</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.3</priority>
+    <lastmod>2026-06-26</lastmod>
   </url>
+
 </urlset>
