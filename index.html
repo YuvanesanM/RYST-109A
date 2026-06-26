@@ -490,6 +490,24 @@
     .av-leaves {
       position: absolute; inset: -12%; z-index: 2; pointer-events: none; will-change: transform;
       background: url('/assets/leaf-frame.webp') center/cover no-repeat;
+      filter: blur(4px);
+    }
+    /* Branded caption over the villa's sky */
+    .av-caption {
+      position: absolute; top: clamp(18px, 5%, 42px); left: 0; right: 0; z-index: 3;
+      text-align: center; pointer-events: none; padding: 0 18px;
+    }
+    .avc-title {
+      font-family: var(--serif); font-weight: 400; letter-spacing: 2px; line-height: 1;
+      font-size: clamp(28px, 6vw, 50px);
+      background: linear-gradient(180deg, #f3ddae 0%, #e6cd97 55%, #d4ad6a 100%);
+      -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: #e6cd97;
+      filter: drop-shadow(0 2px 14px rgba(6,20,24,.35));
+    }
+    .avc-sub {
+      font-family: var(--sans); font-weight: 600; letter-spacing: 5px; text-transform: uppercase;
+      font-size: clamp(10px, 2vw, 13px); color: rgba(244,237,221,.85); margin-top: 8px;
+      text-shadow: 0 1px 10px rgba(6,20,24,.3);
     }
     .about-float {
       position: absolute; bottom: 22px; left: 22px; right: 22px; z-index: 3;
@@ -899,6 +917,10 @@
     <div class="about-visual">
       <div class="av-building" aria-hidden="true"></div>
       <div class="av-leaves" aria-hidden="true"></div>
+      <div class="av-caption">
+        <div class="avc-title">RYST 109A</div>
+        <div class="avc-sub">Private Villa</div>
+      </div>
       <div class="about-float">
         <div class="about-float-row">
           <div class="about-stat"><div class="num" data-count="12">12</div><div class="lbl">Max Guests</div></div>
