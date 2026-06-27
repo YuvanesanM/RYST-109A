@@ -511,7 +511,7 @@
       font-family: var(--serif); font-weight: 300; color: var(--ivory);
       font-size: clamp(68px, 15vw, 196px); letter-spacing: clamp(4px,1.4vw,18px); text-indent: clamp(4px,1.4vw,18px);
       text-shadow: 0 2px 44px rgba(4,16,24,.4);
-      opacity: 0; transform: translateY(28px); animation: hrUp .8s var(--ease-out) .4s forwards;
+      opacity: 0; transform: translateY(28px); animation: hrUp .8s var(--ease-out) 0s forwards;
     }
     .ht-sub {
       font-family: var(--serif); font-style: italic; font-weight: 400;
@@ -1042,7 +1042,7 @@
 <section id="hero">
   <picture class="hero-layer hero-photo">
     <source media="(max-width: 768px)" srcset="/assets/hero-bg-mobile.webp">
-    <img src="/assets/hero-bg.webp" alt="RYST 109A private beachfront villa at sunset — Pearl Beach, Cheyyur" fetchpriority="high" decoding="async" width="1717" height="916">
+    <img src="/assets/hero-bg.webp" alt="RYST 109A private beachfront villa at sunset — Pearl Beach, Cheyyur" fetchpriority="high" loading="eager" width="1717" height="916">
   </picture>
   <div class="hero-layer hero-sky"   aria-hidden="true"></div>
   <div class="hero-layer hero-haze"  data-depth="14" aria-hidden="true"></div>
