@@ -330,26 +330,6 @@
     .section-lead  { font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 580px; margin-top: 16px; }
     .section-head  { margin-bottom: 48px; }
 
-    /* ── OVERVIEW CARDS ── */
-    .ov-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-    .ov-card {
-      background: var(--white); border-radius: 20px; overflow: hidden;
-      border: 1px solid rgba(14,36,32,.07); box-shadow: var(--sh-sm);
-      transition: transform .35s var(--ease), box-shadow .35s;
-    }
-    .ov-card:hover { transform: translateY(-6px); box-shadow: var(--sh-md); }
-    .ov-media { aspect-ratio: 16/10; overflow: hidden; position: relative; }
-    .ov-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .55s var(--ease); }
-    .ov-card:hover .ov-media img { transform: scale(1.05); }
-    .ov-dist-tag {
-      position: absolute; bottom: 12px; left: 12px;
-      background: rgba(6,18,30,.72); color: #fff; backdrop-filter: blur(8px);
-      border-radius: 100px; padding: 5px 12px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-    }
-    .ov-body { padding: 22px 22px 24px; }
-    .ov-title { font-family: var(--serif); font-size: 1.35rem; color: var(--ink); margin-bottom: 8px; }
-    .ov-desc  { font-size: 14px; color: var(--muted); line-height: 1.65; }
-
     /* ── FILTER BAR ── */
     .filter-bar {
       position: sticky; top: 0; z-index: 50;
@@ -620,7 +600,7 @@
       nav { justify-content: flex-end; }
       .nav-links { display: none; }
       .nav-ham   { display: flex; }
-      .ov-grid, .dining-grid  { grid-template-columns: repeat(2, 1fr); }
+      .dining-grid  { grid-template-columns: repeat(2, 1fr); }
       .at-grid   { grid-template-columns: repeat(2, 1fr); }
       .it-grid   { grid-template-columns: repeat(2, 1fr); }
       .exp-grid  { grid-template-columns: repeat(3, 1fr); }
@@ -628,7 +608,7 @@
       .map-art   { min-height: 360px; }
     }
     @media (max-width: 600px) {
-      .ov-grid, .at-grid, .dining-grid, .it-grid { grid-template-columns: 1fr; }
+      .at-grid, .dining-grid, .it-grid { grid-template-columns: 1fr; }
       .exp-grid  { grid-template-columns: repeat(2, 1fr); }
       .footer-top { flex-direction: column; gap: 28px; }
       .n-hero-title .n-ht-main { letter-spacing: 2px; }
@@ -689,80 +669,7 @@
       <a href="/#book"       class="btn-hero-glass">Reserve RYST 109A</a>
     </div>
   </div>
-  <a class="n-scroll-cue" href="#overview" aria-label="Scroll to explore"></a>
-</section>
-
-<!-- ── OVERVIEW ── -->
-<section id="overview" aria-labelledby="overview-title">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="section-tag">Close to everything</p>
-      <h2 class="section-title" id="overview-title">A coast worth <em>lingering over</em></h2>
-      <p class="section-lead">RYST 109A is 90 km from Chennai — making it one of the most convenient weekend getaways on the ECR. Wild beaches, quiet backwaters, ancient temples and the French-quarter mood of Pondicherry are all within a day trip from the villa.</p>
-    </div>
-    <div class="ov-grid">
-      <article class="ov-card reveal reveal-d1">
-        <div class="ov-media">
-          <img loading="lazy" src="/assets/nearby/ecr-beach-private-shore.webp" alt="Private beach at RYST 109A — Pearl Beach, Cheyyur" width="700" height="438">
-          <span class="ov-dist-tag">Steps away</span>
-        </div>
-        <div class="ov-body">
-          <h3 class="ov-title">Private Beach Access</h3>
-          <p class="ov-desc">Begin the morning with sand, surf and unhurried shoreline walks along Pearl Beach.</p>
-        </div>
-      </article>
-      <article class="ov-card reveal reveal-d2">
-        <div class="ov-media">
-          <img loading="lazy" src="/assets/nearby/paramankeni-backwater-boating.webp" alt="Backwater boating at Raindrop Boat House near RYST 109A" width="700" height="438">
-          <span class="ov-dist-tag">2 km · 5 mins</span>
-        </div>
-        <div class="ov-body">
-          <h3 class="ov-title">Paramankeni Backwaters</h3>
-          <p class="ov-desc">Still water, birdlife and golden-hour reflections on the quiet backwaters.</p>
-        </div>
-      </article>
-      <article class="ov-card reveal reveal-d3">
-        <div class="ov-media">
-          <img loading="lazy" src="/assets/nearby/alamparai-fort-ruins-ecr.webp" alt="Alamparai Fort sea-facing ruins on the ECR coast" width="700" height="467">
-          <span class="ov-dist-tag">10 km · 15 mins</span>
-        </div>
-        <div class="ov-body">
-          <h3 class="ov-title">Alamparai Fort</h3>
-          <p class="ov-desc">Sea-facing ruins with dramatic stone textures and wide open horizons.</p>
-        </div>
-      </article>
-      <article class="ov-card reveal reveal-d4">
-        <div class="ov-media">
-          <img loading="lazy" src="/assets/nearby/marakkanam-salt-pans-photography.webp" alt="Marakkanam salt pans — minimalist landscape photography" width="700" height="467">
-          <span class="ov-dist-tag">28 km · 30 mins</span>
-        </div>
-        <div class="ov-body">
-          <h3 class="ov-title">Marakkanam Salt Pans</h3>
-          <p class="ov-desc">Mirror-like basins, minimal horizons and striking photography at golden hour.</p>
-        </div>
-      </article>
-      <article class="ov-card reveal reveal-d5">
-        <div class="ov-media">
-          <img loading="lazy" src="/assets/nearby/mahabalipuram-stone-monuments.webp" alt="UNESCO heritage monuments in Mahabalipuram near ECR" width="700" height="467">
-          <span class="ov-dist-tag">38 km · 45 mins</span>
-        </div>
-        <div class="ov-body">
-          <h3 class="ov-title">Mahabalipuram</h3>
-          <p class="ov-desc">UNESCO stone shrines, craft lanes, surf cafes and sea-facing temples.</p>
-        </div>
-      </article>
-      <article class="ov-card reveal reveal-d6">
-        <div class="ov-media">
-          <img loading="lazy" src="/assets/nearby/pondicherry-white-town-french-quarter.webp" alt="French quarter streets of White Town, Pondicherry" width="700" height="467">
-          <span class="ov-dist-tag">63 km · 1 hr</span>
-        </div>
-        <div class="ov-body">
-          <h3 class="ov-title">White Town, Pondicherry</h3>
-          <p class="ov-desc">Colonial avenues, sea promenades, French bakeries and slow cafe mornings.</p>
-        </div>
-      </article>
-    </div>
-  </div>
+  <a class="n-scroll-cue" href="#attractions" aria-label="Scroll to explore"></a>
 </section>
 
 <!-- ── FILTER BAR ── -->
@@ -777,8 +684,8 @@
   <div class="container">
     <div class="section-head reveal">
       <p class="section-tag">Curated around your stay</p>
-      <h2 class="section-title" id="attractions-title">Twenty ways to experience <em>the coastline</em></h2>
-      <p class="section-lead"><span class="count" data-target="20">0</span> attractions within reach — from five-minute escapes to full-day coastal drives.</p>
+      <h2 class="section-title" id="attractions-title">Several ways to experience <em>the coastline</em></h2>
+      <p class="section-lead">A curated set of attractions within reach — from five-minute escapes to full-day coastal drives.</p>
     </div>
     <div class="at-grid" id="attractionGrid"></div>
   </div>
