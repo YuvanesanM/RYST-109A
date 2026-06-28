@@ -37,6 +37,7 @@
 
   <!-- ── TWITTER ── -->
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site"      content="@stay.ryst">
   <meta name="twitter:title" content="RYST 109A — Private Beach Villa, Pearl Beach, Cheyyur">
   <meta name="twitter:description" content="A private coastal retreat 90 km south of Chennai. Exclusively yours for up to 12 guests — pool, jacuzzi & beach access.">
   <meta name="twitter:image" content="https://stay.ryst.in/assets/og-image.jpg">
@@ -286,7 +287,7 @@
         "primaryImageOfPage": { "@id": "https://stay.ryst.in/assets/og-image.jpg#image" },
         "inLanguage": "en-IN",
         "datePublished": "2024-01-01",
-        "dateModified": "2026-06-26",
+        "dateModified": "2026-06-28",
         "author": { "@id": "https://stay.ryst.in/#organization" }
       },
       {
@@ -373,7 +374,7 @@
     body { font-family: var(--sans); background: var(--white); color: var(--ink); overflow-x: hidden; }
 
     /* ── NAV ── */
-    nav {
+    nav#nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 100;
       display: flex; align-items: center; justify-content: center; gap: clamp(22px, 4vw, 46px);
       padding: 0 5vw; height: 92px;
@@ -383,13 +384,13 @@
       transition: height .45s var(--ease), background .45s var(--ease), backdrop-filter .45s var(--ease), box-shadow .45s var(--ease), border-color .45s var(--ease);
     }
     /* Soft top scrim for legibility over the hero — extends below the bar so there is no edge/line */
-    nav::before {
+    nav#nav::before {
       content: ''; position: absolute; top: 0; left: 0; right: 0; height: 170px; z-index: -1; pointer-events: none;
       background: linear-gradient(to bottom, rgba(6,20,30,.5) 0%, rgba(6,20,30,.16) 45%, transparent 100%);
       transition: opacity .45s var(--ease);
     }
-    nav.scrolled::before { opacity: 0; }
-    nav.scrolled {
+    nav#nav.scrolled::before { opacity: 0; }
+    nav#nav.scrolled {
       height: 72px;
       background: rgba(251,250,248,.82); backdrop-filter: blur(20px) saturate(140%);
       border-bottom: 1px solid var(--line);
@@ -397,21 +398,21 @@
     }
     .nav-logo { display: flex; align-items: center; gap: 11px; text-decoration: none; }
     .nav-logo img { height: 54px; border-radius: 4px; filter: brightness(0) invert(1); transition: height .45s var(--ease), filter .45s var(--ease); }
-    nav.scrolled .nav-logo img { height: 42px; filter: none; }
+    nav#nav.scrolled .nav-logo img { height: 42px; filter: none; }
     .nav-logo-text { color: #f6f1e6; font-family: var(--sans); font-size: 22px; font-weight: 600; letter-spacing: .5px; transition: color .45s var(--ease); }
-    nav.scrolled .nav-logo-text { color: var(--sea); }
+    nav#nav.scrolled .nav-logo-text { color: var(--sea); }
     .nav-links { display: flex; align-items: center; gap: 30px; }
     .nav-links a:not(.nav-cta) {
       position: relative; color: rgba(246,241,230,.85); font-size: 13.5px; font-weight: 500;
       text-decoration: none; letter-spacing: .3px; transition: color .25s;
     }
-    nav.scrolled .nav-links a:not(.nav-cta) { color: var(--ink-mid); }
+    nav#nav.scrolled .nav-links a:not(.nav-cta) { color: var(--ink-mid); }
     .nav-links a:not(.nav-cta)::after {
       content: ''; position: absolute; left: 0; right: 100%; bottom: -6px; height: 1.5px;
       background: #e6cd97; transition: right .35s var(--ease-out);
     }
     .nav-links a:not(.nav-cta):hover { color: #fff; }
-    nav.scrolled .nav-links a:not(.nav-cta):hover { color: var(--sea); }
+    nav#nav.scrolled .nav-links a:not(.nav-cta):hover { color: var(--sea); }
     .nav-links a:not(.nav-cta):hover::after { right: 0; }
     .nav-cta {
       background: linear-gradient(135deg, #f3ddae, #e3c486 55%, #d4ad6a); color: #1a2c33 !important; padding: 10px 24px;
@@ -422,7 +423,7 @@
     .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(20,40,50,.3), inset 0 1px 0 rgba(255,255,255,.65); }
     .nav-ham { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 4px; }
     .nav-ham span { display: block; width: 22px; height: 2px; background: #f6f1e6; border-radius: 2px; transition: .3s, background .45s var(--ease); }
-    nav.scrolled .nav-ham span { background: var(--sea); }
+    nav#nav.scrolled .nav-ham span { background: var(--sea); }
     .mobile-menu {
       display: none; position: fixed; inset: 0; z-index: 101;
       background: rgba(248,252,251,.97); backdrop-filter: blur(20px);
@@ -599,7 +600,6 @@
     @keyframes heroFade { to { opacity: 1; } }
     @keyframes hrUp { to { opacity: 1; transform: none; } }
     @keyframes hrUpX { to { opacity: 1; transform: translate(-50%, 0); } }
-    @keyframes hrFade { to { opacity: 1; } }
 
     @media (max-width: 700px) {
       /* Single line that fits below the hero content (no horizontal scroll with 4 items) */
@@ -992,7 +992,7 @@
       .gallery-cell { aspect-ratio: 4/3; }
       .gallery-cell:first-child { grid-column: 1 / 3; grid-row: auto; aspect-ratio: 3/2; }
       .form-row.three { grid-template-columns: 1fr 1fr; }
-      nav { justify-content: flex-end; }
+      nav#nav { justify-content: flex-end; }
       .nav-links { display: none; }
       .nav-ham { display: flex; }
       .t-grid { grid-template-columns: 1fr; gap: 16px; }
@@ -1023,19 +1023,19 @@
     <a href="#location">Location</a>
     <a href="#book" class="nav-cta">Reserve</a>
   </div>
-  <div class="nav-ham" id="navHam" onclick="document.getElementById('mobileMenu').classList.toggle('open')">
+  <button class="nav-ham" id="navHam" aria-label="Open menu" aria-expanded="false">
     <span></span><span></span><span></span>
   </div>
 </nav>
 
 <!-- ── MOBILE MENU ── -->
 <div class="mobile-menu" id="mobileMenu">
-  <button class="mob-close" onclick="document.getElementById('mobileMenu').classList.remove('open')">✕</button>
-  <a href="#about" onclick="document.getElementById('mobileMenu').classList.remove('open')">Discover</a>
-  <a href="#highlights" onclick="document.getElementById('mobileMenu').classList.remove('open')">Amenities</a>
-  <a href="#gallery" onclick="document.getElementById('mobileMenu').classList.remove('open')">Gallery</a>
-  <a href="#location" onclick="document.getElementById('mobileMenu').classList.remove('open')">Location</a>
-  <a href="#book" class="m-cta" onclick="document.getElementById('mobileMenu').classList.remove('open')">Reserve</a>
+  <button class="mob-close" aria-label="Close menu">✕</button>
+  <a href="#about">Discover</a>
+  <a href="#highlights">Amenities</a>
+  <a href="#gallery">Gallery</a>
+  <a href="#location">Location</a>
+  <a href="#book" class="m-cta">Reserve</a>
 </div>
 
 <!-- ── HERO (cinematic) ── -->
@@ -1241,14 +1241,14 @@
       <div class="gc-overlay"><span class="gc-caption">The living space</span></div>
     </div>
   </div>
-  <p class="gallery-note">More photos available on <a href="https://www.instagram.com/stay.ryst" target="_blank" style="color:var(--sea-mid);text-decoration:none">@stay.ryst</a></p>
+  <p class="gallery-note">More photos available on <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" style="color:var(--sea-mid);text-decoration:none">@stay.ryst</a></p>
 </section>
 
 <!-- ── LOCATION ── -->
 <section id="location">
   <div class="wave-top" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,80 L0,42 C240,78 480,8 720,40 C960,72 1200,12 1440,42 L1440,80 Z" fill="#eef6f4"/></svg></div>
   <div class="location-grid">
-    <a class="location-map" href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank">
+    <a class="location-map" href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank" rel="noopener">
       <div class="map-btn">Open in Google Maps →</div>
     </a>
     <div class="location-text">
@@ -1266,7 +1266,7 @@
         </div>
         <div class="loc-row">
           <div class="loc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.58 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6 6l.92-.92a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.5 16l.42.92z"/></svg></div>
-          <div class="loc-info"><strong>Contact</strong><span><a href="https://www.instagram.com/stay.ryst" target="_blank" style="color:var(--sea-mid);text-decoration:none">@stay.ryst</a> on Instagram</span></div>
+          <div class="loc-info"><strong>Contact</strong><span><a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" style="color:var(--sea-mid);text-decoration:none">@stay.ryst</a> on Instagram</span></div>
         </div>
       </div>
       <div class="drive-row">
@@ -1364,7 +1364,7 @@
       </form>
       <p class="form-note">
         We'll respond via WhatsApp or email within a few hours.<br>
-        Or reach us directly on <a href="https://www.instagram.com/stay.ryst" target="_blank">@stay.ryst</a> on Instagram.
+        Or reach us directly on <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener">@stay.ryst</a> on Instagram.
       </p>
     </div>
   </div>
@@ -1417,7 +1417,7 @@
 
 <!-- ── WHATSAPP FLOAT ── -->
 <!-- Update the phone number below to your WhatsApp number (without + or spaces) -->
-<a class="wa-float" href="https://wa.me/918608008608?text=Hi%2C%20I%27m%20interested%20in%20booking%20RYST%20109A%20Beach%20Villa." target="_blank" id="waBtn" title="Chat on WhatsApp">
+<a class="wa-float" href="https://wa.me/918608008608?text=Hi%2C%20I%27m%20interested%20in%20booking%20RYST%20109A%20Beach%20Villa." target="_blank" rel="noopener" id="waBtn" title="Chat on WhatsApp">
   <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
 </a>
 
@@ -1707,17 +1707,26 @@
     });
     hover('.hl-card',      { y: -8 },        { y: 0 });
     hover('.gallery-cell', { scale: 1.03 },  { scale: 1 });
-    hover('.btn-primary',  { scale: 1.04 },  { scale: 1 });
 
     // ── MOBILE MENU TRANSITION (stagger links in on open) ──
     const menu = document.getElementById('mobileMenu');
     const ham  = document.getElementById('navHam');
     if (menu && ham) {
       const items = menu.querySelectorAll('a, .mob-close');
+      const setExpanded = () => ham.setAttribute('aria-expanded', menu.classList.contains('open'));
       ham.addEventListener('click', () => {
         if (menu.classList.contains('open'))
           gsap.fromTo(items, { opacity:0, y:18 }, { opacity:1, y:0, duration:.45, ease:'power3.out', stagger:.06, delay:.05, overwrite:true });
+        setExpanded();
       });
+      menu.querySelector('.mob-close').addEventListener('click', () => {
+        menu.classList.remove('open');
+        setExpanded();
+      });
+      menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+        menu.classList.remove('open');
+        setExpanded();
+      }));
     }
   });
 </script>
