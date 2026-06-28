@@ -600,6 +600,7 @@
     @keyframes heroFade { to { opacity: 1; } }
     @keyframes hrUp { to { opacity: 1; transform: none; } }
     @keyframes hrUpX { to { opacity: 1; transform: translate(-50%, 0); } }
+    @keyframes hrFade { to { opacity: 1; } }
 
     @media (max-width: 700px) {
       /* Single line that fits below the hero content (no horizontal scroll with 4 items) */
@@ -1714,6 +1715,7 @@
       const items = menu.querySelectorAll('a, .mob-close');
       const setExpanded = () => ham.setAttribute('aria-expanded', menu.classList.contains('open'));
       ham.addEventListener('click', () => {
+        menu.classList.toggle('open');
         if (menu.classList.contains('open'))
           gsap.fromTo(items, { opacity:0, y:18 }, { opacity:1, y:0, duration:.45, ease:'power3.out', stagger:.06, delay:.05, overwrite:true });
         setExpanded();
