@@ -843,13 +843,18 @@
     const menu = document.getElementById('mobileMenu');
     const close = menu && menu.querySelector('.mob-close');
     if (!ham || !menu) return;
-    const toggle = (open) => {
-      menu.classList.toggle('open', open);
+    ham.addEventListener('click', () => {
+      menu.classList.toggle('open');
       ham.setAttribute('aria-expanded', menu.classList.contains('open'));
-    };
-    ham.addEventListener('click', () => toggle());
-    if (close) close.addEventListener('click', () => toggle(false));
-    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => toggle(false)));
+    });
+    if (close) close.addEventListener('click', () => {
+      menu.classList.remove('open');
+      ham.setAttribute('aria-expanded', 'false');
+    });
+    menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      menu.classList.remove('open');
+      ham.setAttribute('aria-expanded', 'false');
+    }));
   })();
 
 </script>
