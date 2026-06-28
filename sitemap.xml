@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="/sitemap.xsl"?>
 <urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 
   <url>
     <loc>https://stay.ryst.in/</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
     <image:image>
       <image:loc>https://stay.ryst.in/assets/og-image.jpg</image:loc>
       <image:title>RYST 109A &#x2014; Private Beach Villa, Pearl Beach, Cheyyur</image:title>
@@ -14,22 +15,22 @@
 
   <url>
     <loc>https://stay.ryst.in/nearby.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
   </url>
 
   <url>
     <loc>https://stay.ryst.in/faq.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
   </url>
 
   <url>
     <loc>https://stay.ryst.in/privacy.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
   </url>
 
   <url>
     <loc>https://stay.ryst.in/terms.html</loc>
-    <lastmod>2026-06-26</lastmod>
+    <lastmod>2026-06-28</lastmod>
   </url>
 
 </urlset>
