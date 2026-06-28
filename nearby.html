@@ -662,7 +662,7 @@
   <picture class="n-hero-photo">
     <img src="/assets/nearby/ecr-coastline-beach-hero.webp"
          alt="ECR coastline beach at sunrise near RYST 109A, Pearl Beach, Cheyyur, Tamil Nadu"
-         fetchpriority="high" decoding="async" width="1600" height="1064">
+         fetchpriority="high" width="1600" height="1064">
   </picture>
   <div class="n-hero-sky"      aria-hidden="true"></div>
   <div class="n-hero-vignette" aria-hidden="true"></div>
@@ -1024,15 +1024,16 @@
 
   /* ── Scroll progress ── */
   const prog = document.getElementById('scrollProgress');
+  let scrollH = document.documentElement.scrollHeight - window.innerHeight;
+  window.addEventListener('resize', () => { scrollH = document.documentElement.scrollHeight - window.innerHeight; }, { passive: true });
   window.addEventListener('scroll', () => {
-    const pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight);
-    prog.style.width = (pct * 100) + '%';
+    prog.style.width = (window.scrollY / scrollH * 100) + '%';
   }, { passive: true });
 
   /* ── Scroll reveal ── */
   const revealObs = new IntersectionObserver((entries) => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); revealObs.unobserve(e.target); } });
-  }, { threshold: .14 });
+  }, { threshold: .14, rootMargin: '120px 0px' });
   document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
 
   /* ── Counter animation ── */
@@ -1100,7 +1101,7 @@
       ([name, cat, dist, time, highlights, best, duration, suitable, imgSrc]) => `
       <article class="at-card">
         <div class="at-media">
-          <img loading="lazy" src="${imgSrc}" alt="${name} near RYST 109A, ECR coast" width="700" height="467">
+          <img loading="lazy" src="${imgSrc}" alt="${name} near RYST 109A, ECR coast" width="1200" height="750">
           <span class="at-badge">${cat}</span>
         </div>
         <div class="at-body">
