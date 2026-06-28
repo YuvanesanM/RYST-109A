@@ -33,7 +33,11 @@
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/dm-sans-latin-wght-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-latin-400-normal.woff2" crossorigin>
-  <link rel="preload" as="image" href="/assets/hero-bg.webp" fetchpriority="high">
+  <link rel="preload" as="image"
+        href="/assets/hero-bg.webp"
+        imagesrcset="/assets/hero-bg-mobile.webp 768w, /assets/hero-bg.webp 1717w"
+        imagesizes="100vw"
+        fetchpriority="high">
 
   <script type="application/ld+json">
   {
@@ -463,7 +467,7 @@
     <source media="(max-width: 768px)" srcset="/assets/hero-bg-mobile.webp">
     <img src="/assets/hero-bg.webp"
          alt="RYST 109A private beachfront villa — Pearl Beach, Cheyyur, Tamil Nadu"
-         fetchpriority="high" decoding="async" width="1717" height="916">
+         fetchpriority="high" width="1717" height="916">
   </picture>
   <div class="faq-hero-sky"      aria-hidden="true"></div>
   <div class="faq-hero-vignette" aria-hidden="true"></div>
