@@ -612,6 +612,20 @@
       .exp-grid  { grid-template-columns: repeat(2, 1fr); }
       .footer-top { flex-direction: column; gap: 28px; }
       .n-hero-title .n-ht-main { letter-spacing: 2px; }
+
+      /* Journey card — switch from absolute overlay to below-SVG row */
+      .journey-wrap {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        padding-bottom: 14px;
+      }
+      .journey-wrap svg { grid-column: 1 / -1; }
+      .j-label { position: static; transform: none; padding: 10px 12px; border-radius: 12px; }
+      .j-label strong { font-size: .9rem; }
+      .j-label span   { font-size: .72rem; }
+      .j-ryst  { text-align: center; }
+      .j-south { text-align: right; }
     }
   </style>
 </head>
