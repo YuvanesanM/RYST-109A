@@ -30,7 +30,11 @@
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/dm-sans-latin-wght-normal.woff2" crossorigin>
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-latin-400-normal.woff2" crossorigin>
-  <link rel="preload" as="image" href="/assets/nearby/ecr-coastline-beach-hero.webp" fetchpriority="high">
+  <link rel="preload" as="image"
+        href="/assets/nearby/ecr-coastline-beach-hero.webp"
+        imagesrcset="/assets/nearby/ecr-coastline-beach-hero-800w.webp 800w, /assets/nearby/ecr-coastline-beach-hero-1200w.webp 1200w, /assets/nearby/ecr-coastline-beach-hero.webp 1600w"
+        imagesizes="100vw"
+        fetchpriority="high">
 
   <script type="application/ld+json">
   {
@@ -661,6 +665,8 @@
 <section class="n-hero" aria-labelledby="page-title">
   <picture class="n-hero-photo">
     <img src="/assets/nearby/ecr-coastline-beach-hero.webp"
+         srcset="/assets/nearby/ecr-coastline-beach-hero-800w.webp 800w, /assets/nearby/ecr-coastline-beach-hero-1200w.webp 1200w, /assets/nearby/ecr-coastline-beach-hero.webp 1600w"
+         sizes="100vw"
          alt="ECR coastline beach at sunrise near RYST 109A, Pearl Beach, Cheyyur, Tamil Nadu"
          fetchpriority="high" width="1600" height="1064">
   </picture>
