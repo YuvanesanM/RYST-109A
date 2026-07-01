@@ -503,25 +503,21 @@
     .hero-eyebrow {
       font-family: var(--sans); font-size: clamp(10px,1.1vw,12.5px); font-weight: 600; letter-spacing: 5px;
       text-transform: uppercase; color: rgba(246,241,230,.78); margin-bottom: clamp(20px,4vh,40px);
-      opacity: 0; transform: translateY(14px); animation: hrUp .7s var(--ease-out) .25s forwards;
     }
     .hero-title { display: flex; flex-direction: column; align-items: center; line-height: .9; }
     .ht-main {
       font-family: var(--serif); font-weight: 300; color: var(--ivory);
       font-size: clamp(68px, 15vw, 196px); letter-spacing: clamp(4px,1.4vw,18px); text-indent: clamp(4px,1.4vw,18px);
       text-shadow: 0 2px 44px rgba(4,16,24,.4);
-      opacity: 0; transform: translateY(28px); animation: hrUp .8s var(--ease-out) 0s forwards;
     }
     .ht-sub {
       font-family: var(--serif); font-style: italic; font-weight: 400;
       font-size: clamp(34px, 7vw, 104px); letter-spacing: 1px; margin-top: -.06em;
       background: linear-gradient(180deg, #f3ddae 0%, var(--gold) 48%, var(--gold-deep) 100%);
       -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: var(--gold);
-      opacity: 0; transform: translateY(22px); animation: hrUp .8s var(--ease-out) .6s forwards;
     }
     .hero-divider {
       display: flex; align-items: center; gap: 14px; margin: clamp(22px,4vh,38px) 0 clamp(18px,3vh,28px);
-      opacity: 0; animation: hrFade .8s var(--ease-out) .8s forwards;
     }
     .hero-divider span { width: clamp(40px,8vw,90px); height: 1px; background: linear-gradient(90deg, transparent, rgba(230,205,151,.7)); }
     .hero-divider span:last-child { background: linear-gradient(90deg, rgba(230,205,151,.7), transparent); }
@@ -529,11 +525,9 @@
     .hero-tagline {
       font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(17px,2.2vw,23px);
       color: rgba(246,241,230,.85); line-height: 1.55; max-width: 600px;
-      opacity: 0; transform: translateY(16px); animation: hrUp .8s var(--ease-out) .9s forwards;
     }
     .hero-actions {
       display: flex; gap: 16px; margin-top: clamp(30px,5vh,46px); flex-wrap: wrap; justify-content: center;
-      opacity: 0; transform: translateY(16px); animation: hrUp .8s var(--ease-out) 1.05s forwards;
     }
     .btn-stay, .btn-explore {
       position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 10px;
@@ -563,7 +557,6 @@
     .btn-stay svg, .btn-explore svg { width: 16px; height: 16px; flex-shrink: 0; }
     .hero-concierge {
       margin-top: clamp(20px,3vh,30px); font-size: 13px; color: rgba(246,241,230,.62);
-      opacity: 0; animation: hrFade .8s var(--ease-out) 1.2s forwards;
     }
     .hero-concierge a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(230,205,151,.4); padding-bottom: 1px; transition: color .2s, border-color .2s; }
     .hero-concierge a:hover { color: #f3ddae; border-color: rgba(230,205,151,.9); }
@@ -575,19 +568,13 @@
       border: 1px solid rgba(246,241,230,.18);
       -webkit-backdrop-filter: blur(22px) saturate(150%); backdrop-filter: blur(22px) saturate(150%);
       box-shadow: 0 18px 50px rgba(4,16,24,.45), inset 0 1px 0 rgba(255,255,255,.18);
-      opacity: 0; transform: translate(-50%, 18px); animation: hrUpX .9s var(--ease-out) 1.3s forwards;
       overflow-x: auto; scrollbar-width: none;
     }
     .hero-feature-bar::-webkit-scrollbar { display: none; }
     .hf-item {
       display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 12px clamp(14px,2vw,26px);
       position: relative; flex: 1 0 auto; min-width: 90px;
-      opacity: 0; animation: hrFade .7s var(--ease-out) forwards;
     }
-    .hf-item:nth-child(1){animation-delay:1.4s}.hf-item:nth-child(2){animation-delay:1.47s}
-    .hf-item:nth-child(3){animation-delay:1.54s}.hf-item:nth-child(4){animation-delay:1.61s}
-    .hf-item:nth-child(5){animation-delay:1.68s}.hf-item:nth-child(6){animation-delay:1.75s}
-    .hf-item:nth-child(7){animation-delay:1.82s}.hf-item:nth-child(8){animation-delay:1.89s}
     .hf-item + .hf-item::before {
       content: ''; position: absolute; left: 0; top: 18%; height: 64%; width: 1px;
       background: linear-gradient(180deg, transparent, rgba(246,241,230,.22), transparent);
@@ -596,9 +583,6 @@
     .hf-item span { font-family: var(--sans); font-size: 12px; font-weight: 500; color: rgba(246,241,230,.86); letter-spacing: .2px; white-space: nowrap; }
 
     @keyframes heroFade { to { opacity: 1; } }
-    @keyframes hrUp { to { opacity: 1; transform: none; } }
-    @keyframes hrUpX { to { opacity: 1; transform: translate(-50%, 0); } }
-    @keyframes hrFade { to { opacity: 1; } }
 
     @media (max-width: 700px) {
       /* Single line that fits below the hero content (no horizontal scroll with 4 items) */
@@ -607,7 +591,6 @@
         margin: clamp(22px,4vh,32px) auto 0; width: min(440px, 94vw);
         justify-content: center; overflow: visible;
         border-radius: 18px; padding: 6px 2px;
-        opacity: 0; animation: hrFade .8s var(--ease-out) 1.3s forwards;
       }
       .hf-item { flex: 1 1 0; min-width: 0; padding: 9px 4px; gap: 5px; }
       .hf-item svg { width: 18px; height: 18px; }
@@ -1644,6 +1627,25 @@
         scrollTrigger: { trigger: el, start: 'top 86%' }
       }, vars || {}))
     );
+
+    // ── HERO ENTRANCE (JS-driven so it doesn't compete with CSS `animation` for the
+    // browser's Largest Contentful Paint candidate selection on first load) ──
+    // Desktop keeps its `left:50%` + translateX(-50%) centering; fromTo pins xPercent
+    // constant at both ends so GSAP's inline transform never overwrites that offset.
+    const featureBarDesktop = window.matchMedia('(min-width: 701px)').matches;
+    const featureBarFrom = featureBarDesktop ? { opacity: 0, y: 18, xPercent: -50 } : { opacity: 0, y: 18 };
+    const featureBarTo   = featureBarDesktop ? { opacity: 1, y: 0,  xPercent: -50 } : { opacity: 1, y: 0 };
+
+    gsap.timeline()
+      .from('.hero-eyebrow',     { opacity: 0, y: 14, duration: .7,  ease: 'power3.out' }, 0)
+      .from('.ht-main',          { opacity: 0, y: 28, duration: .8,  ease: 'power3.out' }, 0)
+      .from('.ht-sub',           { opacity: 0, y: 22, duration: .8,  ease: 'power3.out' }, .6)
+      .from('.hero-divider',     { opacity: 0, duration: .8, ease: 'power3.out' }, .8)
+      .from('.hero-tagline',     { opacity: 0, y: 16, duration: .8,  ease: 'power3.out' }, .9)
+      .from('.hero-actions',     { opacity: 0, y: 16, duration: .8,  ease: 'power3.out' }, 1.05)
+      .from('.hero-concierge',   { opacity: 0, duration: .8, ease: 'power3.out' }, 1.2)
+      .fromTo('.hero-feature-bar', featureBarFrom, Object.assign({ duration: .9, ease: 'power3.out' }, featureBarTo), 1.3)
+      .from('.hf-item', { opacity: 0, duration: .7, ease: 'power3.out', stagger: .07 }, 1.4);
 
     // Section blocks
     reveal('.highlights-head');
