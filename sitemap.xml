@@ -7,6 +7,8 @@
   <url>
     <loc>https://stay.ryst.in/</loc>
     <lastmod>2026-06-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
     <image:image>
       <image:loc>https://stay.ryst.in/assets/og-image.jpg</image:loc>
       <image:title>RYST 109A &#x2014; Private Beach Villa, Pearl Beach, Cheyyur</image:title>
@@ -16,21 +18,29 @@
   <url>
     <loc>https://stay.ryst.in/nearby.html</loc>
     <lastmod>2026-06-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <url>
     <loc>https://stay.ryst.in/faq.html</loc>
     <lastmod>2026-06-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
   <url>
     <loc>https://stay.ryst.in/privacy.html</loc>
     <lastmod>2026-06-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
 
   <url>
     <loc>https://stay.ryst.in/terms.html</loc>
     <lastmod>2026-06-28</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
   </url>
 
 </urlset>
