@@ -121,7 +121,8 @@
           "https://stay.ryst.in/assets/gallery-2.jpg",
           "https://stay.ryst.in/assets/gallery-3.jpg",
           "https://stay.ryst.in/assets/gallery-4.jpg",
-          "https://stay.ryst.in/assets/gallery-5.jpg"
+          "https://stay.ryst.in/assets/gallery-5.jpg",
+          "https://stay.ryst.in/assets/gallery-6.jpg"
         ],
         "areaServed": [
           { "@type": "City", "name": "Chennai" },
@@ -694,15 +695,16 @@
     /* ── GALLERY ── */
     #gallery { background: var(--white); }
     .gallery-head { text-align: center; max-width: 560px; margin: 0 auto 48px; }
-    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 12px; aspect-ratio: 1 / 1; max-width: 780px; margin: 0 auto; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr 1fr; gap: 12px; aspect-ratio: 2 / 3; max-width: 780px; margin: 0 auto; }
     .gallery-cell {
       border-radius: 18px; overflow: hidden; position: relative;
       cursor: pointer; box-shadow: var(--sh-sm);
     }
     .no-gsap .gallery-cell { transition: transform .3s var(--ease); }
     .no-gsap .gallery-cell:hover { transform: scale(1.02); }
-    /* Full-square mosaic: hero spans 2 cols of row 1 (landscape); cells fill grid areas, no gaps */
+    /* Full-square mosaic: hero spans 2 cols of row 1 (landscape); 6th cell spans row 3 to match; cells fill grid areas, no gaps */
     .gallery-cell:first-child { grid-column: 1 / 3; grid-row: 1; }
+    .gallery-cell:last-child { grid-column: 1 / -1; grid-row: 3; }
     .gc-inner { position: absolute; inset: 0; transition: transform .85s var(--ease-out); }
     .gallery-cell:hover .gc-inner { transform: scale(1.07); }
     .gc1 { background: url('/assets/gallery-1.jpg') center/cover no-repeat, linear-gradient(145deg, #061c24 0%, #0b3d52 40%, #1a6a7a 70%, #4da8b8 100%); }
@@ -710,6 +712,7 @@
     .gc3 { background: url('/assets/gallery-3.jpg') center/cover no-repeat, linear-gradient(160deg, #1a3828 0%, #2d5a4a 50%, #4d8a6a 100%); }
     .gc4 { background: url('/assets/gallery-4.jpg') center/cover no-repeat, linear-gradient(130deg, #c96a3b 0%, #d4825a 40%, #e8a07a 70%, #c8a97a 100%); }
     .gc5 { background: url('/assets/gallery-5.jpg') center/cover no-repeat, linear-gradient(150deg, #0b3d52 0%, #1a6a7a 30%, #c8a97a 100%); }
+    .gc6 { background: url('/assets/gallery-6.jpg') center/cover no-repeat, linear-gradient(140deg, #0e2420 0%, #2a4440 50%, #6b8480 100%); }
     .gc-overlay {
       position: absolute; inset: 0;
       background: linear-gradient(to top, rgba(6,28,36,.8) 0%, rgba(6,28,36,.12) 46%, transparent 66%);
@@ -973,6 +976,7 @@
       .gallery-grid { grid-template-columns: 1fr 1fr; grid-template-rows: auto; aspect-ratio: auto; max-width: 700px; }
       .gallery-cell { aspect-ratio: 4/3; }
       .gallery-cell:first-child { grid-column: 1 / 3; grid-row: auto; aspect-ratio: 3/2; }
+      .gallery-cell:last-child { grid-column: 1 / 3; grid-row: auto; aspect-ratio: 3/2; }
       .form-row.three { grid-template-columns: 1fr 1fr; }
       nav#nav { justify-content: flex-end; }
       .nav-links { display: none; }
@@ -1209,17 +1213,21 @@
       <div class="gc-inner gc2"></div>
       <div class="gc-overlay"><span class="gc-caption">Pearl Beach at dawn</span></div>
     </div>
-    <div class="gallery-cell" role="img" aria-label="Private pool and garden at RYST 109A beach villa near Chennai on the ECR">
+    <div class="gallery-cell" role="img" aria-label="Private pool and poolside bar at RYST 109A beach villa at night, near Chennai on the ECR">
       <div class="gc-inner gc3"></div>
-      <div class="gc-overlay"><span class="gc-caption">Private pool &amp; garden</span></div>
+      <div class="gc-overlay"><span class="gc-caption">The pool &amp; bar after dark</span></div>
     </div>
-    <div class="gallery-cell" role="img" aria-label="Sunset terrace view at RYST 109A, Pearl Beach, ECR coast near Chennai">
+    <div class="gallery-cell" role="img" aria-label="RYST 109A villa exterior and entrance gate at night, Pearl Beach, Cheyyur">
       <div class="gc-inner gc4"></div>
-      <div class="gc-overlay"><span class="gc-caption">Sunset from the terrace</span></div>
+      <div class="gc-overlay"><span class="gc-caption">RYST 109A after dark</span></div>
     </div>
-    <div class="gallery-cell" role="img" aria-label="Villa living space interior at RYST 109A beach house, Cheyyur, Tamil Nadu">
+    <div class="gallery-cell" role="img" aria-label="Outdoor lounge seating at RYST 109A beach house, Cheyyur, Tamil Nadu">
       <div class="gc-inner gc5"></div>
       <div class="gc-overlay"><span class="gc-caption">The living space</span></div>
+    </div>
+    <div class="gallery-cell" role="img" aria-label="Life-size chess board on the rooftop terrace at RYST 109A, Pearl Beach, Cheyyur">
+      <div class="gc-inner gc6"></div>
+      <div class="gc-overlay"><span class="gc-caption">Life-size chess on the terrace</span></div>
     </div>
   </div>
   <p class="gallery-note">More photos available on <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" style="color:var(--sea-mid);text-decoration:none">stay.ryst</a></p>
