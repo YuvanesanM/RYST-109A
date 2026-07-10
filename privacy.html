@@ -34,7 +34,7 @@
         "@id": "https://stay.ryst.in/privacy.html#webpage",
         "url": "https://stay.ryst.in/privacy.html",
         "name": "Privacy Policy — RYST 109A Beach Villa, Cheyyur",
-        "description": "Privacy Policy for RYST 109A — how we collect, use and protect the information you share when requesting a stay.",
+        "description": "Privacy Policy for RYST 109A private beach villa, Cheyyur — how we collect, use and protect the personal information you share when requesting or booking a stay with us.",
         "isPartOf": { "@id": "https://stay.ryst.in/#website" },
         "about": { "@id": "https://stay.ryst.in/#organization" },
         "breadcrumb": { "@id": "https://stay.ryst.in/privacy.html#breadcrumb" },
@@ -319,15 +319,19 @@
   if (!ham || !menu) return;
   ham.addEventListener('click', () => {
     menu.classList.toggle('open');
-    ham.setAttribute('aria-expanded', menu.classList.contains('open'));
+    const isOpen = menu.classList.contains('open');
+    ham.setAttribute('aria-expanded', isOpen);
+    ham.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
   });
   if (close) close.addEventListener('click', () => {
     menu.classList.remove('open');
     ham.setAttribute('aria-expanded', 'false');
+    ham.setAttribute('aria-label', 'Open menu');
   });
   menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
     menu.classList.remove('open');
     ham.setAttribute('aria-expanded', 'false');
+    ham.setAttribute('aria-label', 'Open menu');
   }));
 })();
 </script>

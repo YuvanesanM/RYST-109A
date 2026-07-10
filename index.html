@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- ── PRIMARY SEO ── -->
-  <title>RYST 109A — Private Beach Villa near Chennai | Pearl Beach, Cheyyur</title>
+  <title>RYST 109A — Private Beach Villa near Chennai, Cheyyur</title>
   <meta name="description" content="Private beach villa on Pearl Beach, Cheyyur — 85 km south of Chennai on the ECR. Exclusively yours for up to 12 guests, with a pool, jacuzzi & beach access.">
   <meta name="author" content="RYST 109A">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -270,28 +270,15 @@
         "@type": "WebPage",
         "@id": "https://stay.ryst.in/#webpage",
         "url": "https://stay.ryst.in/",
-        "name": "RYST 109A — Private Beach Villa near Chennai | Pearl Beach, Cheyyur",
+        "name": "RYST 109A — Private Beach Villa near Chennai, Cheyyur",
         "description": "Private beach villa on Pearl Beach, Cheyyur — 85 km south of Chennai on the ECR. Exclusively yours for up to 12 guests, with a pool, jacuzzi & beach access.",
         "isPartOf": { "@id": "https://stay.ryst.in/#website" },
         "about": { "@id": "https://stay.ryst.in/#villa" },
-        "breadcrumb": { "@id": "https://stay.ryst.in/#breadcrumb" },
         "primaryImageOfPage": { "@id": "https://stay.ryst.in/assets/og-image.jpg#image" },
         "inLanguage": "en-IN",
         "datePublished": "2024-01-01",
         "dateModified": "2026-06-28",
         "author": { "@id": "https://stay.ryst.in/#organization" }
-      },
-      {
-        "@type": "BreadcrumbList",
-        "@id": "https://stay.ryst.in/#breadcrumb",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "name": "RYST 109A — Private Beach Villa",
-            "item": "https://stay.ryst.in/"
-          }
-        ]
       }
     ]
   }
@@ -1707,7 +1694,11 @@
     const ham  = document.getElementById('navHam');
     if (menu && ham) {
       const items = menu.querySelectorAll('a, .mob-close');
-      const setExpanded = () => ham.setAttribute('aria-expanded', menu.classList.contains('open'));
+      const setExpanded = () => {
+        const isOpen = menu.classList.contains('open');
+        ham.setAttribute('aria-expanded', isOpen);
+        ham.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
+      };
       ham.addEventListener('click', () => {
         menu.classList.toggle('open');
         if (menu.classList.contains('open'))
