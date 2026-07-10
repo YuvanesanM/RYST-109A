@@ -68,6 +68,7 @@
     gtag('js', new Date());
     gtag('config', 'G-HXR1631D1Y');
   </script>
+  <link rel="stylesheet" href="/assets/css/shared.css">
   <style>
     /* ── SELF-HOSTED FONTS ── */
     @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
@@ -152,7 +153,6 @@
     .footer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 32px; flex-wrap: wrap; border-bottom: 1px solid rgba(246,241,230,.12); padding-bottom: 32px; margin-bottom: 28px; }
     .footer-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .footer-brand-text strong { display: block; color: #e6cd97; font-size: 23px; font-weight: 600; letter-spacing: .4px; }
-    .footer-brand-text span   { font-size: 15px; color: rgba(246,241,230,.45); }
     .footer-brand-text .footer-addr { display: block; font-size: 13px; color: rgba(246,241,230,.4); margin-top: 12px; line-height: 1.6; }
     .footer-nav   { display: flex; gap: clamp(36px,5vw,72px); }
     .footer-links { display: flex; flex-direction: column; gap: 10px; }
@@ -166,11 +166,6 @@
     }
     .social-link:hover { border-color: #e6cd97; color: #e6cd97; }
     .footer-bottom { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-    .footer-copy { font-size: 12.5px; color: rgba(246,241,230,.34); }
-
-    /* ── WHATSAPP FLOAT ── */
-    .wa-float { position: fixed; bottom: 24px; right: 24px; z-index: 200; width: 52px; height: 52px; border-radius: 50%; background: #25d366; box-shadow: 0 4px 20px rgba(37,211,102,.4); display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform .2s, box-shadow .2s; }
-    .wa-float:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(37,211,102,.5); }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
@@ -181,9 +176,12 @@
     @media (max-width: 600px) {
       .footer-top { flex-direction: column; gap: 28px; }
     }
+
   </style>
 </head>
 <body>
+
+<a href="#main" class="skip-link">Skip to main content</a>
 
 <nav id="nav">
   <div class="nav-links">
@@ -207,7 +205,7 @@
   <a href="/#book" class="m-cta">Reserve</a>
 </div>
 
-<main class="doc">
+<main class="doc" id="main">
   <p class="doc-tag">Legal</p>
   <h1>Terms &amp; Conditions</h1>
   <p class="updated">Last updated: 28 June 2026</p>
