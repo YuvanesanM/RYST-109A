@@ -16,6 +16,10 @@
   <meta property="og:title"       content="FAQ | RYST 109A — Private Beach Villa, Cheyyur">
   <meta property="og:description" content="Everything you need to know before your stay — pool, beach, food, caretaker, Wi-Fi, pets and more.">
   <meta property="og:image"       content="https://stay.ryst.in/assets/og-image.jpg">
+  <meta property="og:image:secure_url" content="https://stay.ryst.in/assets/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:image:alt"  content="RYST 109A — Private Beach Villa, Pearl Beach, Cheyyur">
   <meta property="og:locale"      content="en_IN">
 
@@ -847,15 +851,19 @@
     if (!ham || !menu) return;
     ham.addEventListener('click', () => {
       menu.classList.toggle('open');
-      ham.setAttribute('aria-expanded', menu.classList.contains('open'));
+      const isOpen = menu.classList.contains('open');
+      ham.setAttribute('aria-expanded', isOpen);
+      ham.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
     });
     if (close) close.addEventListener('click', () => {
       menu.classList.remove('open');
       ham.setAttribute('aria-expanded', 'false');
+      ham.setAttribute('aria-label', 'Open menu');
     });
     menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
       menu.classList.remove('open');
       ham.setAttribute('aria-expanded', 'false');
+      ham.setAttribute('aria-label', 'Open menu');
     }));
   })();
 
