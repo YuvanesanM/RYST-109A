@@ -380,7 +380,7 @@
       display: flex; flex-direction: column;
     }
     .at-card:hover { transform: translateY(-5px); box-shadow: var(--sh-md); }
-    .at-media { aspect-ratio: 3/2; overflow: hidden; position: relative; background: var(--foam); }
+    .at-media { aspect-ratio: 8/5; overflow: hidden; position: relative; background: var(--foam); }
     .at-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .55s var(--ease); }
     .at-card:hover .at-media img { transform: scale(1.04); }
     .at-badge {
@@ -1117,7 +1117,7 @@
       ([name, cat, dist, time, highlights, best, duration, suitable, imgSrc]) => `
       <article class="at-card">
         <div class="at-media">
-          <img loading="lazy" src="${imgSrc}" alt="${name} near RYST 109A, ECR coast" width="1200" height="750">
+          <img loading="lazy" src="${imgSrc}" alt="${name} — ${highlights}" width="1200" height="750">
           <span class="at-badge">${cat}</span>
         </div>
         <div class="at-body">
