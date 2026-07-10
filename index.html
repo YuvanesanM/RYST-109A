@@ -1663,7 +1663,7 @@
     const heroScrub = { trigger:'#hero', start:'top top', end:'bottom top', scrub:true };
     gsap.to('.hero-photo',  { yPercent: 10, scale: 1.12, ease:'none', scrollTrigger: heroScrub });
     gsap.to('.hero-content',{ yPercent: 16, opacity: .25, ease:'none', scrollTrigger: heroScrub });
-    gsap.to('.hero-feature-bar', { yPercent: 40, opacity: 0, ease:'none', scrollTrigger: heroScrub });
+    gsap.fromTo('.hero-feature-bar', { opacity: 1, yPercent: 0 }, { yPercent: 40, opacity: 0, ease:'none', scrollTrigger: heroScrub });
     // Golden-hour lighting shift driven by scroll progress through the hero
     const heroEl = document.getElementById('hero');
     if (heroEl) ScrollTrigger.create({ trigger:'#hero', start:'top top', end:'bottom top', scrub:true,
