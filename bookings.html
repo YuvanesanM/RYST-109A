@@ -14,6 +14,7 @@
     --ink:#1d211c; --muted:#5f655d; --muted2:#9aa097;
     --danger:#c0584b; --danger-soft:#fbecea; --warn:#c98a2b; --warn-soft:#fbf3e6;
     --inv:#0e7c86; --inv-soft:#e3f1f1; --qt:#c0922f; --qt-soft:#fbf0d8;
+    --block:#6b7280; --block-soft:#eceef0;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--ink);font-family:"Outfit",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100%}
@@ -59,6 +60,7 @@
   .cal-legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
   .cal-legend .i-inv{background:var(--inv)}
   .cal-legend .i-qt{background:var(--qt)}
+  .cal-legend .i-block{background:var(--block)}
   .cal-legend .i-conf{background:var(--danger)}
 
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
@@ -73,6 +75,7 @@
   .cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
   .cal-pill.inv{background:var(--inv)}
   .cal-pill.qt{background:var(--qt)}
+  .cal-pill.block{background:var(--block)}
   .cal-more{font-size:10px;color:var(--muted);padding:0 2px}
 
   /* ── Sidebar ── */
@@ -82,8 +85,8 @@
   .filters{display:flex;flex-direction:column;gap:8px}
   .filters input,.filters select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:13px;color:var(--ink);outline:none;width:100%}
   .filters input:focus,.filters select:focus{border-color:var(--accent)}
-  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel2)}
-  .seg button{flex:1;border:none;background:transparent;padding:8px;font-size:12px;font-weight:600;color:var(--muted)}
+  .seg{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel2)}
+  .seg button{border:none;background:transparent;padding:8px 4px;font-size:12px;font-weight:600;color:var(--muted)}
   .seg button.on{background:var(--accent);color:#fff}
 
   .agenda{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto}
@@ -106,7 +109,22 @@
   .modal h3{font-size:16px;font-weight:700;padding:20px 22px 0}
   .modal .sd{color:var(--muted);font-size:12.5px;padding:4px 22px 0}
   .mbody{padding:14px 22px 22px;display:flex;flex-direction:column;gap:10px}
-  .mfoot{display:flex;justify-content:flex-end;margin-top:4px;padding:0 22px 20px}
+  .mfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:4px;padding:0 22px 20px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:12px;font-weight:600;color:var(--muted)}
+  .field input{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);font-size:13.5px;color:var(--ink);outline:none;width:100%}
+  .field input:focus{border-color:var(--accent)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .reason-chips{display:flex;gap:7px;flex-wrap:wrap}
+  .reason-chip{padding:6px 12px;border:1.5px solid var(--line);border-radius:20px;background:var(--panel2);font-size:12px;font-weight:600;color:var(--muted)}
+  .reason-chip:hover{border-color:var(--block)}
+  .reason-chip.on{background:var(--block-soft);border-color:var(--block);color:var(--ink)}
+  .merr{color:var(--danger);font-size:12.5px;min-height:16px}
+  .btn{border:none;border-radius:10px;padding:10px 16px;font-size:13.5px;font-weight:600;background:var(--panel2);color:var(--ink)}
+  .btn.primary{background:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-d)}
+  .btn.danger{background:var(--danger-soft);color:var(--danger)}
+  .btn.danger:hover{background:#f6dad6}
 
   #loader{position:fixed;inset:0;background:rgba(243,244,241,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:90;color:var(--muted)}
   #loader.hide{display:none}
@@ -123,6 +141,7 @@
     .cal-pill{display:none}
     .cal-cell.has-booking::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--inv)}
     .cal-cell.has-quote-only::after{background:var(--qt)}
+    .cal-cell.has-block-only::after{background:var(--block)}
     .cards{grid-template-columns:1fr 1fr}
   }
   @media(max-width:420px){
@@ -137,6 +156,7 @@
     <div class="ttl">Booking Calendar<small>RYST 109A · All stays at a glance</small></div>
     <div class="spacer"></div>
     <button class="tbtn" onclick="window.location.href='login.html'">⌂ Home</button>
+    <button class="tbtn" id="btnBlock">🚫 Block dates</button>
     <button class="tbtn" onclick="window.location.href='stay.html'">＋ New booking</button>
   </header>
 
@@ -176,6 +196,7 @@
         <div class="cal-legend">
           <span><i class="i-inv"></i>Invoice</span>
           <span><i class="i-qt"></i>Quote</span>
+          <span><i class="i-block"></i>Blocked</span>
           <span><i class="i-conf"></i>Overlap</span>
         </div>
       </div>
@@ -192,6 +213,7 @@
             <button data-t="all" class="on">All</button>
             <button data-t="invoice">Invoices</button>
             <button data-t="quote">Quotes</button>
+            <button data-t="block">Blocked</button>
           </div>
         </div>
       </div>
@@ -210,6 +232,34 @@
     <p class="sd" id="daySub"></p>
     <div class="mbody" id="dayBody"></div>
     <div class="mfoot"><button class="tbtn" id="dayClose">Close</button></div>
+  </div>
+</div>
+
+<!-- Block dates modal -->
+<div class="overlay" id="blockOverlay">
+  <div class="modal">
+    <h3>Block dates</h3>
+    <p class="sd">Marks these nights unavailable — no invoice or quote attached. Use for maintenance, personal use, holidays etc.</p>
+    <div class="mbody">
+      <div class="two">
+        <div class="field"><label>Start date</label><input type="date" id="bkStart" /></div>
+        <div class="field"><label>End date <span style="font-weight:400">(last night blocked)</span></label><input type="date" id="bkEnd" /></div>
+      </div>
+      <div class="field">
+        <label>Reason</label>
+        <input id="bkReason" placeholder="e.g. Maintenance" />
+        <div class="reason-chips" id="bkChips">
+          <button type="button" class="reason-chip" data-r="Maintenance">Maintenance</button>
+          <button type="button" class="reason-chip" data-r="Personal use">Personal use</button>
+          <button type="button" class="reason-chip" data-r="Holiday">Holiday</button>
+        </div>
+      </div>
+      <div class="merr" id="bkErr"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" id="bkCancel">Cancel</button>
+      <button class="btn primary" id="bkSave">Block dates</button>
+    </div>
   </div>
 </div>
 
@@ -255,6 +305,7 @@ function nightsBetween(a,b){
 }
 // A booking "occupies" every night from checkin (incl.) to checkout (excl.)
 function occupiesDate(d, iso){ return d.checkin && d.checkout && iso >= d.checkin && iso < d.checkout; }
+function pillClass(type){ return type==='block' ? 'block' : (type==='quote' ? 'qt' : 'inv'); }
 
 function passFilter(d){
   if(FILTERS.type!=='all' && (d.type||'invoice')!==FILTERS.type) return false;
@@ -296,6 +347,19 @@ async function load(){
   }
 }
 $('#loaderRetry').addEventListener('click', load);
+
+// Writes the full STAYS array back — blocks live in the same /stays document
+// as invoices/quotes so they share storage, the overlap-conflict check, and
+// the owner-only auth already enforced on this route.
+async function pushStays(){
+  const res = await fetch(PROXY_URL+'/stays', {
+    method:'PUT', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
+    body: JSON.stringify({version:1, stays: STAYS})
+  });
+  if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return false; }
+  if(!res.ok) throw new Error('Save failed ('+res.status+')');
+  return true;
+}
 
 function render(){
   renderStats();
@@ -364,15 +428,18 @@ function renderCalendar(){
   $('#calGrid').innerHTML = cells.map(c=>{
     const hasInv = c.dayBookings.some(b=>(b.type||'invoice')==='invoice');
     const hasQt  = c.dayBookings.some(b=>(b.type||'invoice')==='quote');
+    const hasBlk = c.dayBookings.some(b=>b.type==='block');
     const conflict = c.dayBookings.length > 1;
     const cls = ['cal-cell'];
     if(!c.inMonth) cls.push('out');
     if(c.iso===today) cls.push('today');
     if(conflict) cls.push('conflict');
     if(c.dayBookings.length) cls.push('has-booking');
-    if(hasQt && !hasInv) cls.push('has-quote-only');
+    // Mobile collapses to a single dot — priority invoice > quote > block.
+    if(!hasInv && hasQt) cls.push('has-quote-only');
+    else if(!hasInv && !hasQt && hasBlk) cls.push('has-block-only');
     const shown = c.dayBookings.slice(0,2).map(b=>
-      `<div class="cal-pill ${(b.type||'invoice')==='quote'?'qt':'inv'}">${esc(b.guest||b.no||'')}</div>`
+      `<div class="cal-pill ${pillClass(b.type)}">${esc(b.type==='block' ? (b.guest||'Blocked') : (b.guest||b.no||''))}</div>`
     ).join('');
     const more = c.dayBookings.length>2 ? `<div class="cal-more">+${c.dayBookings.length-2} more</div>` : '';
     return `<div class="${cls.join(' ')}" data-iso="${c.iso}">
@@ -391,19 +458,47 @@ function openDay(iso){
   $('#dayTitle').textContent = new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
   $('#daySub').textContent = dayBookings.length>1 ? `${dayBookings.length} overlapping bookings` : (dayBookings.length ? '1 booking' : 'No bookings');
   $('#dayBody').innerHTML = !dayBookings.length ? '<div class="empty">Nothing booked this day.</div>'
-    : dayBookings.map(b=>`
-      <a class="ag-item" href="stay.html?open=${encodeURIComponent(b.no)}">
-        <div class="ag-top">
-          <span class="ag-no">${esc(b.no)}</span>
-          <span class="ag-tag ${(b.type||'invoice')==='quote'?'upcoming':'now'}">${(b.type||'invoice')==='quote'?'Quote':'Invoice'}</span>
-        </div>
-        <div class="ag-guest">${esc(b.guest||'—')}</div>
-        <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s) · ${money(grandTotal(b))}</div>
-      </a>`).join('');
+    : dayBookings.map(b=>{
+        if(b.type==='block'){
+          return `<div class="ag-item">
+            <div class="ag-top">
+              <span class="ag-no">${esc(b.guest||'Blocked')}</span>
+              <span class="ag-tag" style="background:var(--block-soft);color:var(--block)">Blocked</span>
+            </div>
+            <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s)</div>
+            <button type="button" class="btn danger" style="align-self:flex-start;margin-top:4px" data-unblock="${esc(b.no)}">Remove block</button>
+          </div>`;
+        }
+        return `<a class="ag-item" href="stay.html?open=${encodeURIComponent(b.no)}">
+          <div class="ag-top">
+            <span class="ag-no">${esc(b.no)}</span>
+            <span class="ag-tag ${b.type==='quote'?'upcoming':'now'}">${b.type==='quote'?'Quote':'Invoice'}</span>
+          </div>
+          <div class="ag-guest">${esc(b.guest||'—')}</div>
+          <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s) · ${money(grandTotal(b))}</div>
+        </a>`;
+      }).join('');
+  $('#dayBody').querySelectorAll('[data-unblock]').forEach(btn=>
+    btn.addEventListener('click', ()=> removeBlock(btn.dataset.unblock, iso)));
   $('#dayOverlay').classList.add('show');
 }
 $('#dayClose').addEventListener('click', ()=> $('#dayOverlay').classList.remove('show'));
 $('#dayOverlay').addEventListener('click', e=>{ if(e.target===$('#dayOverlay')) $('#dayOverlay').classList.remove('show'); });
+
+async function removeBlock(no, reopenIso){
+  const idx = STAYS.findIndex(s=>s.no===no && s.type==='block');
+  if(idx<0) return;
+  const removed = STAYS.splice(idx,1);
+  try{
+    const ok = await pushStays();
+    if(ok===false) return; // pushStays already redirected on 401
+    render();
+    if(reopenIso) openDay(reopenIso);
+  }catch(e){
+    STAYS.splice(idx,0,removed[0]); // restore on failure
+    alert('Could not remove block: '+e.message);
+  }
+}
 
 /* ---------- AGENDA (upcoming list) ---------- */
 function renderAgenda(){
@@ -415,12 +510,13 @@ function renderAgenda(){
   if(!filtered.length){ list.innerHTML = '<div class="empty">No upcoming bookings.</div>'; return; }
   list.innerHTML = filtered.slice(0,25).map(d=>{
     const isNow = d.checkin<=today && d.checkout>today;
-    const tag = isNow ? '<span class="ag-tag now">Now</span>' : '<span class="ag-tag upcoming">Upcoming</span>';
-    return `<a class="ag-item" href="stay.html?open=${encodeURIComponent(d.no)}">
-      <div class="ag-top"><span class="ag-no">${esc(d.no)}</span>${tag}</div>
-      <div class="ag-guest">${esc(d.guest||'—')}</div>
-      <div class="ag-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)}</div>
-    </a>`;
+    const tag = d.type==='block' ? '<span class="ag-tag" style="background:var(--block-soft);color:var(--block)">Blocked</span>'
+      : isNow ? '<span class="ag-tag now">Now</span>' : '<span class="ag-tag upcoming">Upcoming</span>';
+    const inner = `
+      <div class="ag-top"><span class="ag-no">${esc(d.type==='block' ? (d.guest||'Blocked') : d.no)}</span>${tag}</div>
+      ${d.type==='block' ? '' : `<div class="ag-guest">${esc(d.guest||'—')}</div>`}
+      <div class="ag-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)}</div>`;
+    return d.type==='block' ? `<div class="ag-item">${inner}</div>` : `<a class="ag-item" href="stay.html?open=${encodeURIComponent(d.no)}">${inner}</a>`;
   }).join('');
 }
 
@@ -434,7 +530,59 @@ $('#fType').querySelectorAll('button').forEach(b=> b.addEventListener('click', (
   $('#fType').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
   render();
 }));
-document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#dayOverlay').classList.remove('show'); });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ $('#dayOverlay').classList.remove('show'); $('#blockOverlay').classList.remove('show'); }
+});
+
+/* ---------- BLOCK DATES ---------- */
+function openBlockModal(){
+  $('#bkStart').value = todayISO();
+  $('#bkEnd').value = todayISO();
+  $('#bkReason').value = '';
+  $('#bkErr').textContent = '';
+  $('#bkChips').querySelectorAll('.reason-chip').forEach(c=>c.classList.remove('on'));
+  $('#blockOverlay').classList.add('show');
+  setTimeout(()=>$('#bkStart').focus(), 50);
+}
+function closeBlockModal(){ $('#blockOverlay').classList.remove('show'); }
+$('#btnBlock').addEventListener('click', openBlockModal);
+$('#bkCancel').addEventListener('click', closeBlockModal);
+$('#blockOverlay').addEventListener('click', e=>{ if(e.target===$('#blockOverlay')) closeBlockModal(); });
+$('#bkChips').querySelectorAll('.reason-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    $('#bkReason').value = chip.dataset.r;
+    $('#bkChips').querySelectorAll('.reason-chip').forEach(c=>c.classList.toggle('on', c===chip));
+  });
+});
+
+async function saveBlock(){
+  const start = $('#bkStart').value, end = $('#bkEnd').value;
+  const reason = $('#bkReason').value.trim() || 'Blocked';
+  if(!start || !end){ $('#bkErr').textContent = 'Pick a start and end date.'; return; }
+  if(end < start){ $('#bkErr').textContent = 'End date is before the start date.'; return; }
+  const checkout = addDays(end, 1); // "end" is inclusive; internal model stores an exclusive checkout
+
+  const btn = $('#bkSave');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const entry = {
+    no: 'BLOCK-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2,6),
+    type: 'block', guest: reason, checkin: start, checkout,
+    savedAt: Date.now(),
+  };
+  STAYS.push(entry);
+  try{
+    const ok = await pushStays();
+    if(ok===false) return; // pushStays already redirected on 401
+    render();
+    closeBlockModal();
+  }catch(e){
+    STAYS.pop();
+    $('#bkErr').textContent = 'Could not save: ' + e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Block dates';
+  }
+}
+$('#bkSave').addEventListener('click', saveBlock);
 
 // Logo from settings (shared with other tools)
 (function(){
