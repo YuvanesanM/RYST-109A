@@ -164,6 +164,10 @@
     .rowbtn{padding:9px;line-height:0}
     .selchk{width:20px;height:20px}
     .rcpt{width:40px;height:40px}
+    /* Category picker as an even 3-col x 2-row grid instead of flex-wrap
+       chips that size themselves by label length. */
+    .catgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .catchip{flex-direction:column;justify-content:center;text-align:center;white-space:normal;line-height:1.25;padding:10px 6px;gap:4px;min-width:0;width:100%}
   }
   @media(max-width:380px){
     .two{grid-template-columns:1fr}
