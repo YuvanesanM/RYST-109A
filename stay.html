@@ -585,6 +585,9 @@ async function initApp(){
     if(!editingKey){ curNo=nextNo(docType); $("#no").value=curNo; }
     if(docType==="invoice"){ populateLoadQuoteSel(); $("#loadQuoteRow").style.display=""; }
     render();
+    // Deep link from the booking calendar dashboard: stay.html?open=<no>
+    const openNo = new URLSearchParams(location.search).get('open');
+    if(openNo) loadDoc(openNo);
   }
 }
 

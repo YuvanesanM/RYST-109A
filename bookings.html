@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Booking Calendar · RYST 109A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f4f1; --panel:#ffffff; --panel2:#f7f8f5;
+    --line:#e3e5e0; --accent:#3d9b69; --accent-d:#2f7d54; --accent-soft:#eaf4ee;
+    --ink:#1d211c; --muted:#5f655d; --muted2:#9aa097;
+    --danger:#c0584b; --danger-soft:#fbecea; --warn:#c98a2b; --warn-soft:#fbf3e6;
+    --inv:#0e7c86; --inv-soft:#e3f1f1; --qt:#c0922f; --qt-soft:#fbf0d8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:"Outfit",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100%}
+  button,input,select{font-family:inherit}
+  button{cursor:pointer}
+  a{color:var(--accent-d)}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:18px 16px 60px}
+
+  /* ── Top bar ── */
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 2px 18px}
+  header.top img{height:38px;object-fit:contain}
+  header.top .ttl{font-weight:700;font-size:18px;letter-spacing:.2px}
+  header.top .ttl small{display:block;font-weight:500;font-size:11.5px;color:var(--muted2);letter-spacing:.4px}
+  header.top .spacer{flex:1}
+  .tbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:9px;font-size:12.5px;font-weight:600;transition:.15s}
+  .tbtn:hover{border-color:var(--accent);color:var(--accent-d)}
+
+  /* ── Stats cards ── */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 16px 15px;box-shadow:0 6px 18px rgba(40,50,40,.04)}
+  .card .lbl{font-size:11.5px;font-weight:600;color:var(--muted2);letter-spacing:.4px;text-transform:uppercase}
+  .card .val{font-size:25px;font-weight:700;margin-top:7px;letter-spacing:-.5px}
+  .card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .card.hero{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-d) 100%);border:none;color:#fff}
+  .card.hero .lbl{color:#dff0e6}
+  .card.hero .sub{color:#dff0e6}
+  .card.warn .val{color:var(--warn)}
+
+  /* ── Layout: calendar + sidebar ── */
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
+
+  /* ── Calendar panel ── */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(40,50,40,.04)}
+  .cal-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .cal-head .mon{font-size:15px;font-weight:700;min-width:150px}
+  .cal-nav{display:flex;gap:6px}
+  .cal-nav button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:14px;display:flex;align-items:center;justify-content:center}
+  .cal-nav button:hover{border-color:var(--accent);color:var(--accent-d)}
+  .cal-head .spacer{flex:1}
+  .cal-legend{display:flex;gap:12px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+  .cal-legend span{display:inline-flex;align-items:center;gap:5px}
+  .cal-legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+  .cal-legend .i-inv{background:var(--inv)}
+  .cal-legend .i-qt{background:var(--qt)}
+  .cal-legend .i-conf{background:var(--danger)}
+
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+  .cal-dow{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted2);text-align:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+  .cal-cell{min-height:92px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:background .12s;position:relative}
+  .cal-cell:hover{background:var(--panel2)}
+  .cal-cell:nth-child(7n){border-right:none}
+  .cal-cell.out{color:var(--muted2);background:#fafaf9}
+  .cal-cell.today .daynum{background:var(--accent);color:#fff;border-radius:50%}
+  .cal-cell.conflict{box-shadow:inset 0 0 0 2px var(--danger)}
+  .daynum{font-size:12px;font-weight:600;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+  .cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
+  .cal-pill.inv{background:var(--inv)}
+  .cal-pill.qt{background:var(--qt)}
+  .cal-more{font-size:10px;color:var(--muted);padding:0 2px}
+
+  /* ── Sidebar ── */
+  .side{display:flex;flex-direction:column;gap:14px}
+  .side .panel{padding:14px 15px}
+  .side h2{font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted2);margin-bottom:10px}
+  .filters{display:flex;flex-direction:column;gap:8px}
+  .filters input,.filters select{padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:13px;color:var(--ink);outline:none;width:100%}
+  .filters input:focus,.filters select:focus{border-color:var(--accent)}
+  .seg{display:flex;border:1px solid var(--line);border-radius:9px;overflow:hidden;background:var(--panel2)}
+  .seg button{flex:1;border:none;background:transparent;padding:8px;font-size:12px;font-weight:600;color:var(--muted)}
+  .seg button.on{background:var(--accent);color:#fff}
+
+  .agenda{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto}
+  .ag-item{display:flex;flex-direction:column;gap:2px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:12.5px;text-decoration:none;color:inherit;transition:.12s}
+  .ag-item:hover{border-color:var(--accent)}
+  .ag-item .ag-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .ag-item .ag-no{color:var(--accent-d);font-weight:600}
+  .ag-item .ag-tag{font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:20px;text-transform:uppercase}
+  .ag-tag.now{background:var(--inv-soft);color:var(--inv)}
+  .ag-tag.past{background:#f0f0f0;color:var(--muted2)}
+  .ag-tag.upcoming{background:var(--qt-soft);color:var(--qt)}
+  .ag-item .ag-guest{font-weight:600}
+  .ag-item .ag-dates{color:var(--muted);font-size:11.5px}
+  .empty{color:var(--muted2);font-size:13px;text-align:center;padding:20px}
+
+  /* ── Day detail overlay ── */
+  .overlay{position:fixed;inset:0;background:rgba(29,33,28,.5);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
+  .overlay.show{display:flex}
+  .modal{background:var(--panel);border-radius:16px;width:min(440px,100%);max-height:86vh;overflow-y:auto;box-shadow:0 24px 70px rgba(20,30,20,.28)}
+  .modal h3{font-size:16px;font-weight:700;padding:20px 22px 0}
+  .modal .sd{color:var(--muted);font-size:12.5px;padding:4px 22px 0}
+  .mbody{padding:14px 22px 22px;display:flex;flex-direction:column;gap:10px}
+  .mfoot{display:flex;justify-content:flex-end;margin-top:4px;padding:0 22px 20px}
+
+  #loader{position:fixed;inset:0;background:rgba(243,244,241,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:90;color:var(--muted)}
+  #loader.hide{display:none}
+  .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  @media(max-width:960px){
+    .layout{grid-template-columns:1fr}
+    .cards{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:680px){
+    .wrap{padding:14px 12px 60px}
+    .cal-cell{min-height:64px;padding:4px}
+    .cal-pill{display:none}
+    .cal-cell.has-booking::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--inv)}
+    .cal-cell.has-quote-only::after{background:var(--qt)}
+    .cards{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:420px){
+    .cards{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img id="logo" alt="RYST" src="/assets/stay-logo.webp" />
+    <div class="ttl">Booking Calendar<small>RYST 109A · All stays at a glance</small></div>
+    <div class="spacer"></div>
+    <button class="tbtn" onclick="window.location.href='login.html'">⌂ Home</button>
+    <button class="tbtn" onclick="window.location.href='stay.html'">＋ New booking</button>
+  </header>
+
+  <div class="cards">
+    <div class="card hero">
+      <div class="lbl">Nights booked</div>
+      <div class="val" id="cNights">—</div>
+      <div class="sub" id="cNightsSub">this month</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Occupancy</div>
+      <div class="val" id="cOcc">—</div>
+      <div class="sub">this month</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Revenue</div>
+      <div class="val" id="cRev">—</div>
+      <div class="sub">invoices, this month</div>
+    </div>
+    <div class="card warn">
+      <div class="lbl">Next 7 days</div>
+      <div class="val" id="cUpcoming">—</div>
+      <div class="sub" id="cUpcomingSub">check-ins / check-outs</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="cal-head">
+        <div class="cal-nav">
+          <button id="calPrev" aria-label="Previous month">‹</button>
+          <button id="calToday">Today</button>
+          <button id="calNext" aria-label="Next month">›</button>
+        </div>
+        <div class="mon" id="calMonLabel">—</div>
+        <div class="spacer"></div>
+        <div class="cal-legend">
+          <span><i class="i-inv"></i>Invoice</span>
+          <span><i class="i-qt"></i>Quote</span>
+          <span><i class="i-conf"></i>Overlap</span>
+        </div>
+      </div>
+      <div class="cal-grid" id="calDow"></div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <div class="side">
+      <div class="panel">
+        <h2>Search &amp; filter</h2>
+        <div class="filters">
+          <input id="fSearch" placeholder="Guest name or booking no…" />
+          <div class="seg" id="fType">
+            <button data-t="all" class="on">All</button>
+            <button data-t="invoice">Invoices</button>
+            <button data-t="quote">Quotes</button>
+          </div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Upcoming</h2>
+        <div class="agenda" id="agenda"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Day detail modal -->
+<div class="overlay" id="dayOverlay">
+  <div class="modal">
+    <h3 id="dayTitle">Bookings</h3>
+    <p class="sd" id="daySub"></p>
+    <div class="mbody" id="dayBody"></div>
+    <div class="mfoot"><button class="tbtn" id="dayClose">Close</button></div>
+  </div>
+</div>
+
+<div id="loader"><div class="spin"></div><div>Loading bookings…</div></div>
+
+<script>
+const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+const TOKEN = localStorage.getItem('ryst_proxy_token') || '';
+const ROLE  = localStorage.getItem('ryst_user_role') || 'owner';
+
+if(!TOKEN){ window.location.href = 'login.html'; }
+if(ROLE !== 'owner'){ window.location.href = 'login.html'; }
+
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = n => '₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:0});
+const todayISO = () => new Date().toISOString().slice(0,10);
+const fmtDate = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
+const addDays = (iso,n) => { const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+const dateOnly = d => d.toISOString().slice(0,10);
+
+let STAYS = [];
+let view = new Date(); view.setDate(1);
+let FILTERS = { type:'all', q:'' };
+
+function lineAmt(it){ return (parseFloat(it.rate)||0)*(parseFloat(it.qty)||0); }
+function grandTotal(d){
+  const sub = (d.items||[]).reduce((s,it)=>s+lineAmt(it),0);
+  return Math.max(0, sub - (Number(d.discount)||0));
+}
+function nightsBetween(a,b){
+  if(!a||!b) return 0;
+  const d1=new Date(a+'T00:00:00'), d2=new Date(b+'T00:00:00');
+  return Math.max(0, Math.round((d2-d1)/86400000));
+}
+// A booking "occupies" every night from checkin (incl.) to checkout (excl.)
+function occupiesDate(d, iso){ return d.checkin && d.checkout && iso >= d.checkin && iso < d.checkout; }
+
+function passFilter(d){
+  if(FILTERS.type!=='all' && (d.type||'invoice')!==FILTERS.type) return false;
+  const q = FILTERS.q.trim().toLowerCase();
+  if(q && !((d.guest||'').toLowerCase().includes(q) || (d.no||'').toLowerCase().includes(q))) return false;
+  return true;
+}
+
+/* ---------- LOAD ---------- */
+async function load(){
+  try{
+    const res = await fetch(PROXY_URL+'/stays', { headers:{'X-Token':TOKEN} });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    STAYS = Array.isArray(data.stays) ? data.stays.filter(d=>d.checkin && d.checkout) : [];
+  }catch(e){ STAYS = []; }
+  render();
+  $('#loader').classList.add('hide');
+}
+
+function render(){
+  renderStats();
+  renderCalendar();
+  renderAgenda();
+}
+
+/* ---------- STATS ---------- */
+function renderStats(){
+  const y=view.getFullYear(), m=view.getMonth();
+  const monthStart = new Date(y,m,1), monthEnd = new Date(y,m+1,0);
+  const daysInMonth = monthEnd.getDate();
+  const monthStartISO = dateOnly(monthStart), monthEndISO = dateOnly(new Date(y,m+1,1));
+
+  const filtered = STAYS.filter(passFilter);
+  let nights = 0, revenue = 0;
+  for(const d of filtered){
+    // nights of this booking that fall inside the viewed month
+    let cur = d.checkin;
+    while(cur < d.checkout){
+      if(cur >= monthStartISO && cur < monthEndISO) nights++;
+      cur = addDays(cur,1);
+    }
+    if((d.type||'invoice')==='invoice' && d.checkin >= monthStartISO && d.checkin < monthEndISO) revenue += grandTotal(d);
+  }
+  const occ = daysInMonth ? Math.round((nights/daysInMonth)*100) : 0;
+
+  const today = todayISO(), weekAhead = addDays(today,7);
+  const upcoming = filtered.filter(d => (d.checkin>=today && d.checkin<=weekAhead) || (d.checkout>=today && d.checkout<=weekAhead));
+
+  $('#cNights').textContent = nights;
+  $('#cNightsSub').textContent = view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  $('#cOcc').textContent = occ+'%';
+  $('#cRev').textContent = money(revenue);
+  $('#cUpcoming').textContent = upcoming.length;
+}
+
+/* ---------- CALENDAR ---------- */
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function renderCalendarDow(){
+  $('#calDow').innerHTML = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+}
+function renderCalendar(){
+  renderCalendarDow();
+  const y=view.getFullYear(), m=view.getMonth();
+  $('#calMonLabel').textContent = view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+
+  const firstOfMonth = new Date(y,m,1);
+  const startOffset = firstOfMonth.getDay(); // 0=Sun
+  const gridStart = new Date(y,m,1-startOffset);
+  const today = todayISO();
+  const filtered = STAYS.filter(passFilter);
+
+  const cells = [];
+  for(let i=0;i<42;i++){
+    const d = new Date(gridStart); d.setDate(gridStart.getDate()+i);
+    const iso = dateOnly(d);
+    const inMonth = d.getMonth()===m;
+    const dayBookings = filtered.filter(b=>occupiesDate(b,iso));
+    cells.push({ date:d, iso, inMonth, dayBookings });
+  }
+
+  $('#calGrid').innerHTML = cells.map(c=>{
+    const hasInv = c.dayBookings.some(b=>(b.type||'invoice')==='invoice');
+    const hasQt  = c.dayBookings.some(b=>(b.type||'invoice')==='quote');
+    const conflict = c.dayBookings.length > 1;
+    const cls = ['cal-cell'];
+    if(!c.inMonth) cls.push('out');
+    if(c.iso===today) cls.push('today');
+    if(conflict) cls.push('conflict');
+    if(c.dayBookings.length) cls.push('has-booking');
+    if(hasQt && !hasInv) cls.push('has-quote-only');
+    const shown = c.dayBookings.slice(0,2).map(b=>
+      `<div class="cal-pill ${(b.type||'invoice')==='quote'?'qt':'inv'}">${esc(b.guest||b.no||'')}</div>`
+    ).join('');
+    const more = c.dayBookings.length>2 ? `<div class="cal-more">+${c.dayBookings.length-2} more</div>` : '';
+    return `<div class="${cls.join(' ')}" data-iso="${c.iso}">
+      <div class="daynum">${c.date.getDate()}</div>
+      ${shown}${more}
+    </div>`;
+  }).join('');
+
+  $$('#calGrid .cal-cell').forEach(el=> el.addEventListener('click', ()=> openDay(el.dataset.iso)));
+}
+
+/* ---------- DAY DETAIL ---------- */
+function openDay(iso){
+  const filtered = STAYS.filter(passFilter);
+  const dayBookings = filtered.filter(b=>occupiesDate(b,iso));
+  $('#dayTitle').textContent = new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  $('#daySub').textContent = dayBookings.length>1 ? `${dayBookings.length} overlapping bookings` : (dayBookings.length ? '1 booking' : 'No bookings');
+  $('#dayBody').innerHTML = !dayBookings.length ? '<div class="empty">Nothing booked this day.</div>'
+    : dayBookings.map(b=>`
+      <a class="ag-item" href="stay.html?open=${encodeURIComponent(b.no)}">
+        <div class="ag-top">
+          <span class="ag-no">${esc(b.no)}</span>
+          <span class="ag-tag ${(b.type||'invoice')==='quote'?'upcoming':'now'}">${(b.type||'invoice')==='quote'?'Quote':'Invoice'}</span>
+        </div>
+        <div class="ag-guest">${esc(b.guest||'—')}</div>
+        <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s) · ${money(grandTotal(b))}</div>
+      </a>`).join('');
+  $('#dayOverlay').classList.add('show');
+}
+$('#dayClose').addEventListener('click', ()=> $('#dayOverlay').classList.remove('show'));
+$('#dayOverlay').addEventListener('click', e=>{ if(e.target===$('#dayOverlay')) $('#dayOverlay').classList.remove('show'); });
+
+/* ---------- AGENDA (upcoming list) ---------- */
+function renderAgenda(){
+  const today = todayISO();
+  const filtered = STAYS.filter(passFilter)
+    .filter(d=> d.checkout >= today)
+    .sort((a,b)=> a.checkin.localeCompare(b.checkin));
+  const list = $('#agenda');
+  if(!filtered.length){ list.innerHTML = '<div class="empty">No upcoming bookings.</div>'; return; }
+  list.innerHTML = filtered.slice(0,25).map(d=>{
+    const isNow = d.checkin<=today && d.checkout>today;
+    const tag = isNow ? '<span class="ag-tag now">Now</span>' : '<span class="ag-tag upcoming">Upcoming</span>';
+    return `<a class="ag-item" href="stay.html?open=${encodeURIComponent(d.no)}">
+      <div class="ag-top"><span class="ag-no">${esc(d.no)}</span>${tag}</div>
+      <div class="ag-guest">${esc(d.guest||'—')}</div>
+      <div class="ag-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)}</div>
+    </a>`;
+  }).join('');
+}
+
+/* ---------- WIRE UP ---------- */
+$('#calPrev').addEventListener('click', ()=>{ view.setMonth(view.getMonth()-1); renderCalendar(); renderStats(); });
+$('#calNext').addEventListener('click', ()=>{ view.setMonth(view.getMonth()+1); renderCalendar(); renderStats(); });
+$('#calToday').addEventListener('click', ()=>{ view=new Date(); view.setDate(1); renderCalendar(); renderStats(); });
+$('#fSearch').addEventListener('input', e=>{ FILTERS.q=e.target.value; render(); });
+$('#fType').querySelectorAll('button').forEach(b=> b.addEventListener('click', ()=>{
+  FILTERS.type = b.dataset.t;
+  $('#fType').querySelectorAll('button').forEach(x=>x.classList.toggle('on', x===b));
+  render();
+}));
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') $('#dayOverlay').classList.remove('show'); });
+
+// Logo from settings (shared with other tools)
+(function(){
+  try{ const s=JSON.parse(localStorage.getItem('ryst_quote_settings')||'null'); if(s&&s.logo){ $('#logo').src=s.logo; return; } }catch(e){}
+})();
+
+load();
+</script>
+</body>
+</html>
