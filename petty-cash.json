@@ -26,6 +26,16 @@
       "reimbursementId": null,
       "createdBy": "mailyuvanesh@gmail.com",
       "createdAt": 1783778818349
+    },
+    {
+      "id": "t_mrgfwrz0_8eaad6",
+      "type": "topup",
+      "subtype": "cash",
+      "date": "2026-07-11",
+      "amount": 5000,
+      "note": "Cash added to float",
+      "createdBy": "mailyuvanesh@gmail.com",
+      "createdAt": 1783778915484
     }
   ]
 }
