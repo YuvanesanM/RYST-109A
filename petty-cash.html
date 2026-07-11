@@ -146,6 +146,41 @@
   @media(max-width:520px){
     header.top .who{display:none}
     .card .val{font-size:21px}
+    .bar{grid-template-columns:76px 1fr auto}
+  }
+
+  /* ── Mobile (≤680px): action buttons as a tappable grid, inputs at 16px to
+     stop iOS Safari auto-zooming on focus, bigger touch targets ── */
+  @media(max-width:680px){
+    .wrap{padding:14px 12px 60px}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .actions .btn{width:100%;justify-content:center;padding:12px 10px}
+    .filters select,.filters input,.field input,.field select,.field textarea{font-size:16px}
+    .rowbtn{padding:9px;line-height:0}
+    .selchk{width:20px;height:20px}
+    .rcpt{width:40px;height:40px}
+  }
+  @media(max-width:380px){
+    .two{grid-template-columns:1fr}
+  }
+
+  /* ── Ledger as stacked cards below 680px — a table forces sideways
+     scrolling on a phone; each <td> becomes a labelled row instead via
+     data-label, driven by the same render() output. ── */
+  @media(max-width:680px){
+    .tablewrap{overflow-x:visible}
+    table{min-width:0}
+    thead{display:none}
+    tbody,tr,td{display:block;width:100%}
+    tbody tr{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:8px 12px}
+    tbody tr:last-child{margin-bottom:0}
+    tbody tr.credit{background:#f4faf6}
+    td{padding:6px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+    td:empty{display:none;padding:0}
+    td::before{content:attr(data-label);font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted2);flex-shrink:0}
+    td.td-plain::before{content:none}
+    td.td-plain{justify-content:flex-end}
+    .note{text-align:right;max-width:70%}
   }
   @media print{
     header.top .tbtn,.actions,.filters,.rowbtn,.selbar,#loader,#toast,.rcpt{display:none!important}
@@ -460,28 +495,28 @@ function renderLedger(){
     if(e.type==='topup'){
       const kind = e.subtype==='reimbursement' ? 'Reimbursement' : 'Cash top-up';
       return `<tr class="credit">
-        <td></td>
-        <td>${esc(e.date||'')}</td>
-        <td><span class="chip cash">${esc(kind)}</span></td>
-        <td class="note">${esc(e.note||'')}</td>
-        <td></td>
-        <td class="amt credit">+${money(e.amount)}</td>
-        <td></td>
-        <td></td>
+        <td class="td-plain"></td>
+        <td data-label="Date">${esc(e.date||'')}</td>
+        <td data-label="Type"><span class="chip cash">${esc(kind)}</span></td>
+        <td class="note" data-label="Note">${esc(e.note||'')}</td>
+        <td class="td-plain"></td>
+        <td class="amt credit" data-label="Amount">+${money(e.amount)}</td>
+        <td class="td-plain"></td>
+        <td class="td-plain"></td>
       </tr>`;
     }
     const mod = canModify(e);
     const selBox = (isOwner && e.status==='pending') ? `<input type="checkbox" class="selchk" data-id="${e.id}" ${selected.has(e.id)?'checked':''}/>` : '';
     const rcpt = e.receipt ? `<img class="rcpt" src="${e.receipt}" data-id="${e.id}" alt="receipt"/>` : '<span class="note">—</span>';
     return `<tr>
-      <td>${selBox}</td>
-      <td>${esc(e.date||'')}</td>
-      <td><span class="cat">${esc(e.category||'—')}</span></td>
-      <td class="note">${esc(e.note||'')}</td>
-      <td>${rcpt}</td>
-      <td class="amt debit">−${money(e.amount)}</td>
-      <td><span class="chip ${e.status}">${e.status}</span></td>
-      <td>${ mod ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button><button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : '' }</td>
+      <td data-label="Select">${selBox}</td>
+      <td data-label="Date">${esc(e.date||'')}</td>
+      <td data-label="Category"><span class="cat">${esc(e.category||'—')}</span></td>
+      <td class="note" data-label="Note">${esc(e.note||'')}</td>
+      <td data-label="Receipt">${rcpt}</td>
+      <td class="amt debit" data-label="Amount">−${money(e.amount)}</td>
+      <td data-label="Status"><span class="chip ${e.status}">${e.status}</span></td>
+      <td class="td-plain">${ mod ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button><button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : '' }</td>
     </tr>`;
   }).join('');
 }
