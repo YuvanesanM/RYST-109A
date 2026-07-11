@@ -13,5 +13,19 @@
     "Pool",
     "Miscellaneous"
   ],
-  "entries": []
+  "entries": [
+    {
+      "id": "e_mrgfup0t_309ac9",
+      "type": "expense",
+      "date": "2026-07-11",
+      "category": "Repairs & Maintenance",
+      "amount": 2348,
+      "note": "Plywood",
+      "receipt": null,
+      "status": "pending",
+      "reimbursementId": null,
+      "createdBy": "mailyuvanesh@gmail.com",
+      "createdAt": 1783778818349
+    }
+  ]
 }
