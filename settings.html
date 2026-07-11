@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rate Card &amp; Settings — RYST 109A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f4f1; --panel:#ffffff; --panel2:#f7f8f5;
+    --line:#e3e5e0; --accent:#3d9b69; --accent-d:#2f7d54; --accent-soft:#eaf4ee;
+    --ink:#1d211c; --muted:#5f655d; --muted2:#9aa097; --danger:#c0584b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Outfit",system-ui,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer}
+  input,textarea,select{font-family:inherit}
+
+  /* ---- HEADER ---- */
+  header.bar{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;height:59px}
+  header.bar img.hdr-logo{height:36px;object-fit:contain}
+  .bar-title{font-size:14px;font-weight:600;color:var(--ink);flex:1}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;border:1px solid var(--line);background:var(--panel);font-size:13px;font-weight:500;color:var(--ink);text-decoration:none;transition:.15s;cursor:pointer}
+  .btn:hover{border-color:var(--accent);color:var(--accent-d)}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{background:var(--accent-d);border-color:var(--accent-d)}
+
+  /* ---- CONTENT ---- */
+  .cfg-body{max-width:1020px;margin:0 auto;padding:32px 32px 80px}
+  .sd{color:var(--muted);font-size:13px;margin:0 0 22px}
+  .gh-mini{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent-d);font-weight:700;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+  .gh-mini::after{content:"";flex:1;height:1px;background:var(--line)}
+  .gh-mini:first-of-type{margin-top:0}
+  .f{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .f span{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+  .t{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13.5px;background:var(--panel);color:var(--ink);outline:none;transition:.15s}
+  .t:focus{border-color:var(--accent);background:#fff}
+  textarea.t{resize:vertical;min-height:90px}
+
+  /* ---- RATE CARD TABLE ---- */
+  .rc-table-wrap{width:100%;overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-bottom:14px}
+  table.rc-table{width:100%;border-collapse:collapse;min-width:420px}
+  table.rc-table thead th{background:var(--panel2);border-bottom:2px solid var(--line);padding:10px 12px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);font-weight:600;white-space:nowrap}
+  table.rc-table thead th.r{text-align:right}
+  table.rc-table tbody tr{border-bottom:1px solid var(--line)}
+  table.rc-table tbody tr:last-child{border-bottom:none}
+  table.rc-table tbody tr:hover td{background:var(--accent-soft)}
+  table.rc-table td{padding:4px 6px;vertical-align:middle}
+  table.rc-table td input{width:100%;background:transparent;border:1px solid transparent;border-radius:7px;padding:7px 9px;font-size:13px;font-family:inherit;color:var(--ink)}
+  table.rc-table td input:hover{border-color:var(--line);background:var(--panel2)}
+  table.rc-table td input:focus{outline:none;border-color:var(--accent);background:#fff}
+  table.rc-table td input.r{text-align:right}
+  .rc-del{background:transparent;border:1px solid var(--line);color:var(--muted2);border-radius:8px;width:30px;height:30px;font-size:16px;line-height:1;padding:0}
+  .rc-del:hover{border-color:var(--danger);color:var(--danger)}
+  .rc-foot{display:flex;gap:10px;margin-top:18px}
+  .rc-add{background:transparent;border:1px dashed #cdd1cb;color:var(--muted);padding:11px 16px;border-radius:9px;font-size:13px}
+  .rc-add:hover{border-color:var(--accent);color:var(--accent-d)}
+
+  /* ---- TOAST ---- */
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1d211c;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:60}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media(max-width:680px){
+    .cfg-body{padding:20px 14px 60px}
+    .rc-table-wrap{border-radius:8px}
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <img class="hdr-logo" src="/assets/stay-logo.webp" alt="RYST 109A">
+  <span class="bar-title">Rate Card &amp; Settings</span>
+  <a class="btn" href="login.html">← Home</a>
+</header>
+
+<div class="cfg-body">
+  <p class="sd">Settings for the <b>RYST 109A Beach Villa</b> invoice / quote builder. Pricing, bank details and business info sync to the cloud and load automatically in the Stay builder.</p>
+
+  <p class="gh-mini">Charge pricing</p>
+  <div class="rc-table-wrap">
+    <table class="rc-table">
+      <thead><tr>
+        <th>Charge description</th>
+        <th class="r" style="width:180px">Default rate (₹)</th>
+        <th style="width:36px"></th>
+      </tr></thead>
+      <tbody id="stayRcBody"></tbody>
+    </table>
+  </div>
+  <button class="rc-add" id="stayRcAdd">+ Add charge</button>
+
+  <p class="gh-mini">Business &amp; payment</p>
+  <label class="f"><span>Property address block (under the wordmark)</span><textarea class="t" id="stayCompany" rows="3"></textarea></label>
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px">
+    <label class="f"><span>PAN</span><input class="t" id="stayPan" placeholder="ADVPJ1491D"></label>
+    <label class="f"><span>Invoice no. prefix</span><input class="t" id="stayInvPrefix" placeholder="RYST109A/INV"></label>
+    <label class="f"><span>Quote no. prefix</span><input class="t" id="stayQtPrefix" placeholder="RYST109A/QT"></label>
+    <label class="f"><span>Max guests (incl.)</span><input class="t" id="stayMaxGuests" type="number" min="0" step="1" placeholder="4"></label>
+    <label class="f"><span>Guest capacity (hard cap)</span><input class="t" id="stayGuestCapacity" type="number" min="0" step="1" placeholder="10"></label>
+  </div>
+  <label class="f"><span>Bank / payment details block</span><textarea class="t" id="stayBank" rows="6"></textarea></label>
+  <label class="f"><span>GST declaration</span><textarea class="t" id="stayDecl" rows="3"></textarea></label>
+  <label class="f"><span>Terms &amp; conditions (one per line)</span><textarea class="t" id="stayTerms" rows="7"></textarea></label>
+  <div class="rc-foot">
+    <button class="btn primary" id="staySave">Save stay settings</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+const K_STAY    = 'ryst_stay_settings';
+
+const esc = s => (s||"").toString().replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+const STAY_DEFAULTS = {
+  company:`109A, Pearl Beach Site, Parmankeni,
+Cheyyur - 603305`,
+  pan:"ADVPJ1491D",
+  invPrefix:"RYST109A/INV",
+  qtPrefix:"RYST109A/QT",
+  bank:`Account Holder: Yuvanesan Muthukumaresan
+Account Number: 50100XXXXXXXXX
+IFSC: HDFCXXXXXXX
+Bank Name: HDFC Bank
+Account Type: Savings`,
+  declaration:`Supplier is not registered under GST as the turnover is below the prescribed threshold limit under the GST Act. Hence, GST has not been charged on this invoice.`,
+  terms:[
+    "Full payment is due as per booking confirmation.",
+    "Security deposit, if collected, shall be refunded within 7–10 working days after check-out, subject to inspection of the property.",
+    "Any damage to the property, furnishings, fixtures or equipment may be deducted from the security deposit.",
+    "This document is issued by an individual owner and not by a GST-registered entity.",
+    "Jurisdiction shall be Chennai, Tamil Nadu."
+  ],
+  rates:[
+    {desc:"Villa Rental Charges",            rate:""},
+    {desc:"Additional Guest Charges",        rate:""},
+    {desc:"Cleaning & Maintenance Charges",  rate:""},
+    {desc:"Event / Gathering Charges",       rate:""},
+    {desc:"Other Charges",                   rate:""}
+  ],
+  maxGuests: 4,
+  guestCapacity: 10
+};
+let stay = JSON.parse(JSON.stringify(STAY_DEFAULTS));
+let stayRcDraft = [];
+let proxyToken = localStorage.getItem('ryst_proxy_token')||'';
+
+/* ---------- AUTH ---------- */
+(async function boot(){
+  if(!proxyToken){ window.location.href='login.html'; return; }
+  const role = localStorage.getItem('ryst_user_role') || 'owner';
+  if(role !== 'owner'){ window.location.href='login.html'; return; }
+  // Validate token in background — if it expired redirect quietly
+  fetch(PROXY_URL+'/stay-settings',{headers:{'X-Token':proxyToken}})
+    .then(r=>{ if(r && r.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; } return r.ok ? r.json() : null; })
+    .then(d=>{ if(d && typeof d==='object' && (d.bank||d.rates||d.company)) applyStay(d); })
+    .catch(()=>{});
+  loadStayPanel();
+})();
+
+/* ---------- LOAD ---------- */
+async function loadStayPanel(){
+  try{ stay=Object.assign({},STAY_DEFAULTS,JSON.parse(localStorage.getItem(K_STAY)||"{}")); }catch(e){ stay=JSON.parse(JSON.stringify(STAY_DEFAULTS)); }
+  if(!Array.isArray(stay.terms)||!stay.terms.length) stay.terms=STAY_DEFAULTS.terms.slice();
+  if(!Array.isArray(stay.rates)||!stay.rates.length) stay.rates=STAY_DEFAULTS.rates.map(r=>({...r}));
+  renderFromStay();
+}
+function applyStay(d){
+  stay=Object.assign({},STAY_DEFAULTS,d);
+  if(!Array.isArray(stay.terms)||!stay.terms.length) stay.terms=STAY_DEFAULTS.terms.slice();
+  if(!Array.isArray(stay.rates)||!stay.rates.length) stay.rates=STAY_DEFAULTS.rates.map(r=>({...r}));
+  localStorage.setItem(K_STAY,JSON.stringify(stay));
+  renderFromStay();
+}
+function renderFromStay(){
+  stayRcDraft=stay.rates.map(r=>({...r}));
+  renderStayRates();
+  document.getElementById("stayCompany").value=stay.company||"";
+  document.getElementById("stayPan").value=stay.pan||"";
+  document.getElementById("stayInvPrefix").value=stay.invPrefix||"";
+  document.getElementById("stayQtPrefix").value=stay.qtPrefix||"";
+  document.getElementById("stayMaxGuests").value=stay.maxGuests!=null?stay.maxGuests:"";
+  document.getElementById("stayGuestCapacity").value=stay.guestCapacity!=null?stay.guestCapacity:"";
+  document.getElementById("stayBank").value=stay.bank||"";
+  document.getElementById("stayDecl").value=stay.declaration||"";
+  document.getElementById("stayTerms").value=(stay.terms||[]).join("\n");
+}
+
+/* ---------- RATE TABLE ---------- */
+function renderStayRates(){
+  const body=document.getElementById("stayRcBody"); body.innerHTML="";
+  stayRcDraft.forEach((r,i)=>{
+    const row=document.createElement("tr");
+    row.innerHTML=`
+      <td><input data-i="${i}" data-k="desc" placeholder="Charge description" value="${esc(r.desc)}" style="min-width:200px"></td>
+      <td><input class="r" data-i="${i}" data-k="rate" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0" value="${esc(r.rate)}"></td>
+      <td><button class="rc-del" data-del="${i}" title="Remove">×</button></td>`;
+    body.appendChild(row);
+  });
+  body.querySelectorAll("input[data-i]").forEach(inp=>{
+    inp.addEventListener("input",e=>{ const i=+e.target.dataset.i,k=e.target.dataset.k; stayRcDraft[i][k]=e.target.value; });
+  });
+  body.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",e=>{
+    stayRcDraft.splice(+e.target.dataset.del,1); renderStayRates();
+  }));
+}
+document.getElementById("stayRcAdd").addEventListener("click",()=>{ stayRcDraft.push({desc:"",rate:""}); renderStayRates(); });
+
+/* ---------- SAVE ---------- */
+async function saveStay(){
+  const btn=document.getElementById("staySave");
+  btn.disabled=true; btn.textContent="Saving…";
+  stay.rates = stayRcDraft
+    .filter(r=>(r.desc||"").trim()!=="")
+    .map(r=>({desc:r.desc.trim(), rate:(r.rate===""||r.rate==null)?"":parseFloat(r.rate)}));
+  if(!stay.rates.length) stay.rates=STAY_DEFAULTS.rates.map(r=>({...r}));
+  stay.company=document.getElementById("stayCompany").value;
+  stay.pan=(document.getElementById("stayPan").value||"").trim();
+  stay.invPrefix=(document.getElementById("stayInvPrefix").value||"").trim()||STAY_DEFAULTS.invPrefix;
+  stay.qtPrefix=(document.getElementById("stayQtPrefix").value||"").trim()||STAY_DEFAULTS.qtPrefix;
+  const mgVal=document.getElementById("stayMaxGuests").value;
+  stay.maxGuests = mgVal!=="" ? parseInt(mgVal)||0 : STAY_DEFAULTS.maxGuests;
+  const gcVal=document.getElementById("stayGuestCapacity").value;
+  stay.guestCapacity = gcVal!=="" ? parseInt(gcVal)||0 : STAY_DEFAULTS.guestCapacity;
+  if(stay.maxGuests > 0 && stay.guestCapacity > 0 && stay.maxGuests > stay.guestCapacity){
+    toast("⚠️ Max included guests ("+stay.maxGuests+") exceeds guest capacity ("+stay.guestCapacity+") — additional charge line can never appear");
+  }
+  stay.bank=document.getElementById("stayBank").value;
+  stay.declaration=document.getElementById("stayDecl").value;
+  stay.terms=(document.getElementById("stayTerms").value||"").split("\n").map(t=>t.trim()).filter(Boolean);
+  if(!stay.terms.length) stay.terms=STAY_DEFAULTS.terms.slice();
+  localStorage.setItem(K_STAY,JSON.stringify(stay));
+  if(proxyToken){
+    try{
+      const res=await fetch(PROXY_URL+'/stay-settings',{method:'PUT',
+        headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
+        body:JSON.stringify(Object.assign({version:1},stay))});
+      if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+      if(!res.ok) toast("Saved locally — cloud sync failed ("+res.status+")");
+      else toast("Stay settings saved");
+    }catch(e){ toast("Saved locally — cloud unreachable"); }
+  } else { toast("Saved locally"); }
+  btn.disabled=false; btn.textContent="Save stay settings";
+  stayRcDraft=stay.rates.map(r=>({...r}));
+  renderStayRates();
+}
+document.getElementById("staySave").addEventListener("click",saveStay);
+
+/* ---------- TOAST ---------- */
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2400);
+}
+</script>
+</body>
+</html>
