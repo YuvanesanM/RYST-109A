@@ -213,7 +213,11 @@
   </div>
 </div>
 
-<div id="loader"><div class="spin"></div><div>Loading bookings…</div></div>
+<div id="loader">
+  <div class="spin" id="loaderSpin"></div>
+  <div id="loaderMsg">Loading bookings…</div>
+  <button class="tbtn" id="loaderRetry" style="display:none">Retry</button>
+</div>
 
 <script>
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
@@ -236,10 +240,13 @@ let STAYS = [];
 let view = new Date(); view.setDate(1);
 let FILTERS = { type:'all', q:'' };
 
-function lineAmt(it){ return (parseFloat(it.rate)||0)*(parseFloat(it.qty)||0); }
+// Tolerates messy hand-entered values like "₹45,000" or "1 night", which
+// parseFloat alone chokes on (parseFloat("₹45000") is NaN, not 45000).
+const toNum = v => { const n = parseFloat(String(v==null?'':v).replace(/[^0-9.-]/g,'')); return isFinite(n) ? n : 0; };
+function lineAmt(it){ return toNum(it.rate)*toNum(it.qty); }
 function grandTotal(d){
   const sub = (d.items||[]).reduce((s,it)=>s+lineAmt(it),0);
-  return Math.max(0, sub - (Number(d.discount)||0));
+  return Math.max(0, sub - toNum(d.discount));
 }
 function nightsBetween(a,b){
   if(!a||!b) return 0;
@@ -258,15 +265,37 @@ function passFilter(d){
 
 /* ---------- LOAD ---------- */
 async function load(){
+  const loader = $('#loader'), msgEl = $('#loaderMsg'), retryBtn = $('#loaderRetry');
+  loader.classList.remove('hide');
+  $('#loaderSpin').style.display = '';
+  retryBtn.style.display = 'none';
+  msgEl.textContent = 'Loading bookings…';
+
+  // The proxy runs on Render's free tier and can cold-start for 30–60s. Keep
+  // the user informed rather than leaving a bare spinner up (same pattern as
+  // login.html / petty-cash.html), and never let this hang forever.
+  const ctrl = new AbortController();
+  const slowTimer = setTimeout(() => { msgEl.textContent = 'Waking up the server… this can take up to a minute.'; }, 4000);
+  const abortTimer = setTimeout(() => ctrl.abort(), 75000);
   try{
-    const res = await fetch(PROXY_URL+'/stays', { headers:{'X-Token':TOKEN} });
+    const res = await fetch(PROXY_URL+'/stays', { headers:{'X-Token':TOKEN}, signal: ctrl.signal });
     if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    if(!res.ok) throw new Error('Server error ('+res.status+')');
     const data = await res.json().catch(()=>({}));
     STAYS = Array.isArray(data.stays) ? data.stays.filter(d=>d.checkin && d.checkout) : [];
-  }catch(e){ STAYS = []; }
-  render();
-  $('#loader').classList.add('hide');
+    render();
+    loader.classList.add('hide');
+  }catch(e){
+    $('#loaderSpin').style.display = 'none';
+    msgEl.textContent = (e && e.name === 'AbortError')
+      ? 'Server timed out — please retry.'
+      : 'Could not load bookings — ' + (e && e.message ? e.message : 'check your connection.');
+    retryBtn.style.display = '';
+  } finally {
+    clearTimeout(slowTimer); clearTimeout(abortTimer);
+  }
 }
+$('#loaderRetry').addEventListener('click', load);
 
 function render(){
   renderStats();
@@ -282,14 +311,17 @@ function renderStats(){
   const monthStartISO = dateOnly(monthStart), monthEndISO = dateOnly(new Date(y,m+1,1));
 
   const filtered = STAYS.filter(passFilter);
+  const nextMonthStart = new Date(y,m+1,1);
   let nights = 0, revenue = 0;
   for(const d of filtered){
-    // nights of this booking that fall inside the viewed month
-    let cur = d.checkin;
-    while(cur < d.checkout){
-      if(cur >= monthStartISO && cur < monthEndISO) nights++;
-      cur = addDays(cur,1);
-    }
+    // Nights of this booking that overlap the viewed month, via a closed-form
+    // range intersection rather than stepping day-by-day — a hand-entered
+    // date typo (checkout years out) would otherwise turn into a very long
+    // or effectively stuck loop.
+    const s = new Date(d.checkin+'T00:00:00'), e = new Date(d.checkout+'T00:00:00');
+    const overlapStart = s < monthStart ? monthStart : s;
+    const overlapEnd = e > nextMonthStart ? nextMonthStart : e;
+    nights += Math.max(0, Math.round((overlapEnd - overlapStart)/86400000));
     if((d.type||'invoice')==='invoice' && d.checkin >= monthStartISO && d.checkin < monthEndISO) revenue += grandTotal(d);
   }
   const occ = daysInMonth ? Math.round((nights/daysInMonth)*100) : 0;
