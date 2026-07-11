@@ -444,7 +444,7 @@ function normalize(doc){
   doc = doc || {};
   return {
     float: Number(doc.float)||0,
-    categories: Array.isArray(doc.categories)&&doc.categories.length ? doc.categories : ['Groceries','Utilities','Repairs & Maintenance','Housekeeping','Guest Supplies','Transport','Staff','Gardening','Pool','Miscellaneous'],
+    categories: Array.isArray(doc.categories)&&doc.categories.length ? doc.categories : ['Groceries & Guest Supplies','Housekeeping','Utilities','Repairs & Maintenance','Transport','Miscellaneous'],
     entries: Array.isArray(doc.entries) ? doc.entries : [],
   };
 }
@@ -604,8 +604,8 @@ function compressImage(file){
 
 // ── Expense modal ──
 const CAT_EMOJI = {
-  'Groceries':'🛒', 'Utilities':'💡', 'Repairs & Maintenance':'🔧', 'Housekeeping':'🧹',
-  'Guest Supplies':'🧴', 'Transport':'🚗', 'Staff':'👷', 'Gardening':'🌿', 'Pool':'🏊', 'Miscellaneous':'📦',
+  'Groceries & Guest Supplies':'🛒', 'Housekeeping':'🧹', 'Utilities':'💡',
+  'Repairs & Maintenance':'🔧', 'Transport':'🚗', 'Miscellaneous':'📦',
 };
 function catEmoji(c){ return CAT_EMOJI[c] || '🏷️'; }
 
