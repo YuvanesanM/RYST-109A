@@ -169,23 +169,46 @@
     .two{grid-template-columns:1fr}
   }
 
-  /* ── Ledger as stacked cards below 680px — a table forces sideways
-     scrolling on a phone; each <td> becomes a labelled row instead via
-     data-label, driven by the same render() output. ── */
+  /* ── Ledger as a compact list below 680px — a table forces sideways
+     scrolling on a phone. Each <tr> becomes a two-line flex row instead
+     of a boxed card: category + amount on line one, note/date/status on
+     line two, separated by a hairline rather than a bordered block. ── */
   @media(max-width:680px){
     .tablewrap{overflow-x:visible}
-    table{min-width:0}
+    table{display:block; width:100%; min-width:0}
     thead{display:none}
-    tbody,tr,td{display:block;width:100%}
-    tbody tr{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:8px 12px}
-    tbody tr:last-child{margin-bottom:0}
-    tbody tr.credit{background:#f4faf6}
-    td{padding:6px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
-    td:empty{display:none;padding:0}
-    td::before{content:attr(data-label);font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted2);flex-shrink:0}
-    td.td-plain::before{content:none}
-    td.td-plain{justify-content:flex-end}
-    .note{text-align:right;max-width:70%}
+    tbody{display:block}
+    tr{
+      display:flex; flex-wrap:wrap; align-items:center;
+      column-gap:10px; row-gap:2px;
+      padding:11px 4px; border-bottom:1px solid var(--line);
+    }
+    tbody tr:last-child{border-bottom:none}
+    tr.credit{background:#f4faf6; margin:0 -6px; padding-left:10px; padding-right:10px}
+    td{padding:0; border:none; display:block; min-width:0}
+    td::before{content:none}
+    td:empty:not(.td-break){display:none}
+
+    /* Forces a clean wrap between line 1 and line 2 regardless of how long
+       the category/note text is — a zero-basis flexible item can't be used
+       to gauge the line-wrap point (its hypothetical size is 0, so the
+       browser never wraps around it and the row silently overflows
+       instead). A 100%-wide, zero-height spacer sidesteps that. */
+    .td-break{order:6; flex:0 0 100%; height:0}
+
+    .td-sel{order:1; flex:0 0 auto}
+    .td-rcpt{order:2; flex:0 0 auto}
+    .td-cat{order:3; flex:1 1 0; min-width:0; font-weight:600; font-size:13.5px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .td-cat .cat{background:none; border:none; padding:0; font: inherit; color:inherit}
+    .td-amt{order:4; flex:0 0 auto; white-space:nowrap}
+    .td-actions{order:5; flex:0 0 auto}
+
+    .td-note{order:7; flex:1 1 0; min-width:0; font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+    .td-date{order:8; flex:0 0 auto; font-size:11.5px; color:var(--muted2)}
+    .td-status{order:9; flex:0 0 auto}
+
+    .rcpt{width:32px; height:32px}
+    .rowbtn{padding:5px}
   }
   @media print{
     header.top .tbtn,.actions,.filters,.rowbtn,.selbar,#loader,#toast,.rcpt{display:none!important}
@@ -500,28 +523,30 @@ function renderLedger(){
     if(e.type==='topup'){
       const kind = e.subtype==='reimbursement' ? 'Reimbursement' : 'Cash top-up';
       return `<tr class="credit">
-        <td class="td-plain"></td>
-        <td data-label="Date">${esc(e.date||'')}</td>
-        <td data-label="Type"><span class="chip cash">${esc(kind)}</span></td>
-        <td class="note" data-label="Note">${esc(e.note||'')}</td>
-        <td class="td-plain"></td>
-        <td class="amt credit" data-label="Amount">+${money(e.amount)}</td>
-        <td class="td-plain"></td>
-        <td class="td-plain"></td>
+        <td class="td-plain td-sel"></td>
+        <td class="td-date" data-label="Date">${esc(e.date||'')}</td>
+        <td class="td-cat" data-label="Type"><span class="chip cash">${esc(kind)}</span></td>
+        <td class="note td-note" data-label="Note">${esc(e.note||'')}</td>
+        <td class="td-plain td-rcpt"></td>
+        <td class="amt credit td-amt" data-label="Amount">+${money(e.amount)}</td>
+        <td class="td-plain td-status"></td>
+        <td class="td-plain td-actions"></td>
+        <td class="td-break"></td>
       </tr>`;
     }
     const mod = canModify(e);
     const selBox = (isOwner && e.status==='pending') ? `<input type="checkbox" class="selchk" data-id="${e.id}" ${selected.has(e.id)?'checked':''}/>` : '';
     const rcpt = e.receipt ? `<img class="rcpt" src="${e.receipt}" data-id="${e.id}" alt="receipt"/>` : '<span class="note">—</span>';
     return `<tr>
-      <td data-label="Select">${selBox}</td>
-      <td data-label="Date">${esc(e.date||'')}</td>
-      <td data-label="Category"><span class="cat">${esc(e.category||'—')}</span></td>
-      <td class="note" data-label="Note">${esc(e.note||'')}</td>
-      <td data-label="Receipt">${rcpt}</td>
-      <td class="amt debit" data-label="Amount">−${money(e.amount)}</td>
-      <td data-label="Status"><span class="chip ${e.status}">${e.status}</span></td>
-      <td class="td-plain">${ mod ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button><button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : '' }</td>
+      <td class="td-sel" data-label="Select">${selBox}</td>
+      <td class="td-date" data-label="Date">${esc(e.date||'')}</td>
+      <td class="td-cat" data-label="Category"><span class="cat">${esc(e.category||'—')}</span></td>
+      <td class="note td-note" data-label="Note">${esc(e.note||'')}</td>
+      <td class="td-rcpt" data-label="Receipt">${rcpt}</td>
+      <td class="amt debit td-amt" data-label="Amount">−${money(e.amount)}</td>
+      <td class="td-status" data-label="Status"><span class="chip ${e.status}">${e.status}</span></td>
+      <td class="td-plain td-actions">${ mod ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button><button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : '' }</td>
+      <td class="td-break"></td>
     </tr>`;
   }).join('');
 }
