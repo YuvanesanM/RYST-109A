@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "float": 0,
+  "categories": [
+    "Groceries",
+    "Utilities",
+    "Repairs & Maintenance",
+    "Housekeeping",
+    "Guest Supplies",
+    "Transport",
+    "Staff",
+    "Gardening",
+    "Pool",
+    "Miscellaneous"
+  ],
+  "entries": []
+}
