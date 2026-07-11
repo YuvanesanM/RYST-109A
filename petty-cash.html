@@ -119,6 +119,11 @@
   .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent)}
   .field textarea{resize:vertical;min-height:52px}
   .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .catgrid{display:flex;flex-wrap:wrap;gap:8px}
+  .catchip{display:inline-flex;align-items:center;gap:6px;padding:9px 13px;border:1.5px solid var(--line);border-radius:20px;background:var(--panel2);font-size:13px;font-weight:600;color:var(--ink);transition:.15s}
+  .catchip .emo{font-size:16px;line-height:1}
+  .catchip:hover{border-color:var(--accent)}
+  .catchip.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-d)}
   .rcpt-drop{border:1.5px dashed var(--line);border-radius:10px;padding:14px;text-align:center;color:var(--muted2);font-size:13px;cursor:pointer;transition:.15s}
   .rcpt-drop:hover{border-color:var(--accent);color:var(--accent-d);background:var(--accent-soft)}
   .rcpt-prev{position:relative;margin-top:8px}
@@ -290,9 +295,9 @@
     <div class="mbody">
       <div class="two">
         <div class="field"><label>Date</label><input type="date" id="eDate" /></div>
-        <div class="field"><label>Amount (₹)</label><input type="number" id="eAmount" min="0" step="0.01" inputmode="decimal" placeholder="0.00" /></div>
+        <div class="field"><label>Amount (₹)</label><input type="number" id="eAmount" min="0" step="1" inputmode="numeric" placeholder="0" /></div>
       </div>
-      <div class="field"><label>Category</label><select id="eCat"></select></div>
+      <div class="field"><label>Category</label><div class="catgrid" id="eCatGrid"></div></div>
       <div class="field"><label>Note</label><textarea id="eNote" placeholder="What was this for?"></textarea></div>
       <div class="field">
         <label>Receipt (optional)</label>
@@ -346,7 +351,7 @@ if(!TOKEN){ window.location.href = 'login.html'; }
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const INR = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:2});
+const INR = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0});
 const money = n => INR.format(Number(n)||0);
 const todayISO = () => new Date().toISOString().slice(0,10);
 const monthOf = d => (d||'').slice(0,7);
@@ -573,7 +578,23 @@ function compressImage(file){
 }
 
 // ── Expense modal ──
-let editingId=null, pendingReceipt=null, receiptTouched=false;
+const CAT_EMOJI = {
+  'Groceries':'🛒', 'Utilities':'💡', 'Repairs & Maintenance':'🔧', 'Housekeeping':'🧹',
+  'Guest Supplies':'🧴', 'Transport':'🚗', 'Staff':'👷', 'Gardening':'🌿', 'Pool':'🏊', 'Miscellaneous':'📦',
+};
+function catEmoji(c){ return CAT_EMOJI[c] || '🏷️'; }
+
+let editingId=null, pendingReceipt=null, receiptTouched=false, selectedCat=null;
+function renderCatGrid(active){
+  selectedCat = active;
+  $('#eCatGrid').innerHTML = DOC.categories.map(c=>
+    `<button type="button" class="catchip${c===selectedCat?' active':''}" data-cat="${esc(c)}"><span class="emo">${catEmoji(c)}</span>${esc(c)}</button>`
+  ).join('');
+  $('#eCatGrid').querySelectorAll('.catchip').forEach(b=>b.addEventListener('click',()=>{
+    selectedCat = b.dataset.cat;
+    $('#eCatGrid').querySelectorAll('.catchip').forEach(x=>x.classList.toggle('active', x===b));
+  }));
+}
 function openExpense(entry){
   editingId = entry ? entry.id : null;
   pendingReceipt = entry ? (entry.receipt||null) : null;
@@ -581,8 +602,7 @@ function openExpense(entry){
   $('#expTitle').textContent = entry ? 'Edit expense' : 'Add expense';
   $('#eDate').value = entry ? (entry.date||todayISO()) : todayISO();
   $('#eAmount').value = entry ? entry.amount : '';
-  $('#eCat').innerHTML = DOC.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  $('#eCat').value = entry ? (entry.category||DOC.categories[0]) : DOC.categories[0];
+  renderCatGrid(entry ? (entry.category||DOC.categories[0]) : DOC.categories[0]);
   $('#eNote').value = entry ? (entry.note||'') : '';
   $('#expErr').textContent='';
   renderReceiptPrev();
@@ -603,13 +623,14 @@ $('#rcptInput').onchange=async e=>{
 $('#rcptRm').onclick=()=>{ pendingReceipt=null; receiptTouched=true; renderReceiptPrev(); };
 $('#expCancel').onclick=()=>$('#expOverlay').className='overlay';
 $('#expSave').onclick=async()=>{
-  const amount=parseFloat($('#eAmount').value);
+  const amount=Math.round(parseFloat($('#eAmount').value));
   const date=$('#eDate').value;
   if(!date){ $('#expErr').textContent='Please pick a date.'; return; }
   if(!(amount>0)){ $('#expErr').textContent='Amount must be greater than 0.'; return; }
+  if(!selectedCat){ $('#expErr').textContent='Please choose a category.'; return; }
   const payload = editingId
-    ? { action:'edit-expense', id:editingId, date, amount, category:$('#eCat').value, note:$('#eNote').value }
-    : { action:'add-expense', date, amount, category:$('#eCat').value, note:$('#eNote').value, receipt:pendingReceipt };
+    ? { action:'edit-expense', id:editingId, date, amount, category:selectedCat, note:$('#eNote').value }
+    : { action:'add-expense', date, amount, category:selectedCat, note:$('#eNote').value, receipt:pendingReceipt };
   if(editingId && receiptTouched) payload.receipt = pendingReceipt;
   const ok=await command(payload, editingId?'Expense updated':'Expense added');
   if(ok) $('#expOverlay').className='overlay';
@@ -665,12 +686,12 @@ function openTopup(){
   openGen('Add cash / top-up', `
     <p style="color:var(--muted);font-size:13.5px">Record cash handed to the caretaker (e.g. to open or replenish the float), not tied to specific expenses.</p>
     <div class="two"><div class="field"><label>Date</label><input type="date" id="gDate" value="${todayISO()}" /></div>
-    <div class="field"><label>Amount (₹)</label><input type="number" id="gAmt" min="0" step="0.01" placeholder="0.00" /></div></div>
+    <div class="field"><label>Amount (₹)</label><input type="number" id="gAmt" min="0" step="1" inputmode="numeric" placeholder="0" /></div></div>
     <div class="field"><label>Note</label><input id="gNote" placeholder="e.g. opening float" /></div>
     <div class="merr" id="gErr"></div>
     <div class="mfoot"><button class="btn ghost" id="gCancel">Cancel</button><button class="btn primary" id="gDo">Add cash</button></div>`);
   $('#gCancel').onclick=closeGen;
-  $('#gDo').onclick=async()=>{ const a=parseFloat($('#gAmt').value); if(!(a>0)){ $('#gErr').textContent='Enter a valid amount.'; return; }
+  $('#gDo').onclick=async()=>{ const a=Math.round(parseFloat($('#gAmt').value)); if(!(a>0)){ $('#gErr').textContent='Enter a valid amount.'; return; }
     const ok=await command({action:'topup', amount:a, date:$('#gDate').value, note:$('#gNote').value}, 'Cash added'); if(ok) closeGen(); };
 }
 
@@ -678,11 +699,11 @@ function openTopup(){
 function openFloat(){
   openGen('Set float target', `
     <p style="color:var(--muted);font-size:13.5px">The authorised cash advance the caretaker should hold. Used as the target when reimbursing.</p>
-    <div class="field"><label>Float amount (₹)</label><input type="number" id="gAmt" min="0" step="0.01" value="${DOC.float||''}" placeholder="0.00" /></div>
+    <div class="field"><label>Float amount (₹)</label><input type="number" id="gAmt" min="0" step="1" inputmode="numeric" value="${DOC.float||''}" placeholder="0" /></div>
     <div class="merr" id="gErr"></div>
     <div class="mfoot"><button class="btn ghost" id="gCancel">Cancel</button><button class="btn primary" id="gDo">Save float</button></div>`);
   $('#gCancel').onclick=closeGen;
-  $('#gDo').onclick=async()=>{ const a=parseFloat($('#gAmt').value); if(!(a>=0)){ $('#gErr').textContent='Enter a valid amount.'; return; }
+  $('#gDo').onclick=async()=>{ const a=Math.round(parseFloat($('#gAmt').value)); if(!(a>=0)){ $('#gErr').textContent='Enter a valid amount.'; return; }
     const ok=await command({action:'set-float', float:a}, 'Float updated'); if(ok) closeGen(); };
 }
 
