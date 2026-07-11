@@ -300,7 +300,7 @@
       <div class="field"><label>Category</label><div class="catgrid" id="eCatGrid"></div></div>
       <div class="field"><label>Note</label><textarea id="eNote" placeholder="What was this for?"></textarea></div>
       <div class="field">
-        <label>Receipt (optional)</label>
+        <label>Receipt <span style="color:var(--danger)">*</span></label>
         <div class="rcpt-drop" id="rcptDrop">📷 Tap to add a photo of the bill</div>
         <input type="file" id="rcptInput" accept="image/*" capture="environment" hidden />
         <div class="rcpt-prev" id="rcptPrev" style="display:none">
@@ -628,6 +628,7 @@ $('#expSave').onclick=async()=>{
   if(!date){ $('#expErr').textContent='Please pick a date.'; return; }
   if(!(amount>0)){ $('#expErr').textContent='Amount must be greater than 0.'; return; }
   if(!selectedCat){ $('#expErr').textContent='Please choose a category.'; return; }
+  if(!pendingReceipt){ $('#expErr').textContent='Please add a photo of the receipt.'; return; }
   const payload = editingId
     ? { action:'edit-expense', id:editingId, date, amount, category:selectedCat, note:$('#eNote').value }
     : { action:'add-expense', date, amount, category:selectedCat, note:$('#eNote').value, receipt:pendingReceipt };
