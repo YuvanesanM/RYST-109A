@@ -567,6 +567,8 @@ function nextNo(t){
 /* ---------- BOOT ---------- */
 (async function bootAuth(){
   if(!proxyToken){ window.location.href='login.html'; return; }
+  const role = localStorage.getItem('ryst_user_role') || 'owner';
+  if(role !== 'owner'){ window.location.href='login.html'; return; }
   init();
   $("#app").hidden = false;
   initApp();
