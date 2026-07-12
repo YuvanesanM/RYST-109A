@@ -1331,6 +1331,13 @@
     </div>
     <div class="book-form">
       <form id="bookForm">
+        <!-- Honeypot — hidden from real visitors via CSS, so only bots that
+             blindly fill every field ever populate it. Server treats a
+             filled value as spam and silently no-ops. -->
+        <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+          <label for="f-website">Website</label>
+          <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
+        </div>
         <div class="form-row">
           <div class="f-group">
             <label for="f-name">Your Name *</label>
@@ -1383,7 +1390,7 @@
             <textarea id="f-message" name="message" placeholder="Anything specific you'd like us to know — special celebrations, dietary needs, early check-in requests, etc."></textarea>
           </div>
         </div>
-        <button type="submit" class="form-submit">Send Booking Request →</button>
+        <button type="submit" class="form-submit" id="bookSubmitBtn">Send Booking Request →</button>
       </form>
       <p class="form-note">
         We'll respond via WhatsApp or email within a few hours.<br>
@@ -1609,7 +1616,7 @@
   // Update WHATSAPP_NUMBER to your actual WhatsApp number (digits only, with country code, no +)
   const WHATSAPP_NUMBER = '918608008608';
 
-  document.getElementById('bookForm').addEventListener('submit', function(e){
+  document.getElementById('bookForm').addEventListener('submit', async function(e){
     e.preventDefault();
     const name     = document.getElementById('f-name').value.trim();
     const phone    = document.getElementById('f-phone').value.trim();
@@ -1619,6 +1626,7 @@
     const guests   = document.getElementById('f-guests').value;
     const occasion = document.getElementById('f-occasion').value;
     const message  = document.getElementById('f-message').value.trim();
+    const website  = document.getElementById('f-website').value; // honeypot
 
     if(!name||!phone||!checkin||!checkout||!guests){ showToast('Please fill in all required fields.'); return; }
     if(new Date(checkout) <= new Date(checkin)){ showToast('Check-out must be after check-in.'); return; }
@@ -1627,19 +1635,58 @@
     const nights = Math.round((new Date(checkout)-new Date(checkin))/(1000*60*60*24));
     const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
 
-    let text = `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n`;
-    text += `*Name:* ${name}\n`;
-    text += `*Phone:* ${phone}\n`;
-    if(email) text += `*Email:* ${email}\n`;
-    text += `\n*Check-in:* ${fmtDate(checkin)}\n`;
-    text += `*Check-out:* ${fmtDate(checkout)} (${nights} night${nights!==1?'s':''})\n`;
-    text += `*Guests:* ${guests}\n`;
-    if(occasion) text += `*Occasion:* ${occasion}\n`;
-    if(message) text += `\n*Notes:* ${message}`;
+    function openWhatsApp(quoteNo){
+      let text = `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n`;
+      text += `*Name:* ${name}\n`;
+      text += `*Phone:* ${phone}\n`;
+      if(email) text += `*Email:* ${email}\n`;
+      text += `\n*Check-in:* ${fmtDate(checkin)}\n`;
+      text += `*Check-out:* ${fmtDate(checkout)} (${nights} night${nights!==1?'s':''})\n`;
+      text += `*Guests:* ${guests}\n`;
+      if(occasion) text += `*Occasion:* ${occasion}\n`;
+      if(message) text += `\n*Notes:* ${message}`;
+      if(quoteNo) text += `\n\n*Reference:* ${quoteNo}`;
+      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+    }
 
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-    showToast('Opening WhatsApp with your request details…', 5000);
+    const btn = document.getElementById('bookSubmitBtn');
+    const originalLabel = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Sending…';
+
+    // Best-effort: save a quote to the owner's calendar before handing off
+    // to WhatsApp. The proxy can cold-start for 30-60s on Render's free
+    // tier, so this gets real time to succeed — but a slow/failed request
+    // must never block the guest from reaching out, so it always falls
+    // through to WhatsApp regardless of outcome (except a genuine date
+    // conflict just detected server-side, which is worth surfacing first).
+    const ctrl = new AbortController();
+    const abortTimer = setTimeout(()=>ctrl.abort(), 45000);
+    try{
+      const res = await fetch('https://ryst-109a-proxy.onrender.com/public-quote', {
+        method: 'POST', headers: {'Content-Type':'application/json'}, signal: ctrl.signal,
+        body: JSON.stringify({ name, phone, email, checkin, checkout, guests, occasion, message, website })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(res.status === 409){
+        showToast(data.error || 'Those dates were just taken — please pick different dates.', 5000);
+        availState.load(); // refresh the calendar so the now-stale selection is visibly greyed out
+        return;
+      }
+      if(res.ok && data.ok){
+        showToast('Request saved — opening WhatsApp to confirm…', 5000);
+        availState.load();
+        openWhatsApp(data.no);
+      } else {
+        openWhatsApp(null);
+        showToast('Opening WhatsApp with your request details…', 5000);
+      }
+    }catch(e){
+      openWhatsApp(null);
+      showToast('Opening WhatsApp with your request details…', 5000);
+    }finally{
+      clearTimeout(abortTimer);
+      btn.disabled = false; btn.textContent = originalLabel;
+    }
   });
 
   // ── GALLERY LIGHTBOX (independent of GSAP) ──
