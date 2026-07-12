@@ -224,6 +224,10 @@
         <div class="reminders" id="reminders"></div>
       </div>
       <div class="panel">
+        <h2>Request guest feedback<span class="rem-badge" id="fbBadge" style="display:none">0</span></h2>
+        <div class="reminders" id="fbRequests"></div>
+      </div>
+      <div class="panel">
         <h2>Search &amp; filter</h2>
         <div class="filters">
           <input id="fSearch" placeholder="Guest name or booking no…" />
@@ -315,6 +319,9 @@ let FILTERS = { type:'all', q:'' };
 // How far ahead a check-in shows up in the reminders list.
 const REMINDER_WINDOW_DAYS = 3;
 const VILLA_MAP_LINK = 'https://maps.app.goo.gl/taBGtjLgbcMWL6mUA';
+// How far back a check-out still shows up in the feedback-request list.
+const FEEDBACK_WINDOW_DAYS = 7;
+const FEEDBACK_FORM_URL = 'https://stay.ryst.in/feedback.html';
 
 // Guest phone numbers are hand-typed ("+91 98765 43210", "9876543210", etc.)
 // — wa.me needs bare digits with a country code, so assume India (91) when
@@ -330,6 +337,14 @@ function reminderMessage(d){
     + `from ${fmtDate(d.checkin)} to ${fmtDate(d.checkout)}. We're looking forward to hosting you.\n\n`
     + `Location: ${VILLA_MAP_LINK}\n\n`
     + `Let us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`;
+}
+function feedbackLink(d){
+  return `${FEEDBACK_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent(d.guest||'')}`;
+}
+function feedbackRequestMessage(d){
+  return `Hi ${d.guest||'there'}! Thank you for staying at RYST 109A Beach Villa. `
+    + `We'd love to hear how your stay was — it only takes a minute:\n\n${feedbackLink(d)}\n\n`
+    + `Thanks so much, and hope to host you again soon!`;
 }
 
 // Tolerates messy hand-entered values like "₹45,000" or "1 night", which
@@ -411,6 +426,7 @@ function render(){
   renderCalendar();
   renderAgenda();
   renderReminders();
+  renderFeedbackRequests();
 }
 
 /* ---------- PRE-ARRIVAL REMINDERS ---------- */
@@ -478,6 +494,74 @@ async function markReminderUnsent(no){
     d.reminderSentAt = prev;
     alert('Could not update reminder status: ' + e.message);
     renderReminders();
+  }
+}
+
+/* ---------- POST-STAY FEEDBACK REQUESTS ---------- */
+function renderFeedbackRequests(){
+  const today = todayISO();
+  const cutoff = addDays(today, -FEEDBACK_WINDOW_DAYS);
+  const due = STAYS
+    .filter(d=> (d.type||'invoice')==='invoice' && d.checkout<=today && d.checkout>=cutoff)
+    .sort((a,b)=> b.checkout.localeCompare(a.checkout));
+
+  const badge = $('#fbBadge');
+  const pendingCount = due.filter(d=>!d.feedbackRequestedAt).length;
+  badge.style.display = pendingCount ? '' : 'none';
+  badge.textContent = pendingCount;
+
+  const list = $('#fbRequests');
+  if(!due.length){ list.innerHTML = '<div class="empty">No check-outs in the last '+FEEDBACK_WINDOW_DAYS+' days.</div>'; return; }
+
+  list.innerHTML = due.map(d=>{
+    const days = nightsBetween(d.checkout, today);
+    const when = days<=0 ? 'Checked out today' : days===1 ? 'Checked out yesterday' : `Checked out ${days} days ago`;
+    const phone = normalizePhone(d.phone);
+    const sentNote = d.feedbackRequestedAt
+      ? `<span class="rem-sent">✓ Requested ${fmtDate(d.feedbackRequestedAt.slice(0,10))} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
+      : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
+    const sendBtn = (!d.feedbackRequestedAt)
+      ? `<button class="rem-send" ${phone?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">Send WhatsApp</button>`
+      : '';
+    return `<div class="rem-item">
+      <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
+      <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
+      <div class="rem-foot">${sentNote}${sendBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function sendFeedbackRequest(no){
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  const phone = normalizePhone(d.phone);
+  if(!phone) return;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(feedbackRequestMessage(d))}`, '_blank');
+  d.feedbackRequestedAt = new Date().toISOString();
+  try{
+    const ok = await pushStays();
+    if(ok===false) return;
+    renderFeedbackRequests();
+  }catch(e){
+    delete d.feedbackRequestedAt;
+    alert('Could not save request status: ' + e.message + '\n\n(The WhatsApp message still opened — this only affects the "requested" checkmark.)');
+    renderFeedbackRequests();
+  }
+}
+
+async function markFeedbackRequestUnsent(no){
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  const prev = d.feedbackRequestedAt;
+  delete d.feedbackRequestedAt;
+  try{
+    const ok = await pushStays();
+    if(ok===false) return;
+    renderFeedbackRequests();
+  }catch(e){
+    d.feedbackRequestedAt = prev;
+    alert('Could not update request status: ' + e.message);
+    renderFeedbackRequests();
   }
 }
 
