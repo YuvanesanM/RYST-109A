@@ -802,6 +802,62 @@
     .form-submit:hover::after { left: 130%; }
     .form-submit:active { transform: translateY(0); }
 
+    /* ── AVAILABILITY CALENDAR ── */
+    .avail-card {
+      position: relative; background: var(--white); border-radius: 28px; padding: clamp(22px,4vw,34px);
+      box-shadow: 0 20px 50px rgba(11,61,82,.12); border: 1px solid rgba(255,255,255,.8);
+      margin-bottom: 24px; overflow: hidden;
+    }
+    .avail-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+      background: linear-gradient(90deg, var(--sea), var(--sea-light), var(--sand));
+    }
+    .avail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .avail-head h3 { font-family: var(--serif); font-size: 21px; font-weight: 600; color: var(--ink); }
+    .avail-nav { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+    .avail-nav button {
+      width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--foam);
+      color: var(--ink); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: border-color .15s;
+    }
+    .avail-nav button:hover { border-color: var(--sea-mid); }
+    .avail-nav button:disabled { opacity: .3; cursor: not-allowed; }
+    .avail-mon { font-family: var(--sans); font-weight: 700; font-size: 13.5px; min-width: 118px; text-align: center; color: var(--ink); }
+    .avail-legend { display: flex; gap: 14px; font-size: 11.5px; color: var(--muted); flex-wrap: wrap; margin-bottom: 12px; }
+    .avail-legend span { display: inline-flex; align-items: center; gap: 5px; }
+    .avail-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+    .avail-legend .i-free  { background: var(--sea-light); }
+    .avail-legend .i-taken { background: #d7d7d1; }
+    .avail-legend .i-sel   { background: var(--sand); }
+    .avail-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+    .avail-dow {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+      color: var(--muted); text-align: center; padding: 2px 0 8px;
+    }
+    .avail-cell {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 10px; font-family: var(--sans); font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: background .15s, color .15s; position: relative; color: var(--ink-mid);
+      background: var(--foam);
+    }
+    .avail-cell.out { visibility: hidden; }
+    .avail-cell.past { background: transparent; color: var(--muted); opacity: .4; cursor: default; }
+    .avail-cell.taken { background: #e4e4e0; color: #a8aca9; text-decoration: line-through; cursor: not-allowed; }
+    .avail-cell.free:hover { background: rgba(26,106,122,.16); }
+    .avail-cell.sel-start, .avail-cell.sel-end { background: var(--sand); color: #fff; }
+    .avail-cell.sel-range { background: rgba(200,169,122,.32); }
+    .avail-cell.today::after {
+      content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+      width: 4px; height: 4px; border-radius: 50%; background: var(--sea-mid);
+    }
+    .avail-cell.taken.today::after, .avail-cell.past.today::after { background: var(--muted); }
+    .avail-hint { font-size: 12.5px; color: var(--muted); margin-top: 12px; text-align: center; min-height: 17px; }
+    .avail-hint.warn { color: var(--coral); font-weight: 600; }
+    @media(max-width: 480px) {
+      .avail-cell { font-size: 12px; border-radius: 8px; }
+      .avail-legend { gap: 10px; }
+    }
+
     /* ── SCROLL PROGRESS ── */
     .scroll-progress {
       position: fixed; top: 0; left: 0; height: 3px; width: 100%; z-index: 300;
@@ -1255,6 +1311,24 @@
       <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Family friendly</span>
       <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>High-speed Wi-Fi</span>
     </div>
+    <div class="avail-card">
+      <div class="avail-head">
+        <h3>Check availability</h3>
+        <div class="avail-nav">
+          <button type="button" id="availPrev" aria-label="Previous month">‹</button>
+          <span class="avail-mon" id="availMonLabel">—</span>
+          <button type="button" id="availNext" aria-label="Next month">›</button>
+        </div>
+      </div>
+      <div class="avail-legend">
+        <span><i class="i-free"></i>Available</span>
+        <span><i class="i-taken"></i>Booked</span>
+        <span><i class="i-sel"></i>Your selection</span>
+      </div>
+      <div class="avail-grid" id="availDow"></div>
+      <div class="avail-grid" id="availGrid"></div>
+      <p class="avail-hint" id="availHint">Tap a check-in date, then a check-out date.</p>
+    </div>
     <div class="book-form">
       <form id="bookForm">
         <div class="form-row">
@@ -1431,6 +1505,106 @@
     t._t = setTimeout(() => t.classList.remove('show'), dur);
   }
 
+  // ── AVAILABILITY CALENDAR ──
+  // Public, unauthenticated read of taken date ranges (no guest details —
+  // see the proxy's /availability route) so visitors can see what's free
+  // before enquiring, and pick dates that prefill the form below.
+  const availState = (function(){
+    const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+    let ranges = [];
+    let view = new Date(); view.setHours(0,0,0,0); view.setDate(1);
+    let selStart = null, selEnd = null;
+
+    const $ = s => document.querySelector(s);
+    const dateOnly = d => d.toISOString().slice(0,10);
+    const todayISO = () => dateOnly(new Date());
+    const isTaken = iso => ranges.some(r => iso >= r.checkin && iso < r.checkout);
+    // Interval-overlap check — not a day-by-day loop, so an accidental
+    // multi-month selection can't turn into a slow scan.
+    const hasConflict = (a,b) => ranges.some(r => a < r.checkout && b > r.checkin);
+
+    const DOW = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    function renderDow(){ $('#availDow').innerHTML = DOW.map(d=>`<div class="avail-dow">${d}</div>`).join(''); }
+
+    function render(){
+      renderDow();
+      const y = view.getFullYear(), m = view.getMonth();
+      $('#availMonLabel').textContent = view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+      $('#availPrev').disabled = (y===new Date().getFullYear() && m<=new Date().getMonth());
+
+      const firstOfMonth = new Date(y,m,1);
+      const startOffset = firstOfMonth.getDay();
+      const gridStart = new Date(y,m,1-startOffset);
+      const today = todayISO();
+
+      const cells = [];
+      for(let i=0;i<42;i++){
+        const d = new Date(gridStart); d.setDate(gridStart.getDate()+i);
+        cells.push({ date:d, iso:dateOnly(d), inMonth: d.getMonth()===m });
+      }
+
+      $('#availGrid').innerHTML = cells.map(c=>{
+        if(!c.inMonth) return `<div class="avail-cell out"></div>`;
+        const cls = ['avail-cell'];
+        if(c.iso===today) cls.push('today');
+        if(c.iso < today) cls.push('past');
+        else if(isTaken(c.iso)) cls.push('taken');
+        else {
+          cls.push('free');
+          if(c.iso===selStart || c.iso===selEnd) cls.push(c.iso===selStart?'sel-start':'sel-end');
+          else if(selStart && selEnd && c.iso>selStart && c.iso<selEnd) cls.push('sel-range');
+        }
+        return `<div class="${cls.join(' ')}" data-iso="${c.iso}">${c.date.getDate()}</div>`;
+      }).join('');
+
+      $$('.avail-cell.free').forEach(el=> el.addEventListener('click', ()=> pick(el.dataset.iso)));
+    }
+    function $$(s){ return document.querySelectorAll(s); }
+
+    function pick(iso){
+      const hint = $('#availHint');
+      if(!selStart || (selStart && selEnd) || iso <= selStart){
+        selStart = iso; selEnd = null;
+        hint.textContent = 'Now tap your check-out date.';
+        hint.classList.remove('warn');
+      } else {
+        if(hasConflict(selStart, iso)){
+          hint.textContent = 'Those dates include an unavailable night — pick a shorter range or different dates.';
+          hint.classList.add('warn');
+          selStart = iso; selEnd = null;
+        } else {
+          selEnd = iso;
+          const nights = Math.round((new Date(iso+'T00:00:00') - new Date(selStart+'T00:00:00'))/86400000);
+          hint.textContent = `${nights} night${nights!==1?'s':''} selected — scroll down to send your request.`;
+          hint.classList.remove('warn');
+          const ci = $('#f-checkin'), co = $('#f-checkout');
+          if(ci) ci.value = selStart;
+          if(co) co.value = selEnd;
+        }
+      }
+      render();
+    }
+
+    async function load(){
+      try{
+        const res = await fetch(PROXY_URL+'/availability');
+        if(res.ok){ const data = await res.json(); ranges = Array.isArray(data.ranges) ? data.ranges : []; }
+      }catch(e){ /* availability just won't grey out bookings; dates remain freely pickable */ }
+      render();
+    }
+
+    $('#availPrev').addEventListener('click', ()=>{
+      const cur = new Date(), curFirst = new Date(cur.getFullYear(), cur.getMonth(), 1);
+      const prev = new Date(view.getFullYear(), view.getMonth()-1, 1);
+      if(prev < curFirst) return;
+      view = prev; render();
+    });
+    $('#availNext').addEventListener('click', ()=>{ view.setMonth(view.getMonth()+1); render(); });
+
+    return { load, hasConflict, get ranges(){ return ranges; } };
+  })();
+  availState.load();
+
   // ── BOOKING FORM ──
   // Update WHATSAPP_NUMBER to your actual WhatsApp number (digits only, with country code, no +)
   const WHATSAPP_NUMBER = '918608008608';
@@ -1448,6 +1622,7 @@
 
     if(!name||!phone||!checkin||!checkout||!guests){ showToast('Please fill in all required fields.'); return; }
     if(new Date(checkout) <= new Date(checkin)){ showToast('Check-out must be after check-in.'); return; }
+    if(availState.hasConflict(checkin, checkout)){ showToast('Those dates aren\'t available — please check the calendar above.'); return; }
 
     const nights = Math.round((new Date(checkout)-new Date(checkin))/(1000*60*60*24));
     const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
