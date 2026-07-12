@@ -30,7 +30,7 @@
   .tbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:9px;font-size:12.5px;font-weight:600;transition:.15s}
   .tbtn:hover{border-color:var(--accent);color:var(--accent-d)}
 
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 16px 15px;box-shadow:0 6px 18px rgba(40,50,40,.04)}
   .card .lbl{font-size:11.5px;font-weight:600;color:var(--muted2);letter-spacing:.4px;text-transform:uppercase}
   .card .val{font-size:25px;font-weight:700;margin-top:7px;letter-spacing:-.5px}
@@ -60,6 +60,9 @@
   .fb-comment{color:var(--ink);font-size:13.5px;line-height:1.55;margin-top:9px}
   .fb-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:10px}
   .fb-badge{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:20px;background:var(--accent-soft);color:var(--accent-d);text-transform:uppercase}
+  .fb-publish{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:20px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);cursor:pointer;text-transform:uppercase}
+  .fb-publish:hover{border-color:var(--accent);color:var(--accent-d)}
+  .fb-publish.on{background:var(--accent);border-color:var(--accent);color:#fff}
   .fb-del{background:none;border:none;color:var(--muted2);font-size:12px;text-decoration:underline;cursor:pointer}
   .fb-del:hover{color:var(--danger)}
   .empty{color:var(--muted2);font-size:13px;text-align:center;padding:40px 20px}
@@ -102,6 +105,11 @@
       <div class="lbl">Featurable</div>
       <div class="val" id="cFeature">—</div>
       <div class="sub">okay to publish as testimonial</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Published</div>
+      <div class="val" id="cPublished">—</div>
+      <div class="sub">live on stay.ryst.in</div>
     </div>
   </div>
 
@@ -210,9 +218,11 @@ function render(){
   const total = ENTRIES.length;
   const avg = total ? ENTRIES.reduce((s,e)=>s+(Number(e.rating)||0),0)/total : 0;
   const featurable = ENTRIES.filter(e=>e.allowFeature).length;
+  const published = ENTRIES.filter(e=>qualifiesForSite(e) && e.approved).length;
 
   $('#cAvg').textContent = total ? avg.toFixed(1) : '—';
   $('#cTotal').textContent = total;
+  $('#cPublished').textContent = published;
   $('#cFeature').textContent = featurable;
 
   const dist = [5,4,3,2,1].map(n => [n, ENTRIES.filter(e=>e.rating===n).length]);
@@ -236,10 +246,36 @@ function render(){
       </div>
       ${e.comment ? `<div class="fb-comment">${esc(e.comment)}</div>` : ''}
       <div class="fb-foot">
-        ${e.allowFeature ? '<span class="fb-badge">OK to feature</span>' : '<span></span>'}
+        <span style="display:flex;gap:6px;align-items:center">
+          ${e.allowFeature ? '<span class="fb-badge">OK to feature</span>' : ''}
+          ${qualifiesForSite(e) ? `<button class="fb-publish ${e.approved?'on':''}" onclick="toggleApproved('${esc(e.id)}')">${e.approved?'✓ Published':'Publish to site'}</button>` : ''}
+        </span>
         <button class="fb-del" onclick="deleteEntry('${esc(e.id)}')">Delete</button>
       </div>
     </div>`).join('');
+}
+
+// Publishing to the public testimonials section needs guest consent AND a
+// 4-5 star rating — a guest ticking "okay to feature" on the form isn't the
+// same as this specific comment being fit for the marketing site, so the
+// button (and the /testimonials feed itself, server-side) only ever
+// considers entries that clear both bars.
+function qualifiesForSite(e){ return e.allowFeature===true && Number(e.rating)>=4; }
+
+async function toggleApproved(id){
+  const idx = ENTRIES.findIndex(e=>e.id===id);
+  if(idx<0) return;
+  const prev = ENTRIES[idx].approved;
+  ENTRIES[idx].approved = !prev;
+  try{
+    const ok = await pushEntries();
+    if(ok===false) return;
+    render();
+  }catch(err){
+    ENTRIES[idx].approved = prev;
+    alert('Could not update: ' + err.message);
+    render();
+  }
 }
 
 async function deleteEntry(id){

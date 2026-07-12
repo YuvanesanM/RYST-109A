@@ -151,40 +151,6 @@
           "closes": "23:59"
         },
         "offers": { "@id": "https://stay.ryst.in/#offer" },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "5",
-          "bestRating": "5",
-          "worstRating": "1",
-          "ratingCount": "3",
-          "reviewCount": "3"
-        },
-        "review": [
-          {
-            "@type": "Review",
-            "author": { "@type": "Person", "name": "Ananya K." },
-            "datePublished": "2024-12-01",
-            "name": "Family Vacation at RYST 109A",
-            "reviewBody": "The pool, the chess board on the lawn, and Pearl Beach just a walk away — it's thoughtfully put together for a group that wants to properly unplug.",
-            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
-          },
-          {
-            "@type": "Review",
-            "author": { "@type": "Person", "name": "Rohan & Priya" },
-            "datePublished": "2025-02-01",
-            "name": "Anniversary Stay at RYST 109A",
-            "reviewBody": "We've done many villa stays, but 109A felt genuinely private. The jacuzzi at night with the sea breeze was something else entirely.",
-            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
-          },
-          {
-            "@type": "Review",
-            "author": { "@type": "Person", "name": "Karthik S." },
-            "datePublished": "2025-03-01",
-            "name": "Weekend Getaway from Chennai",
-            "reviewBody": "Close enough to Chennai for a quick escape, far enough to feel like a real one. We were back before Sunday evening traffic — and already planning the next trip.",
-            "reviewRating": { "@type": "Rating", "ratingValue": "5", "bestRating": "5" }
-          }
-        ],
         "potentialAction": {
           "@type": "ReserveAction",
           "target": {
@@ -1183,37 +1149,15 @@
 </section>
 
 <!-- ── TESTIMONIALS (hidden for now — remove style="display:none" to restore) ── -->
+<!-- Hidden by default and only revealed once real, owner-approved guest
+     feedback loads (see the script below) — no placeholder/fabricated
+     reviews here. -->
 <section id="testimonials" style="display:none">
   <div class="testimonials-head">
     <p class="section-tag">Guest Stories</p>
     <h2 class="section-title">Heard from <em>those who stayed</em></h2>
   </div>
-  <div class="t-grid">
-    <div class="t-card">
-      <div class="t-mark">"</div>
-      <p class="t-quote">The pool, the chess board on the lawn, and Pearl Beach just a walk away — it's thoughtfully put together for a group that wants to properly unplug.</p>
-      <div class="t-author">
-        <strong>Ananya K.</strong>
-        <span>Family Vacation · Dec 2024</span>
-      </div>
-    </div>
-    <div class="t-card">
-      <div class="t-mark">"</div>
-      <p class="t-quote">We've done many villa stays, but 109A felt genuinely private. The jacuzzi at night with the sea breeze was something else entirely.</p>
-      <div class="t-author">
-        <strong>Rohan &amp; Priya</strong>
-        <span>Anniversary · Feb 2025</span>
-      </div>
-    </div>
-    <div class="t-card">
-      <div class="t-mark">"</div>
-      <p class="t-quote">Close enough to Chennai for a quick escape, far enough to feel like a real one. We were back before Sunday evening traffic — and already planning the next trip.</p>
-      <div class="t-author">
-        <strong>Karthik S.</strong>
-        <span>Friends Getaway · Mar 2025</span>
-      </div>
-    </div>
-  </div>
+  <div class="t-grid" id="testimonialsGrid"></div>
 </section>
 
 <!-- ── GALLERY ── -->
@@ -1610,6 +1554,32 @@
     return { load, hasConflict, get ranges(){ return ranges; } };
   })();
   availState.load();
+
+  // ── TESTIMONIALS ── real, owner-approved guest feedback only (see
+  // reviews.html's "Publish to site" toggle) — never fabricated placeholder
+  // content. Stays hidden if there's nothing approved yet.
+  (function(){
+    const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+    const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    fetch(PROXY_URL+'/testimonials')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        const items = (data && Array.isArray(data.testimonials)) ? data.testimonials : [];
+        if(!items.length) return;
+        const grid = document.getElementById('testimonialsGrid');
+        if(!grid) return;
+        grid.innerHTML = items.map(t => {
+          const when = t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN',{month:'long',year:'numeric'}) : '';
+          return `<div class="t-card">
+            <div class="t-mark">"</div>
+            <p class="t-quote">${esc(t.comment)}</p>
+            <div class="t-author"><strong>${esc(t.guest)}</strong>${when?`<span>${esc(when)}</span>`:''}</div>
+          </div>`;
+        }).join('');
+        document.getElementById('testimonials').style.display = '';
+      })
+      .catch(()=>{}); // silent — a marketing nicety, not critical path
+  })();
 
   // ── BOOKING FORM ──
   // Update WHATSAPP_NUMBER to your actual WhatsApp number (digits only, with country code, no +)
