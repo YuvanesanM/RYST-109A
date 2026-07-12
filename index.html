@@ -821,6 +821,7 @@
     .avail-cell.past { background: transparent; color: var(--muted); opacity: .4; cursor: default; }
     .avail-cell.taken { background: #e4e4e0; color: #a8aca9; text-decoration: line-through; cursor: not-allowed; }
     .avail-cell.free:hover { background: rgba(26,106,122,.16); }
+    .avail-cell:focus-visible { outline: 2px solid var(--sea-mid); outline-offset: 2px; }
     .avail-cell.sel-start, .avail-cell.sel-end { background: var(--sand); color: #fff; }
     .avail-cell.sel-range { background: rgba(200,169,122,.32); }
     .avail-cell.today::after {
@@ -1311,8 +1312,8 @@
               </div>
               <div class="avail-grid" id="availDow"></div>
               <div class="avail-grid" id="availGrid"></div>
-              <p class="avail-hint" id="availHint">Tap a check-in date, then a check-out date.</p>
-              <div class="avail-selected" id="availSelected">
+              <p class="avail-hint" id="availHint" aria-live="polite">Tap a check-in date, then a check-out date.</p>
+              <div class="avail-selected" id="availSelected" aria-live="polite" aria-atomic="true">
                 <div class="sel-box">
                   <span class="sel-label">Check-in</span>
                   <strong class="sel-value empty" id="selCheckinText">Not selected</strong>
@@ -1501,22 +1502,40 @@
       }
 
       $('#availGrid').innerHTML = cells.map(c=>{
-        if(!c.inMonth) return `<div class="avail-cell out"></div>`;
+        if(!c.inMonth) return `<div class="avail-cell out" aria-hidden="true"></div>`;
         const cls = ['avail-cell'];
+        const full = fmtFull(c.iso);
+        let label, interactive = false;
         if(c.iso===today) cls.push('today');
-        if(c.iso < today) cls.push('past');
-        else if(isTaken(c.iso)) cls.push('taken');
-        else {
+        if(c.iso < today){
+          cls.push('past'); label = `${full}, past date`;
+        } else if(isTaken(c.iso)){
+          cls.push('taken'); label = `${full}, booked`;
+        } else {
           cls.push('free');
-          if(c.iso===selStart || c.iso===selEnd) cls.push(c.iso===selStart?'sel-start':'sel-end');
-          else if(selStart && selEnd && c.iso>selStart && c.iso<selEnd) cls.push('sel-range');
+          interactive = true;
+          if(c.iso===selStart || c.iso===selEnd){
+            cls.push(c.iso===selStart?'sel-start':'sel-end');
+            label = `${full}, selected as ${c.iso===selStart?'check-in':'check-out'}`;
+          } else if(selStart && selEnd && c.iso>selStart && c.iso<selEnd){
+            cls.push('sel-range'); label = `${full}, in selected range`;
+          } else {
+            label = `${full}, available`;
+          }
         }
-        return `<div class="${cls.join(' ')}" data-iso="${c.iso}">${c.date.getDate()}</div>`;
+        const attrs = interactive ? `tabindex="0" role="button" aria-label="${label}"` : `aria-label="${label}"`;
+        return `<div class="${cls.join(' ')}" data-iso="${c.iso}" ${attrs}>${c.date.getDate()}</div>`;
       }).join('');
 
-      $$('.avail-cell.free').forEach(el=> el.addEventListener('click', ()=> pick(el.dataset.iso)));
+      $$('.avail-cell.free').forEach(el=> {
+        el.addEventListener('click', ()=> pick(el.dataset.iso));
+        el.addEventListener('keydown', e => {
+          if(e.key==='Enter' || e.key===' '){ e.preventDefault(); pick(el.dataset.iso); }
+        });
+      });
     }
     function $$(s){ return document.querySelectorAll(s); }
+    const fmtFull = iso => new Date(iso+'T00:00:00').toLocaleDateString('en-IN', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
 
     const fmtNice = iso => new Date(iso+'T00:00:00').toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
 
