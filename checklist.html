@@ -345,6 +345,13 @@ function renderDue(){
 
   $('#cDue').textContent = rows.length;
   $('#duePanel').style.display = rows.length ? '' : 'none';
+  // data-* + a delegated listener below, not inline onclick="startOrOpen('${...}')"
+  // — a guest name is free text (can come from the public quote form) and
+  // esc() doesn't escape single quotes, so concatenating it into a JS string
+  // literal inside an onclick attribute would let an apostrophe (or a
+  // crafted `');…//` payload) break out and run arbitrary JS in this
+  // authenticated session. data-* attributes only ever go through esc()'s
+  // HTML-attribute escaping, never get re-parsed as script source.
   $('#dueList').innerHTML = rows.map(r=>{
     const run = findRun(r.stayNo, r.type);
     const label = r.type==='checkin' ? 'Check-in' : 'Check-out';
@@ -353,9 +360,12 @@ function renderDue(){
     return `<div class="due-item">
       <div class="due-main"><span class="due-guest">${esc(r.guest||'—')}</span><span class="type-badge ${r.type}">${label}</span>
         <div class="due-sub">${esc(r.stayNo)}</div></div>
-      <button class="due-action ${btnClass}" onclick="startOrOpen('${esc(r.stayNo)}','${r.type}','${esc(r.guest||'')}')">${btnLabel}</button>
+      <button class="due-action ${btnClass}" data-stayno="${esc(r.stayNo)}" data-type="${esc(r.type)}" data-guest="${esc(r.guest||'')}">${btnLabel}</button>
     </div>`;
   }).join('');
+  $('#dueList').querySelectorAll('[data-stayno]').forEach(btn=>{
+    btn.addEventListener('click', ()=> startOrOpen(btn.dataset.stayno, btn.dataset.type, btn.dataset.guest));
+  });
   $('#dueNote').textContent = (STAYS.length===0) ? '' : '';
 }
 

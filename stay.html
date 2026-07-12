@@ -177,6 +177,14 @@
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#15201f;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:60}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  /* Blocks all interaction (including Save) until the existing bookings have
+     actually loaded — without this, Save can fire while staysCache is still
+     empty and silently wipe every other invoice/quote/block on the server. */
+  #loader{position:fixed;inset:0;background:rgba(238,242,242,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:80;color:var(--muted)}
+  #loader.hide{display:none}
+  .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
   @media (max-width:900px){
     main.work{grid-template-columns:1fr;height:auto}
     .preview{padding:14px}
@@ -227,7 +235,7 @@
       </button>
       <div class="bar-sep"></div>
       <button class="btn" id="btnNew">+ New</button>
-      <button class="btn" id="btnSave">Save</button>
+      <button class="btn" id="btnSave" disabled>Save</button>
       <button class="btn primary" id="btnPdf">PDF</button>
     </div>
   </header>
@@ -424,6 +432,12 @@
 
 <div class="toast" id="toast"></div>
 
+<div id="loader">
+  <div class="spin" id="loaderSpin"></div>
+  <div id="loaderMsg">Loading bookings…</div>
+  <button class="btn" id="loaderRetry" style="display:none">Retry</button>
+</div>
+
 <script>
 /* =========================================================================
    CONFIG
@@ -526,14 +540,15 @@ let curNo = "", curDateISO = "";
 
 /* ---------- CLOUD ---------- */
 async function fetchStaysFromProxy(){
-  if(!proxyToken) return;
+  if(!proxyToken) return false;
   try{
     const res = await fetch(PROXY_URL+'/stays',{headers:{'X-Token':proxyToken}});
-    if(res.status===401){ handleExpired(); return; }
-    if(!res.ok) return;
+    if(res.status===401){ handleExpired(); return false; }
+    if(!res.ok) return false;
     const d = await res.json();
     staysCache = Array.isArray(d.stays) ? d.stays : [];
-  }catch(e){ console.warn('Could not load stays from proxy', e); }
+    return true;
+  }catch(e){ console.warn('Could not load stays from proxy', e); return false; }
 }
 let lastPushError = '';
 async function pushStays(){
@@ -586,11 +601,28 @@ function nextNo(t){
   initApp();
 })();
 
+// Save stays disabled ($('#btnSave') starts disabled in markup) until this
+// completes successfully — Save does a full-array PUT of staysCache, so
+// enabling it before the existing bookings have actually loaded would let a
+// quick save silently overwrite every other invoice/quote/block on the
+// server with just the one new document.
 async function initApp(){
-  const res = await fetch(PROXY_URL+'/stays',{headers:{'X-Token':proxyToken}}).catch(()=>null);
-  if(res && res.status===401){ handleExpired(); return; }
-  if(res && res.ok){
-    await Promise.all([fetchStaySettings(), fetchStaysFromProxy()]);
+  const loader = $('#loader'), msgEl = $('#loaderMsg'), retryBtn = $('#loaderRetry');
+  loader.classList.remove('hide');
+  $('#loaderSpin').style.display = '';
+  retryBtn.style.display = 'none';
+  msgEl.textContent = 'Loading bookings…';
+
+  const ctrl = new AbortController();
+  const slowTimer = setTimeout(() => { msgEl.textContent = 'Waking up the server… this can take up to a minute.'; }, 4000);
+  const abortTimer = setTimeout(() => ctrl.abort(), 75000);
+  try{
+    const res = await fetch(PROXY_URL+'/stays', {headers:{'X-Token':proxyToken}, signal: ctrl.signal});
+    if(res.status===401){ handleExpired(); return; }
+    if(!res.ok) throw new Error('Server error ('+res.status+')');
+    const d = await res.json();
+    staysCache = Array.isArray(d.stays) ? d.stays : [];
+    await fetchStaySettings(); // best-effort — falls back to cached/default settings, not data-destructive
     setConnected(true);
     renderItems();
     // refresh the auto number (prefixes may come from settings) now that data is known
@@ -600,8 +632,19 @@ async function initApp(){
     // Deep link from the booking calendar dashboard: stay.html?open=<no>
     const openNo = new URLSearchParams(location.search).get('open');
     if(openNo) loadDoc(openNo);
+    loader.classList.add('hide');
+    $('#btnSave').disabled = false;
+  }catch(e){
+    $('#loaderSpin').style.display = 'none';
+    msgEl.textContent = (e && e.name === 'AbortError')
+      ? 'Server timed out — please retry.'
+      : 'Could not load bookings — ' + (e && e.message ? e.message : 'check your connection.');
+    retryBtn.style.display = '';
+  } finally {
+    clearTimeout(slowTimer); clearTimeout(abortTimer);
   }
 }
+$('#loaderRetry').addEventListener('click', initApp);
 
 function init(){
   newDoc();

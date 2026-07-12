@@ -71,6 +71,15 @@
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1d211c;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:60}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+  /* Blocks Save until the real settings have loaded — without this, saving
+     from a fresh device/browser (empty localStorage cache) before the
+     background fetch resolves would overwrite the real bank details, PAN
+     and rate card with the bare STAY_DEFAULTS placeholders. */
+  #loader{position:fixed;inset:0;background:rgba(243,244,241,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:80;color:var(--muted)}
+  #loader.hide{display:none}
+  .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
   /* ---- PIN GATE ---- */
   .pin-overlay{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center;padding:24px}
   .pin-overlay[hidden]{display:none}
@@ -175,11 +184,17 @@
   <div class="sync-results" id="icalSyncResults"></div>
 
   <div class="rc-foot">
-    <button class="btn primary" id="staySave">Save stay settings</button>
+    <button class="btn primary" id="staySave" disabled>Save stay settings</button>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div id="loader">
+  <div class="spin" id="loaderSpin"></div>
+  <div id="loaderMsg">Loading settings…</div>
+  <button class="btn" id="loaderRetry" style="display:none">Retry</button>
+</div>
 
 <script>
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
@@ -227,21 +242,54 @@ let proxyToken = localStorage.getItem('ryst_proxy_token')||'';
   if(!proxyToken){ window.location.href='login.html'; return; }
   const role = localStorage.getItem('ryst_user_role') || 'owner';
   if(role !== 'owner'){ window.location.href='login.html'; return; }
-  // Validate token in background — if it expired redirect quietly
-  fetch(PROXY_URL+'/stay-settings',{headers:{'X-Token':proxyToken}})
-    .then(r=>{ if(r && r.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; } return r.ok ? r.json() : null; })
-    .then(d=>{
-      if(!d || typeof d!=='object') return;
+
+  // A cached copy on THIS browser is trusted immediately (same "cache-first"
+  // design as before) — Save unblocks right away and the fetch below just
+  // refreshes it in the background. With no cache at all (fresh device,
+  // cleared storage), Save stays disabled and the form is covered by the
+  // loader until the real settings actually arrive — otherwise saving the
+  // bare STAY_DEFAULTS placeholders would overwrite the real bank details,
+  // PAN and rate card on the server.
+  const hasCache = !!localStorage.getItem(K_STAY);
+  loadStayPanel();
+  initPinGate();
+
+  const loader = document.getElementById('loader'), msgEl = document.getElementById('loaderMsg'), retryBtn = document.getElementById('loaderRetry');
+  const saveBtn = document.getElementById('staySave');
+  if(hasCache){ loader.classList.add('hide'); saveBtn.disabled = false; }
+
+  const ctrl = new AbortController();
+  const slowTimer = setTimeout(() => { if(!hasCache) msgEl.textContent = 'Waking up the server… this can take up to a minute.'; }, 4000);
+  const abortTimer = setTimeout(() => ctrl.abort(), 75000);
+  try{
+    const res = await fetch(PROXY_URL+'/stay-settings',{headers:{'X-Token':proxyToken}, signal: ctrl.signal});
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    if(!res.ok){ if(!hasCache) throw new Error('Server error ('+res.status+')'); return; }
+    const d = await res.json().catch(()=>null);
+    if(d && typeof d==='object'){
       if(d.bank||d.rates||d.company) applyStay(d);
       // icalExportKey is never cached/guessed client-side — always the value
       // the server just computed, shown regardless of whether other fields
       // are populated yet (a brand-new install still needs to see this).
       if(d.icalExportKey) document.getElementById('icalExportUrl').value = PROXY_URL+'/calendar.ics?key='+d.icalExportKey;
-    })
-    .catch(()=>{});
-  loadStayPanel();
-  initPinGate();
+    } else if(!hasCache){
+      throw new Error('No settings found on the server yet');
+    }
+    loader.classList.add('hide');
+    saveBtn.disabled = false;
+  }catch(e){
+    if(!hasCache){
+      document.getElementById('loaderSpin').style.display = 'none';
+      msgEl.textContent = (e && e.name === 'AbortError')
+        ? 'Server timed out — please retry.'
+        : 'Could not load settings — ' + (e && e.message ? e.message : 'check your connection.');
+      retryBtn.style.display = '';
+    }
+  } finally {
+    clearTimeout(slowTimer); clearTimeout(abortTimer);
+  }
 })();
+document.getElementById('loaderRetry').addEventListener('click', ()=>location.reload());
 
 /* ---------- PIN GATE ----------
    A quick keypad lock in front of this page, not a real access boundary —
