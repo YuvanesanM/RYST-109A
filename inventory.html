@@ -189,7 +189,7 @@
     <div class="mbody">
       <div class="field"><label>Item name</label><input id="itName" placeholder="e.g. Bath towels" /></div>
       <div class="two">
-        <div class="field"><label>Category</label><input id="itCategory" list="catList" placeholder="e.g. Linen & Bedding" /><datalist id="catList"></datalist></div>
+        <div class="field"><label>Category</label><select id="itCategory"></select></div>
         <div class="field"><label>Unit</label><input id="itUnit" placeholder="pcs, kg, bottles…" /></div>
       </div>
       <div class="two">
@@ -319,12 +319,16 @@ function render(){
     <div class="shop-item"><span class="nm">${esc(i.name)}</span><span class="need">${fmtQty(i.quantity)} ${esc(i.unit||'')} left · needs ${fmtQty(Math.max(0,(Number(i.threshold)||0)-(Number(i.quantity)||0))||i.threshold)} more</span></div>
   `).join('');
 
-  // Category dropdown + datalist — union of default categories and whatever's in use.
+  // Category dropdowns — union of default categories and whatever's already
+  // in use (so an item saved under an older/custom category still shows up
+  // correctly instead of silently disappearing from the select).
   const cats = Array.from(new Set([...DEFAULT_CATEGORIES, ...items.map(i=>i.category).filter(Boolean)]));
   const curCat = $('#fCategory').value || 'all';
   $('#fCategory').innerHTML = '<option value="all">All categories</option>' + cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
   $('#fCategory').value = cats.includes(curCat) ? curCat : 'all';
-  $('#catList').innerHTML = cats.map(c=>`<option value="${esc(c)}">`).join('');
+  const curItCat = $('#itCategory').value;
+  $('#itCategory').innerHTML = cats.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(cats.includes(curItCat)) $('#itCategory').value = curItCat;
 
   // Group filtered items by category, sorted low/out first within each group.
   const filtered = items.filter(passFilter);
@@ -416,7 +420,7 @@ let editingId = null;
 function openAdd(){
   editingId = null;
   $('#itemModalTitle').textContent = 'Add item';
-  $('#itName').value=''; $('#itCategory').value=''; $('#itUnit').value='pcs';
+  $('#itName').value=''; $('#itCategory').value='Miscellaneous'; $('#itUnit').value='pcs';
   $('#itQuantity').value=''; $('#itThreshold').value='';
   $('#itErr').textContent='';
   $('#itemOverlay').classList.add('show');
