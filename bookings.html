@@ -469,13 +469,21 @@ function openDay(iso){
             <button type="button" class="btn danger" style="align-self:flex-start;margin-top:4px" data-unblock="${esc(b.no)}">Remove block</button>
           </div>`;
         }
+        const publicBadge = b.source==='public'
+          ? `<span class="ag-tag" style="background:var(--danger-soft,#fbecea);color:var(--danger,#c0584b)">New enquiry</span>` : '';
+        const extra = b.source==='public' ? `
+          <div class="ag-dates">${esc(b.phone||'')}${b.email?' · '+esc(b.email):''}</div>
+          ${b.ref ? `<div class="ag-dates">Occasion: ${esc(b.ref)}</div>` : ''}
+          ${b.message ? `<div class="ag-dates">"${esc(b.message)}"</div>` : ''}
+        ` : '';
         return `<a class="ag-item" href="stay.html?open=${encodeURIComponent(b.no)}">
           <div class="ag-top">
             <span class="ag-no">${esc(b.no)}</span>
-            <span class="ag-tag ${b.type==='quote'?'upcoming':'now'}">${b.type==='quote'?'Quote':'Invoice'}</span>
+            <span style="display:flex;gap:6px">${publicBadge}<span class="ag-tag ${b.type==='quote'?'upcoming':'now'}">${b.type==='quote'?'Quote':'Invoice'}</span></span>
           </div>
           <div class="ag-guest">${esc(b.guest||'—')}</div>
           <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s) · ${money(grandTotal(b))}</div>
+          ${extra}
         </a>`;
       }).join('');
   $('#dayBody').querySelectorAll('[data-unblock]').forEach(btn=>
@@ -512,8 +520,10 @@ function renderAgenda(){
     const isNow = d.checkin<=today && d.checkout>today;
     const tag = d.type==='block' ? '<span class="ag-tag" style="background:var(--block-soft);color:var(--block)">Blocked</span>'
       : isNow ? '<span class="ag-tag now">Now</span>' : '<span class="ag-tag upcoming">Upcoming</span>';
+    const publicBadge = d.source==='public'
+      ? `<span class="ag-tag" style="background:var(--danger-soft,#fbecea);color:var(--danger,#c0584b)">New enquiry</span>` : '';
     const inner = `
-      <div class="ag-top"><span class="ag-no">${esc(d.type==='block' ? (d.guest||'Blocked') : d.no)}</span>${tag}</div>
+      <div class="ag-top"><span class="ag-no">${esc(d.type==='block' ? (d.guest||'Blocked') : d.no)}</span><span style="display:flex;gap:6px">${publicBadge}${tag}</span></div>
       ${d.type==='block' ? '' : `<div class="ag-guest">${esc(d.guest||'—')}</div>`}
       <div class="ag-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)}</div>`;
     return d.type==='block' ? `<div class="ag-item">${inner}</div>` : `<a class="ag-item" href="stay.html?open=${encodeURIComponent(d.no)}">${inner}</a>`;
