@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Profit &amp; Loss · RYST 109A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f3f4f1; --panel:#ffffff; --panel2:#f7f8f5;
+    --line:#e3e5e0; --accent:#3d9b69; --accent-d:#2f7d54; --accent-soft:#eaf4ee;
+    --ink:#1d211c; --muted:#5f655d; --muted2:#9aa097;
+    --danger:#c0584b; --danger-soft:#fbecea; --warn:#c98a2b; --warn-soft:#fbf3e6;
+    --qt:#c0922f; --qt-soft:#fbf0d8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:"Outfit",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100%}
+  button,input,select{font-family:inherit}
+  button{cursor:pointer}
+  a{color:var(--accent-d)}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:18px 16px 60px}
+
+  /* ── Top bar ── */
+  header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 2px 18px}
+  header.top img{height:38px;object-fit:contain}
+  header.top .ttl{font-weight:700;font-size:18px;letter-spacing:.2px}
+  header.top .ttl small{display:block;font-weight:500;font-size:11.5px;color:var(--muted2);letter-spacing:.4px}
+  header.top .spacer{flex:1}
+  .tbtn{background:var(--panel);border:1.5px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:9px;font-size:12.5px;font-weight:600;transition:.15s}
+  .tbtn:hover{border-color:var(--accent);color:var(--accent-d)}
+
+  /* ── Period nav ── */
+  .period-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:18px;flex-wrap:wrap}
+  .period-nav{display:flex;gap:6px}
+  .period-nav button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:14px;display:flex;align-items:center;justify-content:center}
+  .period-nav button:hover{border-color:var(--accent);color:var(--accent-d)}
+  .period-label{font-size:15px;font-weight:700;min-width:130px}
+  .period-bar .spacer{flex:1}
+  .period-note{font-size:11.5px;color:var(--muted2)}
+
+  /* ── Stats cards ── */
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 16px 15px;box-shadow:0 6px 18px rgba(40,50,40,.04)}
+  .card .lbl{font-size:11.5px;font-weight:600;color:var(--muted2);letter-spacing:.4px;text-transform:uppercase}
+  .card .val{font-size:25px;font-weight:700;margin-top:7px;letter-spacing:-.5px}
+  .card .sub{font-size:11.5px;color:var(--muted);margin-top:3px}
+  .card.hero{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-d) 100%);border:none;color:#fff}
+  .card.hero .lbl{color:#dff0e6}
+  .card.hero .sub{color:#dff0e6}
+  .card.neg{background:linear-gradient(135deg,var(--danger) 0%,#9c4136 100%)}
+  .card .val.pos{color:var(--accent-d)}
+  .card .val.neg{color:var(--danger)}
+  .cards-sub{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:18px}
+  .cards-sub .card .val{color:var(--qt)}
+
+  /* ── Layout ── */
+  .layout{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 6px 18px rgba(40,50,40,.04);padding:16px 18px}
+  .panel h2{font-size:12px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .panel h2 .spacer{flex:1}
+
+  /* ── Category bars (reused from petty-cash.html) ── */
+  .bars{display:flex;flex-direction:column;gap:9px}
+  .bar{display:grid;grid-template-columns:120px 1fr auto;align-items:center;gap:10px;font-size:12.5px}
+  .bar .name{color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar .track{display:block;height:9px;background:var(--panel2);border-radius:6px;overflow:hidden}
+  .bar .fill{display:block;height:100%;background:linear-gradient(90deg,var(--danger),#9c4136);border-radius:6px}
+  .bar .bamt{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+  /* ── Trend table ── */
+  table.trend{width:100%;border-collapse:collapse;font-size:13px}
+  table.trend th{text-align:right;font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted2);padding:8px 6px;border-bottom:1px solid var(--line)}
+  table.trend th:first-child{text-align:left}
+  table.trend td{padding:9px 6px;text-align:right;border-bottom:1px solid var(--panel2);font-variant-numeric:tabular-nums}
+  table.trend td:first-child{text-align:left;font-weight:600}
+  table.trend tr:last-child td{border-bottom:none}
+  table.trend tr.current td{background:var(--accent-soft)}
+  table.trend td.rev{color:var(--accent-d)}
+  table.trend td.exp{color:var(--danger)}
+  table.trend td.net.pos{color:var(--accent-d);font-weight:700}
+  table.trend td.net.neg{color:var(--danger);font-weight:700}
+
+  .empty{color:var(--muted2);font-size:13px;text-align:center;padding:20px}
+
+  #loader{position:fixed;inset:0;background:rgba(243,244,241,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:90;color:var(--muted)}
+  #loader.hide{display:none}
+  .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+
+  @media(max-width:960px){
+    .layout{grid-template-columns:1fr}
+    .cards{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:680px){
+    .wrap{padding:14px 12px 60px}
+    .cards{grid-template-columns:1fr 1fr}
+    .bar{grid-template-columns:88px 1fr auto}
+  }
+  @media(max-width:420px){
+    .cards{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img id="logo" alt="RYST" src="/assets/stay-logo.webp" />
+    <div class="ttl">Profit &amp; Loss<small>RYST 109A · Revenue vs. petty-cash spend</small></div>
+    <div class="spacer"></div>
+    <button class="tbtn" onclick="window.location.href='login.html'">⌂ Home</button>
+    <button class="tbtn" id="btnExport">⤓ Export CSV</button>
+  </header>
+
+  <div class="period-bar">
+    <div class="period-nav">
+      <button id="prevBtn" aria-label="Previous month">‹</button>
+      <button id="todayBtn">This month</button>
+      <button id="nextBtn" aria-label="Next month">›</button>
+    </div>
+    <div class="period-label" id="periodLabel">—</div>
+    <div class="spacer"></div>
+    <div class="period-note">Revenue counted by check-in date · expenses by date spent</div>
+  </div>
+
+  <div class="cards">
+    <div class="card hero">
+      <div class="lbl">Revenue</div>
+      <div class="val" id="cRevenue">—</div>
+      <div class="sub">confirmed invoices</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Expenses</div>
+      <div class="val" id="cExpenses" style="color:var(--danger)">—</div>
+      <div class="sub">petty cash, all statuses</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Net Profit</div>
+      <div class="val" id="cNet">—</div>
+      <div class="sub">revenue − expenses</div>
+    </div>
+    <div class="card">
+      <div class="lbl">Margin</div>
+      <div class="val" id="cMargin">—</div>
+      <div class="sub">net ÷ revenue</div>
+    </div>
+  </div>
+  <div class="cards-sub">
+    <div class="card">
+      <div class="lbl">Pending quotes this month</div>
+      <div class="val" id="cPending">—</div>
+      <div class="sub" id="cPendingSub">not yet confirmed — not counted in revenue above</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <h2>Expense breakdown <span class="spacer"></span><span id="expTotal"></span></h2>
+      <div class="bars" id="catBars"></div>
+    </div>
+    <div class="panel">
+      <h2>Last 6 months</h2>
+      <div style="overflow-x:auto">
+        <table class="trend" id="trendTable">
+          <thead><tr><th>Month</th><th>Revenue</th><th>Expenses</th><th>Net</th></tr></thead>
+          <tbody id="trendBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="loader">
+  <div class="spin" id="loaderSpin"></div>
+  <div id="loaderMsg">Loading reports…</div>
+  <button class="tbtn" id="loaderRetry" style="display:none">Retry</button>
+</div>
+
+<script>
+const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+const TOKEN = localStorage.getItem('ryst_proxy_token') || '';
+const ROLE  = localStorage.getItem('ryst_user_role') || 'owner';
+
+if(!TOKEN){ window.location.href = 'login.html'; }
+if(ROLE !== 'owner'){ window.location.href = 'login.html'; }
+
+const $  = s => document.querySelector(s);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = n => '₹'+Math.round(n||0).toLocaleString('en-IN');
+const dateOnly = d => d.toISOString().slice(0,10);
+
+let STAYS = [];
+let EXPENSES = [];
+let view = new Date(); view.setDate(1); view.setHours(0,0,0,0);
+
+const toNum = v => { const n = parseFloat(String(v==null?'':v).replace(/[^0-9.-]/g,'')); return isFinite(n) ? n : 0; };
+function lineAmt(it){ return toNum(it.rate)*toNum(it.qty); }
+function grandTotal(s){
+  const sub = (s.items||[]).reduce((sum,it)=>sum+lineAmt(it),0);
+  return Math.max(0, sub - toNum(s.discount));
+}
+function monthBounds(d){
+  const y=d.getFullYear(), m=d.getMonth();
+  return { startISO: dateOnly(new Date(y,m,1)), endISO: dateOnly(new Date(y,m+1,1)) };
+}
+function revenueFor(startISO,endISO){
+  return STAYS.filter(s=>(s.type||'invoice')==='invoice' && s.checkin>=startISO && s.checkin<endISO)
+    .reduce((sum,s)=>sum+grandTotal(s),0);
+}
+function pendingQuotesFor(startISO,endISO){
+  return STAYS.filter(s=>s.type==='quote' && s.checkin>=startISO && s.checkin<endISO)
+    .reduce((sum,s)=>sum+grandTotal(s),0);
+}
+function expensesFor(startISO,endISO){
+  return EXPENSES.filter(e=>e.date>=startISO && e.date<endISO)
+    .reduce((sum,e)=>sum+(Number(e.amount)||0),0);
+}
+function expensesByCategory(startISO,endISO){
+  const byCat = {};
+  EXPENSES.filter(e=>e.date>=startISO && e.date<endISO).forEach(e=>{
+    const c = e.category || 'Miscellaneous';
+    byCat[c] = (byCat[c]||0) + (Number(e.amount)||0);
+  });
+  return Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+}
+
+/* ---------- LOAD ---------- */
+async function load(){
+  const loader = $('#loader'), msgEl = $('#loaderMsg'), retryBtn = $('#loaderRetry');
+  loader.classList.remove('hide');
+  $('#loaderSpin').style.display = '';
+  retryBtn.style.display = 'none';
+  msgEl.textContent = 'Loading reports…';
+
+  const ctrl = new AbortController();
+  const slowTimer = setTimeout(() => { msgEl.textContent = 'Waking up the server… this can take up to a minute.'; }, 4000);
+  const abortTimer = setTimeout(() => ctrl.abort(), 75000);
+  try{
+    const [staysRes, pcRes] = await Promise.all([
+      fetch(PROXY_URL+'/stays', { headers:{'X-Token':TOKEN}, signal: ctrl.signal }),
+      fetch(PROXY_URL+'/petty-cash', { headers:{'X-Token':TOKEN}, signal: ctrl.signal }),
+    ]);
+    if(staysRes.status===401 || pcRes.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    if(!staysRes.ok || !pcRes.ok) throw new Error('Server error');
+    const staysData = await staysRes.json().catch(()=>({}));
+    const pcData = await pcRes.json().catch(()=>({}));
+    STAYS = Array.isArray(staysData.stays) ? staysData.stays.filter(s=>s.checkin && s.checkout) : [];
+    EXPENSES = Array.isArray(pcData.entries) ? pcData.entries.filter(e=>e.type==='expense' && e.date) : [];
+    render();
+    loader.classList.add('hide');
+  }catch(e){
+    $('#loaderSpin').style.display = 'none';
+    msgEl.textContent = (e && e.name === 'AbortError')
+      ? 'Server timed out — please retry.'
+      : 'Could not load reports — ' + (e && e.message ? e.message : 'check your connection.');
+    retryBtn.style.display = '';
+  } finally {
+    clearTimeout(slowTimer); clearTimeout(abortTimer);
+  }
+}
+$('#loaderRetry').addEventListener('click', load);
+
+function render(){
+  const { startISO, endISO } = monthBounds(view);
+  $('#periodLabel').textContent = view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+
+  const revenue = revenueFor(startISO, endISO);
+  const expenses = expensesFor(startISO, endISO);
+  const net = revenue - expenses;
+  const margin = revenue > 0 ? Math.round((net/revenue)*100) : null;
+  const pending = pendingQuotesFor(startISO, endISO);
+
+  $('#cRevenue').textContent = money(revenue);
+  $('#cExpenses').textContent = money(expenses);
+  $('#cNet').textContent = money(net);
+  $('#cNet').className = 'val ' + (net>=0 ? 'pos' : 'neg');
+  $('#cMargin').textContent = margin===null ? '—' : margin+'%';
+  $('#cPending').textContent = money(pending);
+  const pendingCount = STAYS.filter(s=>s.type==='quote' && s.checkin>=startISO && s.checkin<endISO).length;
+  $('#cPendingSub').textContent = pendingCount + ' quote' + (pendingCount!==1?'s':'') + ' not yet confirmed — not counted in revenue above';
+
+  const cats = expensesByCategory(startISO, endISO);
+  const max = cats.length ? cats[0][1] : 0;
+  $('#expTotal').textContent = cats.length ? money(expenses)+' total' : '';
+  $('#catBars').innerHTML = cats.length ? cats.map(([c,v])=>`
+    <div class="bar"><span class="name" title="${esc(c)}">${esc(c)}</span>
+      <span class="track"><span class="fill" style="width:${max?Math.max(4,v/max*100):0}%"></span></span>
+      <span class="bamt">${money(v)}</span></div>`).join('')
+    : '<div class="empty">No expenses this period.</div>';
+
+  renderTrend();
+}
+
+function renderTrend(){
+  const rows = [];
+  for(let i=5;i>=0;i--){
+    const d = new Date(view.getFullYear(), view.getMonth()-i, 1);
+    const { startISO, endISO } = monthBounds(d);
+    const rev = revenueFor(startISO, endISO);
+    const exp = expensesFor(startISO, endISO);
+    rows.push({ label: d.toLocaleDateString('en-IN',{month:'short',year:'numeric'}), rev, exp, net: rev-exp, isCurrent: i===0 });
+  }
+  $('#trendBody').innerHTML = rows.map(r=>`
+    <tr class="${r.isCurrent?'current':''}">
+      <td>${esc(r.label)}</td>
+      <td class="rev">${money(r.rev)}</td>
+      <td class="exp">${money(r.exp)}</td>
+      <td class="net ${r.net>=0?'pos':'neg'}">${money(r.net)}</td>
+    </tr>`).join('');
+}
+
+function exportCSV(){
+  const rows = [];
+  for(let i=11;i>=0;i--){
+    const d = new Date(view.getFullYear(), view.getMonth()-i, 1);
+    const { startISO, endISO } = monthBounds(d);
+    const rev = revenueFor(startISO, endISO), exp = expensesFor(startISO, endISO);
+    rows.push([d.toLocaleDateString('en-IN',{month:'short',year:'numeric'}), rev, exp, rev-exp]);
+  }
+  const head = ['Month','Revenue','Expenses','Net'];
+  const lines = [head.join(','), ...rows.map(r=>r.join(','))];
+  const blob = new Blob([lines.join('\n')], { type:'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `pnl-${view.getFullYear()}-${String(view.getMonth()+1).padStart(2,'0')}.csv`;
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------- WIRE UP ---------- */
+$('#prevBtn').addEventListener('click', ()=>{ view.setMonth(view.getMonth()-1); render(); });
+$('#nextBtn').addEventListener('click', ()=>{ view.setMonth(view.getMonth()+1); render(); });
+$('#todayBtn').addEventListener('click', ()=>{ view = new Date(); view.setDate(1); view.setHours(0,0,0,0); render(); });
+$('#btnExport').addEventListener('click', exportCSV);
+
+// Logo from settings (shared with other tools)
+(function(){
+  try{ const s=JSON.parse(localStorage.getItem('ryst_quote_settings')||'null'); if(s&&s.logo){ $('#logo').src=s.logo; return; } }catch(e){}
+})();
+
+load();
+</script>
+</body>
+</html>
