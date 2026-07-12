@@ -363,7 +363,7 @@
   </div>
 </div>
 
-<div id="loader"><div class="spin"></div><div id="loaderMsg">Loading ledger…</div></div>
+<div id="loader"><div class="spin" id="loaderSpin"></div><div id="loaderMsg">Loading ledger…</div><button class="tbtn" id="loaderRetry" style="display:none">Retry</button></div>
 <div id="toast"></div>
 
 <script>
@@ -423,15 +423,26 @@ async function api(method, payload){
   } finally { clearTimeout(slow); clearTimeout(abort); }
 }
 
-function showLoader(msg){ $('#loaderMsg').textContent=msg||'Loading…'; $('#loader').className=''; }
+function showLoader(msg){ $('#loaderMsg').textContent=msg||'Loading…'; $('#loaderSpin').style.display=''; $('#loaderRetry').style.display='none'; $('#loader').className=''; }
 function hideLoader(){ $('#loader').className='hide'; }
 
 async function load(){
   showLoader('Loading ledger…');
-  try{ DOC = normalize(await api('GET')); render(); }
-  catch(e){ toast(e.message||'Could not load', true); }
-  finally{ hideLoader(); }
+  try{
+    DOC = normalize(await api('GET'));
+    render();
+    hideLoader();
+  }catch(e){
+    // Unlike command(), this is the very first load — there's no prior
+    // ledger to fall back to, so leave the loader up with a retry option
+    // instead of silently revealing an empty ledger with only a fading toast.
+    $('#loaderSpin').style.display = 'none';
+    $('#loaderMsg').textContent = 'Could not load — ' + (e.message || 'check your connection.');
+    $('#loaderRetry').style.display = '';
+    toast(e.message||'Could not load', true);
+  }
 }
+$('#loaderRetry').addEventListener('click', load);
 
 async function command(payload, okMsg){
   showLoader('Saving…');
