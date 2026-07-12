@@ -163,6 +163,10 @@ async function handleGoogleLogin(credentialResponse) {
       localStorage.setItem('ryst_proxy_token', data.token);
       if (data.email) localStorage.setItem('ryst_user_email', data.email);
       if (data.role)  localStorage.setItem('ryst_user_role', data.role);
+      // Admin is now assigned via Settings → User Access (data-driven), not
+      // a hardcoded email — cache it the same way as role so pages that
+      // gate admin-only buttons don't have to guess.
+      localStorage.setItem('ryst_user_admin', data.isAdmin ? 'true' : 'false');
       errEl.textContent = '';
       showHome();
     } else {
@@ -231,6 +235,7 @@ function logout(){
   localStorage.removeItem('ryst_proxy_token');
   localStorage.removeItem('ryst_user_email');
   localStorage.removeItem('ryst_user_role');
+  localStorage.removeItem('ryst_user_admin');
   document.getElementById('homeView').setAttribute('hidden','');
   document.getElementById('loginView').removeAttribute('hidden');
   document.getElementById('loginView').style.display='';

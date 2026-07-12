@@ -372,9 +372,11 @@ const TOKEN = localStorage.getItem('ryst_proxy_token') || '';
 const MYEMAIL = localStorage.getItem('ryst_user_email') || '';
 const ROLE = localStorage.getItem('ryst_user_role') || 'owner';
 const isOwner = ROLE === 'owner';
-// Server-enforced in the proxy's /petty-cash delete-entry command — this
-// only controls whether the button renders.
-const IS_ADMIN = MYEMAIL === 'mailyuvanesh@gmail.com';
+// Admin is assigned via Settings → User Access (data-driven, cached at
+// login), not a hardcoded email. Server-enforced in the proxy's
+// /petty-cash delete-entry command regardless — this only controls
+// whether the button renders.
+const IS_ADMIN = localStorage.getItem('ryst_user_admin') === 'true';
 
 if(!TOKEN){ window.location.href = 'login.html'; }
 
