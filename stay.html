@@ -532,15 +532,16 @@ async function fetchStaysFromProxy(){
   }catch(e){ console.warn('Could not load stays from proxy', e); }
 }
 async function pushStays(){
-  if(!proxyToken) return;
+  if(!proxyToken) return false;
   try{
     const res = await fetch(PROXY_URL+'/stays',{
       method:'PUT', headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
       body: JSON.stringify({version:1, stays: staysCache})
     });
-    if(res.status===401){ handleExpired(); return; }
-    if(!res.ok) console.error('Stay save error HTTP', res.status);
-  }catch(e){ console.error('Stay push failed', e); }
+    if(res.status===401){ handleExpired(); return false; }
+    if(!res.ok){ console.error('Stay save error HTTP', res.status); return false; }
+    return true;
+  }catch(e){ console.error('Stay push failed', e); return false; }
 }
 function setConnected(ok){ const d=$("#connDot"); if(d){ d.classList.toggle("ok",ok); d.classList.toggle("err",!ok); d.title=ok?"Connected to cloud storage":"Disconnected"; } }
 function handleExpired(){ proxyToken=''; localStorage.removeItem('ryst_proxy_token'); setConnected(false); window.location.href='login.html'; }
@@ -928,12 +929,26 @@ async function openSaved(){
     : all.map(d=>{
         const t=(d.type==="quote")?"qt":"inv"; const tl=(d.type==="quote")?"QUOTE":"INVOICE";
         const sub=[esc(d.guest||"—"), d.checkin?fmtDate(d.checkin):"", d.date?("· "+fmtDate(d.date)):""].filter(Boolean).join(" ");
+        // Deletion is quote-only — invoices are billing history and stay put.
+        const delBtn = d.type==="quote" ? `<button data-del="${esc(d.no)}" title="Delete quote" style="color:var(--danger,#c0584b)">Delete</button>` : "";
         return `<div class="saved-item"><div class="si-main">
           <div class="si-no">${esc(d.no)}<span class="si-tag ${t}">${tl}</span></div>
           <div class="si-sub">${sub}</div></div>
-          <button data-load="${esc(d.no)}">Open</button></div>`;
+          <button data-load="${esc(d.no)}">Open</button>${delBtn}</div>`;
       }).join("");
   list.querySelectorAll("[data-load]").forEach(b=> b.addEventListener("click", ()=> loadDoc(b.dataset.load)));
+  list.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=> deleteStay(b.dataset.del)));
+}
+
+async function deleteStay(no){
+  const d = getStays().find(s=>s.no===no);
+  if(!d || d.type!=="quote") return; // owner-only page already gates access; quotes only, invoices are billing history
+  if(!confirm(`Delete quote ${no}${d.guest?" ("+d.guest+")":""}? This can't be undone.`)) return;
+  const prevCache = staysCache;
+  staysCache = staysCache.filter(s=>s.no!==no);
+  const ok = await pushStays();
+  if(ok){ toast("Quote deleted"); openSaved(); }
+  else { staysCache = prevCache; toast("Could not delete — please try again"); }
 }
 
 /* ---------- BOOKING VIEWER ---------- */

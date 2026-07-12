@@ -476,18 +476,27 @@ function openDay(iso){
           ${b.ref ? `<div class="ag-dates">Occasion: ${esc(b.ref)}</div>` : ''}
           ${b.message ? `<div class="ag-dates">"${esc(b.message)}"</div>` : ''}
         ` : '';
-        return `<a class="ag-item" href="stay.html?open=${encodeURIComponent(b.no)}">
+        // Deletion is quote-only — invoices are billing history and stay put.
+        // The card itself can't be an <a> once it contains a delete <button>
+        // (nested interactive elements are invalid HTML) — so the booking
+        // number is its own link instead, matching how the block card
+        // already renders as a plain, non-clickable container.
+        const delBtn = b.type==='quote'
+          ? `<button type="button" class="btn danger" style="align-self:flex-start;margin-top:4px" data-delquote="${esc(b.no)}">Delete quote</button>` : '';
+        return `<div class="ag-item">
           <div class="ag-top">
-            <span class="ag-no">${esc(b.no)}</span>
+            <a class="ag-no" href="stay.html?open=${encodeURIComponent(b.no)}">${esc(b.no)}</a>
             <span style="display:flex;gap:6px">${publicBadge}<span class="ag-tag ${b.type==='quote'?'upcoming':'now'}">${b.type==='quote'?'Quote':'Invoice'}</span></span>
           </div>
           <div class="ag-guest">${esc(b.guest||'—')}</div>
           <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s) · ${money(grandTotal(b))}</div>
-          ${extra}
-        </a>`;
+          ${extra}${delBtn}
+        </div>`;
       }).join('');
   $('#dayBody').querySelectorAll('[data-unblock]').forEach(btn=>
     btn.addEventListener('click', ()=> removeBlock(btn.dataset.unblock, iso)));
+  $('#dayBody').querySelectorAll('[data-delquote]').forEach(btn=>
+    btn.addEventListener('click', ()=> deleteQuote(btn.dataset.delquote, iso)));
   $('#dayOverlay').classList.add('show');
 }
 $('#dayClose').addEventListener('click', ()=> $('#dayOverlay').classList.remove('show'));
@@ -505,6 +514,27 @@ async function removeBlock(no, reopenIso){
   }catch(e){
     STAYS.splice(idx,0,removed[0]); // restore on failure
     alert('Could not remove block: '+e.message);
+  }
+}
+
+// Quote-only (not invoices — those are billing history). This page is
+// already owner-gated on load, and only mailyuvanesh@gmail.com /
+// studioryst01@gmail.com resolve to the owner role server-side, so no
+// separate check is needed here beyond confirming it really is a quote.
+async function deleteQuote(no, reopenIso){
+  const idx = STAYS.findIndex(s=>s.no===no && s.type==='quote');
+  if(idx<0) return;
+  const target = STAYS[idx];
+  if(!confirm(`Delete quote ${no}${target.guest?' ('+target.guest+')':''}? This can't be undone.`)) return;
+  const removed = STAYS.splice(idx,1);
+  try{
+    const ok = await pushStays();
+    if(ok===false) return; // pushStays already redirected on 401
+    render();
+    if(reopenIso) openDay(reopenIso);
+  }catch(e){
+    STAYS.splice(idx,0,removed[0]); // restore on failure
+    alert('Could not delete quote: '+e.message);
   }
 }
 
