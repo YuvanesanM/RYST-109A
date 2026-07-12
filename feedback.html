@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Share your feedback | RYST 109A</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+<style>
+  @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#e8f2f0;
+    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480;
+    --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
+    --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html,body{background:var(--foam);color:var(--ink);font-family:var(--sans);min-height:100%;-webkit-font-smoothing:antialiased}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh}
+  .wrap{max-width:520px;width:100%}
+  .card{
+    position:relative;background:var(--white);border-radius:28px;padding:clamp(28px,5vw,44px);
+    box-shadow:0 28px 70px rgba(11,61,82,.16); border:1px solid rgba(255,255,255,.8); overflow:hidden;
+  }
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sea),var(--sea-mid),var(--sand))}
+  .logo{height:44px;display:block;margin:0 auto 18px;object-fit:contain}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4vw,30px);text-align:center;color:var(--sea);margin-bottom:6px}
+  .lead{text-align:center;color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:26px}
+
+  .stars{display:flex;justify-content:center;gap:8px;margin-bottom:22px}
+  .star{background:none;border:none;cursor:pointer;padding:4px;color:#d7d7d1;transition:color .15s,transform .15s}
+  .star:hover{transform:scale(1.12)}
+  .star.filled{color:var(--sand)}
+  .rating-label{text-align:center;font-size:12.5px;color:var(--muted);min-height:16px;margin:-14px 0 20px;font-weight:600}
+
+  .f-group{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+  .f-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+  .f-group input,.f-group textarea{
+    border:1.5px solid rgba(14,36,32,.12);border-radius:12px;padding:13px 16px;
+    font-family:var(--sans);font-size:14.5px;color:var(--ink);background:var(--white);
+    outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+  }
+  .f-group input:focus,.f-group textarea:focus{border-color:var(--sea-mid);box-shadow:0 0 0 3px rgba(26,106,122,.1)}
+  .f-group textarea{resize:vertical;min-height:100px}
+
+  .chk-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:22px;font-size:13px;color:var(--muted);line-height:1.5}
+  .chk-row input{margin-top:3px;flex-shrink:0}
+
+  .submit{
+    position:relative;overflow:hidden;width:100%;padding:16px;border:none;border-radius:14px;
+    background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;font-family:var(--sans);
+    font-size:15px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:transform .15s var(--ease),box-shadow .2s;
+    box-shadow:0 10px 30px rgba(20,40,50,.26),inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .submit:hover{transform:translateY(-2px)}
+  .submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .err{color:var(--coral);font-size:13px;text-align:center;min-height:18px;margin-top:12px}
+
+  .thanks{display:none;text-align:center;padding:20px 0}
+  .thanks .tick{width:56px;height:56px;border-radius:50%;background:var(--foam);color:var(--sea-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+  .thanks h2{font-family:var(--serif);font-weight:600;font-size:24px;color:var(--sea);margin-bottom:8px}
+  .thanks p{color:var(--muted);font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
+    <div id="formView">
+      <h1>How was your stay?</h1>
+      <p class="lead">We'd love to hear about your time at RYST 109A — it helps us keep improving.</p>
+
+      <form id="fbForm">
+        <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+          <label for="fb-website">Website</label>
+          <input id="fb-website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="stars" id="stars" role="radiogroup" aria-label="Rating out of 5">
+          <button type="button" class="star" data-v="1" role="radio" aria-checked="false" aria-label="1 star"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></button>
+          <button type="button" class="star" data-v="2" role="radio" aria-checked="false" aria-label="2 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></button>
+          <button type="button" class="star" data-v="3" role="radio" aria-checked="false" aria-label="3 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></button>
+          <button type="button" class="star" data-v="4" role="radio" aria-checked="false" aria-label="4 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></button>
+          <button type="button" class="star" data-v="5" role="radio" aria-checked="false" aria-label="5 stars"><svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></button>
+        </div>
+        <div class="rating-label" id="ratingLabel">&nbsp;</div>
+
+        <div class="f-group">
+          <label for="fb-guest">Your Name *</label>
+          <input id="fb-guest" type="text" placeholder="Full name" required>
+        </div>
+        <div class="f-group">
+          <label for="fb-comment">Tell us more (optional)</label>
+          <textarea id="fb-comment" placeholder="What did you enjoy? Anything we could improve?"></textarea>
+        </div>
+
+        <label class="chk-row">
+          <input type="checkbox" id="fb-feature">
+          <span>You're welcome to feature this as a guest review on the RYST 109A website.</span>
+        </label>
+
+        <button type="submit" class="submit" id="fbSubmitBtn">Submit feedback</button>
+        <p class="err" id="fbErr"></p>
+      </form>
+    </div>
+
+    <div class="thanks" id="thanksView">
+      <div class="tick"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h2>Thank you!</h2>
+      <p>We really appreciate you taking the time to share this. Hope to host you again soon at RYST 109A.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+const $ = s => document.querySelector(s);
+
+function qp(name){ return new URLSearchParams(location.search).get(name) || ''; }
+const bookingNo = qp('no');
+const guestPrefill = qp('guest');
+if(guestPrefill) $('#fb-guest').value = guestPrefill;
+
+let rating = 0;
+const labels = ['','Poor','Fair','Good','Very good','Excellent'];
+$('#stars').addEventListener('click', e => {
+  const btn = e.target.closest('.star');
+  if(!btn) return;
+  rating = Number(btn.dataset.v);
+  $('#stars').querySelectorAll('.star').forEach(s => {
+    const on = Number(s.dataset.v) <= rating;
+    s.classList.toggle('filled', on);
+    s.setAttribute('aria-checked', String(Number(s.dataset.v) === rating));
+  });
+  $('#ratingLabel').textContent = labels[rating];
+});
+
+$('#fbForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const errEl = $('#fbErr');
+  errEl.textContent = '';
+  const guest = $('#fb-guest').value.trim();
+  if(!guest){ errEl.textContent = 'Please enter your name.'; return; }
+  if(!rating){ errEl.textContent = 'Please pick a rating.'; return; }
+
+  const btn = $('#fbSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  const payload = {
+    guest, rating, bookingNo,
+    comment: $('#fb-comment').value.trim(),
+    allowFeature: $('#fb-feature').checked,
+    website: $('#fb-website').value, // honeypot
+  };
+
+  try{
+    const ctrl = new AbortController();
+    const abortTimer = setTimeout(()=>ctrl.abort(), 75000);
+    const res = await fetch(PROXY_URL+'/feedback', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload), signal: ctrl.signal,
+    });
+    clearTimeout(abortTimer);
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ throw new Error(data.error || 'Something went wrong'); }
+    $('#formView').style.display = 'none';
+    $('#thanksView').style.display = 'block';
+  }catch(err){
+    errEl.textContent = (err && err.name === 'AbortError')
+      ? 'The server is taking a while to respond — please try again in a moment.'
+      : (err.message || 'Could not submit — please try again.');
+    btn.disabled = false; btn.textContent = 'Submit feedback';
+  }
+});
+</script>
+</body>
+</html>
