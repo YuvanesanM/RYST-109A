@@ -273,6 +273,10 @@
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
 const TOKEN = localStorage.getItem('ryst_proxy_token') || '';
 const ROLE  = localStorage.getItem('ryst_user_role') || 'owner';
+const MYEMAIL = localStorage.getItem('ryst_user_email') || '';
+// Server-enforced in the proxy's /stays PUT validator — this only controls
+// whether the button renders, not who's actually allowed to delete.
+const IS_ADMIN = MYEMAIL === 'mailyuvanesh@gmail.com';
 
 if(!TOKEN){ window.location.href = 'login.html'; }
 if(ROLE !== 'owner'){ window.location.href = 'login.html'; }
@@ -357,7 +361,10 @@ async function pushStays(){
     body: JSON.stringify({version:1, stays: STAYS})
   });
   if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return false; }
-  if(!res.ok) throw new Error('Save failed ('+res.status+')');
+  if(!res.ok){
+    const data = await res.json().catch(()=>({}));
+    throw new Error(data.error || ('Save failed ('+res.status+')'));
+  }
   return true;
 }
 
@@ -476,13 +483,16 @@ function openDay(iso){
           ${b.ref ? `<div class="ag-dates">Occasion: ${esc(b.ref)}</div>` : ''}
           ${b.message ? `<div class="ag-dates">"${esc(b.message)}"</div>` : ''}
         ` : '';
-        // Deletion is quote-only — invoices are billing history and stay put.
-        // The card itself can't be an <a> once it contains a delete <button>
-        // (nested interactive elements are invalid HTML) — so the booking
-        // number is its own link instead, matching how the block card
-        // already renders as a plain, non-clickable container.
-        const delBtn = b.type==='quote'
-          ? `<button type="button" class="btn danger" style="align-self:flex-start;margin-top:4px" data-delquote="${esc(b.no)}">Delete quote</button>` : '';
+        // Quotes: any owner can delete. Invoices are real bookings/billing
+        // history — only the admin account can delete those. (Server-
+        // enforced in the proxy; this just controls whether the button
+        // renders.) The card itself can't be an <a> once it contains a
+        // delete <button> (nested interactive elements are invalid HTML) —
+        // so the booking number is its own link instead, matching how the
+        // block card already renders as a plain, non-clickable container.
+        const canDel = b.type==='quote' || IS_ADMIN;
+        const delBtn = canDel
+          ? `<button type="button" class="btn danger" style="align-self:flex-start;margin-top:4px" data-delstay="${esc(b.no)}">Delete ${b.type==='quote'?'quote':'invoice'}</button>` : '';
         return `<div class="ag-item">
           <div class="ag-top">
             <a class="ag-no" href="stay.html?open=${encodeURIComponent(b.no)}">${esc(b.no)}</a>
@@ -495,8 +505,8 @@ function openDay(iso){
       }).join('');
   $('#dayBody').querySelectorAll('[data-unblock]').forEach(btn=>
     btn.addEventListener('click', ()=> removeBlock(btn.dataset.unblock, iso)));
-  $('#dayBody').querySelectorAll('[data-delquote]').forEach(btn=>
-    btn.addEventListener('click', ()=> deleteQuote(btn.dataset.delquote, iso)));
+  $('#dayBody').querySelectorAll('[data-delstay]').forEach(btn=>
+    btn.addEventListener('click', ()=> deleteStayEntry(btn.dataset.delstay, iso)));
   $('#dayOverlay').classList.add('show');
 }
 $('#dayClose').addEventListener('click', ()=> $('#dayOverlay').classList.remove('show'));
@@ -521,11 +531,14 @@ async function removeBlock(no, reopenIso){
 // already owner-gated on load, and only mailyuvanesh@gmail.com /
 // studioryst01@gmail.com resolve to the owner role server-side, so no
 // separate check is needed here beyond confirming it really is a quote.
-async function deleteQuote(no, reopenIso){
-  const idx = STAYS.findIndex(s=>s.no===no && s.type==='quote');
+async function deleteStayEntry(no, reopenIso){
+  const idx = STAYS.findIndex(s=>s.no===no && (s.type==='quote'||s.type==='invoice'));
   if(idx<0) return;
   const target = STAYS[idx];
-  if(!confirm(`Delete quote ${no}${target.guest?' ('+target.guest+')':''}? This can't be undone.`)) return;
+  const isInvoice = target.type==='invoice';
+  if(isInvoice && !IS_ADMIN) return; // server would reject this anyway; button shouldn't even be visible
+  const label = isInvoice ? 'invoice' : 'quote';
+  if(!confirm(`Delete ${label} ${no}${target.guest?' ('+target.guest+')':''}? This can't be undone.`)) return;
   const removed = STAYS.splice(idx,1);
   try{
     const ok = await pushStays();
@@ -534,7 +547,7 @@ async function deleteQuote(no, reopenIso){
     if(reopenIso) openDay(reopenIso);
   }catch(e){
     STAYS.splice(idx,0,removed[0]); // restore on failure
-    alert('Could not delete quote: '+e.message);
+    alert('Could not delete '+label+': '+e.message);
   }
 }
 
