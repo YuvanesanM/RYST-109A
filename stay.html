@@ -940,10 +940,8 @@ async function openSaved(){
     : all.map(d=>{
         const t=(d.type==="quote")?"qt":"inv"; const tl=(d.type==="quote")?"QUOTE":"INVOICE";
         const sub=[esc(d.guest||"—"), d.checkin?fmtDate(d.checkin):"", d.date?("· "+fmtDate(d.date)):""].filter(Boolean).join(" ");
-        // Quotes: any owner can delete. Invoices are real bookings/billing
-        // history — only the admin account can delete those.
-        const canDel = d.type==="quote" || IS_ADMIN;
-        const delBtn = canDel ? `<button data-del="${esc(d.no)}" title="Delete ${d.type==='quote'?'quote':'invoice'}" style="color:var(--danger,#c0584b)">Delete</button>` : "";
+        // Only the admin account can delete anything — quote or invoice.
+        const delBtn = IS_ADMIN ? `<button data-del="${esc(d.no)}" title="Delete ${d.type==='quote'?'quote':'invoice'}" style="color:var(--danger,#c0584b)">Delete</button>` : "";
         return `<div class="saved-item"><div class="si-main">
           <div class="si-no">${esc(d.no)}<span class="si-tag ${t}">${tl}</span></div>
           <div class="si-sub">${sub}</div></div>
@@ -956,9 +954,8 @@ async function openSaved(){
 async function deleteStay(no){
   const d = getStays().find(s=>s.no===no);
   if(!d) return;
-  const isInvoice = d.type!=="quote";
-  if(isInvoice && !IS_ADMIN) return; // server would reject this anyway; button shouldn't even be visible
-  const label = isInvoice ? "invoice" : "quote";
+  if(!IS_ADMIN) return; // server would reject this anyway; button shouldn't even be visible
+  const label = d.type==="quote" ? "quote" : "invoice";
   if(!confirm(`Delete ${label} ${no}${d.guest?" ("+d.guest+")":""}? This can't be undone.`)) return;
   const prevCache = staysCache;
   staysCache = staysCache.filter(s=>s.no!==no);

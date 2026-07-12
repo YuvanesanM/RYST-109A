@@ -483,15 +483,13 @@ function openDay(iso){
           ${b.ref ? `<div class="ag-dates">Occasion: ${esc(b.ref)}</div>` : ''}
           ${b.message ? `<div class="ag-dates">"${esc(b.message)}"</div>` : ''}
         ` : '';
-        // Quotes: any owner can delete. Invoices are real bookings/billing
-        // history — only the admin account can delete those. (Server-
-        // enforced in the proxy; this just controls whether the button
-        // renders.) The card itself can't be an <a> once it contains a
-        // delete <button> (nested interactive elements are invalid HTML) —
-        // so the booking number is its own link instead, matching how the
-        // block card already renders as a plain, non-clickable container.
-        const canDel = b.type==='quote' || IS_ADMIN;
-        const delBtn = canDel
+        // Only the admin account can delete anything — quote or invoice.
+        // (Server-enforced in the proxy; this just controls whether the
+        // button renders.) The card itself can't be an <a> once it contains
+        // a delete <button> (nested interactive elements are invalid HTML)
+        // — so the booking number is its own link instead, matching how
+        // the block card already renders as a plain, non-clickable container.
+        const delBtn = IS_ADMIN
           ? `<button type="button" class="btn danger" style="align-self:flex-start;margin-top:4px" data-delstay="${esc(b.no)}">Delete ${b.type==='quote'?'quote':'invoice'}</button>` : '';
         return `<div class="ag-item">
           <div class="ag-top">
@@ -535,9 +533,8 @@ async function deleteStayEntry(no, reopenIso){
   const idx = STAYS.findIndex(s=>s.no===no && (s.type==='quote'||s.type==='invoice'));
   if(idx<0) return;
   const target = STAYS[idx];
-  const isInvoice = target.type==='invoice';
-  if(isInvoice && !IS_ADMIN) return; // server would reject this anyway; button shouldn't even be visible
-  const label = isInvoice ? 'invoice' : 'quote';
+  if(!IS_ADMIN) return; // server would reject this anyway; button shouldn't even be visible
+  const label = target.type==='invoice' ? 'invoice' : 'quote';
   if(!confirm(`Delete ${label} ${no}${target.guest?' ('+target.guest+')':''}? This can't be undone.`)) return;
   const removed = STAYS.splice(idx,1);
   try{
