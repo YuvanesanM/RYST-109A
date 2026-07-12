@@ -445,9 +445,10 @@
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
 let proxyToken = localStorage.getItem('ryst_proxy_token') || '';
 const MYEMAIL = localStorage.getItem('ryst_user_email') || '';
-// Server-enforced in the proxy's /stays PUT validator — this only controls
-// whether the button renders, not who's actually allowed to delete.
-const IS_ADMIN = MYEMAIL === 'mailyuvanesh@gmail.com';
+// Admin is assigned via Settings → User Access (data-driven, cached at
+// login), not a hardcoded email. Server-enforced in the proxy's /stays PUT
+// validator regardless — this only controls whether the button renders.
+const IS_ADMIN = localStorage.getItem('ryst_user_admin') === 'true';
 
 const K_SET = "ryst_stay_settings";   // local cache; master copy synced via proxy /stay-settings
 
