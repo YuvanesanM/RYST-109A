@@ -89,6 +89,20 @@
   .seg button{border:none;background:transparent;padding:8px 4px;font-size:12px;font-weight:600;color:var(--muted)}
   .seg button.on{background:var(--accent);color:#fff}
 
+  .rem-badge{display:inline-flex;align-items:center;justify-content:center;min-width:17px;height:17px;padding:0 5px;border-radius:20px;background:var(--warn);color:#fff;font-size:10px;font-weight:700;margin-left:6px;vertical-align:middle}
+  .reminders{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow-y:auto}
+  .rem-item{padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:12.5px}
+  .rem-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .rem-guest{font-weight:600}
+  .rem-when{font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:20px;text-transform:uppercase;background:var(--warn-soft);color:var(--warn);white-space:nowrap}
+  .rem-dates{color:var(--muted);font-size:11.5px;margin-top:2px}
+  .rem-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+  .rem-sent{color:var(--muted2);font-size:11.5px}
+  .rem-sent a{color:var(--muted2);text-decoration:underline;cursor:pointer}
+  .rem-send{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600}
+  .rem-send:hover{background:var(--accent-d)}
+  .rem-send:disabled{background:var(--line);color:var(--muted2);cursor:not-allowed}
+
   .agenda{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto}
   .ag-item{display:flex;flex-direction:column;gap:2px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:12.5px;text-decoration:none;color:inherit;transition:.12s}
   .ag-item:hover{border-color:var(--accent)}
@@ -206,6 +220,10 @@
 
     <div class="side">
       <div class="panel">
+        <h2>Pre-arrival reminders<span class="rem-badge" id="remBadge" style="display:none">0</span></h2>
+        <div class="reminders" id="reminders"></div>
+      </div>
+      <div class="panel">
         <h2>Search &amp; filter</h2>
         <div class="filters">
           <input id="fSearch" placeholder="Guest name or booking no…" />
@@ -294,6 +312,26 @@ let STAYS = [];
 let view = new Date(); view.setDate(1);
 let FILTERS = { type:'all', q:'' };
 
+// How far ahead a check-in shows up in the reminders list.
+const REMINDER_WINDOW_DAYS = 3;
+const VILLA_MAP_LINK = 'https://maps.app.goo.gl/taBGtjLgbcMWL6mUA';
+
+// Guest phone numbers are hand-typed ("+91 98765 43210", "9876543210", etc.)
+// — wa.me needs bare digits with a country code, so assume India (91) when
+// the number looks like a 10-digit local number.
+function normalizePhone(p){
+  const digits = String(p||'').replace(/\D/g,'');
+  if(!digits) return '';
+  if(digits.length===10) return '91'+digits;
+  return digits;
+}
+function reminderMessage(d){
+  return `Hi ${d.guest||'there'}! This is RYST 109A Beach Villa confirming your upcoming stay `
+    + `from ${fmtDate(d.checkin)} to ${fmtDate(d.checkout)}. We're looking forward to hosting you.\n\n`
+    + `Location: ${VILLA_MAP_LINK}\n\n`
+    + `Let us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`;
+}
+
 // Tolerates messy hand-entered values like "₹45,000" or "1 night", which
 // parseFloat alone chokes on (parseFloat("₹45000") is NaN, not 45000).
 const toNum = v => { const n = parseFloat(String(v==null?'':v).replace(/[^0-9.-]/g,'')); return isFinite(n) ? n : 0; };
@@ -372,6 +410,75 @@ function render(){
   renderStats();
   renderCalendar();
   renderAgenda();
+  renderReminders();
+}
+
+/* ---------- PRE-ARRIVAL REMINDERS ---------- */
+function renderReminders(){
+  const today = todayISO();
+  const cutoff = addDays(today, REMINDER_WINDOW_DAYS);
+  const due = STAYS
+    .filter(d=> (d.type||'invoice')==='invoice' && d.checkin>=today && d.checkin<=cutoff)
+    .sort((a,b)=> a.checkin.localeCompare(b.checkin));
+
+  const badge = $('#remBadge');
+  const pendingCount = due.filter(d=>!d.reminderSentAt).length;
+  badge.style.display = pendingCount ? '' : 'none';
+  badge.textContent = pendingCount;
+
+  const list = $('#reminders');
+  if(!due.length){ list.innerHTML = '<div class="empty">No check-ins in the next '+REMINDER_WINDOW_DAYS+' days.</div>'; return; }
+
+  list.innerHTML = due.map(d=>{
+    const days = nightsBetween(today, d.checkin);
+    const when = days<=0 ? 'Today' : days===1 ? 'Tomorrow' : `In ${days} days`;
+    const phone = normalizePhone(d.phone);
+    const sentNote = d.reminderSentAt
+      ? `<span class="rem-sent">✓ Reminded ${fmtDate(d.reminderSentAt.slice(0,10))} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
+      : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
+    const sendBtn = (!d.reminderSentAt)
+      ? `<button class="rem-send" ${phone?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">Send WhatsApp</button>`
+      : '';
+    return `<div class="rem-item">
+      <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
+      <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
+      <div class="rem-foot">${sentNote}${sendBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function sendReminder(no){
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  const phone = normalizePhone(d.phone);
+  if(!phone) return;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(reminderMessage(d))}`, '_blank');
+  d.reminderSentAt = new Date().toISOString();
+  try{
+    const ok = await pushStays();
+    if(ok===false) return;
+    renderReminders();
+  }catch(e){
+    delete d.reminderSentAt;
+    alert('Could not save reminder status: ' + e.message + '\n\n(The WhatsApp message still opened — this only affects the "reminded" checkmark.)');
+    renderReminders();
+  }
+}
+
+async function markReminderUnsent(no){
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  const prev = d.reminderSentAt;
+  delete d.reminderSentAt;
+  try{
+    const ok = await pushStays();
+    if(ok===false) return;
+    renderReminders();
+  }catch(e){
+    d.reminderSentAt = prev;
+    alert('Could not update reminder status: ' + e.message);
+    renderReminders();
+  }
 }
 
 /* ---------- STATS ---------- */
