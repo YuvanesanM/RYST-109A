@@ -372,6 +372,9 @@ const TOKEN = localStorage.getItem('ryst_proxy_token') || '';
 const MYEMAIL = localStorage.getItem('ryst_user_email') || '';
 const ROLE = localStorage.getItem('ryst_user_role') || 'owner';
 const isOwner = ROLE === 'owner';
+// Server-enforced in the proxy's /petty-cash delete-entry command — this
+// only controls whether the button renders.
+const IS_ADMIN = MYEMAIL === 'mailyuvanesh@gmail.com';
 
 if(!TOKEN){ window.location.href = 'login.html'; }
 
@@ -527,7 +530,11 @@ function renderCatOptions(){
   sel.innerHTML = ['All',...DOC.categories].map(c=>`<option value="${esc(c)}"${c===FILTERS.category?' selected':''}>${c==='All'?'All categories':esc(c)}</option>`).join('');
 }
 
-function canModify(e){ return e.type==='expense' && e.status==='pending' && (isOwner || e.createdBy===MYEMAIL); }
+function canEdit(e){ return e.type==='expense' && e.status==='pending' && (isOwner || e.createdBy===MYEMAIL); }
+// Money already changed hands on a reimbursed expense — only the admin can
+// remove that record; everyone else (including other owners) can still
+// delete their own/any pending expense as before.
+function canDelete(e){ return e.type==='expense' && (e.status==='reimbursed' ? IS_ADMIN : (isOwner || e.createdBy===MYEMAIL)); }
 
 function renderLedger(){
   const rows = DOC.entries.filter(passFilter).sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.createdAt||0)-(a.createdAt||0));
@@ -549,7 +556,7 @@ function renderLedger(){
         <td class="td-break"></td>
       </tr>`;
     }
-    const mod = canModify(e);
+    const canE = canEdit(e), canD = canDelete(e);
     const selBox = (isOwner && e.status==='pending') ? `<input type="checkbox" class="selchk" data-id="${e.id}" ${selected.has(e.id)?'checked':''}/>` : '';
     const rcpt = e.receipt ? `<img class="rcpt" src="${e.receipt}" data-id="${e.id}" alt="receipt"/>` : '<span class="note">—</span>';
     return `<tr>
@@ -560,7 +567,7 @@ function renderLedger(){
       <td class="td-rcpt" data-label="Receipt">${rcpt}</td>
       <td class="amt debit td-amt" data-label="Amount">−${money(e.amount)}</td>
       <td class="td-status" data-label="Status"><span class="chip ${e.status}">${e.status}</span></td>
-      <td class="td-plain td-actions">${ mod ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button><button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : '' }</td>
+      <td class="td-plain td-actions">${canE ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button>`:''}${canD ? `<button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>`:''}</td>
       <td class="td-break"></td>
     </tr>`;
   }).join('');
