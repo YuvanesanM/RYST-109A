@@ -57,6 +57,16 @@
   .rc-add{background:transparent;border:1px dashed #cdd1cb;color:var(--muted);padding:11px 16px;border-radius:9px;font-size:13px}
   .rc-add:hover{border-color:var(--accent);color:var(--accent-d)}
 
+  /* ---- ICAL SYNC ---- */
+  .ical-row{display:flex;gap:8px;margin-bottom:8px}
+  .ical-row input{flex:1}
+  .ical-copy{display:flex;gap:8px}
+  .ical-copy input{flex:1;background:var(--panel2);color:var(--muted)}
+  .feed-row{display:grid;grid-template-columns:160px 1fr 34px;gap:8px;margin-bottom:8px}
+  .sync-results{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12.5px}
+  .sync-result{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:8px;background:var(--panel2)}
+  .sync-result.err{background:#fbecea;color:var(--danger)}
+
   /* ---- TOAST ---- */
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1d211c;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:60}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -146,6 +156,24 @@
   <label class="f"><span>Bank / payment details block</span><textarea class="t" id="stayBank" rows="6"></textarea></label>
   <label class="f"><span>GST declaration</span><textarea class="t" id="stayDecl" rows="3"></textarea></label>
   <label class="f"><span>Terms &amp; conditions (one per line)</span><textarea class="t" id="stayTerms" rows="7"></textarea></label>
+
+  <p class="gh-mini">OTA calendar sync</p>
+  <p class="sd" style="margin-bottom:12px">Publish this villa's bookings to Airbnb/Booking.com, and pull their reservations in here so nothing double-books.</p>
+
+  <label class="f"><span>Export — paste this into Airbnb / Booking.com's "import calendar" field</span></label>
+  <div class="ical-copy" style="margin-bottom:18px">
+    <input class="t" id="icalExportUrl" readonly value="Loading…">
+    <button type="button" class="btn" id="icalCopyBtn">Copy</button>
+  </div>
+
+  <label class="f"><span>Import — paste each OTA's exported calendar URL below</span></label>
+  <div id="icalFeedRows"></div>
+  <div class="rc-foot" style="margin-top:0;margin-bottom:18px">
+    <button class="rc-add" id="icalFeedAdd">+ Add feed</button>
+    <button class="btn" id="icalSyncBtn">⟳ Sync now</button>
+  </div>
+  <div class="sync-results" id="icalSyncResults"></div>
+
   <div class="rc-foot">
     <button class="btn primary" id="staySave">Save stay settings</button>
   </div>
@@ -186,10 +214,12 @@ Account Type: Savings`,
     {desc:"Other Charges",                   rate:""}
   ],
   maxGuests: 4,
-  guestCapacity: 10
+  guestCapacity: 10,
+  icalFeeds: []
 };
 let stay = JSON.parse(JSON.stringify(STAY_DEFAULTS));
 let stayRcDraft = [];
+let icalFeedsDraft = [];
 let proxyToken = localStorage.getItem('ryst_proxy_token')||'';
 
 /* ---------- AUTH ---------- */
@@ -200,7 +230,14 @@ let proxyToken = localStorage.getItem('ryst_proxy_token')||'';
   // Validate token in background — if it expired redirect quietly
   fetch(PROXY_URL+'/stay-settings',{headers:{'X-Token':proxyToken}})
     .then(r=>{ if(r && r.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; } return r.ok ? r.json() : null; })
-    .then(d=>{ if(d && typeof d==='object' && (d.bank||d.rates||d.company)) applyStay(d); })
+    .then(d=>{
+      if(!d || typeof d!=='object') return;
+      if(d.bank||d.rates||d.company) applyStay(d);
+      // icalExportKey is never cached/guessed client-side — always the value
+      // the server just computed, shown regardless of whether other fields
+      // are populated yet (a brand-new install still needs to see this).
+      if(d.icalExportKey) document.getElementById('icalExportUrl').value = PROXY_URL+'/calendar.ics?key='+d.icalExportKey;
+    })
     .catch(()=>{});
   loadStayPanel();
   initPinGate();
@@ -283,7 +320,64 @@ function renderFromStay(){
   document.getElementById("stayBank").value=stay.bank||"";
   document.getElementById("stayDecl").value=stay.declaration||"";
   document.getElementById("stayTerms").value=(stay.terms||[]).join("\n");
+  icalFeedsDraft=(stay.icalFeeds||[]).map(f=>({...f}));
+  renderIcalFeeds();
 }
+
+/* ---------- ICAL FEEDS ---------- */
+function renderIcalFeeds(){
+  const wrap=document.getElementById("icalFeedRows");
+  wrap.innerHTML="";
+  if(!icalFeedsDraft.length){
+    wrap.innerHTML='<p class="sd" style="margin-bottom:8px">No OTA feeds added yet.</p>';
+  }
+  icalFeedsDraft.forEach((f,i)=>{
+    const row=document.createElement("div");
+    row.className="feed-row";
+    row.innerHTML=`
+      <input class="t" data-i="${i}" data-k="label" placeholder="e.g. Airbnb" value="${esc(f.label)}">
+      <input class="t" data-i="${i}" data-k="url" placeholder="https://www.airbnb.com/calendar/ical/....ics" value="${esc(f.url)}">
+      <button type="button" class="rc-del" data-del="${i}" title="Remove">×</button>`;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll("input[data-i]").forEach(inp=>{
+    inp.addEventListener("input",e=>{ const i=+e.target.dataset.i,k=e.target.dataset.k; icalFeedsDraft[i][k]=e.target.value; });
+  });
+  wrap.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",e=>{
+    icalFeedsDraft.splice(+e.target.dataset.del,1); renderIcalFeeds();
+  }));
+}
+document.getElementById("icalFeedAdd").addEventListener("click",()=>{
+  icalFeedsDraft.push({id:'feed_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6), label:'', url:''});
+  renderIcalFeeds();
+});
+document.getElementById("icalCopyBtn").addEventListener("click", async ()=>{
+  const val=document.getElementById("icalExportUrl").value;
+  if(!val||val==='Loading…') return;
+  try{ await navigator.clipboard.writeText(val); toast("Export link copied"); }
+  catch(e){ toast("Could not copy — select and copy manually"); }
+});
+document.getElementById("icalSyncBtn").addEventListener("click", async ()=>{
+  const btn=document.getElementById("icalSyncBtn");
+  const out=document.getElementById("icalSyncResults");
+  if(!proxyToken){ toast("Sign in required"); return; }
+  btn.disabled=true; btn.textContent="Syncing…";
+  out.innerHTML="";
+  try{
+    const res=await fetch(PROXY_URL+'/ical-import',{method:'POST',headers:{'X-Token':proxyToken}});
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data=await res.json().catch(()=>({}));
+    if(!res.ok){ out.innerHTML=`<div class="sync-result err">${esc(data.error||'Sync failed')}</div>`; }
+    else if(!data.results || !data.results.length){ out.innerHTML='<div class="sync-result">No feeds configured yet — add one above and save first.</div>'; }
+    else {
+      out.innerHTML=data.results.map(r=>
+        r.ok ? `<div class="sync-result"><span>${esc(r.label)}</span><span>${r.count} reservation${r.count===1?'':'s'} synced</span></div>`
+             : `<div class="sync-result err"><span>${esc(r.label)}</span><span>${esc(r.error)}</span></div>`
+      ).join('');
+    }
+  }catch(e){ out.innerHTML='<div class="sync-result err">Could not reach the server</div>'; }
+  finally{ btn.disabled=false; btn.textContent="⟳ Sync now"; }
+});
 
 /* ---------- RATE TABLE ---------- */
 function renderStayRates(){
@@ -328,6 +422,9 @@ async function saveStay(){
   stay.declaration=document.getElementById("stayDecl").value;
   stay.terms=(document.getElementById("stayTerms").value||"").split("\n").map(t=>t.trim()).filter(Boolean);
   if(!stay.terms.length) stay.terms=STAY_DEFAULTS.terms.slice();
+  stay.icalFeeds=icalFeedsDraft
+    .filter(f=>(f.url||"").trim()!=="")
+    .map(f=>({id:f.id, label:(f.label||"").trim()||f.id, url:f.url.trim()}));
   localStorage.setItem(K_STAY,JSON.stringify(stay));
   if(proxyToken){
     try{

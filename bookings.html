@@ -140,6 +140,9 @@
   .btn.danger{background:var(--danger-soft);color:var(--danger)}
   .btn.danger:hover{background:#f6dad6}
 
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100;max-width:90vw;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.err{background:var(--danger)}
   #loader{position:fixed;inset:0;background:rgba(243,244,241,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:90;color:var(--muted)}
   #loader.hide{display:none}
   .spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite}
@@ -170,6 +173,7 @@
     <div class="ttl">Booking Calendar<small>RYST 109A · All stays at a glance</small></div>
     <div class="spacer"></div>
     <button class="tbtn" onclick="window.location.href='login.html'">⌂ Home</button>
+    <button class="tbtn" id="btnSyncOta" title="Pull latest reservations from Airbnb/Booking.com">⟳ Sync OTA</button>
     <button class="tbtn" id="btnBlock">🚫 Block dates</button>
     <button class="tbtn" onclick="window.location.href='stay.html'">＋ New booking</button>
   </header>
@@ -290,6 +294,7 @@
   <div id="loaderMsg">Loading bookings…</div>
   <button class="tbtn" id="loaderRetry" style="display:none">Retry</button>
 </div>
+<div id="toast"></div>
 
 <script>
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
@@ -393,6 +398,7 @@ async function load(){
     STAYS = Array.isArray(data.stays) ? data.stays.filter(d=>d.checkin && d.checkout) : [];
     render();
     loader.classList.add('hide');
+    syncOta(true); // best-effort, silent — keeps OTA blocks fresh without an extra click
   }catch(e){
     $('#loaderSpin').style.display = 'none';
     msgEl.textContent = (e && e.name === 'AbortError')
@@ -404,6 +410,52 @@ async function load(){
   }
 }
 $('#loaderRetry').addEventListener('click', load);
+
+function showToast(msg, isErr){
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = isErr ? 'show err' : 'show';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), 4000);
+}
+
+// Pulls the latest Airbnb/Booking.com reservations in as blocked dates.
+// silent=true (auto-triggered on page load) fails quietly — a stale OTA
+// calendar is a minor inconvenience, not worth an intrusive error on every
+// visit; silent=false (the toolbar button) reports what happened.
+let otaSyncing = false;
+async function syncOta(silent){
+  if(otaSyncing) return;
+  otaSyncing = true;
+  const btn = $('#btnSyncOta');
+  if(!silent){ btn.disabled = true; btn.textContent = '⟳ Syncing…'; }
+  try{
+    const res = await fetch(PROXY_URL+'/ical-import', { method:'POST', headers:{'X-Token':TOKEN} });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ if(!silent) showToast(data.error || 'OTA sync failed', true); return; }
+    const results = Array.isArray(data.results) ? data.results : [];
+    if(!results.length){ if(!silent) showToast('No OTA feeds configured — add one in Settings.'); return; }
+
+    // Refresh STAYS so newly synced OTA blocks show up immediately.
+    const sres = await fetch(PROXY_URL+'/stays', { headers:{'X-Token':TOKEN} });
+    if(sres.ok){ const sdata = await sres.json().catch(()=>({})); STAYS = Array.isArray(sdata.stays) ? sdata.stays.filter(d=>d.checkin && d.checkout) : STAYS; render(); }
+
+    if(!silent){
+      const ok = results.filter(r=>r.ok);
+      const failed = results.filter(r=>!r.ok);
+      const okPart = ok.length ? ok.map(r=>`${r.label}: ${r.count}`).join(', ') : '';
+      const failPart = failed.length ? ' · Failed: '+failed.map(r=>r.label).join(', ') : '';
+      showToast((okPart||'Synced')+failPart, failed.length>0 && ok.length===0);
+    }
+  }catch(e){
+    if(!silent) showToast('Could not reach the server for OTA sync', true);
+  }finally{
+    otaSyncing = false;
+    if(!silent){ btn.disabled = false; btn.textContent = '⟳ Sync OTA'; }
+  }
+}
+$('#btnSyncOta').addEventListener('click', ()=>syncOta(false));
 
 // Writes the full STAYS array back — blocks live in the same /stays document
 // as invoices/quotes so they share storage, the overlap-conflict check, and
