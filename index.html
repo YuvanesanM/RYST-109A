@@ -769,14 +769,25 @@
     .form-submit:active { transform: translateY(0); }
 
     /* ── AVAILABILITY CALENDAR ── */
+    /* Embedded inside .book-form now, so it reads as a widget within the
+       form card rather than a second stacked card (no shadow/gradient bar
+       of its own — those belong to the outer .book-form). */
     .avail-card {
-      position: relative; background: var(--white); border-radius: 28px; padding: clamp(22px,4vw,34px);
-      box-shadow: 0 20px 50px rgba(11,61,82,.12); border: 1px solid rgba(255,255,255,.8);
-      margin-bottom: 24px; overflow: hidden;
+      position: relative; background: var(--foam); border-radius: 20px; padding: clamp(18px,4vw,28px);
+      border: 1px solid var(--line); overflow: hidden;
     }
-    .avail-card::before {
-      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-      background: linear-gradient(90deg, var(--sea), var(--sea-light), var(--sand));
+    .avail-selected {
+      display: flex; align-items: center; gap: 10px; margin-top: 14px;
+      padding: 12px 16px; border-radius: 14px; background: var(--white); border: 1px solid var(--line);
+    }
+    .sel-box { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+    .sel-label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+    .sel-value { font-family: var(--serif); font-size: 15.5px; font-weight: 600; color: var(--ink); }
+    .sel-value.empty { color: var(--muted); font-family: var(--sans); font-weight: 500; font-size: 13px; }
+    .sel-sep { color: var(--sea-mid); font-size: 16px; flex-shrink: 0; }
+    @media(max-width: 480px) {
+      .avail-selected { gap: 6px; padding: 10px 12px; }
+      .sel-value { font-size: 13px; }
     }
     .avail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
     .avail-head h3 { font-family: var(--serif); font-size: 21px; font-weight: 600; color: var(--ink); }
@@ -1255,24 +1266,6 @@
       <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Family friendly</span>
       <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>High-speed Wi-Fi</span>
     </div>
-    <div class="avail-card">
-      <div class="avail-head">
-        <h3>Check availability</h3>
-        <div class="avail-nav">
-          <button type="button" id="availPrev" aria-label="Previous month">‹</button>
-          <span class="avail-mon" id="availMonLabel">—</span>
-          <button type="button" id="availNext" aria-label="Next month">›</button>
-        </div>
-      </div>
-      <div class="avail-legend">
-        <span><i class="i-free"></i>Available</span>
-        <span><i class="i-taken"></i>Booked</span>
-        <span><i class="i-sel"></i>Your selection</span>
-      </div>
-      <div class="avail-grid" id="availDow"></div>
-      <div class="avail-grid" id="availGrid"></div>
-      <p class="avail-hint" id="availHint">Tap a check-in date, then a check-out date.</p>
-    </div>
     <div class="book-form">
       <form id="bookForm">
         <!-- Honeypot — hidden from real visitors via CSS, so only bots that
@@ -1299,15 +1292,43 @@
           </div>
         </div>
         <hr class="form-divider">
-        <div class="form-row three">
+        <div class="form-row full">
           <div class="f-group">
-            <label for="f-checkin">Check-in Date *</label>
-            <input id="f-checkin" name="checkin" type="date" required>
+            <label>Select your dates *</label>
+            <div class="avail-card">
+              <div class="avail-head">
+                <h3>Check availability</h3>
+                <div class="avail-nav">
+                  <button type="button" id="availPrev" aria-label="Previous month">‹</button>
+                  <span class="avail-mon" id="availMonLabel">—</span>
+                  <button type="button" id="availNext" aria-label="Next month">›</button>
+                </div>
+              </div>
+              <div class="avail-legend">
+                <span><i class="i-free"></i>Available</span>
+                <span><i class="i-taken"></i>Booked</span>
+                <span><i class="i-sel"></i>Your selection</span>
+              </div>
+              <div class="avail-grid" id="availDow"></div>
+              <div class="avail-grid" id="availGrid"></div>
+              <p class="avail-hint" id="availHint">Tap a check-in date, then a check-out date.</p>
+              <div class="avail-selected" id="availSelected">
+                <div class="sel-box">
+                  <span class="sel-label">Check-in</span>
+                  <strong class="sel-value empty" id="selCheckinText">Not selected</strong>
+                </div>
+                <div class="sel-sep">→</div>
+                <div class="sel-box">
+                  <span class="sel-label">Check-out</span>
+                  <strong class="sel-value empty" id="selCheckoutText">Not selected</strong>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="f-checkin" name="checkin">
+            <input type="hidden" id="f-checkout" name="checkout">
           </div>
-          <div class="f-group">
-            <label for="f-checkout">Check-out Date *</label>
-            <input id="f-checkout" name="checkout" type="date" required>
-          </div>
+        </div>
+        <div class="form-row full">
           <div class="f-group">
             <label for="f-guests">No. of Guests *</label>
             <input id="f-guests" name="guests" type="number" min="1" max="12" placeholder="4" required>
@@ -1429,20 +1450,6 @@
     if (!ticking) { requestAnimationFrame(onScroll); ticking = true; }
   }, { passive: true });
 
-  // ── DATE DEFAULTS ──
-  (function(){
-    const today = new Date().toISOString().slice(0,10);
-    const tomorrow = new Date(Date.now()+86400000).toISOString().slice(0,10);
-    document.getElementById('f-checkin').min = today;
-    document.getElementById('f-checkout').min = tomorrow;
-    document.getElementById('f-checkin').addEventListener('change', e => {
-      const next = new Date(new Date(e.target.value).getTime()+86400000).toISOString().slice(0,10);
-      document.getElementById('f-checkout').min = next;
-      if(document.getElementById('f-checkout').value <= e.target.value)
-        document.getElementById('f-checkout').value = next;
-    });
-  })();
-
   // ── GUEST CAP ──
   document.getElementById('f-guests').addEventListener('input', e => {
     if(parseInt(e.target.value) > 12){ e.target.value = '12'; showToast('Maximum capacity is 12 guests.'); }
@@ -1511,17 +1518,31 @@
     }
     function $$(s){ return document.querySelectorAll(s); }
 
+    const fmtNice = iso => new Date(iso+'T00:00:00').toLocaleDateString('en-IN', { weekday:'short', day:'numeric', month:'short' });
+
+    function updateSelectedDisplay(){
+      const ciText = $('#selCheckinText'), coText = $('#selCheckoutText');
+      if(ciText){ ciText.textContent = selStart ? fmtNice(selStart) : 'Not selected'; ciText.classList.toggle('empty', !selStart); }
+      if(coText){ coText.textContent = selEnd ? fmtNice(selEnd) : 'Not selected'; coText.classList.toggle('empty', !selEnd); }
+    }
+
     function pick(iso){
       const hint = $('#availHint');
       if(!selStart || (selStart && selEnd) || iso <= selStart){
         selStart = iso; selEnd = null;
         hint.textContent = 'Now tap your check-out date.';
         hint.classList.remove('warn');
+        const ci = $('#f-checkin'), co = $('#f-checkout');
+        if(ci) ci.value = '';
+        if(co) co.value = '';
       } else {
         if(hasConflict(selStart, iso)){
           hint.textContent = 'Those dates include an unavailable night — pick a shorter range or different dates.';
           hint.classList.add('warn');
           selStart = iso; selEnd = null;
+          const ci = $('#f-checkin'), co = $('#f-checkout');
+          if(ci) ci.value = '';
+          if(co) co.value = '';
         } else {
           selEnd = iso;
           const nights = Math.round((new Date(iso+'T00:00:00') - new Date(selStart+'T00:00:00'))/86400000);
@@ -1532,6 +1553,7 @@
           if(co) co.value = selEnd;
         }
       }
+      updateSelectedDisplay();
       render();
     }
 
