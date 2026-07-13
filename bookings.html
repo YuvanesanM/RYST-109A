@@ -630,6 +630,10 @@ function renderStats(){
   const nextMonthStart = new Date(y,m+1,1);
   let nights = 0, revenue = 0;
   for(const d of filtered){
+    // Blocks (manual holds, OTA-synced Airbnb/Booking.com reservations) mark
+    // nights unavailable but aren't a booking — don't count them as "nights
+    // booked" or toward occupancy.
+    if((d.type||'invoice')==='block') continue;
     // Nights of this booking that overlap the viewed month, via a closed-form
     // range intersection rather than stepping day-by-day — a hand-entered
     // date typo (checkout years out) would otherwise turn into a very long
