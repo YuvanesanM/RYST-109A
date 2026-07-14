@@ -330,6 +330,36 @@ const VILLA_MAP_LINK = 'https://maps.app.goo.gl/taBGtjLgbcMWL6mUA';
 const FEEDBACK_WINDOW_DAYS = 7;
 const FEEDBACK_FORM_URL = 'https://stay.ryst.in/feedback.html';
 
+// ── WHATSAPP TEMPLATES ── owner-editable wording (Settings → WhatsApp
+// Templates). These hardcoded strings are only the fallback while the fetch
+// is in flight or if the proxy is unreachable.
+let waTemplates = {
+  reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
+  feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
+};
+fetch(PROXY_URL+'/whatsapp-templates')
+  .then(r => r.ok ? r.json() : null)
+  .then(data => {
+    if(!data || !data.templates) return;
+    if(data.templates.reminder) waTemplates.reminder = data.templates.reminder;
+    if(data.templates.feedbackRequest) waTemplates.feedbackRequest = data.templates.feedbackRequest;
+  })
+  .catch(()=>{}); // silent — keeps the hardcoded defaults above
+
+// A line containing any {{token}} whose value is empty/missing is dropped
+// entirely, so a template can mark a field optional just by giving it its
+// own line — no separate conditional syntax needed.
+function renderWaTemplate(tpl, vars){
+  const lines = String(tpl||'').split('\n').filter(line=>{
+    const tokens = line.match(/\{\{(\w+)\}\}/g) || [];
+    return !tokens.some(t => { const v = vars[t.slice(2,-2)]; return v==null || v===''; });
+  });
+  return lines.join('\n')
+    .replace(/\{\{(\w+)\}\}/g, (_,k)=> vars[k]!=null ? vars[k] : '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 // Guest phone numbers are hand-typed ("+91 98765 43210", "9876543210", etc.)
 // — wa.me needs bare digits with a country code, so assume India (91) when
 // the number looks like a 10-digit local number.
@@ -340,18 +370,17 @@ function normalizePhone(p){
   return digits;
 }
 function reminderMessage(d){
-  return `Hi ${d.guest||'there'}! This is RYST 109A Beach Villa confirming your upcoming stay `
-    + `from ${fmtDate(d.checkin)} to ${fmtDate(d.checkout)}. We're looking forward to hosting you.\n\n`
-    + `Location: ${VILLA_MAP_LINK}\n\n`
-    + `Let us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`;
+  return renderWaTemplate(waTemplates.reminder, {
+    guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), mapLink: VILLA_MAP_LINK
+  });
 }
 function feedbackLink(d){
   return `${FEEDBACK_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent(d.guest||'')}`;
 }
 function feedbackRequestMessage(d){
-  return `Hi ${d.guest||'there'}! Thank you for staying at RYST 109A Beach Villa. `
-    + `We'd love to hear how your stay was — it only takes a minute:\n\n${feedbackLink(d)}\n\n`
-    + `Thanks so much, and hope to host you again soon!`;
+  return renderWaTemplate(waTemplates.feedbackRequest, {
+    guest: d.guest || 'there', feedbackLink: feedbackLink(d)
+  });
 }
 
 // Tolerates messy hand-entered values like "₹45,000" or "1 night", which
