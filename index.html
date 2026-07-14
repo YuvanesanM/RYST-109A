@@ -1622,6 +1622,32 @@
       .catch(()=>{}); // silent — a marketing nicety, not critical path
   })();
 
+  // ── WHATSAPP TEMPLATES ── owner-editable wording (Settings → WhatsApp
+  // Templates). This hardcoded string is only the fallback while the fetch
+  // is in flight or if the proxy is unreachable — a guest must never be
+  // blocked from sending their request over a template-fetch failure.
+  let waTemplates = {
+    bookingRequest: `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n*Name:* {{name}}\n*Phone:* {{phone}}\n*Email:* {{email}}\n\n*Check-in:* {{checkin}}\n*Check-out:* {{checkout}} ({{nightsLabel}})\n*Guests:* {{guests}}\n*Occasion:* {{occasion}}\n\n*Notes:* {{message}}\n\n*Reference:* {{quoteNo}}`
+  };
+  fetch('https://ryst-109a-proxy.onrender.com/whatsapp-templates')
+    .then(r => r.ok ? r.json() : null)
+    .then(data => { if(data && data.templates && data.templates.bookingRequest) waTemplates.bookingRequest = data.templates.bookingRequest; })
+    .catch(()=>{}); // silent — keeps the hardcoded default above
+
+  // A line containing any {{token}} whose value is empty/missing is dropped
+  // entirely, so the template can mark a field optional just by giving it
+  // its own line — no separate conditional syntax needed.
+  function renderWaTemplate(tpl, vars){
+    const lines = String(tpl||'').split('\n').filter(line=>{
+      const tokens = line.match(/\{\{(\w+)\}\}/g) || [];
+      return !tokens.some(t => { const v = vars[t.slice(2,-2)]; return v==null || v===''; });
+    });
+    return lines.join('\n')
+      .replace(/\{\{(\w+)\}\}/g, (_,k)=> vars[k]!=null ? vars[k] : '')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+
   // ── BOOKING FORM ──
   // Update WHATSAPP_NUMBER to your actual WhatsApp number (digits only, with country code, no +)
   const WHATSAPP_NUMBER = '918608008608';
@@ -1646,16 +1672,13 @@
     const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
 
     function openWhatsApp(quoteNo){
-      let text = `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n`;
-      text += `*Name:* ${name}\n`;
-      text += `*Phone:* ${phone}\n`;
-      if(email) text += `*Email:* ${email}\n`;
-      text += `\n*Check-in:* ${fmtDate(checkin)}\n`;
-      text += `*Check-out:* ${fmtDate(checkout)} (${nights} night${nights!==1?'s':''})\n`;
-      text += `*Guests:* ${guests}\n`;
-      if(occasion) text += `*Occasion:* ${occasion}\n`;
-      if(message) text += `\n*Notes:* ${message}`;
-      if(quoteNo) text += `\n\n*Reference:* ${quoteNo}`;
+      const vars = {
+        name, phone, email,
+        checkin: fmtDate(checkin), checkout: fmtDate(checkout),
+        nightsLabel: `${nights} night${nights!==1?'s':''}`,
+        guests, occasion, message, quoteNo: quoteNo || ''
+      };
+      const text = renderWaTemplate(waTemplates.bookingRequest, vars);
       window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
     }
 

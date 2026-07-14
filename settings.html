@@ -30,6 +30,11 @@
   /* ---- CONTENT ---- */
   .cfg-body{max-width:1020px;margin:0 auto;padding:32px 32px 80px}
   .sd{color:var(--muted);font-size:13px;margin:0 0 22px}
+  .tabs{display:flex;gap:6px;margin:0 0 26px;border-bottom:1px solid var(--line);overflow-x:auto}
+  .tab-btn{background:transparent;border:none;padding:11px 16px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;transition:.15s;flex-shrink:0}
+  .tab-btn:hover{color:var(--ink)}
+  .tab-btn.active{color:var(--accent-d);border-bottom-color:var(--accent)}
+  .wa-hint{font-size:11.5px;color:var(--muted2);margin:0 0 6px;font-family:monospace}
   .gh-mini{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent-d);font-weight:700;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
   .gh-mini::after{content:"";flex:1;height:1px;background:var(--line)}
   .gh-mini:first-of-type{margin-top:0}
@@ -145,54 +150,89 @@
 <div class="cfg-body">
   <p class="sd">Settings for the <b>RYST 109A Beach Villa</b> invoice / quote builder. Pricing, bank details and business info sync to the cloud and load automatically in the Stay builder.</p>
 
-  <p class="gh-mini">Charge pricing</p>
-  <div class="rc-table-wrap">
-    <table class="rc-table">
-      <thead><tr>
-        <th>Charge description</th>
-        <th class="r" style="width:180px">Default rate (₹)</th>
-        <th style="width:36px"></th>
-      </tr></thead>
-      <tbody id="stayRcBody"></tbody>
-    </table>
-  </div>
-  <button class="rc-add" id="stayRcAdd">+ Add charge</button>
-
-  <p class="gh-mini">Business &amp; payment</p>
-  <label class="f"><span>Property address block (under the wordmark)</span><textarea class="t" id="stayCompany" rows="3"></textarea></label>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px">
-    <label class="f"><span>PAN</span><input class="t" id="stayPan" placeholder="ADVPJ1491D"></label>
-    <label class="f"><span>Invoice no. prefix</span><input class="t" id="stayInvPrefix" placeholder="RYST109A/INV"></label>
-    <label class="f"><span>Quote no. prefix</span><input class="t" id="stayQtPrefix" placeholder="RYST109A/QT"></label>
-    <label class="f"><span>Max guests (incl.)</span><input class="t" id="stayMaxGuests" type="number" min="0" step="1" placeholder="4"></label>
-    <label class="f"><span>Guest capacity (hard cap)</span><input class="t" id="stayGuestCapacity" type="number" min="0" step="1" placeholder="10"></label>
-  </div>
-  <label class="f"><span>Bank / payment details block</span><textarea class="t" id="stayBank" rows="6"></textarea></label>
-  <label class="f"><span>GST declaration</span><textarea class="t" id="stayDecl" rows="3"></textarea></label>
-  <label class="f"><span>Terms &amp; conditions (one per line)</span><textarea class="t" id="stayTerms" rows="7"></textarea></label>
-
-  <p class="gh-mini">OTA calendar sync</p>
-  <p class="sd" style="margin-bottom:12px">Publish this villa's bookings to Airbnb/Booking.com, and pull their reservations in here so nothing double-books.</p>
-
-  <label class="f"><span>Export — paste this into Airbnb / Booking.com's "import calendar" field</span></label>
-  <div class="ical-copy" style="margin-bottom:18px">
-    <input class="t" id="icalExportUrl" readonly value="Loading…">
-    <button type="button" class="btn" id="icalCopyBtn">Copy</button>
+  <div class="tabs" id="cfgTabs">
+    <button type="button" class="tab-btn active" data-tab="villa">Villa &amp; Business</button>
+    <button type="button" class="tab-btn" data-tab="ota">OTA Sync</button>
+    <button type="button" class="tab-btn" data-tab="whatsapp">WhatsApp Templates</button>
+    <button type="button" class="tab-btn" id="tabUserBtn" data-tab="users" style="display:none">User Access</button>
   </div>
 
-  <label class="f"><span>Import — paste each OTA's exported calendar URL below</span></label>
-  <div id="icalFeedRows"></div>
-  <div class="rc-foot" style="margin-top:0;margin-bottom:18px">
-    <button class="rc-add" id="icalFeedAdd">+ Add feed</button>
-    <button class="btn" id="icalSyncBtn">⟳ Sync now</button>
-  </div>
-  <div class="sync-results" id="icalSyncResults"></div>
+  <div class="tab-panel" data-panel="villa">
+    <p class="gh-mini">Charge pricing</p>
+    <div class="rc-table-wrap">
+      <table class="rc-table">
+        <thead><tr>
+          <th>Charge description</th>
+          <th class="r" style="width:180px">Default rate (₹)</th>
+          <th style="width:36px"></th>
+        </tr></thead>
+        <tbody id="stayRcBody"></tbody>
+      </table>
+    </div>
+    <button class="rc-add" id="stayRcAdd">+ Add charge</button>
 
-  <div class="rc-foot">
+    <p class="gh-mini">Business &amp; payment</p>
+    <label class="f"><span>Property address block (under the wordmark)</span><textarea class="t" id="stayCompany" rows="3"></textarea></label>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px">
+      <label class="f"><span>PAN</span><input class="t" id="stayPan" placeholder="ADVPJ1491D"></label>
+      <label class="f"><span>Invoice no. prefix</span><input class="t" id="stayInvPrefix" placeholder="RYST109A/INV"></label>
+      <label class="f"><span>Quote no. prefix</span><input class="t" id="stayQtPrefix" placeholder="RYST109A/QT"></label>
+      <label class="f"><span>Max guests (incl.)</span><input class="t" id="stayMaxGuests" type="number" min="0" step="1" placeholder="4"></label>
+      <label class="f"><span>Guest capacity (hard cap)</span><input class="t" id="stayGuestCapacity" type="number" min="0" step="1" placeholder="10"></label>
+    </div>
+    <label class="f"><span>Bank / payment details block</span><textarea class="t" id="stayBank" rows="6"></textarea></label>
+    <label class="f"><span>GST declaration</span><textarea class="t" id="stayDecl" rows="3"></textarea></label>
+    <label class="f"><span>Terms &amp; conditions (one per line)</span><textarea class="t" id="stayTerms" rows="7"></textarea></label>
+  </div>
+
+  <div class="tab-panel" data-panel="ota" style="display:none">
+    <p class="gh-mini">OTA calendar sync</p>
+    <p class="sd" style="margin-bottom:12px">Publish this villa's bookings to Airbnb/Booking.com, and pull their reservations in here so nothing double-books.</p>
+
+    <label class="f"><span>Export — paste this into Airbnb / Booking.com's "import calendar" field</span></label>
+    <div class="ical-copy" style="margin-bottom:18px">
+      <input class="t" id="icalExportUrl" readonly value="Loading…">
+      <button type="button" class="btn" id="icalCopyBtn">Copy</button>
+    </div>
+
+    <label class="f"><span>Import — paste each OTA's exported calendar URL below</span></label>
+    <div id="icalFeedRows"></div>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:18px">
+      <button class="rc-add" id="icalFeedAdd">+ Add feed</button>
+      <button class="btn" id="icalSyncBtn">⟳ Sync now</button>
+    </div>
+    <div class="sync-results" id="icalSyncResults"></div>
+  </div>
+
+  <div class="rc-foot" id="stayGroupSave">
     <button class="btn primary" id="staySave" disabled>Save stay settings</button>
   </div>
 
-  <div id="userAccessSection" style="display:none">
+  <div class="tab-panel" data-panel="whatsapp" style="display:none">
+    <p class="gh-mini">WhatsApp templates</p>
+    <p class="sd" style="margin-bottom:12px">Wording for the WhatsApp messages the site and dashboard pre-fill. Use <code>{{token}}</code> placeholders — a line containing a token with no value for that message is left out automatically, so a field can be made optional just by giving it its own line.</p>
+
+    <label class="f"><span>Booking request — sent by a guest from the site's booking form</span></label>
+    <p class="wa-hint">{{name}} {{phone}} {{email}} {{checkin}} {{checkout}} {{nightsLabel}} {{guests}} {{occasion}} {{message}} {{quoteNo}}</p>
+    <textarea class="t" id="waBookingRequest" rows="10" style="margin-bottom:8px"></textarea>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="bookingRequest">Reset to default</button></div>
+
+    <label class="f"><span>Stay reminder — sent by you to a guest a few days before check-in</span></label>
+    <p class="wa-hint">{{guest}} {{checkin}} {{checkout}} {{mapLink}}</p>
+    <textarea class="t" id="waReminder" rows="7" style="margin-bottom:8px"></textarea>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="reminder">Reset to default</button></div>
+
+    <label class="f"><span>Feedback request — sent by you to a guest after checkout</span></label>
+    <p class="wa-hint">{{guest}} {{feedbackLink}}</p>
+    <textarea class="t" id="waFeedbackRequest" rows="6" style="margin-bottom:8px"></textarea>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="feedbackRequest">Reset to default</button></div>
+
+    <div class="rc-foot">
+      <button class="btn primary" id="waSave" disabled>Save WhatsApp templates</button>
+    </div>
+  </div>
+
+  <div class="tab-panel" data-panel="users" id="userAccessSection" style="display:none">
     <p class="gh-mini">User access</p>
     <p class="sd" style="margin-bottom:12px">Who can sign in, their role, and who's admin (can delete quotes, invoices and reimbursed expenses, and manage this list). Admin-only section.</p>
     <div id="userRows"></div>
@@ -314,11 +354,26 @@ const IS_ADMIN = localStorage.getItem('ryst_user_admin') === 'true';
   // Independent of the stay-settings load above (own endpoint, own file) —
   // a failure loading one shouldn't block or hide the other.
   if(IS_ADMIN){
-    document.getElementById('userAccessSection').style.display = '';
+    document.getElementById('tabUserBtn').style.display = '';
     loadUserAccess();
   }
+  loadWaTemplates();
 })();
 document.getElementById('loaderRetry').addEventListener('click', ()=>location.reload());
+
+/* ---------- TABS ---------- */
+function switchTab(tab){
+  document.querySelectorAll('.tab-panel').forEach(p=> p.style.display = (p.dataset.panel===tab) ? '' : 'none');
+  // The stay-settings save bar belongs to both the villa and OTA panels —
+  // they write the same document via the same button — so it isn't its own
+  // tab-panel, just shown/hidden alongside whichever of those two is active.
+  document.getElementById('stayGroupSave').style.display = (tab==='villa'||tab==='ota') ? '' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(b=> b.classList.toggle('active', b.dataset.tab===tab));
+}
+document.getElementById('cfgTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-tab]');
+  if(btn) switchTab(btn.dataset.tab);
+});
 
 /* ---------- PIN GATE ----------
    A quick keypad lock in front of this page, not a real access boundary —
@@ -454,6 +509,59 @@ document.getElementById("icalSyncBtn").addEventListener("click", async ()=>{
     }
   }catch(e){ out.innerHTML='<div class="sync-result err">Could not reach the server</div>'; }
   finally{ btn.disabled=false; btn.textContent="⟳ Sync now"; }
+});
+
+/* ---------- WHATSAPP TEMPLATES (any owner) ---------- */
+// Mirrors DEFAULT_WA_TEMPLATES in the proxy's server.js — used for "Reset to
+// default" and as the fallback if the fetch hasn't resolved yet.
+const WA_DEFAULTS = {
+  bookingRequest: `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n*Name:* {{name}}\n*Phone:* {{phone}}\n*Email:* {{email}}\n\n*Check-in:* {{checkin}}\n*Check-out:* {{checkout}} ({{nightsLabel}})\n*Guests:* {{guests}}\n*Occasion:* {{occasion}}\n\n*Notes:* {{message}}\n\n*Reference:* {{quoteNo}}`,
+  reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
+  feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
+};
+let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
+async function loadWaTemplates(){
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp-templates');
+    const data = await res.json().catch(()=>({}));
+    if(data && data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
+  }catch(e){ /* keeps the defaults already in waTemplatesDraft */ }
+  renderWaTemplates();
+  document.getElementById('waSave').disabled = false;
+}
+function renderWaTemplates(){
+  document.getElementById('waBookingRequest').value = waTemplatesDraft.bookingRequest || '';
+  document.getElementById('waReminder').value = waTemplatesDraft.reminder || '';
+  document.getElementById('waFeedbackRequest').value = waTemplatesDraft.feedbackRequest || '';
+}
+document.querySelectorAll('[data-reset]').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    const key = b.dataset.reset;
+    waTemplatesDraft[key] = WA_DEFAULTS[key];
+    renderWaTemplates();
+  });
+});
+document.getElementById('waSave').addEventListener('click', async ()=>{
+  const btn = document.getElementById('waSave');
+  waTemplatesDraft = {
+    bookingRequest: document.getElementById('waBookingRequest').value,
+    reminder: document.getElementById('waReminder').value,
+    feedbackRequest: document.getElementById('waFeedbackRequest').value
+  };
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp-templates', {
+      method:'PUT', headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
+      body: JSON.stringify({ templates: waTemplatesDraft })
+    });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ toast(data.error || 'Save failed'); return; }
+    if(data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
+    renderWaTemplates();
+    toast('WhatsApp templates saved');
+  }catch(e){ toast('Could not reach the server'); }
+  finally{ btn.disabled = false; btn.textContent = 'Save WhatsApp templates'; }
 });
 
 /* ---------- USER ACCESS (admin only) ---------- */
