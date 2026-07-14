@@ -451,6 +451,17 @@ const MYEMAIL = localStorage.getItem('ryst_user_email') || '';
 // validator regardless — this only controls whether the button renders.
 const IS_ADMIN = localStorage.getItem('ryst_user_admin') === 'true';
 
+// Owner always has full access. Coordinator/caretaker need the 'bookings'
+// module granted in Settings → User Access — server-enforced on /stays
+// regardless, this just avoids loading a page the user can't actually use.
+function hasModule(mod){
+  const role = localStorage.getItem('ryst_user_role') || 'owner';
+  let modules;
+  try { modules = JSON.parse(localStorage.getItem('ryst_user_modules') || 'null'); } catch(e) { modules = null; }
+  if(!Array.isArray(modules)) modules = role === 'caretaker' ? ['petty-cash','inventory','checklist'] : [];
+  return role === 'owner' || modules.includes(mod);
+}
+
 const K_SET = "ryst_stay_settings";   // local cache; master copy synced via proxy /stay-settings
 
 // Villa business info, bank & pricing. These are the built-in defaults — the
@@ -596,8 +607,7 @@ function nextNo(t){
 /* ---------- BOOT ---------- */
 (async function bootAuth(){
   if(!proxyToken){ window.location.href='login.html'; return; }
-  const role = localStorage.getItem('ryst_user_role') || 'owner';
-  if(role !== 'owner'){ window.location.href='login.html'; return; }
+  if(!hasModule('bookings')){ window.location.href='login.html'; return; }
   init();
   $("#app").hidden = false;
   initApp();

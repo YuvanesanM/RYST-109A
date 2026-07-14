@@ -256,7 +256,18 @@ const TOKEN = localStorage.getItem('ryst_proxy_token') || '';
 const ROLE  = localStorage.getItem('ryst_user_role') || 'owner';
 const isOwner = ROLE === 'owner';
 
+// Owner always has full access. Coordinator/caretaker need the 'checklist'
+// module granted in Settings → User Access — server-enforced on /checklist
+// regardless, this just avoids loading a page the user can't actually use.
+function hasModule(mod){
+  let modules;
+  try { modules = JSON.parse(localStorage.getItem('ryst_user_modules') || 'null'); } catch(e) { modules = null; }
+  if(!Array.isArray(modules)) modules = ROLE === 'caretaker' ? ['petty-cash','inventory','checklist'] : [];
+  return ROLE === 'owner' || modules.includes(mod);
+}
+
 if(!TOKEN){ window.location.href = 'login.html'; }
+if(!hasModule('checklist')){ window.location.href = 'login.html'; }
 
 const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
