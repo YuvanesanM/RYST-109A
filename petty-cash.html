@@ -534,10 +534,14 @@ function renderCatOptions(){
 }
 
 function canEdit(e){ return e.type==='expense' && e.status==='pending' && (isOwner || e.createdBy===MYEMAIL); }
-// Money already changed hands on a reimbursed expense — only the admin can
-// remove that record; everyone else (including other owners) can still
-// delete their own/any pending expense as before.
-function canDelete(e){ return e.type==='expense' && (e.status==='reimbursed' ? IS_ADMIN : (isOwner || e.createdBy===MYEMAIL)); }
+// Money already changed hands on a reimbursed expense, a reimbursement
+// record, or a cash top-up — only the admin can remove any of those;
+// everyone else (including other owners) can still delete their own/any
+// pending expense as before.
+function canDelete(e){
+  if(e.type==='topup') return IS_ADMIN;
+  return e.type==='expense' && (e.status==='reimbursed' ? IS_ADMIN : (isOwner || e.createdBy===MYEMAIL));
+}
 
 function renderLedger(){
   const rows = DOC.entries.filter(passFilter).sort((a,b)=> (b.date||'').localeCompare(a.date||'') || (b.createdAt||0)-(a.createdAt||0));
@@ -555,7 +559,7 @@ function renderLedger(){
         <td class="td-plain td-rcpt"></td>
         <td class="amt credit td-amt" data-label="Amount">+${money(e.amount)}</td>
         <td class="td-plain td-status"></td>
-        <td class="td-plain td-actions"></td>
+        <td class="td-plain td-actions">${canDelete(e) ? `<button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : ''}</td>
         <td class="td-break"></td>
       </tr>`;
     }
@@ -697,10 +701,12 @@ $('#ledger').addEventListener('click', e=>{
 });
 
 function confirmDelete(en){
-  openGen('Delete expense?', `
-    <p style="color:var(--muted);font-size:13.5px">This removes <b>${esc(en.category)}</b> · ${money(en.amount)} (${esc(en.date)}). This can’t be undone.</p>
+  const isTopup = en.type==='topup';
+  const label = isTopup ? (en.subtype==='reimbursement' ? 'Reimbursement' : 'Cash top-up') : en.category;
+  openGen(isTopup ? 'Delete this entry?' : 'Delete expense?', `
+    <p style="color:var(--muted);font-size:13.5px">This removes <b>${esc(label)}</b> · ${money(en.amount)} (${esc(en.date)}). This can’t be undone.</p>
     <div class="mfoot"><button class="btn ghost" id="gCancel">Cancel</button><button class="btn primary" id="gDo" style="background:var(--danger)">Delete</button></div>`);
-  $('#gDo').onclick=async()=>{ const ok=await command({action:'delete-entry',id:en.id},'Expense deleted'); if(ok) closeGen(); };
+  $('#gDo').onclick=async()=>{ const ok=await command({action:'delete-entry',id:en.id}, isTopup ? 'Entry deleted' : 'Expense deleted'); if(ok) closeGen(); };
   $('#gCancel').onclick=closeGen;
 }
 
