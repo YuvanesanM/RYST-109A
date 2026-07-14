@@ -379,7 +379,21 @@ const isOwner = ROLE === 'owner';
 // whether the button renders.
 const IS_ADMIN = localStorage.getItem('ryst_user_admin') === 'true';
 
+// Owner always has full access. Coordinator/caretaker need the 'petty-cash'
+// module granted in Settings → User Access — server-enforced on
+// /petty-cash regardless, this just avoids loading a page the user can't
+// actually use. A caretaker signed in before per-user module access existed
+// has no ryst_user_modules cached yet — fall back to the legacy default the
+// server assumes for them (petty-cash/inventory/checklist).
+function hasModule(mod){
+  let modules;
+  try { modules = JSON.parse(localStorage.getItem('ryst_user_modules') || 'null'); } catch(e) { modules = null; }
+  if(!Array.isArray(modules)) modules = ROLE === 'caretaker' ? ['petty-cash','inventory','checklist'] : [];
+  return ROLE === 'owner' || modules.includes(mod);
+}
+
 if(!TOKEN){ window.location.href = 'login.html'; }
+if(!hasModule('petty-cash')){ window.location.href = 'login.html'; }
 
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);

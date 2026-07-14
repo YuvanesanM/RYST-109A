@@ -184,8 +184,19 @@ const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
 const TOKEN = localStorage.getItem('ryst_proxy_token') || '';
 const ROLE  = localStorage.getItem('ryst_user_role') || 'owner';
 
+// Owner always has full access. Coordinator/caretaker need the 'reports'
+// module granted in Settings → User Access — server-enforced on /stays and
+// /petty-cash regardless, this just avoids loading a page the user can't
+// actually use.
+function hasModule(mod){
+  let modules;
+  try { modules = JSON.parse(localStorage.getItem('ryst_user_modules') || 'null'); } catch(e) { modules = null; }
+  if(!Array.isArray(modules)) modules = ROLE === 'caretaker' ? ['petty-cash','inventory','checklist'] : [];
+  return ROLE === 'owner' || modules.includes(mod);
+}
+
 if(!TOKEN){ window.location.href = 'login.html'; }
-if(ROLE !== 'owner'){ window.location.href = 'login.html'; }
+if(!hasModule('reports')){ window.location.href = 'login.html'; }
 
 const $  = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));

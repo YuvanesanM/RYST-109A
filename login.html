@@ -70,42 +70,42 @@
 <div id="homeView" class="view" hidden>
   <img id="homeLogo" alt="RYST 109A" src="/assets/stay-logo.webp">
   <div class="home-cards">
-    <button class="home-card owner-only" onclick="window.location.href='stay.html'">
+    <button class="home-card" data-module="bookings" onclick="window.location.href='stay.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg></div>
       <span class="hc-title">Stay Quote &amp; Invoice</span>
       <span class="hc-sub">Villa invoices &amp; quotations</span>
     </button>
-    <button class="home-card" onclick="window.location.href='petty-cash.html'">
+    <button class="home-card" data-module="petty-cash" onclick="window.location.href='petty-cash.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="12" cy="15" r="1.6"/></svg></div>
       <span class="hc-title">Petty Cash</span>
       <span class="hc-sub">Caretaker expenses &amp; reimbursements</span>
     </button>
-    <button class="home-card" onclick="window.location.href='inventory.html'">
+    <button class="home-card" data-module="inventory" onclick="window.location.href='inventory.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg></div>
       <span class="hc-title">Inventory &amp; Restock</span>
       <span class="hc-sub">Consumables &amp; shopping list</span>
     </button>
-    <button class="home-card" onclick="window.location.href='checklist.html'">
+    <button class="home-card" data-module="checklist" onclick="window.location.href='checklist.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 12l3 3 7-7"/></svg></div>
       <span class="hc-title">Check-in / Check-out</span>
       <span class="hc-sub">Villa walkthrough checklist</span>
     </button>
-    <button class="home-card owner-only" onclick="window.location.href='bookings.html'">
+    <button class="home-card" data-module="bookings" onclick="window.location.href='bookings.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
       <span class="hc-title">Booking Calendar</span>
       <span class="hc-sub">Occupancy, revenue &amp; upcoming stays</span>
     </button>
-    <button class="home-card owner-only" onclick="window.location.href='reports.html'">
+    <button class="home-card" data-module="reports" onclick="window.location.href='reports.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div>
       <span class="hc-title">Profit &amp; Loss</span>
       <span class="hc-sub">Revenue vs. petty-cash spend</span>
     </button>
-    <button class="home-card owner-only" onclick="window.location.href='reviews.html'">
+    <button class="home-card" data-module="feedback" onclick="window.location.href='reviews.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></div>
       <span class="hc-title">Guest Feedback</span>
       <span class="hc-sub">Post-stay reviews &amp; ratings</span>
     </button>
-    <button class="home-card owner-only" onclick="window.location.href='settings.html'">
+    <button class="home-card" data-module="settings" onclick="window.location.href='settings.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
       <span class="hc-title">Rate Card &amp; Settings</span>
       <span class="hc-sub">Pricing, bank details &amp; business info</span>
@@ -126,12 +126,23 @@ function showHome(){
   applyRoleView();
 }
 
-// Caretakers only see the Petty Cash card; owners see everything.
+// Owner always sees every card. Coordinator/caretaker see only the cards for
+// modules granted in Settings → User Access (data-module on each card
+// mirrors MODULES in the proxy's server.js). A caretaker signed in before
+// per-user module access existed has no ryst_user_modules cached yet —
+// fall back to the same legacy default the server assumes for them
+// (petty-cash/inventory/checklist) rather than hiding everything.
 function applyRoleView(){
   const role = localStorage.getItem('ryst_user_role') || 'owner';
-  const ownerOnly = role === 'owner';
-  document.querySelectorAll('.owner-only').forEach(el=>{
-    el.style.display = ownerOnly ? '' : 'none';
+  if(role === 'owner'){
+    document.querySelectorAll('[data-module]').forEach(el=> el.style.display = '');
+    return;
+  }
+  let modules;
+  try { modules = JSON.parse(localStorage.getItem('ryst_user_modules') || 'null'); } catch(e) { modules = null; }
+  if(!Array.isArray(modules)) modules = role === 'caretaker' ? ['petty-cash','inventory','checklist'] : [];
+  document.querySelectorAll('[data-module]').forEach(el=>{
+    el.style.display = modules.includes(el.dataset.module) ? '' : 'none';
   });
 }
 
@@ -168,6 +179,7 @@ async function handleGoogleLogin(credentialResponse) {
       // a hardcoded email — cache it the same way as role so pages that
       // gate admin-only buttons don't have to guess.
       localStorage.setItem('ryst_user_admin', data.isAdmin ? 'true' : 'false');
+      localStorage.setItem('ryst_user_modules', JSON.stringify(Array.isArray(data.modules) ? data.modules : []));
       errEl.textContent = '';
       showHome();
     } else {
@@ -237,6 +249,7 @@ function logout(){
   localStorage.removeItem('ryst_user_email');
   localStorage.removeItem('ryst_user_role');
   localStorage.removeItem('ryst_user_admin');
+  localStorage.removeItem('ryst_user_modules');
   document.getElementById('homeView').setAttribute('hidden','');
   document.getElementById('loginView').removeAttribute('hidden');
   document.getElementById('loginView').style.display='';

@@ -69,9 +69,13 @@
   .ical-copy{display:flex;gap:8px}
   .ical-copy input{flex:1;background:var(--panel2);color:var(--muted)}
   .feed-row{display:grid;grid-template-columns:160px 1fr 34px;gap:8px;margin-bottom:8px}
-  .user-row{display:grid;grid-template-columns:1fr 120px 74px 34px;gap:8px;margin-bottom:8px;align-items:center}
+  .user-card{border:1px solid var(--line);border-radius:10px;padding:8px;margin-bottom:8px;background:var(--panel2)}
+  .user-row{display:grid;grid-template-columns:1fr 130px 74px 34px;gap:8px;align-items:center}
   .user-row .admin-chk{display:flex;align-items:center;justify-content:center;gap:5px;font-size:11.5px;color:var(--muted)}
   .user-row .admin-chk input{width:auto}
+  .user-modules{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 2px 2px;padding-top:8px;border-top:1px solid var(--line)}
+  .mod-chk{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
+  .mod-chk input{width:auto}
   .user-err{color:var(--danger);font-size:12.5px;min-height:16px;margin-top:2px}
   .sync-results{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12.5px}
   .sync-result{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:8px;background:var(--panel2)}
@@ -299,11 +303,23 @@ let proxyToken = localStorage.getItem('ryst_proxy_token')||'';
 // controls whether the section renders.
 const IS_ADMIN = localStorage.getItem('ryst_user_admin') === 'true';
 
+// Owner always has full access. Coordinator/caretaker need the 'settings'
+// module granted in Settings → User Access (yes, granting someone access
+// to this page from within this page) — server-enforced on /stay-settings,
+// /ical-import and /whatsapp-templates regardless. The User Access tab
+// itself stays admin-only (IS_ADMIN above), independent of modules.
+function hasModule(mod){
+  const role = localStorage.getItem('ryst_user_role') || 'owner';
+  let modules;
+  try { modules = JSON.parse(localStorage.getItem('ryst_user_modules') || 'null'); } catch(e) { modules = null; }
+  if(!Array.isArray(modules)) modules = role === 'caretaker' ? ['petty-cash','inventory','checklist'] : [];
+  return role === 'owner' || modules.includes(mod);
+}
+
 /* ---------- AUTH ---------- */
 (async function boot(){
   if(!proxyToken){ window.location.href='login.html'; return; }
-  const role = localStorage.getItem('ryst_user_role') || 'owner';
-  if(role !== 'owner'){ window.location.href='login.html'; return; }
+  if(!hasModule('settings')){ window.location.href='login.html'; return; }
 
   // A cached copy on THIS browser is trusted immediately (same "cache-first"
   // design as before) — Save unblocks right away and the fetch below just
@@ -565,6 +581,18 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
 });
 
 /* ---------- USER ACCESS (admin only) ---------- */
+// Mirrors MODULES / defaultModulesFor in the proxy's server.js.
+const MODULE_DEFS = [
+  { id:'bookings',   label:'Bookings' },
+  { id:'petty-cash', label:'Petty Cash' },
+  { id:'inventory',  label:'Inventory' },
+  { id:'checklist',  label:'Checklist' },
+  { id:'feedback',   label:'Guest Feedback' },
+  { id:'reports',    label:'Reports' },
+  { id:'settings',   label:'Settings' },
+];
+const LEGACY_CARETAKER_MODULES = ['petty-cash','inventory','checklist'];
+const isOwnerRole = r => r !== 'caretaker' && r !== 'coordinator';
 let usersDraft = [];
 async function loadUserAccess(){
   const saveBtn = document.getElementById('userSave');
@@ -580,38 +608,78 @@ async function loadUserAccess(){
     saveBtn.disabled = false;
   }catch(e){ errEl.textContent = 'Could not reach the server'; }
 }
+// A row's effective modules — falls back to the legacy caretaker default
+// (matches what the server assumes for an account saved before per-user
+// module access existed) rather than showing every box unchecked for an
+// existing caretaker who actually still has full petty-cash/inventory/
+// checklist access.
+function effectiveModules(u){
+  if(Array.isArray(u.modules)) return u.modules;
+  return u.role==='caretaker' ? LEGACY_CARETAKER_MODULES.slice() : [];
+}
 function renderUserRows(){
   const wrap = document.getElementById('userRows');
-  wrap.innerHTML = usersDraft.map((u,i)=>`
-    <div class="user-row">
-      <input class="t" data-i="${i}" data-k="email" placeholder="name@gmail.com" value="${esc(u.email)}">
-      <select data-i="${i}" data-k="role">
-        <option value="owner"${u.role!=='caretaker'?' selected':''}>Owner</option>
-        <option value="caretaker"${u.role==='caretaker'?' selected':''}>Caretaker</option>
-      </select>
-      <label class="admin-chk"><input type="checkbox" data-i="${i}" data-k="admin" ${u.admin?'checked':''} ${u.role==='caretaker'?'disabled':''}> Admin</label>
-      <button type="button" class="rc-del" data-del="${i}" title="Remove">×</button>
-    </div>`).join('');
+  wrap.innerHTML = usersDraft.map((u,i)=>{
+    const ownerRow = isOwnerRole(u.role);
+    const mods = effectiveModules(u);
+    const modulesHtml = ownerRow ? '' : `
+      <div class="user-modules">
+        ${MODULE_DEFS.map(m=>`<label class="mod-chk"><input type="checkbox" data-i="${i}" data-mod="${m.id}" ${mods.includes(m.id)?'checked':''}> ${esc(m.label)}</label>`).join('')}
+      </div>`;
+    return `
+    <div class="user-card">
+      <div class="user-row">
+        <input class="t" data-i="${i}" data-k="email" placeholder="name@gmail.com" value="${esc(u.email)}">
+        <select data-i="${i}" data-k="role">
+          <option value="owner"${ownerRow?' selected':''}>Owner</option>
+          <option value="coordinator"${u.role==='coordinator'?' selected':''}>Coordinator</option>
+          <option value="caretaker"${u.role==='caretaker'?' selected':''}>Caretaker</option>
+        </select>
+        <label class="admin-chk"><input type="checkbox" data-i="${i}" data-k="admin" ${u.admin?'checked':''} ${ownerRow?'':'disabled'}> Admin</label>
+        <button type="button" class="rc-del" data-del="${i}" title="Remove">×</button>
+      </div>${modulesHtml}
+    </div>`;
+  }).join('');
   wrap.querySelectorAll('input[data-k="email"]').forEach(inp=>{
     inp.addEventListener('input', e=>{ usersDraft[+e.target.dataset.i].email = e.target.value; });
   });
   wrap.querySelectorAll('select[data-k="role"]').forEach(sel=>{
     sel.addEventListener('change', e=>{
       const i = +e.target.dataset.i;
-      usersDraft[i].role = e.target.value;
-      if(usersDraft[i].role==='caretaker') usersDraft[i].admin = false;
+      const u = usersDraft[i];
+      u.role = e.target.value;
+      if(!isOwnerRole(u.role)) u.admin = false;
+      // Reset modules to the new role's baseline on every switch (not just
+      // when unset) — a caretaker gets its familiar default set, a
+      // coordinator starts fully custom (empty). Otherwise a row that
+      // started as a caretaker (which is pre-populated with that default so
+      // effectiveModules doesn't need to guess) would carry those same
+      // checked boxes straight through into "Coordinator", contradicting
+      // "fully custom, no default access".
+      u.modules = u.role==='caretaker' ? LEGACY_CARETAKER_MODULES.slice() : [];
       renderUserRows();
     });
   });
   wrap.querySelectorAll('input[data-k="admin"]').forEach(chk=>{
     chk.addEventListener('change', e=>{ usersDraft[+e.target.dataset.i].admin = e.target.checked; });
   });
+  wrap.querySelectorAll('.user-modules input[data-mod]').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      const i = +e.target.dataset.i, mod = e.target.dataset.mod;
+      const u = usersDraft[i];
+      const mods = effectiveModules(u).slice();
+      const idx = mods.indexOf(mod);
+      if(e.target.checked){ if(idx<0) mods.push(mod); }
+      else if(idx>=0) mods.splice(idx,1);
+      u.modules = mods;
+    });
+  });
   wrap.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', e=>{
     usersDraft.splice(+e.target.dataset.del, 1); renderUserRows();
   }));
 }
 document.getElementById('userAdd').addEventListener('click', ()=>{
-  usersDraft.push({ email:'', role:'caretaker', admin:false });
+  usersDraft.push({ email:'', role:'caretaker', admin:false, modules:LEGACY_CARETAKER_MODULES.slice() });
   renderUserRows();
 });
 document.getElementById('userSave').addEventListener('click', async ()=>{
@@ -620,9 +688,15 @@ document.getElementById('userSave').addEventListener('click', async ()=>{
   errEl.textContent = '';
   btn.disabled = true; btn.textContent = 'Saving…';
   try{
+    // Resolve modules before sending — a row whose modules were never
+    // touched this session (untouched legacy caretaker) still has
+    // `u.modules === undefined`, and the server treats a missing array as
+    // "no modules" verbatim, which would silently strip that caretaker's
+    // implied petty-cash/inventory/checklist access on an unrelated save.
+    const payloadUsers = usersDraft.map(u => ({ ...u, modules: isOwnerRole(u.role) ? (u.modules||[]) : effectiveModules(u) }));
     const res = await fetch(PROXY_URL+'/users', {
       method:'PUT', headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
-      body: JSON.stringify({ version:1, users: usersDraft })
+      body: JSON.stringify({ version:1, users: payloadUsers })
     });
     if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
     const data = await res.json().catch(()=>({}));
