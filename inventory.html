@@ -76,6 +76,11 @@
   .inv-status.low{background:var(--warn-soft);color:var(--warn)}
   .inv-status.out{background:var(--danger-soft);color:var(--danger)}
   .inv-sub{font-size:11.5px;color:var(--muted2);margin-top:2px}
+  .stock-bar{width:100%;max-width:220px;height:5px;border-radius:3px;background:var(--panel2);margin-top:7px;overflow:hidden}
+  .stock-bar-fill{height:100%;border-radius:3px;transition:width .2s}
+  .stock-bar-fill.ok{background:var(--accent)}
+  .stock-bar-fill.low{background:var(--warn)}
+  .stock-bar-fill.out{background:var(--danger)}
 
   .qty-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0}
   .qbtn{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--ink);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1}
@@ -317,6 +322,14 @@ function statusOf(item){
   if(q<=t) return 'low';
   return 'ok';
 }
+// There's no explicit "par/target stock" field, so the bar's full end is a
+// proxy — twice the low-stock threshold — good enough for an at-a-glance
+// scan, not a precise fill gauge.
+function stockPct(item){
+  const q = Number(item.quantity)||0, t = Number(item.threshold)||0;
+  const full = Math.max(t*2, 1);
+  return Math.max(0, Math.min(100, Math.round((q/full)*100)));
+}
 function passFilter(item){
   if(FILTERS.category!=='all' && (item.category||'Miscellaneous')!==FILTERS.category) return false;
   if(FILTERS.lowOnly && statusOf(item)==='ok') return false;
@@ -384,10 +397,12 @@ function render(){
 function rowHtml(item){
   const st = statusOf(item);
   const stLabel = st==='out' ? 'Out' : st==='low' ? 'Low' : 'OK';
+  const pct = stockPct(item);
   return `<div class="inv-row" data-id="${esc(item.id)}">
     <div class="inv-main">
       <div class="inv-name">${esc(item.name)} <span class="inv-status ${st}">${stLabel}</span></div>
       <div class="inv-sub">Threshold: ${fmtQty(item.threshold)} ${esc(item.unit||'')}</div>
+      <div class="stock-bar"><div class="stock-bar-fill ${st}" style="width:${pct}%"></div></div>
     </div>
     <div class="qty-ctrl">
       <button class="qbtn" onclick="adjust('${esc(item.id)}',-1)" ${item.quantity<=0?'disabled':''}>−</button>
