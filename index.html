@@ -1474,7 +1474,11 @@
     let selStart = null, selEnd = null;
 
     const $ = s => document.querySelector(s);
-    const dateOnly = d => d.toISOString().slice(0,10);
+    // d.toISOString() converts through UTC — for any timezone ahead of UTC
+    // (IST included), a locally-constructed midnight Date lands on the
+    // PREVIOUS UTC calendar day, silently shifting every grid cell's date
+    // back by one. Read the local calendar fields directly instead.
+    const dateOnly = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const todayISO = () => dateOnly(new Date());
     const isTaken = iso => ranges.some(r => iso >= r.checkin && iso < r.checkout);
     // Interval-overlap check — not a day-by-day loop, so an accidental
