@@ -324,10 +324,14 @@ const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money = n => '₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:0});
-const todayISO = () => new Date().toISOString().slice(0,10);
+// d.toISOString() converts through UTC — for any timezone ahead of UTC
+// (IST included), a locally-constructed midnight Date lands on the PREVIOUS
+// UTC calendar day, silently shifting every date-only value back by one.
+// Read the local calendar fields directly instead.
+const dateOnly = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayISO = () => dateOnly(new Date());
 const fmtDate = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
-const addDays = (iso,n) => { const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
-const dateOnly = d => d.toISOString().slice(0,10);
+const addDays = (iso,n) => { const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return dateOnly(d); };
 
 let STAYS = [];
 let view = new Date(); view.setDate(1);
@@ -526,8 +530,11 @@ function render(){
 function renderReminders(){
   const today = todayISO();
   const cutoff = addDays(today, REMINDER_WINDOW_DAYS);
+  // A quote is a confirmed booking here (the invoice only gets raised after
+  // the stay), so it needs a pre-arrival reminder same as an invoice —
+  // only a block (not a real guest) is excluded.
   const due = STAYS
-    .filter(d=> (d.type||'invoice')==='invoice' && d.checkin>=today && d.checkin<=cutoff)
+    .filter(d=> (d.type||'invoice')!=='block' && d.checkin>=today && d.checkin<=cutoff)
     .sort((a,b)=> a.checkin.localeCompare(b.checkin));
 
   const badge = $('#remBadge');
@@ -543,7 +550,7 @@ function renderReminders(){
     const when = days<=0 ? 'Today' : days===1 ? 'Tomorrow' : `In ${days} days`;
     const phone = normalizePhone(d.phone);
     const sentNote = d.reminderSentAt
-      ? `<span class="rem-sent">✓ Reminded ${fmtDate(d.reminderSentAt.slice(0,10))} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
+      ? `<span class="rem-sent">✓ Reminded ${fmtDate(dateOnly(new Date(d.reminderSentAt)))} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const sendBtn = (!d.reminderSentAt)
       ? `<button class="rem-send" ${phone?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">Send WhatsApp</button>`
@@ -594,8 +601,11 @@ async function markReminderUnsent(no){
 function renderFeedbackRequests(){
   const today = todayISO();
   const cutoff = addDays(today, -FEEDBACK_WINDOW_DAYS);
+  // Same as reminders — the invoice for a stay is only raised after
+  // checkout, so restricting this to type:'invoice' would mean a
+  // quote-only booking never gets a feedback request at all.
   const due = STAYS
-    .filter(d=> (d.type||'invoice')==='invoice' && d.checkout<=today && d.checkout>=cutoff)
+    .filter(d=> (d.type||'invoice')!=='block' && d.checkout<=today && d.checkout>=cutoff)
     .sort((a,b)=> b.checkout.localeCompare(a.checkout));
 
   const badge = $('#fbBadge');
@@ -611,7 +621,7 @@ function renderFeedbackRequests(){
     const when = days<=0 ? 'Checked out today' : days===1 ? 'Checked out yesterday' : `Checked out ${days} days ago`;
     const phone = normalizePhone(d.phone);
     const sentNote = d.feedbackRequestedAt
-      ? `<span class="rem-sent">✓ Requested ${fmtDate(d.feedbackRequestedAt.slice(0,10))} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
+      ? `<span class="rem-sent">✓ Requested ${fmtDate(dateOnly(new Date(d.feedbackRequestedAt)))} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const sendBtn = (!d.feedbackRequestedAt)
       ? `<button class="rem-send" ${phone?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">Send WhatsApp</button>`

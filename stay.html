@@ -444,6 +444,10 @@
    CONFIG
    ========================================================================= */
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+// new Date().toISOString() converts through UTC — for any timezone ahead
+// of UTC (IST included), this reports "yesterday" during the first few
+// hours after local midnight. Read the local calendar fields directly.
+const todayISO = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 let proxyToken = localStorage.getItem('ryst_proxy_token') || '';
 const MYEMAIL = localStorage.getItem('ryst_user_email') || '';
 // Admin is assigned via Settings → User Access (data-driven, cached at
@@ -765,7 +769,7 @@ function syncGuestCharges(){
 /* ---------- NEW DOC ---------- */
 function newDoc(){
   editingKey=null; syncPdfBtn();
-  curNo=nextNo(docType); curDateISO=new Date().toISOString().slice(0,10);
+  curNo=nextNo(docType); curDateISO=todayISO();
   $("#no").value=curNo; $("#date").value=curDateISO;
   ["guest","email","phone","guests","ref","checkin","checkout","nights","deposit","advance"].forEach(id=> $("#"+id).value="");
   $("#discountInp").value="";
@@ -975,7 +979,7 @@ function loadDoc(no){
   const isInv = docType==="invoice";
   $("#noLbl").textContent   = isInv ? "Invoice no. (auto)" : "Quote no. (auto)";
   $("#dateLbl").textContent = isInv ? "Invoice date" : "Quote date";
-  curNo=d.no; curDateISO=d.date||new Date().toISOString().slice(0,10);
+  curNo=d.no; curDateISO=d.date||todayISO();
   $("#no").value=curNo; $("#date").value=curDateISO;
   $("#guest").value=d.guest||""; $("#email").value=d.email||""; $("#phone").value=d.phone||""; $("#guests").value=d.guests||"";
   $("#ref").value=d.ref||""; $("#checkin").value=d.checkin||""; $("#checkout").value=d.checkout||""; $("#mode").value=d.mode||"";
@@ -1030,7 +1034,7 @@ async function openBookings(){
   if(!all.length){
     list.innerHTML=`<div class="empty">No bookings with dates found.</div>`; return;
   }
-  const today = new Date().toISOString().slice(0,10);
+  const today = todayISO();
   list.innerHTML = all.map(d=>{
     const nights = nightsBetween(d.checkin,d.checkout);
     const isPast = d.checkout < today;

@@ -272,7 +272,10 @@ if(!hasModule('checklist')){ window.location.href = 'login.html'; }
 const $  = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const todayISO = () => new Date().toISOString().slice(0,10);
+// new Date().toISOString() converts through UTC — for any timezone ahead of
+// UTC (IST included), this reports "yesterday" during the first few hours
+// after local midnight. Read the local calendar fields directly instead.
+const todayISO = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 const fmtDate = iso => { if(!iso) return ''; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; };
 
 $('#roleBadge').textContent = isOwner ? 'Owner' : 'Caretaker';
@@ -406,9 +409,15 @@ function render(){
   renderDue();
 
   const now = new Date();
-  const monthStart = now.toISOString().slice(0,7);
+  // Local YYYY-MM, not UTC — .toISOString() shifts near month boundaries
+  // for any timezone ahead of UTC (IST included).
+  const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const inProgress = DOC.runs.filter(r=>r.status==='in-progress').length;
-  const doneThisMonth = DOC.runs.filter(r=>r.status==='completed' && r.completedAt && new Date(r.completedAt).toISOString().slice(0,7)===monthStart).length;
+  const doneThisMonth = DOC.runs.filter(r=>{
+    if(r.status!=='completed' || !r.completedAt) return false;
+    const c = new Date(r.completedAt);
+    return `${c.getFullYear()}-${String(c.getMonth()+1).padStart(2,'0')}` === monthStart;
+  }).length;
   $('#cProgress').textContent = inProgress;
   $('#cDone').textContent = doneThisMonth;
 

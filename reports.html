@@ -201,7 +201,11 @@ if(!hasModule('reports')){ window.location.href = 'login.html'; }
 const $  = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money = n => '₹'+Math.round(n||0).toLocaleString('en-IN');
-const dateOnly = d => d.toISOString().slice(0,10);
+// d.toISOString() converts through UTC — for any timezone ahead of UTC
+// (IST included), a locally-constructed midnight Date lands on the
+// PREVIOUS UTC calendar day, silently shifting month boundaries back by
+// one and misattributing revenue near the start/end of a month.
+const dateOnly = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 
 let STAYS = [];
 let EXPENSES = [];
