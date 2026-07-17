@@ -1644,7 +1644,7 @@
   let waTemplates = {
     bookingRequest: `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n*Name:* {{name}}\n*Phone:* {{phone}}\n*Email:* {{email}}\n\n*Check-in:* {{checkin}}\n*Check-out:* {{checkout}} ({{nightsLabel}})\n*Guests:* {{guests}}\n*Occasion:* {{occasion}}\n\n*Notes:* {{message}}\n\n*Reference:* {{quoteNo}}`
   };
-  fetch('https://ryst-109a-proxy.onrender.com/whatsapp-templates')
+  fetch('https://ryst-109a-proxy.onrender.com/whatsapp-templates', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
     .then(data => { if(data && data.templates && data.templates.bookingRequest) waTemplates.bookingRequest = data.templates.bookingRequest; })
     .catch(()=>{}); // silent — keeps the hardcoded default above
