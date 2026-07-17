@@ -538,7 +538,7 @@ const WA_DEFAULTS = {
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
 async function loadWaTemplates(){
   try{
-    const res = await fetch(PROXY_URL+'/whatsapp-templates');
+    const res = await fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' });
     const data = await res.json().catch(()=>({}));
     if(data && data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
   }catch(e){ /* keeps the defaults already in waTemplatesDraft */ }

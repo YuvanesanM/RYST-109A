@@ -359,7 +359,10 @@ let waTemplates = {
 // before it's back. On Render's free tier this can take 30-60s on a cold
 // start, which is real time for a caretaker to click through reminders.
 let waTemplatesLoaded = false;
-fetch(PROXY_URL+'/whatsapp-templates')
+// no-store: the proxy sends no Cache-Control on this response, so without
+// this a browser is free to cache the JSON on disk and keep replaying an
+// old (possibly since-fixed) copy indefinitely instead of refetching.
+fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' })
   .then(r => r.ok ? r.json() : null)
   .then(data => {
     if(!data || !data.templates) return;
