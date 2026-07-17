@@ -1700,7 +1700,12 @@
       // every outcome funnels through) — this measures guest intent, not
       // our own backend's persistence.
       if(typeof gtag === 'function') gtag('event', 'generate_lead', { method: 'website_quote_form', nights, guests: Number(guests)||undefined });
-      window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
+      // api.whatsapp.com/send directly — NOT wa.me. wa.me's own redirect
+      // service corrupts non-ASCII characters in the `text` param before
+      // it reaches api.whatsapp.com (verified by inspecting its redirect
+      // Location header directly). Going straight to the destination
+      // skips that broken hop.
+      window.open(`https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`, '_blank');
     }
 
     const btn = document.getElementById('bookSubmitBtn');
