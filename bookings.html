@@ -351,6 +351,14 @@ let waTemplates = {
   reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
 };
+// "Send WhatsApp" fires window.open() synchronously from the click handler
+// (awaiting this fetch right there would risk the browser treating the
+// popup as not user-triggered and blocking it) — so instead the send
+// buttons stay disabled until this resolves, rather than silently sending
+// the hardcoded fallback (no emoji, generic wording) if someone clicks
+// before it's back. On Render's free tier this can take 30-60s on a cold
+// start, which is real time for a caretaker to click through reminders.
+let waTemplatesLoaded = false;
 fetch(PROXY_URL+'/whatsapp-templates')
   .then(r => r.ok ? r.json() : null)
   .then(data => {
@@ -358,7 +366,8 @@ fetch(PROXY_URL+'/whatsapp-templates')
     if(data.templates.reminder) waTemplates.reminder = data.templates.reminder;
     if(data.templates.feedbackRequest) waTemplates.feedbackRequest = data.templates.feedbackRequest;
   })
-  .catch(()=>{}); // silent — keeps the hardcoded defaults above
+  .catch(()=>{}) // silent — keeps the hardcoded defaults above
+  .finally(()=>{ waTemplatesLoaded = true; renderReminders(); renderFeedbackRequests(); });
 
 // A line containing any {{token}} whose value is empty/missing is dropped
 // entirely, so a template can mark a field optional just by giving it its
@@ -553,7 +562,7 @@ function renderReminders(){
       ? `<span class="rem-sent">✓ Reminded ${fmtDate(dateOnly(new Date(d.reminderSentAt)))} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const sendBtn = (!d.reminderSentAt)
-      ? `<button class="rem-send" ${phone?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">Send WhatsApp</button>`
+      ? `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">${waTemplatesLoaded?'Send WhatsApp':'Loading template…'}</button>`
       : '';
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
@@ -564,6 +573,7 @@ function renderReminders(){
 }
 
 async function sendReminder(no){
+  if(!waTemplatesLoaded) return; // belt-and-suspenders — the button is disabled until this is true
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
   const phone = normalizePhone(d.phone);
@@ -624,7 +634,7 @@ function renderFeedbackRequests(){
       ? `<span class="rem-sent">✓ Requested ${fmtDate(dateOnly(new Date(d.feedbackRequestedAt)))} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const sendBtn = (!d.feedbackRequestedAt)
-      ? `<button class="rem-send" ${phone?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">Send WhatsApp</button>`
+      ? `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">${waTemplatesLoaded?'Send WhatsApp':'Loading template…'}</button>`
       : '';
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
@@ -635,6 +645,7 @@ function renderFeedbackRequests(){
 }
 
 async function sendFeedbackRequest(no){
+  if(!waTemplatesLoaded) return; // belt-and-suspenders — the button is disabled until this is true
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
   const phone = normalizePhone(d.phone);
