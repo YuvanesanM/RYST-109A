@@ -581,7 +581,12 @@ async function sendReminder(no){
   if(!d) return;
   const phone = normalizePhone(d.phone);
   if(!phone) return;
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(reminderMessage(d))}`, '_blank');
+  // api.whatsapp.com/send directly — NOT wa.me. wa.me's own redirect
+  // service corrupts non-ASCII characters (emoji, mainly) in the `text`
+  // param before it ever reaches api.whatsapp.com, verified by hitting
+  // wa.me directly and inspecting its redirect Location header. Going
+  // straight to the destination skips that broken hop.
+  window.open(`https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(reminderMessage(d))}`, '_blank');
   d.reminderSentAt = new Date().toISOString();
   try{
     const ok = await pushStays();
@@ -653,7 +658,8 @@ async function sendFeedbackRequest(no){
   if(!d) return;
   const phone = normalizePhone(d.phone);
   if(!phone) return;
-  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(feedbackRequestMessage(d))}`, '_blank');
+  // api.whatsapp.com/send directly — see the matching comment in sendReminder.
+  window.open(`https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(feedbackRequestMessage(d))}`, '_blank');
   d.feedbackRequestedAt = new Date().toISOString();
   try{
     const ok = await pushStays();
