@@ -355,6 +355,28 @@ async function refreshGame(){
 }
 refreshGame();
 setInterval(refreshGame, 4000); // fast enough to feel live for spectators, gentle enough for a free-tier server
+
+// ── SELF-UPDATE ──
+// This runs unattended on a screen nobody's going to walk over and refresh,
+// so a future deploy needs to reach it on its own. GitHub Pages serves an
+// ETag per file — fetching this same URL periodically (bypassing the HTTP
+// cache) and reloading the moment the ETag changes from what was loaded at
+// startup is enough to pick up new versions without any server-side
+// version endpoint. Checked every few minutes; a plain page reload is safe
+// here since there's no typing or session state on this screen to lose.
+const SELF_UPDATE_CHECK_MS = 3 * 60 * 1000;
+let loadedEtag = null;
+async function checkForUpdate(){
+  try{
+    const res = await fetch(location.href, { cache: 'no-store' });
+    const etag = res.headers.get('etag');
+    if(!etag) return;
+    if(loadedEtag === null){ loadedEtag = etag; return; }
+    if(etag !== loadedEtag) location.reload();
+  }catch(e){ /* offline blip — try again next interval */ }
+}
+checkForUpdate();
+setInterval(checkForUpdate, SELF_UPDATE_CHECK_MS);
 </script>
 </body>
 </html>
