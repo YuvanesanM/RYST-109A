@@ -43,10 +43,16 @@
     background:radial-gradient(120% 140% at 50% 0%,var(--sea) 0%,var(--sea-deep) 55%,#040f15 100%);
   }
 
-  /* ── HEADER ── */
-  header{display:flex;align-items:center;justify-content:center;gap:1.1vw;padding:2.4vh 2vw 1.2vh;flex-shrink:0}
-  header img{height:5vh;object-fit:contain;filter:drop-shadow(0 3px 10px rgba(0,0,0,.4))}
-  header .name{font-family:var(--serif);font-weight:600;font-size:clamp(18px,2.2vw,32px);color:var(--sand);letter-spacing:.02em}
+  /* ── TOP BAR ── */
+  header{display:flex;align-items:center;justify-content:space-between;gap:2vw;padding:2vh 2.6vw 1.6vh;flex-shrink:0}
+  .tb-brand{display:flex;align-items:center;gap:1.1vw;min-width:0}
+  .tb-brand img{height:5vh;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 3px 10px rgba(0,0,0,.4))}
+  .tb-brand .name{font-family:var(--serif);font-weight:600;font-size:clamp(16px,2.2vw,32px);color:var(--sand);letter-spacing:.02em;white-space:nowrap}
+  .tb-info{display:flex;align-items:center;gap:1.1vw;font-size:clamp(11px,1.25vw,20px);color:var(--mist);font-weight:600;white-space:nowrap}
+  .tb-info .tb-sep{opacity:.4}
+  .tb-info .tb-weather{display:flex;align-items:center;gap:.4vw}
+  .tb-info .tb-weather .icon{font-size:1.3em;line-height:1}
+  .tb-info .tb-time{color:var(--sand);font-family:var(--serif);font-size:1.15em}
 
   /* ── SCREENS ── */
   main{flex:1;display:flex;align-items:center;justify-content:center;padding:1vh 3.5vw 2vh;position:relative;overflow:hidden}
@@ -145,8 +151,17 @@
 </head>
 <body>
 <header>
-  <img src="/assets/stay-logo.webp" alt="RYST 109A">
-  <span class="name">RYST 109A Beach Villa</span>
+  <div class="tb-brand">
+    <img src="/assets/stay-logo.webp" alt="RYST 109A">
+    <span class="name">RYST 109A Beach Villa</span>
+  </div>
+  <div class="tb-info">
+    <span class="tb-weather"><span class="icon" id="tbWeatherIcon">⛅</span><span id="tbWeatherTemp">--°</span></span>
+    <span class="tb-sep">•</span>
+    <span id="tbDate">—</span>
+    <span class="tb-sep">•</span>
+    <span class="tb-time" id="tbTime">--:--</span>
+  </div>
 </header>
 
 <main>
@@ -258,6 +273,49 @@ $('#qrEcr').src = qr(SITE_URL + '/ecr-road-trip-guide.html', 200);
 $('#qrFaq').src = qr(SITE_URL + '/faq.html', 200);
 $('#qrCaretaker').src = qr(`https://api.whatsapp.com/send/?phone=${CARETAKER_WHATSAPP}&text=${encodeURIComponent('Hi Senthil! We are staying at RYST 109A and need some help.')}`, 200);
 $('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
+
+// ── TOP BAR: CLOCK + DATE + WEATHER ──
+// Formatted with an explicit timeZone rather than trusting whatever the
+// display's own OS clock is set to — the villa is in India, but if
+// whatever device is driving this screen ever gets set up with its system
+// clock on UTC (or anything else) by mistake, the bar should still show
+// correct villa-local time rather than silently going wrong.
+const VILLA_TZ = 'Asia/Kolkata';
+const dateFmt = new Intl.DateTimeFormat('en-IN', { timeZone: VILLA_TZ, weekday: 'long', day: 'numeric', month: 'long' });
+const timeFmt = new Intl.DateTimeFormat('en-IN', { timeZone: VILLA_TZ, hour: '2-digit', minute: '2-digit', hour12: true });
+function tickClock(){
+  const now = new Date();
+  $('#tbDate').textContent = dateFmt.format(now);
+  $('#tbTime').textContent = timeFmt.format(now);
+}
+tickClock();
+setInterval(tickClock, 15000);
+
+// Open-Meteo — free, no API key, CORS-open (access-control-allow-origin: *),
+// so this calls it directly from the browser rather than routing it through
+// our own proxy. Same coordinates as the villa's schema.org GeoCoordinates
+// in index.html. WMO weather codes: https://open-meteo.com/en/docs
+const VILLA_LAT = 12.3698373, VILLA_LON = 80.0782188;
+const WEATHER_ICONS = {
+  0:'☀️', 1:'🌤️', 2:'⛅', 3:'☁️', 45:'🌫️', 48:'🌫️',
+  51:'🌦️', 53:'🌦️', 55:'🌦️', 56:'🌦️', 57:'🌦️',
+  61:'🌧️', 63:'🌧️', 65:'🌧️', 66:'🌧️', 67:'🌧️',
+  71:'🌨️', 73:'🌨️', 75:'🌨️', 77:'🌨️', 80:'🌧️', 81:'🌧️', 82:'🌧️',
+  85:'🌨️', 86:'🌨️', 95:'⛈️', 96:'⛈️', 99:'⛈️',
+};
+async function refreshWeather(){
+  try{
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${VILLA_LAT}&longitude=${VILLA_LON}&current=temperature_2m,weather_code,is_day&timezone=${encodeURIComponent(VILLA_TZ)}`;
+    const res = await fetch(url, { cache: 'no-store' });
+    const data = await res.json();
+    const c = data.current;
+    if(!c) return;
+    $('#tbWeatherTemp').textContent = `${Math.round(c.temperature_2m)}°C`;
+    $('#tbWeatherIcon').textContent = (c.weather_code === 0 && !c.is_day) ? '🌙' : (WEATHER_ICONS[c.weather_code] || '⛅');
+  }catch(e){ /* keep showing the last known reading */ }
+}
+refreshWeather();
+setInterval(refreshWeather, 15*60*1000); // Open-Meteo's own current-conditions data refreshes about every 15 min anyway
 
 // ── STAY LOOKUP + WELCOME/CHECKOUT MODE ──
 // display.html doesn't take a booking reference in its URL — it auto-detects
