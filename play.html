@@ -137,6 +137,14 @@ async function poll(){
 }
 poll();
 setInterval(poll, 1200);
+
+// Lets display.html (the poolside screen) know someone actually has this
+// page open right now, so it can switch to the Live Game screen instead of
+// the normal Welcome/Things To Do one — a heartbeat, not a move, so it's
+// sent on load and re-sent periodically for as long as this tab stays open.
+function ping(){ fetch(PROXY_URL+'/game/open', { method:'POST', cache:'no-store' }).catch(()=>{}); }
+ping();
+setInterval(ping, 10000);
 </script>
 </body>
 </html>
