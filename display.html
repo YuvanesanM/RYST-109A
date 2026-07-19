@@ -229,8 +229,9 @@ const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
 const SITE_URL = 'https://stay.ryst.in';
 const $ = s => document.querySelector(s);
 const CARETAKER_WHATSAPP = '919500219263'; // Senthil, Caretaker — same number used in the reminder template
-const CHECKOUT_HOUR = 11;              // standard checkout time, villa-local
-const NEARING_CHECKOUT_LEAD_HOURS = 3; // switch to the thank-you/feedback screen this many hours before checkout
+const CHECKOUT_HOUR = 11;                 // standard checkout time, villa-local
+const NEARING_CHECKOUT_LEAD_HOURS = 3;    // switch to the thank-you/feedback screen this many hours before checkout
+const CHECKOUT_TAKEOVER_HOURS_AFTER = 4;  // ...and switch back to the normal ambient rotation this many hours after
 const SLIDE_INTERVAL_MS = 15000;       // how long each ambient slide stays up before auto-advancing
 
 const qr = (data, size) => `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}`;
@@ -297,15 +298,22 @@ function applyCheckoutScreen(show, stay){
 }
 
 // Nearing-checkout is computed from local (villa) time, not UTC — comparing
-// two Date objects built from explicit local fields, never via toISOString,
-// so this isn't sensitive to which timezone the screen's browser is set to
-// relative to UTC.
+// Date objects built from explicit local fields, never via toISOString, so
+// this isn't sensitive to which timezone the screen's browser is set to
+// relative to UTC. This is a bounded window, not just a start time — /active-stay
+// keeps returning the same stay as "active" all the way until midnight on
+// checkout day, so without an end bound the thank-you takeover would stay
+// stuck on screen for the rest of the day (into the evening, well past when
+// the guest has actually left) instead of returning to the normal ambient
+// rotation once the turnover window has passed.
 function isNearingCheckout(stay){
   if(!stay || !stay.active || !stay.checkout) return false;
   const [y,m,d] = stay.checkout.split('-').map(Number);
   const checkoutMoment = new Date(y, m-1, d, CHECKOUT_HOUR, 0, 0);
-  const nearingStart = new Date(checkoutMoment.getTime() - NEARING_CHECKOUT_LEAD_HOURS*3600000);
-  return new Date() >= nearingStart;
+  const windowStart = new Date(checkoutMoment.getTime() - NEARING_CHECKOUT_LEAD_HOURS*3600000);
+  const windowEnd = new Date(checkoutMoment.getTime() + CHECKOUT_TAKEOVER_HOURS_AFTER*3600000);
+  const now = new Date();
+  return now >= windowStart && now <= windowEnd;
 }
 
 function render(){
