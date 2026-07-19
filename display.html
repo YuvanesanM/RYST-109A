@@ -84,6 +84,32 @@
   .card .qr img{display:block;width:clamp(56px,6.5vw,110px);height:clamp(56px,6.5vw,110px)}
   .card .qr-label{color:var(--mist);font-size:clamp(9px,.95vw,15px);opacity:.8;letter-spacing:.02em}
 
+  /* ── LIVE GAME SLIDE ── */
+  #slide-game h2{
+    font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:2vh;
+  }
+  #slide-game .game-layout{display:flex;align-items:center;gap:5vw}
+  .ttt-board{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1vw;width:min(46vh,32vw)}
+  .ttt-cell{
+    aspect-ratio:1;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:1vw;
+    font-family:var(--serif);font-weight:600;color:var(--sea-mid);font-size:clamp(28px,5vw,90px);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ttt-cell.o{color:var(--coral)}
+  .game-side{display:flex;flex-direction:column;align-items:center;gap:2vh}
+  .game-scoreboard{display:flex;gap:1.4vw}
+  .game-score{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:1vw;padding:1.4vh 1.6vw;text-align:center;min-width:6vw}
+  .game-score .mark{font-family:var(--serif);font-weight:600;font-size:clamp(14px,1.6vw,26px)}
+  .game-score.x .mark{color:var(--sea-mid)}
+  .game-score.o .mark{color:var(--coral)}
+  .game-score .n{font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,54px);color:var(--white)}
+  .game-turn{color:var(--mist);font-size:clamp(13px,1.5vw,26px);font-weight:600;min-height:1.5em}
+  .game-turn .mark.x{color:var(--sea-mid)}
+  .game-turn .mark.o{color:var(--coral)}
+  #slide-game .qr{background:var(--white);border-radius:1vw;padding:.9vw;display:inline-block}
+  #slide-game .qr img{display:block;width:clamp(80px,9vw,150px);height:clamp(80px,9vw,150px)}
+  #slide-game .qr-label{color:var(--mist);font-size:clamp(10px,1.05vw,17px);opacity:.85}
+
   /* ── PROGRESS DOTS (decorative — this screen never expects a tap) ── */
   .dots{position:absolute;bottom:2.4vh;left:50%;transform:translateX(-50%);display:flex;gap:.7vw;z-index:2}
   .dots span{width:.6vw;height:.6vw;max-width:10px;max-height:10px;border-radius:50%;background:rgba(255,255,255,.25);transition:background .3s}
@@ -163,9 +189,26 @@
     </div>
   </section>
 
+  <section class="slide" id="slide-game">
+    <h2>Live Game</h2>
+    <div class="game-layout">
+      <div class="ttt-board" id="tttBoard"></div>
+      <div class="game-side">
+        <div class="game-scoreboard">
+          <div class="game-score x"><div class="mark">X</div><div class="n" id="gameScoreX">0</div></div>
+          <div class="game-score o"><div class="mark">O</div><div class="n" id="gameScoreO">0</div></div>
+        </div>
+        <p class="game-turn" id="gameTurn">&nbsp;</p>
+        <div class="qr"><img id="qrPlay" alt="Scan to play"></div>
+        <span class="qr-label">Scan to play from your phone</span>
+      </div>
+    </div>
+  </section>
+
   <div class="dots" id="slideDots">
     <span class="active" data-i="0"></span>
     <span data-i="1"></span>
+    <span data-i="2"></span>
   </div>
 </main>
 
@@ -195,13 +238,14 @@ $('#qrNearby').src = qr(SITE_URL + '/nearby.html', 200);
 $('#qrEcr').src = qr(SITE_URL + '/ecr-road-trip-guide.html', 200);
 $('#qrFaq').src = qr(SITE_URL + '/faq.html', 200);
 $('#qrCaretaker').src = qr(`https://api.whatsapp.com/send/?phone=${CARETAKER_WHATSAPP}&text=${encodeURIComponent('Hi Senthil! We are staying at RYST 109A and need some help.')}`, 200);
+$('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
 
 // ── AMBIENT SLIDE ROTATION ──
 // No touch is expected on a screen this size in this spot, so instead of
 // tabs the two slides just cross-fade on a timer. Paused implicitly once
 // the checkout takeover is active (see applyCheckoutScreen) since that
 // covers the whole screen anyway.
-const slides = ['slide-welcome', 'slide-todo'];
+const slides = ['slide-welcome', 'slide-todo', 'slide-game'];
 let slideIdx = 0;
 function showSlide(i){
   slides.forEach((id, n) => $('#'+id).classList.toggle('active', n === i));
@@ -281,6 +325,24 @@ async function refreshStay(){
 refreshStay();
 setInterval(refreshStay, 5*60*1000);   // re-check which guest is in-house every 5 minutes
 setInterval(render, 60*1000);          // re-evaluate the checkout-time threshold every minute in between
+
+// ── LIVE GAME (read-only spectator view — moves come from play.html) ──
+function renderGame(g){
+  $('#gameScoreX').textContent = g.scoreX;
+  $('#gameScoreO').textContent = g.scoreO;
+  $('#gameTurn').innerHTML = g.winner === 'draw' ? "It's a draw!"
+    : g.winner ? `<span class="mark ${g.winner.toLowerCase()}">${g.winner}</span> wins!`
+    : `<span class="mark ${g.turn.toLowerCase()}">${g.turn}</span>'s turn`;
+  $('#tttBoard').innerHTML = g.board.map(v => `<div class="ttt-cell ${v==='O'?'o':''}">${v||''}</div>`).join('');
+}
+async function refreshGame(){
+  try{
+    const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
+    renderGame(await res.json());
+  }catch(e){ /* keep showing the last known board */ }
+}
+refreshGame();
+setInterval(refreshGame, 4000); // fast enough to feel live for spectators, gentle enough for a free-tier server
 </script>
 </body>
 </html>
