@@ -560,7 +560,7 @@ function renderReminders(){
   // the stay), so it needs a pre-arrival reminder same as an invoice —
   // only a block (not a real guest) is excluded.
   const due = STAYS
-    .filter(d=> (d.type||'invoice')!=='block' && d.checkin>=today && d.checkin<=cutoff)
+    .filter(d=> (d.type||'invoice')!=='block' && d.checkin>=today && d.checkin<=cutoff && !isConvertedQuote(d))
     .sort((a,b)=> a.checkin.localeCompare(b.checkin));
 
   const badge = $('#remBadge');
@@ -637,7 +637,7 @@ function renderFeedbackRequests(){
   // checkout, so restricting this to type:'invoice' would mean a
   // quote-only booking never gets a feedback request at all.
   const due = STAYS
-    .filter(d=> (d.type||'invoice')!=='block' && d.checkout<=today && d.checkout>=cutoff)
+    .filter(d=> (d.type||'invoice')!=='block' && d.checkout<=today && d.checkout>=cutoff && !isConvertedQuote(d))
     .sort((a,b)=> b.checkout.localeCompare(a.checkout));
 
   const badge = $('#fbBadge');
