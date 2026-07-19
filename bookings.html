@@ -730,7 +730,9 @@ function renderStats(){
   const occ = daysInMonth ? Math.round((nights/daysInMonth)*100) : 0;
 
   const today = todayISO(), weekAhead = addDays(today,7);
-  const upcoming = filtered.filter(d => (d.checkin>=today && d.checkin<=weekAhead) || (d.checkout>=today && d.checkout<=weekAhead));
+  // A block isn't a guest arriving or leaving — same exclusion as the nights
+  // count above, just missing here before.
+  const upcoming = filtered.filter(d => (d.type||'invoice')!=='block' && ((d.checkin>=today && d.checkin<=weekAhead) || (d.checkout>=today && d.checkout<=weekAhead)));
 
   $('#cNights').textContent = nights;
   $('#cNightsSub').textContent = view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
