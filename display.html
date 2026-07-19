@@ -127,12 +127,15 @@
   .thanks-wrap p{color:var(--mist);font-size:clamp(14px,1.8vw,30px);line-height:1.65;margin-bottom:3.6vh;max-width:52vw;margin-left:auto;margin-right:auto}
   .thanks-wrap .qr{background:var(--white);border-radius:1.4vw;padding:1.6vw;display:inline-block;margin-bottom:2.2vh}
   .thanks-wrap .qr img{display:block;width:clamp(140px,15vw,260px);height:clamp(140px,15vw,260px)}
-  .ryst-watermark{position:fixed;top:16px;right:20px;z-index:5;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);pointer-events:none;user-select:none;white-space:nowrap}
-  @media (max-width:640px){.ryst-watermark{font-size:10px;top:10px;right:12px}}
+  /* The checkout takeover covers the whole screen, including the persistent
+     header above — so it gets its own small "RYST 109A" mark in the corner
+     rather than going unbranded while it's up. */
+  #checkoutScreen .watermark{position:absolute;top:2.4vh;right:2.6vw;font-family:var(--serif);font-weight:600;
+    font-size:clamp(11px,1.15vw,19px);letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);
+    pointer-events:none;user-select:none}
 </style>
 </head>
 <body>
-<div class="ryst-watermark" aria-hidden="true">RYST 109A</div>
 <header>
   <img src="/assets/stay-logo.webp" alt="RYST 109A">
   <span class="name">RYST 109A Beach Villa</span>
@@ -214,6 +217,7 @@
 </main>
 
 <div id="checkoutScreen">
+  <div class="watermark" aria-hidden="true">RYST 109A</div>
   <div class="thanks-wrap">
     <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
     <h1 id="checkoutHeading">Thank you for staying with us!</h1>
