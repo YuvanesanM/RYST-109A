@@ -129,6 +129,27 @@
   .scoreboard-col .p-name{font-family:var(--serif);font-weight:600;font-size:clamp(15px,1.9vw,30px);color:var(--sand);margin-bottom:1.4vh;word-break:break-word;max-width:16vw}
   .scoreboard-col .p-score{font-family:var(--serif);font-weight:600;font-size:clamp(36px,5.6vw,100px);color:var(--white)}
 
+  /* ── MEMORY MATCH SCREEN ── */
+  #screen-memory h2{
+    font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:2vh;text-align:center;
+  }
+  .mem-layout{display:flex;align-items:center;gap:4vw}
+  .mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:1vw;width:min(56vh,40vw)}
+  .mem-card{
+    aspect-ratio:1;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:.9vw;
+    display:flex;align-items:center;justify-content:center;font-size:clamp(20px,3.4vw,54px);
+  }
+  .mem-card.matched{background:rgba(255,255,255,.14);opacity:.6}
+  .mem-side{display:flex;flex-direction:column;align-items:center;gap:2vh}
+  .mem-scoreboard{display:flex;gap:1.4vw}
+  .mem-score{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:1vw;padding:1.4vh 1.6vw;text-align:center;min-width:6vw}
+  .mem-score .mark{font-family:var(--serif);font-weight:600;font-size:clamp(14px,1.6vw,26px);color:var(--sand)}
+  .mem-score .n{font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,54px);color:var(--white)}
+  .mem-turn{color:var(--mist);font-size:clamp(13px,1.5vw,26px);font-weight:600;min-height:1.5em}
+  #screen-memory .qr{background:var(--white);border-radius:1vw;padding:.9vw;display:inline-block}
+  #screen-memory .qr img{display:block;width:clamp(80px,9vw,150px);height:clamp(80px,9vw,150px)}
+  #screen-memory .qr-label{color:var(--mist);font-size:clamp(10px,1.05vw,17px);opacity:.85}
+
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -243,6 +264,24 @@
       <div class="scoreboard-layout" id="scoreboardCols"></div>
     </div>
   </section>
+
+  <section class="screen" id="screen-memory">
+    <div>
+      <h2>Memory Match</h2>
+      <div class="mem-layout">
+        <div class="mem-board" id="memBoard"></div>
+        <div class="mem-side">
+          <div class="mem-scoreboard">
+            <div class="mem-score"><div class="mark">P1</div><div class="n" id="memScore1">0</div></div>
+            <div class="mem-score"><div class="mark">P2</div><div class="n" id="memScore2">0</div></div>
+          </div>
+          <p class="mem-turn" id="memTurn">&nbsp;</p>
+          <div class="qr"><img id="qrPlayMemory" alt="Scan to play"></div>
+          <span class="qr-label">Scan to play from your phone</span>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <div id="checkoutScreen">
@@ -273,6 +312,7 @@ $('#qrEcr').src = qr(SITE_URL + '/ecr-road-trip-guide.html', 200);
 $('#qrFaq').src = qr(SITE_URL + '/faq.html', 200);
 $('#qrCaretaker').src = qr(`https://api.whatsapp.com/send/?phone=${CARETAKER_WHATSAPP}&text=${encodeURIComponent('Hi Senthil! We are staying at RYST 109A and need some help.')}`, 200);
 $('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
+$('#qrPlayMemory').src = qr(SITE_URL + '/play.html', 200);
 
 // ── TOP BAR: CLOCK + DATE + WEATHER ──
 // Formatted with an explicit timeZone rather than trusting whatever the
@@ -427,14 +467,40 @@ function renderScoreboard(g){
     </div>`).join('');
 }
 
+// Mirrors play.html's own reveal timing exactly — a mismatched pair isn't
+// cleared server-side until the *next* flip attempt (see the proxy's
+// /game/memory/flip comment), so this checks mismatchAt itself rather than
+// waiting for the server to have already hidden it.
+const MEM_MISMATCH_REVEAL_MS = 900;
+function renderMemoryDisplay(g){
+  const m = g.memory;
+  if(!m) return;
+  $('#memScore1').textContent = m.scores[0];
+  $('#memScore2').textContent = m.scores[1];
+  const showMismatch = m.flipped.length === 2 && (Date.now() - m.mismatchAt) < MEM_MISMATCH_REVEAL_MS;
+  $('#memTurn').textContent = m.winner
+    ? (m.winner === 'tie' ? "It's a tie!" : `Player ${m.winner} wins!`)
+    : `Player ${m.turn}'s turn`;
+  $('#memBoard').innerHTML = m.cards.map((c, i) => {
+    const faceUp = m.matched[i] || (m.flipped.includes(i) && (m.flipped.length === 1 || showMismatch));
+    return `<div class="mem-card ${m.matched[i] ? 'matched' : ''}">${faceUp ? c : ''}</div>`;
+  }).join('');
+  if(m.flipped.length === 2 && !m.matched[m.flipped[0]]){
+    const remaining = MEM_MISMATCH_REVEAL_MS - (Date.now() - m.mismatchAt);
+    if(remaining > 0) setTimeout(() => renderMemoryDisplay(currentGame), remaining + 50);
+  }
+}
+
 function updateMainScreen(){
   if($('#checkoutScreen').classList.contains('active')) return; // that takeover covers everything anyway
   const active = isGameActive();
   const showTTT = active && currentGame.mode === 'tictactoe';
   const showScoreboard = active && currentGame.mode === 'scoreboard';
-  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard);
+  const showMemory = active && currentGame.mode === 'memory';
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
+  $('#screen-memory').classList.toggle('active', showMemory);
 }
 
 async function refreshGame(){
@@ -443,6 +509,7 @@ async function refreshGame(){
     currentGame = await res.json();
     renderGame(currentGame);
     renderScoreboard(currentGame);
+    renderMemoryDisplay(currentGame);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }

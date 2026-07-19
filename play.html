@@ -104,6 +104,16 @@
   }
   .score-btn:active{background:var(--foam)}
   .player-score{font-family:var(--serif);font-weight:600;font-size:20px;color:var(--sea);min-width:26px;text-align:center}
+
+  /* ── MEMORY MATCH ── */
+  .mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 auto 22px;max-width:300px}
+  .mem-card{
+    aspect-ratio:1;background:var(--sea);border:none;border-radius:12px;font-size:24px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:transform .2s,background .15s;
+  }
+  .mem-card.up{background:var(--foam);transform:rotateY(0)}
+  .mem-card.matched{background:var(--foam);opacity:.55;cursor:default}
+  .mem-card:disabled{cursor:default}
 </style>
 </head>
 <body>
@@ -134,6 +144,13 @@
           <span>
             <span class="menu-title">Scoreboard</span>
             <span class="menu-desc">Track points for up to 4 players</span>
+          </span>
+        </button>
+        <button type="button" class="menu-item" data-mode="memory">
+          <span class="menu-icon">🐚</span>
+          <span>
+            <span class="menu-title">Memory Match</span>
+            <span class="menu-desc">Find the beach-themed pairs — fun for kids</span>
           </span>
         </button>
       </div>
@@ -181,6 +198,21 @@
       <button type="button" class="btn ghost" id="scoreboardResetBtn" style="width:100%">Reset scores</button>
     </section>
 
+    <section class="screen" id="screen-memory">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1>Memory Match</h1>
+      <p class="sub">Find the pairs — a match earns another turn.</p>
+      <div class="scoreboard">
+        <div class="score x"><div class="mark">P1</div><div class="n" id="memScore1">0</div></div>
+        <div class="score o"><div class="mark">P2</div><div class="n" id="memScore2">0</div></div>
+      </div>
+      <p class="turn" id="memTurnLabel">&nbsp;</p>
+      <div class="mem-board" id="memBoard"></div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="memNewRoundBtn">New round</button>
+      </div>
+    </section>
+
   </div>
 </div>
 
@@ -190,8 +222,9 @@ const $ = s => document.querySelector(s);
 let state = {
   mode: null, board: Array(9).fill(null), turn: 'X', winner: null, scoreX: 0, scoreO: 0,
   players: [{name:'Player 1',score:0},{name:'Player 2',score:0},{name:'Player 3',score:0},{name:'Player 4',score:0}], playerCount: 2,
+  memory: { cards: Array(16).fill(''), matched: Array(16).fill(false), flipped: [], mismatchAt: 0, turn: 1, scores: [0,0], winner: null },
 };
-let busy = false; // guards tic-tac-toe against double-taps firing two moves before the poll catches up
+let busy = false; // guards every activity against double-taps firing two actions before the poll catches up
 
 // This screen is otherwise open to the whole internet (no per-guest room
 // codes), so every mutation needs a session from /auth/guest — staff
@@ -224,10 +257,12 @@ async function postJson(path, body){
 
 function showScreen(mode){
   const screen = playToken ? mode : 'signin';
+  const activities = ['tictactoe', 'scoreboard', 'memory'];
   $('#screen-signin').classList.toggle('active', screen === 'signin');
-  $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && screen !== 'tictactoe' && screen !== 'scoreboard');
+  $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && !activities.includes(screen));
   $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
   $('#screen-scoreboard').classList.toggle('active', screen === 'scoreboard');
+  $('#screen-memory').classList.toggle('active', screen === 'memory');
 }
 
 // ── GOOGLE SIGN-IN ── same OAuth client + proxy backend as login.html and
@@ -304,10 +339,53 @@ function renderScoreboard(){
   });
 }
 
+// A mismatched pair isn't cleared server-side until the *next* flip attempt
+// (see the proxy's /game/memory/flip comment) — so this checks mismatchAt
+// itself to decide when to stop showing an unmatched pair face up, rather
+// than waiting for the server to have already hidden it.
+const MEM_MISMATCH_REVEAL_MS = 900;
+function renderMemory(){
+  const m = state.memory;
+  $('#memScore1').textContent = m.scores[0];
+  $('#memScore2').textContent = m.scores[1];
+  const showMismatch = m.flipped.length === 2 && (Date.now() - m.mismatchAt) < MEM_MISMATCH_REVEAL_MS;
+  $('#memTurnLabel').textContent = m.winner
+    ? (m.winner === 'tie' ? "It's a tie!" : `Player ${m.winner} wins!`)
+    : `Player ${m.turn}'s turn`;
+  $('#memBoard').innerHTML = m.cards.map((c, i) => {
+    const faceUp = m.matched[i] || (m.flipped.includes(i) && (m.flipped.length === 1 || showMismatch));
+    const cls = m.matched[i] ? 'matched' : (faceUp ? 'up' : '');
+    const disabled = m.matched[i] || m.winner ? 'disabled' : '';
+    return `<button type="button" class="mem-card ${cls}" data-i="${i}" ${disabled}>${faceUp ? c : ''}</button>`;
+  }).join('');
+  $('#memBoard').querySelectorAll('.mem-card').forEach(btn => btn.addEventListener('click', () => memFlip(Number(btn.dataset.i))));
+  // A pending mismatch is only visible for MEM_MISMATCH_REVEAL_MS — re-render
+  // once that window closes so the pair flips back down on its own, without
+  // waiting for the next poll (which could be up to 1.2s later).
+  if(m.flipped.length === 2 && !m.matched[m.flipped[0]]){
+    const remaining = MEM_MISMATCH_REVEAL_MS - (Date.now() - m.mismatchAt);
+    if(remaining > 0) setTimeout(renderMemory, remaining + 50);
+  }
+}
+
+async function memFlip(i){
+  const m = state.memory;
+  if(busy || m.winner || m.matched[i] || (m.flipped.length < 2 && m.flipped.includes(i))) return;
+  busy = true;
+  try{ state = await postJson('/game/memory/flip', { i }); render(); }
+  catch(e){ /* next poll will resync */ }
+  busy = false;
+}
+
+$('#memNewRoundBtn').addEventListener('click', async () => {
+  try{ state = await postJson('/game/memory/new-round'); render(); }catch(e){}
+});
+
 function render(){
   showScreen(state.mode);
   renderTicTacToe();
   renderScoreboard();
+  renderMemory();
 }
 
 async function move(i){
