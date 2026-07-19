@@ -430,7 +430,21 @@ function passFilter(d){
   if(FILTERS.type!=='all' && (d.type||'invoice')!==FILTERS.type) return false;
   const q = FILTERS.q.trim().toLowerCase();
   if(q && !((d.guest||'').toLowerCase().includes(q) || (d.no||'').toLowerCase().includes(q))) return false;
+  if(isConvertedQuote(d)) return false;
   return true;
+}
+// A quote turned into an invoice (via "Load from quote" in stay.html) stays
+// in stays.json as its own record so the quote history isn't lost, but it no
+// longer represents a separate booking — without this it shows up as a
+// second pill/night alongside the invoice it became, making the calendar
+// look double-booked and inflating the occupancy stats for one real stay.
+function isConvertedQuote(d){
+  if((d.type||'invoice')!=='quote') return false;
+  const email = (d.email||'').trim().toLowerCase();
+  const guest = (d.guest||'').trim().toLowerCase();
+  return STAYS.some(s=>
+    (s.type||'invoice')==='invoice' && s.checkin===d.checkin && s.checkout===d.checkout &&
+    (email ? (s.email||'').trim().toLowerCase()===email : (guest && (s.guest||'').trim().toLowerCase()===guest)));
 }
 
 /* ---------- LOAD ---------- */
