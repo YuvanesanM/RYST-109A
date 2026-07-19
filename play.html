@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Tic-Tac-Toe | RYST 109A</title>
+<title>Play | RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -32,6 +32,26 @@
   h1{font-family:var(--serif);font-weight:600;font-size:26px;color:var(--sea);margin-bottom:4px}
   .sub{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5}
 
+  .screen{display:none}
+  .screen.active{display:block}
+
+  .back-btn{
+    display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted);
+    font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:14px;padding:4px 0;
+  }
+
+  /* ── DASHBOARD ── */
+  .menu{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+  .menu-item{
+    display:flex;align-items:center;gap:14px;text-align:left;background:var(--foam);border:1.5px solid transparent;
+    border-radius:16px;padding:16px 18px;cursor:pointer;transition:border-color .15s,transform .15s;
+  }
+  .menu-item:active{transform:scale(.98)}
+  .menu-icon{font-size:28px;flex-shrink:0}
+  .menu-title{display:block;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--sea)}
+  .menu-desc{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+
+  /* ── TIC-TAC-TOE ── */
   .scoreboard{display:flex;gap:10px;margin-bottom:18px}
   .score{flex:1;background:var(--foam);border-radius:16px;padding:12px 8px}
   .score .mark{font-family:var(--serif);font-weight:600;font-size:20px}
@@ -60,37 +80,130 @@
   .btn:active{transform:translateY(1px)}
   .btn.primary{background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;box-shadow:0 10px 26px rgba(20,40,50,.22)}
   .btn.ghost{background:var(--white);color:var(--muted);border:1.5px solid var(--line)}
+
+  /* ── SCOREBOARD ── */
+  .count-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:18px;font-size:13px;color:var(--muted);font-weight:600}
+  .count-btns{display:flex;gap:6px}
+  .count-btn{
+    width:32px;height:32px;border-radius:9px;border:1.5px solid var(--line);background:var(--white);
+    color:var(--muted);font-family:var(--sans);font-weight:700;font-size:13px;cursor:pointer;
+  }
+  .count-btn.active{background:var(--sea);border-color:var(--sea);color:#fff}
+
+  .players{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+  .player-row{display:flex;align-items:center;gap:10px;background:var(--foam);border-radius:14px;padding:10px 12px}
+  .player-name{
+    flex:1;min-width:0;border:none;background:transparent;font-family:var(--sans);font-size:14px;font-weight:600;
+    color:var(--ink);outline:none;padding:4px 0;
+  }
+  .score-ctrl{display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .score-btn{
+    width:30px;height:30px;border-radius:9px;border:none;background:var(--white);border:1.5px solid var(--line);
+    color:var(--sea);font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+  .score-btn:active{background:var(--foam)}
+  .player-score{font-family:var(--serif);font-weight:600;font-size:20px;color:var(--sea);min-width:26px;text-align:center}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
     <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
-    <h1>Tic-Tac-Toe</h1>
-    <p class="sub">Shared with the pool screen — everyone staying at the villa plays on the same board, so just take turns.</p>
 
-    <div class="scoreboard">
-      <div class="score x"><div class="mark">X</div><div class="n" id="scoreX">0</div></div>
-      <div class="score o"><div class="mark">O</div><div class="n" id="scoreO">0</div></div>
-    </div>
+    <section class="screen active" id="screen-dashboard">
+      <h1>What would you like to do?</h1>
+      <p class="sub">Shared with the pool screen — everyone staying at the villa sees the same thing.</p>
+      <div class="menu">
+        <button type="button" class="menu-item" data-mode="tictactoe">
+          <span class="menu-icon">🎮</span>
+          <span>
+            <span class="menu-title">Tic-Tac-Toe</span>
+            <span class="menu-desc">Take turns with the pool screen</span>
+          </span>
+        </button>
+        <button type="button" class="menu-item" data-mode="scoreboard">
+          <span class="menu-icon">🏆</span>
+          <span>
+            <span class="menu-title">Scoreboard</span>
+            <span class="menu-desc">Track points for up to 4 players</span>
+          </span>
+        </button>
+      </div>
+    </section>
 
-    <p class="turn" id="turnLabel">&nbsp;</p>
-    <div class="board" id="board"></div>
+    <section class="screen" id="screen-tictactoe">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1>Tic-Tac-Toe</h1>
+      <p class="sub">Take turns — everyone plays on the same board.</p>
+      <div class="scoreboard">
+        <div class="score x"><div class="mark">X</div><div class="n" id="scoreX">0</div></div>
+        <div class="score o"><div class="mark">O</div><div class="n" id="scoreO">0</div></div>
+      </div>
+      <p class="turn" id="turnLabel">&nbsp;</p>
+      <div class="board" id="board"></div>
+      <div class="actions">
+        <button type="button" class="btn primary" id="newRoundBtn">New round</button>
+        <button type="button" class="btn ghost" id="resetScoresBtn">Reset scores</button>
+      </div>
+    </section>
 
-    <div class="actions">
-      <button type="button" class="btn primary" id="newRoundBtn">New round</button>
-      <button type="button" class="btn ghost" id="resetScoresBtn">Reset scores</button>
-    </div>
+    <section class="screen" id="screen-scoreboard">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1>Scoreboard</h1>
+      <p class="sub">Tap a name to rename it — shown live on the pool screen too.</p>
+      <div class="count-row">
+        <span>Players</span>
+        <div class="count-btns">
+          <button type="button" class="count-btn" data-count="1">1</button>
+          <button type="button" class="count-btn" data-count="2">2</button>
+          <button type="button" class="count-btn" data-count="3">3</button>
+          <button type="button" class="count-btn" data-count="4">4</button>
+        </div>
+      </div>
+      <div class="players" id="players">
+        <div class="player-row" data-i="0"><input type="text" class="player-name" maxlength="24" placeholder="Player 1">
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="0" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="0" data-delta="1">+</button></div></div>
+        <div class="player-row" data-i="1"><input type="text" class="player-name" maxlength="24" placeholder="Player 2">
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="1" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="1" data-delta="1">+</button></div></div>
+        <div class="player-row" data-i="2"><input type="text" class="player-name" maxlength="24" placeholder="Player 3">
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="2" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="2" data-delta="1">+</button></div></div>
+        <div class="player-row" data-i="3"><input type="text" class="player-name" maxlength="24" placeholder="Player 4">
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="3" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="3" data-delta="1">+</button></div></div>
+      </div>
+      <button type="button" class="btn ghost" id="scoreboardResetBtn" style="width:100%">Reset scores</button>
+    </section>
+
   </div>
 </div>
 
 <script>
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
 const $ = s => document.querySelector(s);
-let state = { board: Array(9).fill(null), turn: 'X', winner: null, scoreX: 0, scoreO: 0 };
-let busy = false; // guards against double-taps firing two moves before the poll catches up
+let state = {
+  mode: null, board: Array(9).fill(null), turn: 'X', winner: null, scoreX: 0, scoreO: 0,
+  players: [{name:'Player 1',score:0},{name:'Player 2',score:0},{name:'Player 3',score:0},{name:'Player 4',score:0}], playerCount: 2,
+};
+let busy = false; // guards tic-tac-toe against double-taps firing two moves before the poll catches up
 
-function render(){
+async function postJson(path, body){
+  const res = await fetch(PROXY_URL+path, {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: body===undefined ? undefined : JSON.stringify(body), cache:'no-store',
+  });
+  // A 429 (or any error) body is {error:"..."}, not a gameState — treating it
+  // as one would blow away board/players and crash the next render(). Keep
+  // showing whatever was last known good instead.
+  if(!res.ok) return state;
+  return res.json();
+}
+
+function showScreen(mode){
+  $('#screen-dashboard').classList.toggle('active', mode !== 'tictactoe' && mode !== 'scoreboard');
+  $('#screen-tictactoe').classList.toggle('active', mode === 'tictactoe');
+  $('#screen-scoreboard').classList.toggle('active', mode === 'scoreboard');
+}
+
+function renderTicTacToe(){
   $('#scoreX').textContent = state.scoreX;
   $('#scoreO').textContent = state.scoreO;
   if(state.winner === 'draw') $('#turnLabel').innerHTML = "It's a draw!";
@@ -103,30 +216,77 @@ function render(){
   $('#board').querySelectorAll('.cell').forEach(btn => btn.addEventListener('click', () => move(Number(btn.dataset.i))));
 }
 
+// Score numbers get freely overwritten every poll, but the name <input>s are
+// static DOM nodes (not innerHTML'd away each time) and only have their
+// .value touched when NOT focused — otherwise a poll landing mid-keystroke
+// would yank the cursor and overwrite whatever someone's currently typing.
+function renderScoreboard(){
+  document.querySelectorAll('.count-btn').forEach(b => b.classList.toggle('active', Number(b.dataset.count) === state.playerCount));
+  document.querySelectorAll('.player-row').forEach((row, i) => {
+    const p = state.players[i] || { name:'', score:0 };
+    row.style.display = i < state.playerCount ? 'flex' : 'none';
+    const input = row.querySelector('.player-name');
+    if(document.activeElement !== input) input.value = p.name === `Player ${i+1}` ? '' : p.name;
+    row.querySelector('.player-score').textContent = p.score;
+  });
+}
+
+function render(){
+  showScreen(state.mode);
+  renderTicTacToe();
+  renderScoreboard();
+}
+
 async function move(i){
   if(busy || state.board[i] || state.winner) return;
   busy = true;
-  try{
-    const res = await fetch(PROXY_URL+'/game/move', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ i }), cache: 'no-store',
-    });
-    state = await res.json();
-    render();
-  }catch(e){ /* next poll will resync */ }
+  try{ state = await postJson('/game/move', { i }); render(); }
+  catch(e){ /* next poll will resync */ }
   busy = false;
 }
 
 $('#newRoundBtn').addEventListener('click', async () => {
-  try{ state = await (await fetch(PROXY_URL+'/game/new-round', { method:'POST', cache:'no-store' })).json(); render(); }catch(e){}
+  try{ state = await postJson('/game/new-round'); render(); }catch(e){}
 });
 $('#resetScoresBtn').addEventListener('click', async () => {
   if(!confirm('Reset the scoreboard to 0-0?')) return;
-  try{ state = await (await fetch(PROXY_URL+'/game/reset-scores', { method:'POST', cache:'no-store' })).json(); render(); }catch(e){}
+  try{ state = await postJson('/game/reset-scores'); render(); }catch(e){}
 });
 
-// Polls so this stays in sync with the pool screen and anyone else's phone
-// playing the same shared board.
+document.querySelectorAll('.menu-item').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/mode', { mode: btn.dataset.mode }); render(); }catch(e){}
+  });
+});
+document.querySelectorAll('[data-back]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/mode', { mode: null }); render(); }catch(e){}
+  });
+});
+document.querySelectorAll('.count-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/scoreboard/count', { count: Number(btn.dataset.count) }); render(); }catch(e){}
+  });
+});
+document.querySelectorAll('.score-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/scoreboard/score', { i: Number(btn.dataset.i), delta: Number(btn.dataset.delta) }); render(); }catch(e){}
+  });
+});
+document.querySelectorAll('.player-name').forEach(input => {
+  input.addEventListener('change', async () => {
+    const i = Number(input.closest('.player-row').dataset.i);
+    try{ state = await postJson('/game/scoreboard/name', { i, name: input.value }); render(); }catch(e){}
+  });
+});
+$('#scoreboardResetBtn').addEventListener('click', async () => {
+  if(!confirm('Reset all scores to 0?')) return;
+  try{ state = await postJson('/game/scoreboard/reset'); render(); }catch(e){}
+});
+
+// Polls so this stays in sync with the pool screen and anyone else's phone —
+// including which activity is open, so every phone and the big screen are
+// always looking at the same thing.
 async function poll(){
   if(busy) return;
   try{
@@ -139,9 +299,8 @@ poll();
 setInterval(poll, 1200);
 
 // Lets display.html (the poolside screen) know someone actually has this
-// page open right now, so it can switch to the Live Game screen instead of
-// the normal Welcome/Things To Do one — a heartbeat, not a move, so it's
-// sent on load and re-sent periodically for as long as this tab stays open.
+// page open right now — a heartbeat, not a move, so it's sent on load and
+// re-sent periodically for as long as this tab stays open.
 function ping(){ fetch(PROXY_URL+'/game/open', { method:'POST', cache:'no-store' }).catch(()=>{}); }
 ping();
 setInterval(ping, 10000);

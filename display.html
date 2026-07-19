@@ -114,6 +114,15 @@
   #screen-game .qr img{display:block;width:clamp(80px,9vw,150px);height:clamp(80px,9vw,150px)}
   #screen-game .qr-label{color:var(--mist);font-size:clamp(10px,1.05vw,17px);opacity:.85}
 
+  /* ── SCOREBOARD SCREEN ── */
+  #screen-scoreboard h2{
+    font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:4vh;text-align:center;
+  }
+  .scoreboard-layout{display:flex;gap:1.8vw;justify-content:center;flex-wrap:wrap;max-width:80vw}
+  .scoreboard-col{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:1.2vw;padding:2.6vh 2.2vw;text-align:center;min-width:11vw}
+  .scoreboard-col .p-name{font-family:var(--serif);font-weight:600;font-size:clamp(15px,1.9vw,30px);color:var(--sand);margin-bottom:1.4vh;word-break:break-word;max-width:16vw}
+  .scoreboard-col .p-score{font-family:var(--serif);font-weight:600;font-size:clamp(36px,5.6vw,100px);color:var(--white)}
+
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -210,6 +219,13 @@
           <span class="qr-label">Scan to play from your phone</span>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-scoreboard">
+    <div>
+      <h2>Scoreboard</h2>
+      <div class="scoreboard-layout" id="scoreboardCols"></div>
     </div>
   </section>
 </main>
@@ -318,12 +334,15 @@ refreshStay();
 setInterval(refreshStay, 5*60*1000);   // re-check which guest is in-house every 5 minutes
 setInterval(render, 60*1000);          // re-evaluate the checkout-time threshold every minute in between
 
-// ── LIVE GAME (read-only spectator view — moves come from play.html) ──
-// Which of screen-home / screen-game is showing is driven entirely by
-// whether someone actually has play.html open right now (see the openedAt
-// heartbeat comment on the proxy's /game routes) — there's no timed
-// rotation here, unlike the checkout takeover above.
-let currentGame = { openedAt: 0 };
+// ── LIVE ACTIVITIES (read-only spectator view — input comes from play.html) ──
+// Which screen is showing (Welcome/Things To Do, tic-tac-toe, or the
+// scoreboard) is driven entirely by two things from the proxy's shared
+// gameState: mode (which activity play.html's dashboard currently has open,
+// null while a guest is still choosing) and the openedAt heartbeat (is a
+// phone actually there right now) — there's no timed rotation here, unlike
+// the checkout takeover above.
+let currentGame = { mode: null, openedAt: 0, players: [], playerCount: 2 };
+const escHtml = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 function isGameActive(){
   return (Date.now() - (currentGame.openedAt || 0)) < GAME_ACTIVE_WINDOW_MS;
@@ -338,11 +357,26 @@ function renderGame(g){
   $('#tttBoard').innerHTML = g.board.map(v => `<div class="ttt-cell ${v==='O'?'o':''}">${v||''}</div>`).join('');
 }
 
+// Player names are arbitrary guest-typed text going into innerHTML, so they
+// go through escHtml — unlike play.html's own render, which only ever sets
+// input.value/textContent and never needs to.
+function renderScoreboard(g){
+  const players = (g.players || []).slice(0, g.playerCount || 2);
+  $('#scoreboardCols').innerHTML = players.map((p, i) => `
+    <div class="scoreboard-col">
+      <div class="p-name">${escHtml(p.name || ('Player ' + (i+1)))}</div>
+      <div class="p-score">${p.score}</div>
+    </div>`).join('');
+}
+
 function updateMainScreen(){
   if($('#checkoutScreen').classList.contains('active')) return; // that takeover covers everything anyway
-  const showGame = isGameActive();
-  $('#screen-home').classList.toggle('active', !showGame);
-  $('#screen-game').classList.toggle('active', showGame);
+  const active = isGameActive();
+  const showTTT = active && currentGame.mode === 'tictactoe';
+  const showScoreboard = active && currentGame.mode === 'scoreboard';
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard);
+  $('#screen-game').classList.toggle('active', showTTT);
+  $('#screen-scoreboard').classList.toggle('active', showScoreboard);
 }
 
 async function refreshGame(){
@@ -350,6 +384,7 @@ async function refreshGame(){
     const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
     currentGame = await res.json();
     renderGame(currentGame);
+    renderScoreboard(currentGame);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }
