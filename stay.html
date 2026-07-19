@@ -213,14 +213,10 @@
     }
     .doc, .doc *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important }
   }
-  /* Positioned below header.bar (a sticky, z-index:20 bar, ~55px tall) rather
-     than in the very corner, so it never sits under (or over) that header. */
-  .ryst-watermark{position:fixed;top:67px;right:20px;z-index:5;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(11,61,82,.32);pointer-events:none;user-select:none;white-space:nowrap}
-  @media (max-width:640px){.ryst-watermark{font-size:10px;top:60px;right:12px}}
 </style>
 </head>
 <body>
-<div class="ryst-watermark" aria-hidden="true">RYST 109A</div>
+
 <div id="app" hidden>
   <header class="bar">
     <div class="bar-left">
