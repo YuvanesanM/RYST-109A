@@ -989,10 +989,21 @@
       .booking-steps { flex-direction: column; align-items: flex-start; gap: 16px; width: fit-content; max-width: 100%; margin: 4px auto 40px; }
       .bstep-label { font-size: 15px; }
     }
-  </style>
+    /* This page's fixed watermark would sit over both the dark photo hero and
+       the lighter sections further down as the visitor scrolls — a flat
+       color that reads on one washes out on the other, so it gets a small
+       translucent chip behind it instead, for consistent contrast either
+       way. It also sits below nav#nav (92px tall, 72px once .scrolled),
+       which is fixed with z-index:100 across the full page width — placing
+       the watermark inside that band, rather than fighting its z-index,
+       avoids it either being hidden behind nav or overlapping nav's own
+       links. */
+    .ryst-watermark{position:fixed;top:100px;right:20px;z-index:5;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:rgba(14,36,32,.32);backdrop-filter:blur(6px);padding:6px 12px;border-radius:100px;pointer-events:none;user-select:none;white-space:nowrap}
+  @media (max-width:640px){.ryst-watermark{font-size:10px;top:76px;right:12px;padding:5px 10px}}
+</style>
 </head>
 <body>
-
+<div class="ryst-watermark" aria-hidden="true">RYST 109A</div>
 <a href="#main" class="skip-link">Skip to main content</a>
 <div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
 

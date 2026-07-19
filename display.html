@@ -127,11 +127,12 @@
   .thanks-wrap p{color:var(--mist);font-size:clamp(14px,1.8vw,30px);line-height:1.65;margin-bottom:3.6vh;max-width:52vw;margin-left:auto;margin-right:auto}
   .thanks-wrap .qr{background:var(--white);border-radius:1.4vw;padding:1.6vw;display:inline-block;margin-bottom:2.2vh}
   .thanks-wrap .qr img{display:block;width:clamp(140px,15vw,260px);height:clamp(140px,15vw,260px)}
-  .thanks-wrap .qr-fallback{font-size:clamp(10px,1vw,16px);color:var(--mist);opacity:.75;word-break:break-all}
+  .ryst-watermark{position:fixed;top:16px;right:20px;z-index:5;font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3);pointer-events:none;user-select:none;white-space:nowrap}
+  @media (max-width:640px){.ryst-watermark{font-size:10px;top:10px;right:12px}}
 </style>
 </head>
 <body>
-
+<div class="ryst-watermark" aria-hidden="true">RYST 109A</div>
 <header>
   <img src="/assets/stay-logo.webp" alt="RYST 109A">
   <span class="name">RYST 109A Beach Villa</span>
@@ -220,7 +221,6 @@
     <div class="qr">
       <img id="feedbackQr" src="" alt="Scan to leave feedback" width="200" height="200">
     </div>
-    <p class="qr-fallback">Or visit: <span id="feedbackUrlText"></span></p>
   </div>
 </div>
 
@@ -293,7 +293,6 @@ function applyCheckoutScreen(show, stay){
     $('#checkoutHeading').textContent = guestFirst ? `Thank you for staying, ${guestFirst}!` : 'Thank you for staying with us!';
     const feedbackUrl = `${SITE_URL}/feedback.html?no=${encodeURIComponent(stay.no||'')}&guest=${encodeURIComponent(stay.guest||'')}`;
     $('#feedbackQr').src = qr(feedbackUrl, 260);
-    $('#feedbackUrlText').textContent = feedbackUrl;
   }
 }
 
