@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Tic-Tac-Toe | RYST 109A</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+<style>
+  @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#e8f2f0;
+    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480;
+    --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
+    --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html,body{background:var(--foam);color:var(--ink);font-family:var(--sans);min-height:100%;-webkit-font-smoothing:antialiased}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh}
+  .wrap{max-width:420px;width:100%}
+  .card{
+    position:relative;background:var(--white);border-radius:28px;padding:clamp(24px,5vw,40px);
+    box-shadow:0 28px 70px rgba(11,61,82,.16); border:1px solid rgba(255,255,255,.8); overflow:hidden;text-align:center;
+  }
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sea),var(--sea-mid),var(--sand))}
+  .logo{height:38px;display:block;margin:0 auto 12px;object-fit:contain}
+  h1{font-family:var(--serif);font-weight:600;font-size:26px;color:var(--sea);margin-bottom:4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5}
+
+  .scoreboard{display:flex;gap:10px;margin-bottom:18px}
+  .score{flex:1;background:var(--foam);border-radius:16px;padding:12px 8px}
+  .score .mark{font-family:var(--serif);font-weight:600;font-size:20px}
+  .score.x .mark{color:var(--sea-mid)}
+  .score.o .mark{color:var(--coral)}
+  .score .n{font-family:var(--serif);font-weight:600;font-size:30px;color:var(--ink)}
+
+  .turn{font-size:14px;font-weight:600;color:var(--muted);min-height:20px;margin-bottom:18px}
+  .turn .mark.x{color:var(--sea-mid)}
+  .turn .mark.o{color:var(--coral)}
+
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 auto 22px;max-width:300px}
+  .cell{
+    aspect-ratio:1;background:var(--foam);border:none;border-radius:16px;font-family:var(--serif);
+    font-size:42px;font-weight:600;color:var(--sea-mid);cursor:pointer;transition:background .15s;
+  }
+  .cell:not(:disabled):active{background:#dcece8}
+  .cell.o{color:var(--coral)}
+  .cell:disabled{cursor:default}
+
+  .actions{display:flex;gap:10px}
+  .btn{
+    flex:1;padding:13px;border:none;border-radius:12px;cursor:pointer;font-family:var(--sans);
+    font-size:13.5px;font-weight:600;transition:transform .15s var(--ease);
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;box-shadow:0 10px 26px rgba(20,40,50,.22)}
+  .btn.ghost{background:var(--white);color:var(--muted);border:1.5px solid var(--line)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
+    <h1>Tic-Tac-Toe</h1>
+    <p class="sub">Shared with the pool screen — everyone staying at the villa plays on the same board, so just take turns.</p>
+
+    <div class="scoreboard">
+      <div class="score x"><div class="mark">X</div><div class="n" id="scoreX">0</div></div>
+      <div class="score o"><div class="mark">O</div><div class="n" id="scoreO">0</div></div>
+    </div>
+
+    <p class="turn" id="turnLabel">&nbsp;</p>
+    <div class="board" id="board"></div>
+
+    <div class="actions">
+      <button type="button" class="btn primary" id="newRoundBtn">New round</button>
+      <button type="button" class="btn ghost" id="resetScoresBtn">Reset scores</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+const $ = s => document.querySelector(s);
+let state = { board: Array(9).fill(null), turn: 'X', winner: null, scoreX: 0, scoreO: 0 };
+let busy = false; // guards against double-taps firing two moves before the poll catches up
+
+function render(){
+  $('#scoreX').textContent = state.scoreX;
+  $('#scoreO').textContent = state.scoreO;
+  if(state.winner === 'draw') $('#turnLabel').innerHTML = "It's a draw!";
+  else if(state.winner) $('#turnLabel').innerHTML = `<span class="mark ${state.winner.toLowerCase()}">${state.winner}</span> wins!`;
+  else $('#turnLabel').innerHTML = `<span class="mark ${state.turn.toLowerCase()}">${state.turn}</span>'s turn`;
+
+  $('#board').innerHTML = state.board.map((v,i) =>
+    `<button type="button" class="cell ${v==='O'?'o':''}" data-i="${i}" ${v||state.winner?'disabled':''}>${v||''}</button>`
+  ).join('');
+  $('#board').querySelectorAll('.cell').forEach(btn => btn.addEventListener('click', () => move(Number(btn.dataset.i))));
+}
+
+async function move(i){
+  if(busy || state.board[i] || state.winner) return;
+  busy = true;
+  try{
+    const res = await fetch(PROXY_URL+'/game/move', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ i }), cache: 'no-store',
+    });
+    state = await res.json();
+    render();
+  }catch(e){ /* next poll will resync */ }
+  busy = false;
+}
+
+$('#newRoundBtn').addEventListener('click', async () => {
+  try{ state = await (await fetch(PROXY_URL+'/game/new-round', { method:'POST', cache:'no-store' })).json(); render(); }catch(e){}
+});
+$('#resetScoresBtn').addEventListener('click', async () => {
+  if(!confirm('Reset the scoreboard to 0-0?')) return;
+  try{ state = await (await fetch(PROXY_URL+'/game/reset-scores', { method:'POST', cache:'no-store' })).json(); render(); }catch(e){}
+});
+
+// Polls so this stays in sync with the pool screen and anyone else's phone
+// playing the same shared board.
+async function poll(){
+  if(busy) return;
+  try{
+    const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
+    state = await res.json();
+    render();
+  }catch(e){ /* keep showing the last known state */ }
+}
+poll();
+setInterval(poll, 1200);
+</script>
+</body>
+</html>
