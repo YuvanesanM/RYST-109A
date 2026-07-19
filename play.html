@@ -8,6 +8,7 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
   @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
@@ -110,7 +111,14 @@
   <div class="card">
     <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
 
-    <section class="screen active" id="screen-dashboard">
+    <section class="screen active" id="screen-signin">
+      <h1>Sign in to play</h1>
+      <p class="sub">This screen is only available to guests currently staying at RYST 109A — sign in with the email used for your booking.</p>
+      <div id="googleSignInBtn" style="display:flex;justify-content:center;min-height:44px;margin-bottom:10px"></div>
+      <p class="sub" id="signinErr" style="color:var(--coral);min-height:16px"></p>
+    </section>
+
+    <section class="screen" id="screen-dashboard">
       <h1>What would you like to do?</h1>
       <p class="sub">Shared with the pool screen — everyone staying at the villa sees the same thing.</p>
       <div class="menu">
@@ -185,23 +193,88 @@ let state = {
 };
 let busy = false; // guards tic-tac-toe against double-taps firing two moves before the poll catches up
 
+// This screen is otherwise open to the whole internet (no per-guest room
+// codes), so every mutation needs a session from /auth/guest — staff
+// (data/users.json) always get one; anyone else only if their signed-in
+// email matches the guest email on a booking checked in today (see the
+// proxy's /auth/guest and README for the exact rule). GET /game itself
+// stays unauthenticated (reading isn't "controlling the screen"), so the
+// board can still be polled while this gate is up.
+let playToken = localStorage.getItem('ryst_play_token') || '';
+
 async function postJson(path, body){
   const res = await fetch(PROXY_URL+path, {
-    method:'POST', headers:{'Content-Type':'application/json'},
+    method:'POST', headers:{'Content-Type':'application/json', 'X-Token': playToken},
     body: body===undefined ? undefined : JSON.stringify(body), cache:'no-store',
   });
-  // A 429 (or any error) body is {error:"..."}, not a gameState — treating it
-  // as one would blow away board/players and crash the next render(). Keep
-  // showing whatever was last known good instead.
+  if(res.status === 401){
+    // Token missing/expired/rejected — drop back to the sign-in gate rather
+    // than silently failing every tap from here on.
+    playToken = '';
+    localStorage.removeItem('ryst_play_token');
+    render();
+    return state;
+  }
+  // A 429 (or any other error) body is {error:"..."}, not a gameState —
+  // treating it as one would blow away board/players and crash the next
+  // render(). Keep showing whatever was last known good instead.
   if(!res.ok) return state;
   return res.json();
 }
 
 function showScreen(mode){
-  $('#screen-dashboard').classList.toggle('active', mode !== 'tictactoe' && mode !== 'scoreboard');
-  $('#screen-tictactoe').classList.toggle('active', mode === 'tictactoe');
-  $('#screen-scoreboard').classList.toggle('active', mode === 'scoreboard');
+  const screen = playToken ? mode : 'signin';
+  $('#screen-signin').classList.toggle('active', screen === 'signin');
+  $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && screen !== 'tictactoe' && screen !== 'scoreboard');
+  $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
+  $('#screen-scoreboard').classList.toggle('active', screen === 'scoreboard');
 }
+
+// ── GOOGLE SIGN-IN ── same OAuth client + proxy backend as login.html and
+// signage.ryst.in — stay.ryst.in is already an authorised JavaScript origin
+// for it, so nothing extra needs configuring in Google Cloud Console.
+const GOOGLE_CLIENT_ID = '717827758789-99ugj40a6j2rr4r7db26shn0hivq0vv0.apps.googleusercontent.com';
+
+async function handleGoogleLogin(credentialResponse){
+  const errEl = $('#signinErr');
+  errEl.textContent = 'Verifying…';
+  try{
+    const res = await fetch(PROXY_URL+'/auth/guest', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ googleIdToken: credentialResponse.credential }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(data.ok && data.token){
+      playToken = data.token;
+      localStorage.setItem('ryst_play_token', playToken);
+      errEl.textContent = '';
+      poll();
+    } else {
+      errEl.textContent = data.error || 'Access denied.';
+    }
+  }catch(e){
+    errEl.textContent = 'Could not reach the server — check your connection.';
+  }
+}
+
+let gsiRendered = false;
+function initGoogleSignIn(){
+  if(gsiRendered) return;
+  if(typeof google === 'undefined' || !google.accounts || !google.accounts.id) return;
+  const target = $('#googleSignInBtn');
+  if(!target) return;
+  gsiRendered = true;
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin, auto_select: false });
+  google.accounts.id.renderButton(target, { theme:'outline', size:'large', width: 280, text:'signin_with' });
+}
+window.onGoogleLibraryLoad = initGoogleSignIn;
+window.addEventListener('load', initGoogleSignIn);
+setTimeout(() => {
+  if(!gsiRendered){
+    const errEl = $('#signinErr');
+    if(errEl) errEl.textContent = 'Could not load Google Sign-In — check your connection or disable ad blockers, then reload.';
+  }
+}, 8000);
 
 function renderTicTacToe(){
   $('#scoreX').textContent = state.scoreX;
@@ -300,8 +373,14 @@ setInterval(poll, 1200);
 
 // Lets display.html (the poolside screen) know someone actually has this
 // page open right now — a heartbeat, not a move, so it's sent on load and
-// re-sent periodically for as long as this tab stays open.
-function ping(){ fetch(PROXY_URL+'/game/open', { method:'POST', cache:'no-store' }).catch(()=>{}); }
+// re-sent periodically for as long as this tab stays open. Like every other
+// mutation it needs a token, so this simply does nothing until signed in.
+function ping(){
+  if(!playToken) return;
+  fetch(PROXY_URL+'/game/open', { method:'POST', headers:{'X-Token':playToken}, cache:'no-store' })
+    .then(res => { if(res.status === 401){ playToken=''; localStorage.removeItem('ryst_play_token'); render(); } })
+    .catch(()=>{});
+}
 ping();
 setInterval(ping, 10000);
 </script>
