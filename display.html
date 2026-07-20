@@ -157,29 +157,36 @@
     position:relative;z-index:1;text-align:center;font-family:var(--serif);font-weight:600;color:var(--white);
     font-size:clamp(28px,7vw,140px);line-height:1.15;text-shadow:0 6px 40px rgba(0,0,0,.55);padding:0 4vw;word-break:break-word;
   }
-  @keyframes bd-party-spin{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
-  .backdrop-bg.party{
-    background:
-      radial-gradient(circle at 30% 30%, #e2794a, transparent 60%),
-      radial-gradient(circle at 70% 70%, #1a6a7a, transparent 60%),
-      radial-gradient(circle at 50% 50%, #0b3d52, #040f15 80%);
-    animation:bd-party-spin 6s linear infinite;
-  }
-  @keyframes bd-confetti-fall{
-    0%{background-position:0 0, 40px 60px, 20px 90px, 70px 20px, 55px 45px}
-    100%{background-position:0 900px, 40px 960px, 20px 990px, 70px 920px, 55px 945px}
-  }
-  .backdrop-bg.confetti{
-    background-color:#061a24;
-    background-image:
-      radial-gradient(circle, #e2794a 4px, transparent 5px),
-      radial-gradient(circle, #e8c17e 4px, transparent 5px),
-      radial-gradient(circle, #1a6a7a 4px, transparent 5px),
-      radial-gradient(circle, #fbfaf8 3px, transparent 4px),
-      radial-gradient(circle, #c96a3b 3px, transparent 4px);
-    background-size:110px 110px, 150px 150px, 90px 90px, 130px 130px, 70px 70px;
-    animation:bd-confetti-fall 8s linear infinite;
-  }
+  /* Party Lights — several independently drifting, blurred colour blobs that
+     overlap and sweep like stage lighting (screen-blended so they mix), rather
+     than one uniform hue-rotate spin where everything shifts colour in lockstep. */
+  .backdrop-bg.party{background:radial-gradient(120% 130% at 50% 15%, #0b2f3f 0%, #061a24 55%, #04121a 100%)}
+  .plight{position:absolute;border-radius:50%;filter:blur(48px);opacity:.72;mix-blend-mode:screen;will-change:transform}
+  .backdrop-bg:not(.party) .plight{display:none}
+  .plight.l1{width:38vw;height:38vw;left:4%;top:8%;background:#e2794a;animation:bd-drift1 13s ease-in-out infinite alternate}
+  .plight.l2{width:32vw;height:32vw;right:6%;top:4%;background:#d6318f;animation:bd-drift2 17s ease-in-out infinite alternate}
+  .plight.l3{width:42vw;height:42vw;left:28%;bottom:2%;background:#7a5cff;animation:bd-drift3 15s ease-in-out infinite alternate}
+  .plight.l4{width:28vw;height:28vw;right:20%;bottom:8%;background:#17a6b8;animation:bd-drift4 19s ease-in-out infinite alternate}
+  .plight.l5{width:24vw;height:24vw;left:42%;top:30%;background:#e8c17e;animation:bd-drift5 11s ease-in-out infinite alternate}
+  @keyframes bd-drift1{from{transform:translate(0,0) scale(1)}to{transform:translate(16vw,12vh) scale(1.15)}}
+  @keyframes bd-drift2{from{transform:translate(0,0) scale(1.1)}to{transform:translate(-13vw,16vh) scale(.9)}}
+  @keyframes bd-drift3{from{transform:translate(0,0) scale(1)}to{transform:translate(10vw,-14vh) scale(1.2)}}
+  @keyframes bd-drift4{from{transform:translate(0,0) scale(.95)}to{transform:translate(-14vw,-10vh) scale(1.1)}}
+  @keyframes bd-drift5{from{transform:translate(0,0) scale(1.05)}to{transform:translate(12vw,10vh) scale(.85)}}
+
+  /* Confetti — individual pieces (built in JS) each with its own fall speed,
+     sideways sway and 3D tumble, so it flutters naturally instead of a rigid
+     grid of dots sliding in perfect lockstep. */
+  .backdrop-bg.confetti{background:radial-gradient(120% 130% at 50% 15%, #0b2f3f 0%, #061a24 60%, #04121a 100%)}
+  #confettiField{position:absolute;inset:0;overflow:hidden;perspective:700px}
+  .backdrop-bg:not(.confetti) #confettiField{display:none}
+  .cf-fall{position:absolute;top:-9vh;animation:bd-cf-fall linear infinite;will-change:transform}
+  @keyframes bd-cf-fall{to{transform:translateY(122vh)}}
+  .cf-sway{display:block;animation:bd-cf-sway ease-in-out infinite alternate}
+  @keyframes bd-cf-sway{from{transform:translateX(calc(var(--swx) * -1))}to{transform:translateX(var(--swx))}}
+  .cf-spin{display:block;animation:bd-cf-spin linear infinite}
+  @keyframes bd-cf-spin{to{transform:rotateX(600deg) rotateZ(360deg)}}
+
   @keyframes bd-glow-pulse{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
   .backdrop-bg.glow{background:radial-gradient(circle at 50% 45%, #f3ddae, #d4ad6a 45%, #0b3d52 85%, #040f15 100%)}
   .backdrop-bg.glow::before{
@@ -328,7 +335,10 @@
 
   <section class="screen" id="screen-backdrop">
     <div class="backdrop-wrap">
-      <div class="backdrop-bg party" id="backdropBg"></div>
+      <div class="backdrop-bg party" id="backdropBg">
+        <span class="plight l1"></span><span class="plight l2"></span><span class="plight l3"></span><span class="plight l4"></span><span class="plight l5"></span>
+        <div id="confettiField"></div>
+      </div>
       <div class="backdrop-text" id="backdropText">Let's Celebrate!</div>
     </div>
   </section>
@@ -554,9 +564,43 @@ const BACKDROP_PRESETS = ['party', 'confetti', 'glow'];
 function renderBackdropDisplay(g){
   const b = g.backdrop || { text: '', preset: 'party' };
   const preset = BACKDROP_PRESETS.includes(b.preset) ? b.preset : 'party';
+  // Only touch the class list, not innerHTML — the drifting lights and the
+  // confetti field are persistent children of #backdropBg, shown/hidden by
+  // CSS on this class, so they must survive a preset change.
   $('#backdropBg').className = 'backdrop-bg ' + preset;
   $('#backdropText').textContent = (b.text && b.text.trim()) ? b.text : "Let's Celebrate!";
 }
+
+// Build the confetti pieces once — each gets a randomised fall speed, sway
+// distance, tumble speed, colour and size so no two move alike (that's the
+// point of the rework: natural flutter, not a synchronised grid). A negative
+// delay staggers them so they're already spread down the screen at load
+// rather than all starting at the top together. They only animate while the
+// confetti backdrop is actually on screen — CSS display:none the rest of the
+// time pauses every animation — so this costs nothing otherwise.
+(function buildConfetti(){
+  const field = document.getElementById('confettiField');
+  if(!field) return;
+  const colors = ['#e2794a','#e8c17e','#17a6b8','#d6318f','#7a5cff','#fbfaf8'];
+  let html = '';
+  for(let i = 0; i < 56; i++){
+    const left = (Math.random()*100).toFixed(1);
+    const fall = (4.5 + Math.random()*5.5).toFixed(2);
+    const delay = (-Math.random()*fall).toFixed(2);
+    const sway = (2.4 + Math.random()*3.6).toFixed(2);
+    const swx = (8 + Math.random()*24).toFixed(0);
+    const spin = (2.2 + Math.random()*4).toFixed(2);
+    const w = (6 + Math.random()*7).toFixed(0);
+    const h = (9 + Math.random()*11).toFixed(0);
+    const col = colors[i % colors.length];
+    const radius = Math.random() < 0.28 ? '50%' : '1px';
+    html += `<span class="cf-fall" style="left:${left}%;animation-duration:${fall}s;animation-delay:${delay}s">`
+          +   `<span class="cf-sway" style="--swx:${swx}px;animation-duration:${sway}s">`
+          +     `<i class="cf-spin" style="width:${w}px;height:${h}px;background:${col};border-radius:${radius};animation-duration:${spin}s"></i>`
+          +   `</span></span>`;
+  }
+  field.innerHTML = html;
+})();
 
 // ── DJ VISUALIZER (procedural canvas light-show) ──
 // The pool screen has no audio input, so this doesn't react to real music —
