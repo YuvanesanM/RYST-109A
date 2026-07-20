@@ -669,9 +669,26 @@ function vizGradient(w, pal){
 // motion whenever it's there, but keeps the exact same visual structure
 // either way, so switching in/out of live audio never changes the *shape*
 // of a preset, only what's driving it.
+// A rounded segment; falls back to a plain rect on the rare browser without
+// CanvasRenderingContext2D.roundRect (this whole feature already assumes a
+// fairly modern browser — fetch/WebSocket/Web Audio — so this is a safety
+// net, not the expected path).
+function drawSpectrumSeg(x, y, w, h){
+  if(vizCtx.roundRect){ vizCtx.beginPath(); vizCtx.roundRect(x, y, w, h, Math.min(2, h/2)); vizCtx.fill(); }
+  else vizCtx.fillRect(x, y, w, h);
+}
+
+// Classic segmented LED-equalizer look: discrete glowing blocks stacked
+// outward from a centre line in both directions, rather than one solid bar
+// growing from a baseline. Each bar's amplitude is otherwise computed
+// exactly as before (live bin or procedural sine blend) — only how it's
+// drawn changed.
 function drawSpectrum(t, w, h, pal, beat, live){
-  const N = (live && live.bins) ? live.bins.length : 44, gap = w / N, barW = gap * 0.58, mid = h * 0.66;
-  vizCtx.fillStyle = vizGradient(w, pal);
+  const N = (live && live.bins) ? live.bins.length : 48, gap = w / N, barW = gap * 0.62;
+  const midY = h * 0.5;
+  const segH = Math.max(3, h * 0.016), segGap = segH * 0.55, segStep = segH + segGap;
+  const grad = vizGradient(w, pal); // one gradient across the whole canvas — each bar's x position samples its own colour from it, same as before
+
   for(let i = 0; i < N; i++){
     let v;
     if(live && live.bins) v = Math.max(0.03, live.bins[i] / 255);
@@ -681,11 +698,27 @@ function drawSpectrum(t, w, h, pal, beat, live){
       const fast = 0.5 + 0.5 * Math.sin(t * 0.006 + i * 0.9);
       v = Math.max(0.04, Math.min(1, (slow * 0.7 + fast * 0.3) * (0.5 + beat * 0.7)));
     }
-    const bh = v * h * 0.5, x = i * gap + (gap - barW) / 2;
+    const x = i * gap + (gap - barW) / 2;
+    const halfExtent = v * h * 0.44;
+
+    // Soft glow halo — one blurred rect per bar (cheap: cost scales with bar
+    // count, not with how many LED segments are lit), sitting behind the
+    // crisp segments drawn on top of it.
+    vizCtx.save();
+    vizCtx.fillStyle = grad;
+    vizCtx.globalAlpha = 0.4;
+    vizCtx.filter = 'blur(5px)';
+    vizCtx.fillRect(x, midY - halfExtent, barW, halfExtent * 2);
+    vizCtx.restore();
+
+    vizCtx.fillStyle = grad;
     vizCtx.globalAlpha = 1;
-    vizCtx.fillRect(x, mid - bh, barW, bh);
-    vizCtx.globalAlpha = 0.22; // reflection
-    vizCtx.fillRect(x, mid + 2, barW, bh * 0.45);
+    const segCount = Math.max(1, Math.floor(halfExtent / segStep));
+    for(let s = 0; s < segCount; s++){
+      const dy = s * segStep;
+      drawSpectrumSeg(x, midY - dy - segH / 2, barW, segH);
+      if(s > 0) drawSpectrumSeg(x, midY + dy - segH / 2, barW, segH); // s=0 is the shared centre segment — don't draw it twice
+    }
   }
   vizCtx.globalAlpha = 1;
 }
