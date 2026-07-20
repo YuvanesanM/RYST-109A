@@ -147,6 +147,19 @@
     color:var(--muted);font-family:var(--sans);font-weight:700;font-size:12.5px;cursor:pointer;
   }
   .viz-tempo-btn.active{background:var(--sea);border-color:var(--sea);color:#fff}
+  .viz-tempo-btn:disabled{opacity:.45;cursor:not-allowed}
+
+  .viz-live-card{background:var(--foam);border-radius:16px;padding:16px;margin-top:20px}
+  .viz-live-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .viz-live-title{font-family:var(--serif);font-weight:600;font-size:15px;color:var(--sea)}
+  .viz-live-dot{width:9px;height:9px;border-radius:50%;background:var(--muted2,#9aa097);flex-shrink:0}
+  .viz-live-dot.on{background:var(--coral);animation:viz-live-pulse 1.1s ease-in-out infinite}
+  @keyframes viz-live-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .viz-live-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px}
+  .viz-live-status{font-size:12.5px;font-weight:600;margin-bottom:10px;min-height:16px}
+  .viz-live-status.err{color:var(--coral)}
+  .viz-live-status.ok{color:var(--sea-mid)}
+  .viz-live-status.warn{color:#c0922f}
 
   /* ── MEMORY MATCH ── */
   .mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 auto 22px;max-width:300px}
@@ -318,6 +331,14 @@
           <button type="button" class="viz-tempo-btn" data-bpm="120">Medium</button>
           <button type="button" class="viz-tempo-btn" data-bpm="160">Fast</button>
         </div>
+      </div>
+
+      <div class="viz-live-card">
+        <div class="viz-live-head"><span class="viz-live-dot" id="vizLiveDot"></span><span class="viz-live-title">Live Audio</span></div>
+        <p class="viz-live-desc">Use this phone's microphone so the visuals react to the actual music instead of the tempo above. Only one phone can be live at a time — hold it near the speaker for the best result.</p>
+        <p class="viz-live-status" id="vizLiveStatus">&nbsp;</p>
+        <button type="button" class="btn primary" id="vizGoLiveBtn">🎤 Go Live</button>
+        <button type="button" class="btn ghost" id="vizStopLiveBtn" style="display:none">Stop</button>
       </div>
     </section>
 
@@ -603,6 +624,145 @@ document.querySelectorAll('.viz-tempo-btn').forEach(btn => {
     try{ state = await postJson('/game/viz/set', { bpm: Number(btn.dataset.bpm) }); render(); }catch(e){}
   });
 });
+
+// ── LIVE AUDIO (this phone's microphone drives the pool screen) ──
+// A separate channel from everything else here: /game and /game/mode/etc
+// are the polled REST state, but audio features need to move far more
+// often than a 1.2s poll could carry them, so this opens its own
+// WebSocket straight to the proxy. Only one phone is ever "the DJ" —
+// claiming takes the role from whoever had it, and that phone is told via
+// a 'displaced' message so its own UI updates instead of just silently
+// going quiet.
+const WS_URL = PROXY_URL.replace(/^http/, 'ws') + '/game/audio';
+const AUDIO_SEND_INTERVAL_MS = 50; // ~20/s — under the server's 40ms floor with margin
+const AUDIO_BIN_COUNT = 32;
+const BEAT_REFRACTORY_MS = 200; // don't re-trigger a beat flash faster than this even if bass stays hot
+
+let liveWs = null, liveCtx = null, liveStream = null, liveAnalyser = null, liveRaf = null;
+let liveAvgBass = 0, liveLastBeatAt = 0, liveLastSendAt = 0;
+
+function setLiveStatus(text, cls){
+  const el = $('#vizLiveStatus');
+  el.textContent = text;
+  el.className = 'viz-live-status' + (cls ? ' '+cls : '');
+}
+
+function setLiveUI(isLive){
+  $('#vizLiveDot').classList.toggle('on', isLive);
+  $('#vizGoLiveBtn').style.display = isLive ? 'none' : '';
+  $('#vizStopLiveBtn').style.display = isLive ? '' : 'none';
+  document.querySelectorAll('.viz-tempo-btn').forEach(b => b.disabled = isLive);
+}
+
+// Groups the analyser's raw frequency bins down to a fixed small count —
+// display.html doesn't need (or want to pay the bandwidth for) full FFT
+// resolution, just enough bars to look like a real spectrum.
+function downsampleBins(data, outCount){
+  const out = new Array(outCount);
+  const per = Math.floor(data.length / outCount) || 1;
+  for(let i = 0; i < outCount; i++){
+    let sum = 0;
+    for(let j = 0; j < per; j++) sum += data[i*per + j] || 0;
+    out[i] = Math.round(sum / per);
+  }
+  return out;
+}
+
+function stopLiveAudio(){
+  if(liveRaf){ cancelAnimationFrame(liveRaf); liveRaf = null; }
+  if(liveWs){
+    try{ if(liveWs.readyState === WebSocket.OPEN) liveWs.send(JSON.stringify({type:'release'})); }catch(e){}
+    try{ liveWs.close(); }catch(e){}
+    liveWs = null;
+  }
+  if(liveStream){ liveStream.getTracks().forEach(t => t.stop()); liveStream = null; }
+  if(liveCtx){ liveCtx.close().catch(()=>{}); liveCtx = null; }
+  liveAnalyser = null;
+  setLiveUI(false);
+}
+
+function liveAnalysisLoop(){
+  if(!liveAnalyser) return;
+  const data = new Uint8Array(liveAnalyser.frequencyBinCount);
+  liveAnalyser.getByteFrequencyData(data);
+
+  const bassEnd = Math.floor(data.length * 0.12), midEnd = Math.floor(data.length * 0.5);
+  let bassSum=0, midSum=0, trebleSum=0, total=0;
+  for(let i=0;i<data.length;i++){
+    total += data[i];
+    if(i < bassEnd) bassSum += data[i];
+    else if(i < midEnd) midSum += data[i];
+    else trebleSum += data[i];
+  }
+  const level = total/data.length/255;
+  const bass = bassSum/Math.max(1,bassEnd)/255;
+  const mid = midSum/Math.max(1,midEnd-bassEnd)/255;
+  const treble = trebleSum/Math.max(1,data.length-midEnd)/255;
+
+  // Simple onset detector: a beat is bass energy spiking well above its own
+  // recent rolling average, with a refractory window so one hit can't
+  // retrigger many times while it decays.
+  const now = performance.now();
+  let beat = false;
+  if(bass > liveAvgBass * 1.3 && bass > 0.15 && now - liveLastBeatAt > BEAT_REFRACTORY_MS){
+    beat = true; liveLastBeatAt = now;
+  }
+  liveAvgBass = liveAvgBass*0.92 + bass*0.08;
+
+  if(now - liveLastSendAt >= AUDIO_SEND_INTERVAL_MS && liveWs && liveWs.readyState === WebSocket.OPEN){
+    liveLastSendAt = now;
+    liveWs.send(JSON.stringify({ type:'audio', bins: downsampleBins(data, AUDIO_BIN_COUNT), level, bass, mid, treble, beat }));
+  }
+  liveRaf = requestAnimationFrame(liveAnalysisLoop);
+}
+
+async function goLive(){
+  if(!playToken) return;
+  setLiveStatus('Requesting microphone…');
+  try{
+    liveStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  }catch(e){
+    setLiveStatus('Microphone access denied — check your browser/site settings.', 'err');
+    return;
+  }
+  liveCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const source = liveCtx.createMediaStreamSource(liveStream);
+  liveAnalyser = liveCtx.createAnalyser();
+  liveAnalyser.fftSize = 256;
+  source.connect(liveAnalyser); // deliberately NOT connected to liveCtx.destination — no need to play the mic back through the phone's speaker
+
+  liveWs = new WebSocket(WS_URL + '?token=' + encodeURIComponent(playToken));
+  liveWs.addEventListener('open', () => {
+    liveWs.send(JSON.stringify({ type:'claim' }));
+    setLiveStatus('🔴 You\'re live — the pool screen is following this phone\'s mic.', 'ok');
+    setLiveUI(true);
+    liveAvgBass = 0; liveLastBeatAt = 0; liveLastSendAt = 0;
+    liveRaf = requestAnimationFrame(liveAnalysisLoop);
+  });
+  liveWs.addEventListener('message', ev => {
+    let msg; try{ msg = JSON.parse(ev.data); }catch(e){ return; }
+    if(msg && msg.type === 'displaced'){
+      setLiveStatus('Someone else went live from their phone.', 'warn');
+      stopLiveAudio();
+    }
+  });
+  liveWs.addEventListener('close', () => {
+    if(liveAnalyser){ // an unexpected drop, not our own stopLiveAudio() call (which clears liveWs first)
+      setLiveStatus('Connection lost — tap Go Live to try again.', 'err');
+      stopLiveAudio();
+    }
+  });
+  liveWs.addEventListener('error', () => {});
+}
+
+$('#vizGoLiveBtn').addEventListener('click', goLive);
+$('#vizStopLiveBtn').addEventListener('click', () => { stopLiveAudio(); setLiveStatus(' '); });
+
+// Never leave the mic running somewhere the guest isn't looking at: stop
+// live audio if this phone switches to another activity, backs out of DJ
+// Visuals, or the tab/screen goes into the background.
+document.querySelectorAll('.menu-item, [data-back]').forEach(btn => btn.addEventListener('click', () => { if(liveAnalyser) stopLiveAudio(); }));
+document.addEventListener('visibilitychange', () => { if(document.hidden && liveAnalyser) stopLiveAudio(); });
 
 // Polls so this stays in sync with the pool screen and anyone else's phone —
 // including which activity is open, so every phone and the big screen are

@@ -620,20 +620,64 @@ const vizCanvas = $('#vizCanvas');
 const vizCtx = vizCanvas.getContext('2d');
 let vizRaf = null, vizStart = 0, vizBarSeed = [], vizParticles = [];
 
+// ── LIVE AUDIO (a phone's microphone, relayed over WebSocket) ──
+// A guest can "go live" from play.html so this screen reacts to the actual
+// music instead of the procedural bpm pulse below. This screen only ever
+// listens (no token — same public, read-only stance as GET /game); the
+// connection is opened/closed alongside the visualizer's own RAF loop
+// (startViz/stopViz) since neither is useful while some other activity is
+// showing.
+const AUDIO_WS_URL = PROXY_URL.replace(/^http/, 'ws') + '/game/audio';
+const LIVE_AUDIO_STALE_MS = 2000;   // no frame this long -> fall back to procedural, so a dropped phone never leaves a frozen visual
+const LIVE_BEAT_DECAY_MS = 220;     // how long a detected beat's visual pulse takes to fade back to baseline
+let audioWs = null, audioReconnectTimer = null;
+let liveAudio = { bins: null, level: 0, bass: 0, mid: 0, treble: 0, at: 0 };
+let liveLastBeatAt = 0, liveBeatPending = false;
+
+function connectAudioListener(){
+  if(audioWs) return;
+  audioWs = new WebSocket(AUDIO_WS_URL + '?role=listen');
+  audioWs.addEventListener('message', ev => {
+    let msg; try{ msg = JSON.parse(ev.data); }catch(e){ return; }
+    if(!msg || msg.type !== 'audio') return;
+    liveAudio = { bins: Array.isArray(msg.bins) ? msg.bins : null, level: +msg.level||0, bass: +msg.bass||0, mid: +msg.mid||0, treble: +msg.treble||0, at: Date.now() };
+    if(msg.beat){ liveLastBeatAt = performance.now(); liveBeatPending = true; }
+  });
+  const scheduleReconnect = () => {
+    audioWs = null;
+    if(vizRaf && !audioReconnectTimer) audioReconnectTimer = setTimeout(() => { audioReconnectTimer = null; connectAudioListener(); }, 3000);
+  };
+  audioWs.addEventListener('close', scheduleReconnect);
+  audioWs.addEventListener('error', () => {}); // 'close' still follows — cleanup happens there
+}
+function disconnectAudioListener(){
+  if(audioReconnectTimer){ clearTimeout(audioReconnectTimer); audioReconnectTimer = null; }
+  if(audioWs){ try{ audioWs.close(); }catch(e){} audioWs = null; }
+}
+
 function vizGradient(w, pal){
   const g = vizCtx.createLinearGradient(0, 0, w, 0);
   pal.stops.forEach((c, i) => g.addColorStop(i / (pal.stops.length - 1), c));
   return g;
 }
 
-function drawSpectrum(t, w, h, pal, beat){
-  const N = 44, gap = w / N, barW = gap * 0.58, mid = h * 0.66;
+// `live` (when present) is this frame's real mic data — { bins, level }.
+// Each draw function uses live.bins/level in place of its own simulated
+// motion whenever it's there, but keeps the exact same visual structure
+// either way, so switching in/out of live audio never changes the *shape*
+// of a preset, only what's driving it.
+function drawSpectrum(t, w, h, pal, beat, live){
+  const N = (live && live.bins) ? live.bins.length : 44, gap = w / N, barW = gap * 0.58, mid = h * 0.66;
   vizCtx.fillStyle = vizGradient(w, pal);
   for(let i = 0; i < N; i++){
-    const s = vizBarSeed[i] || 0;
-    const slow = 0.5 + 0.5 * Math.sin(t * 0.0022 * (1 + s * 0.7) + i * 0.5 + s * 6);
-    const fast = 0.5 + 0.5 * Math.sin(t * 0.006 + i * 0.9);
-    const v = Math.max(0.04, Math.min(1, (slow * 0.7 + fast * 0.3) * (0.5 + beat * 0.7)));
+    let v;
+    if(live && live.bins) v = Math.max(0.03, live.bins[i] / 255);
+    else {
+      const s = vizBarSeed[i] || 0;
+      const slow = 0.5 + 0.5 * Math.sin(t * 0.0022 * (1 + s * 0.7) + i * 0.5 + s * 6);
+      const fast = 0.5 + 0.5 * Math.sin(t * 0.006 + i * 0.9);
+      v = Math.max(0.04, Math.min(1, (slow * 0.7 + fast * 0.3) * (0.5 + beat * 0.7)));
+    }
     const bh = v * h * 0.5, x = i * gap + (gap - barW) / 2;
     vizCtx.globalAlpha = 1;
     vizCtx.fillRect(x, mid - bh, barW, bh);
@@ -643,10 +687,11 @@ function drawSpectrum(t, w, h, pal, beat){
   vizCtx.globalAlpha = 1;
 }
 
-function drawWaveform(t, w, h, pal, beat){
+function drawWaveform(t, w, h, pal, beat, live){
   const grad = vizGradient(w, pal), yc = h * 0.5, layers = 3;
+  const ampBase = live ? (0.35 + live.level * 1.3) : (0.5 + beat * 0.75);
   for(let L = 0; L < layers; L++){
-    const amp = h * 0.16 * (0.5 + beat * 0.75) * (1 - L * 0.22), phase = t * 0.004 + L * 1.3;
+    const amp = h * 0.16 * ampBase * (1 - L * 0.22), phase = t * 0.004 + L * 1.3;
     vizCtx.beginPath();
     for(let x = 0; x <= w; x += 6){
       const k = x / w;
@@ -703,20 +748,34 @@ function vizFrame(now){
   const g = currentGame.viz || {};
   const pal = VIZ_PALETTES[g.palette] || VIZ_PALETTES.neon;
   const preset = VIZ_PRESETS.includes(g.preset) ? g.preset : 'spectrum';
-  const bpm = Math.min(180, Math.max(60, g.bpm || 120));
-  const spb = 60000 / bpm, beatIdx = Math.floor(t / spb);
-  const cyc = (t % spb) / spb;
-  // A cosine-based envelope rather than a sawtooth decay — cos(cyc*2π) is
-  // exactly periodic, so its value AND slope both match perfectly at
-  // cyc=0/cyc=1 (a full period apart), with no possible jump at the beat
-  // boundary. The old version decayed smoothly across the beat but then
-  // snapped straight back to full brightness at the next one — that instant
-  // reset was the "abrupt" pop. Raising it to a power keeps the peakier,
-  // punchier shape (bright near the beat, quiet in between) without
-  // reintroducing any discontinuity, since pow() of a smooth periodic
-  // function that touches its minimum tangentially stays smooth.
-  const beat = Math.pow(0.5 + 0.5 * Math.cos(cyc * Math.PI * 2), 1.6);
-  const isBeat = beatIdx !== vizLastBeatIdx; vizLastBeatIdx = beatIdx;
+
+  const isLive = (Date.now() - liveAudio.at) < LIVE_AUDIO_STALE_MS;
+  let beat, isBeat, live = null;
+  if(isLive){
+    // A one-shot decay per detected beat rather than a fixed-period cycle —
+    // there's no "wraparound" to go wrong here (unlike the procedural
+    // pulse), since each real beat just restarts the same smooth ease-out
+    // from 1, however soon after the last one it arrives.
+    const sinceBeat = performance.now() - liveLastBeatAt;
+    beat = Math.pow(Math.max(0, 1 - sinceBeat / LIVE_BEAT_DECAY_MS), 1.4);
+    isBeat = liveBeatPending; liveBeatPending = false;
+    live = { bins: liveAudio.bins, level: liveAudio.level };
+  } else {
+    const bpm = Math.min(180, Math.max(60, g.bpm || 120));
+    const spb = 60000 / bpm, beatIdx = Math.floor(t / spb);
+    const cyc = (t % spb) / spb;
+    // A cosine-based envelope rather than a sawtooth decay — cos(cyc*2π) is
+    // exactly periodic, so its value AND slope both match perfectly at
+    // cyc=0/cyc=1 (a full period apart), with no possible jump at the beat
+    // boundary. The old version decayed smoothly across the beat but then
+    // snapped straight back to full brightness at the next one — that instant
+    // reset was the "abrupt" pop. Raising it to a power keeps the peakier,
+    // punchier shape (bright near the beat, quiet in between) without
+    // reintroducing any discontinuity, since pow() of a smooth periodic
+    // function that touches its minimum tangentially stays smooth.
+    beat = Math.pow(0.5 + 0.5 * Math.cos(cyc * Math.PI * 2), 1.6);
+    isBeat = beatIdx !== vizLastBeatIdx; vizLastBeatIdx = beatIdx;
+  }
 
   // Keep the backing store matched to the displayed size (also does the
   // initial size); cheap to check each frame and handles the screen's
@@ -735,8 +794,8 @@ function vizFrame(now){
   vizCtx.fillRect(0, 0, cw, ch);
   vizCtx.globalAlpha = 1;
 
-  if(preset === 'spectrum') drawSpectrum(t, cw, ch, pal, beat);
-  else if(preset === 'waveform') drawWaveform(t, cw, ch, pal, beat);
+  if(preset === 'spectrum') drawSpectrum(t, cw, ch, pal, beat, live);
+  else if(preset === 'waveform') drawWaveform(t, cw, ch, pal, beat, live);
   else drawBass(t, cw, ch, pal, beat, isBeat);
 
   vizRaf = requestAnimationFrame(vizFrame);
@@ -746,10 +805,13 @@ function startViz(){
   if(vizRaf) return;
   vizStart = 0; vizLastBeatIdx = -1; vizParticles = [];
   vizBarSeed = Array.from({ length: 64 }, () => Math.random());
+  liveAudio = { bins: null, level: 0, bass: 0, mid: 0, treble: 0, at: 0 }; // stale by construction until a real frame arrives
+  connectAudioListener();
   vizRaf = requestAnimationFrame(vizFrame);
 }
 function stopViz(){
   if(vizRaf){ cancelAnimationFrame(vizRaf); vizRaf = null; }
+  disconnectAudioListener();
 }
 
 function updateMainScreen(){
