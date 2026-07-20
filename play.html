@@ -105,6 +105,25 @@
   .score-btn:active{background:var(--foam)}
   .player-score{font-family:var(--serif);font-weight:600;font-size:20px;color:var(--sea);min-width:26px;text-align:center}
 
+  /* ── PARTY BACKDROP ── */
+  .bd-label{display:block;font-size:12.5px;font-weight:600;color:var(--muted);margin-bottom:8px;text-align:left}
+  .bd-text{
+    width:100%;padding:13px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--foam);
+    font-family:var(--sans);font-size:15px;color:var(--ink);outline:none;margin-bottom:18px;
+  }
+  .bd-text:focus{border-color:var(--sea-mid)}
+  .bd-presets{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+  .bd-preset{
+    display:flex;align-items:center;gap:12px;text-align:left;background:var(--foam);border:1.5px solid transparent;
+    border-radius:14px;padding:12px 14px;cursor:pointer;transition:border-color .15s;font-family:var(--sans);
+    font-size:14px;font-weight:600;color:var(--ink);
+  }
+  .bd-preset.active{border-color:var(--sea)}
+  .bd-swatch{width:34px;height:34px;border-radius:10px;flex-shrink:0}
+  .bd-swatch-party{background:conic-gradient(from 0deg,#e2794a,#c96a3b,#1a6a7a,#0b3d52,#e2794a)}
+  .bd-swatch-confetti{background:linear-gradient(135deg,#e2794a 0 20%,#e8c17e 20% 40%,#1a6a7a 40% 60%,#c96a3b 60% 80%,#0b3d52 80% 100%)}
+  .bd-swatch-glow{background:radial-gradient(circle,#f3ddae,#e3c486 55%,#d4ad6a)}
+
   /* ── MEMORY MATCH ── */
   .mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 auto 22px;max-width:300px}
   .mem-card{
@@ -151,6 +170,13 @@
           <span>
             <span class="menu-title">Memory Match</span>
             <span class="menu-desc">Find the beach-themed pairs — fun for kids</span>
+          </span>
+        </button>
+        <button type="button" class="menu-item" data-mode="backdrop">
+          <span class="menu-icon">🎉</span>
+          <span>
+            <span class="menu-title">Party Backdrop</span>
+            <span class="menu-desc">Custom message for birthdays &amp; celebrations</span>
           </span>
         </button>
       </div>
@@ -213,6 +239,25 @@
       </div>
     </section>
 
+    <section class="screen" id="screen-backdrop">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1>Party Backdrop</h1>
+      <p class="sub">Turn the pool screen into a custom backdrop for a birthday, anniversary or celebration.</p>
+      <label class="bd-label" for="backdropText">Message</label>
+      <input type="text" id="backdropText" class="bd-text" maxlength="40" placeholder="Happy Birthday, Priya!">
+      <div class="bd-presets" id="bdPresets">
+        <button type="button" class="bd-preset" data-preset="party">
+          <span class="bd-swatch bd-swatch-party"></span><span>Party Lights</span>
+        </button>
+        <button type="button" class="bd-preset" data-preset="confetti">
+          <span class="bd-swatch bd-swatch-confetti"></span><span>Confetti</span>
+        </button>
+        <button type="button" class="bd-preset" data-preset="glow">
+          <span class="bd-swatch bd-swatch-glow"></span><span>Golden Glow</span>
+        </button>
+      </div>
+    </section>
+
   </div>
 </div>
 
@@ -223,6 +268,7 @@ let state = {
   mode: null, board: Array(9).fill(null), turn: 'X', winner: null, scoreX: 0, scoreO: 0,
   players: [{name:'Player 1',score:0},{name:'Player 2',score:0},{name:'Player 3',score:0},{name:'Player 4',score:0}], playerCount: 2,
   memory: { cards: Array(16).fill(''), matched: Array(16).fill(false), flipped: [], mismatchAt: 0, turn: 1, scores: [0,0], winner: null },
+  backdrop: { text: '', preset: 'party' },
 };
 let busy = false; // guards every activity against double-taps firing two actions before the poll catches up
 
@@ -257,12 +303,13 @@ async function postJson(path, body){
 
 function showScreen(mode){
   const screen = playToken ? mode : 'signin';
-  const activities = ['tictactoe', 'scoreboard', 'memory'];
+  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop'];
   $('#screen-signin').classList.toggle('active', screen === 'signin');
   $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && !activities.includes(screen));
   $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
   $('#screen-scoreboard').classList.toggle('active', screen === 'scoreboard');
   $('#screen-memory').classList.toggle('active', screen === 'memory');
+  $('#screen-backdrop').classList.toggle('active', screen === 'backdrop');
 }
 
 // ── GOOGLE SIGN-IN ── same OAuth client + proxy backend as login.html and
@@ -381,11 +428,22 @@ $('#memNewRoundBtn').addEventListener('click', async () => {
   try{ state = await postJson('/game/memory/new-round'); render(); }catch(e){}
 });
 
+// The text <input> only has its value touched when not focused — same
+// reasoning as renderScoreboard's name inputs — so a poll landing mid-keystroke
+// never yanks the cursor or overwrites what's being typed right now.
+function renderBackdrop(){
+  const b = state.backdrop || { text: '', preset: 'party' };
+  const input = $('#backdropText');
+  if(document.activeElement !== input) input.value = b.text || '';
+  document.querySelectorAll('.bd-preset').forEach(btn => btn.classList.toggle('active', btn.dataset.preset === b.preset));
+}
+
 function render(){
   showScreen(state.mode);
   renderTicTacToe();
   renderScoreboard();
   renderMemory();
+  renderBackdrop();
 }
 
 async function move(i){
@@ -433,6 +491,19 @@ document.querySelectorAll('.player-name').forEach(input => {
 $('#scoreboardResetBtn').addEventListener('click', async () => {
   if(!confirm('Reset all scores to 0?')) return;
   try{ state = await postJson('/game/scoreboard/reset'); render(); }catch(e){}
+});
+
+// Text only pushes on change (blur/Enter), not per keystroke — this takes
+// over a screen everyone at the pool can see, so it shouldn't flicker with
+// every letter typed. A preset tap applies immediately, same as the other
+// one-tap controls above.
+$('#backdropText').addEventListener('change', async () => {
+  try{ state = await postJson('/game/backdrop/set', { text: $('#backdropText').value }); render(); }catch(e){}
+});
+document.querySelectorAll('.bd-preset').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/backdrop/set', { preset: btn.dataset.preset }); render(); }catch(e){}
+  });
 });
 
 // Polls so this stays in sync with the pool screen and anyone else's phone —

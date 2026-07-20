@@ -150,6 +150,44 @@
   #screen-memory .qr img{display:block;width:clamp(80px,9vw,150px);height:clamp(80px,9vw,150px)}
   #screen-memory .qr-label{color:var(--mist);font-size:clamp(10px,1.05vw,17px);opacity:.85}
 
+  /* ── PARTY BACKDROP SCREEN ── */
+  .backdrop-wrap{position:relative;width:100%;height:100%;border-radius:1.4vw;overflow:hidden;display:flex;align-items:center;justify-content:center}
+  .backdrop-bg{position:absolute;inset:0}
+  .backdrop-text{
+    position:relative;z-index:1;text-align:center;font-family:var(--serif);font-weight:600;color:var(--white);
+    font-size:clamp(28px,7vw,140px);line-height:1.15;text-shadow:0 6px 40px rgba(0,0,0,.55);padding:0 4vw;word-break:break-word;
+  }
+  @keyframes bd-party-spin{0%{filter:hue-rotate(0deg)}100%{filter:hue-rotate(360deg)}}
+  .backdrop-bg.party{
+    background:
+      radial-gradient(circle at 30% 30%, #e2794a, transparent 60%),
+      radial-gradient(circle at 70% 70%, #1a6a7a, transparent 60%),
+      radial-gradient(circle at 50% 50%, #0b3d52, #040f15 80%);
+    animation:bd-party-spin 6s linear infinite;
+  }
+  @keyframes bd-confetti-fall{
+    0%{background-position:0 0, 40px 60px, 20px 90px, 70px 20px, 55px 45px}
+    100%{background-position:0 900px, 40px 960px, 20px 990px, 70px 920px, 55px 945px}
+  }
+  .backdrop-bg.confetti{
+    background-color:#061a24;
+    background-image:
+      radial-gradient(circle, #e2794a 4px, transparent 5px),
+      radial-gradient(circle, #e8c17e 4px, transparent 5px),
+      radial-gradient(circle, #1a6a7a 4px, transparent 5px),
+      radial-gradient(circle, #fbfaf8 3px, transparent 4px),
+      radial-gradient(circle, #c96a3b 3px, transparent 4px);
+    background-size:110px 110px, 150px 150px, 90px 90px, 130px 130px, 70px 70px;
+    animation:bd-confetti-fall 8s linear infinite;
+  }
+  @keyframes bd-glow-pulse{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+  .backdrop-bg.glow{background:radial-gradient(circle at 50% 45%, #f3ddae, #d4ad6a 45%, #0b3d52 85%, #040f15 100%)}
+  .backdrop-bg.glow::before{
+    content:'';position:absolute;inset:0;
+    background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.35), transparent 60%);
+    animation:bd-glow-pulse 4s ease-in-out infinite;
+  }
+
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -280,6 +318,13 @@
           <span class="qr-label">Scan to play from your phone</span>
         </div>
       </div>
+    </div>
+  </section>
+
+  <section class="screen" id="screen-backdrop">
+    <div class="backdrop-wrap">
+      <div class="backdrop-bg party" id="backdropBg"></div>
+      <div class="backdrop-text" id="backdropText">Let's Celebrate!</div>
     </div>
   </section>
 </main>
@@ -491,16 +536,29 @@ function renderMemoryDisplay(g){
   }
 }
 
+// Guest-typed free text, so it goes through textContent (never innerHTML)
+// — same safety property escHtml gives the other screens, without needing
+// the helper at all.
+const BACKDROP_PRESETS = ['party', 'confetti', 'glow'];
+function renderBackdropDisplay(g){
+  const b = g.backdrop || { text: '', preset: 'party' };
+  const preset = BACKDROP_PRESETS.includes(b.preset) ? b.preset : 'party';
+  $('#backdropBg').className = 'backdrop-bg ' + preset;
+  $('#backdropText').textContent = (b.text && b.text.trim()) ? b.text : "Let's Celebrate!";
+}
+
 function updateMainScreen(){
   if($('#checkoutScreen').classList.contains('active')) return; // that takeover covers everything anyway
   const active = isGameActive();
   const showTTT = active && currentGame.mode === 'tictactoe';
   const showScoreboard = active && currentGame.mode === 'scoreboard';
   const showMemory = active && currentGame.mode === 'memory';
-  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory);
+  const showBackdrop = active && currentGame.mode === 'backdrop';
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
   $('#screen-memory').classList.toggle('active', showMemory);
+  $('#screen-backdrop').classList.toggle('active', showBackdrop);
 }
 
 async function refreshGame(){
@@ -510,6 +568,7 @@ async function refreshGame(){
     renderGame(currentGame);
     renderScoreboard(currentGame);
     renderMemoryDisplay(currentGame);
+    renderBackdropDisplay(currentGame);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }
