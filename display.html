@@ -705,7 +705,17 @@ function vizFrame(now){
   const preset = VIZ_PRESETS.includes(g.preset) ? g.preset : 'spectrum';
   const bpm = Math.min(180, Math.max(60, g.bpm || 120));
   const spb = 60000 / bpm, beatIdx = Math.floor(t / spb);
-  const beat = Math.pow(1 - (t % spb) / spb, 2.2);
+  const cyc = (t % spb) / spb;
+  // A cosine-based envelope rather than a sawtooth decay — cos(cyc*2π) is
+  // exactly periodic, so its value AND slope both match perfectly at
+  // cyc=0/cyc=1 (a full period apart), with no possible jump at the beat
+  // boundary. The old version decayed smoothly across the beat but then
+  // snapped straight back to full brightness at the next one — that instant
+  // reset was the "abrupt" pop. Raising it to a power keeps the peakier,
+  // punchier shape (bright near the beat, quiet in between) without
+  // reintroducing any discontinuity, since pow() of a smooth periodic
+  // function that touches its minimum tangentially stays smooth.
+  const beat = Math.pow(0.5 + 0.5 * Math.cos(cyc * Math.PI * 2), 1.6);
   const isBeat = beatIdx !== vizLastBeatIdx; vizLastBeatIdx = beatIdx;
 
   // Keep the backing store matched to the displayed size (also does the
