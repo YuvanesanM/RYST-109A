@@ -124,6 +124,30 @@
   .bd-swatch-confetti{background:linear-gradient(135deg,#e2794a 0 20%,#e8c17e 20% 40%,#1a6a7a 40% 60%,#c96a3b 60% 80%,#0b3d52 80% 100%)}
   .bd-swatch-glow{background:radial-gradient(circle,#f3ddae,#e3c486 55%,#d4ad6a)}
 
+  /* ── DJ VISUALIZER ── */
+  .viz-presets{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+  .viz-preset{
+    display:flex;align-items:center;gap:12px;text-align:left;background:var(--foam);border:1.5px solid transparent;
+    border-radius:14px;padding:12px 14px;cursor:pointer;transition:border-color .15s;font-family:var(--sans);
+    font-size:14px;font-weight:600;color:var(--ink);
+  }
+  .viz-preset.active{border-color:var(--sea)}
+  .viz-preset .viz-ic{font-size:22px;flex-shrink:0;width:26px;text-align:center}
+  .viz-palettes{display:flex;gap:10px;margin-bottom:18px}
+  .viz-pal{flex:1;height:46px;border-radius:12px;border:2px solid transparent;cursor:pointer;transition:border-color .15s}
+  .viz-pal.active{border-color:var(--ink)}
+  .viz-pal-neon{background:linear-gradient(90deg,#17e6d4,#7a5cff,#ff2e97)}
+  .viz-pal-sunset{background:linear-gradient(90deg,#ffcf4d,#ff6b3d,#d6318f)}
+  .viz-pal-aurora{background:linear-gradient(90deg,#38ffb0,#17c0e6,#6a5cff)}
+  .viz-tempo{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+  .viz-tempo .lbl{font-size:12.5px;font-weight:600;color:var(--muted)}
+  .viz-tempo-btns{display:flex;gap:6px}
+  .viz-tempo-btn{
+    padding:8px 14px;border-radius:9px;border:1.5px solid var(--line);background:var(--white);
+    color:var(--muted);font-family:var(--sans);font-weight:700;font-size:12.5px;cursor:pointer;
+  }
+  .viz-tempo-btn.active{background:var(--sea);border-color:var(--sea);color:#fff}
+
   /* ── MEMORY MATCH ── */
   .mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 auto 22px;max-width:300px}
   .mem-card{
@@ -177,6 +201,13 @@
           <span>
             <span class="menu-title">Party Backdrop</span>
             <span class="menu-desc">Custom message for birthdays &amp; celebrations</span>
+          </span>
+        </button>
+        <button type="button" class="menu-item" data-mode="visualizer">
+          <span class="menu-icon">🎛️</span>
+          <span>
+            <span class="menu-title">DJ Visuals</span>
+            <span class="menu-desc">Animated light-show for the pool screen</span>
           </span>
         </button>
       </div>
@@ -258,6 +289,38 @@
       </div>
     </section>
 
+    <section class="screen" id="screen-visualizer">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1>DJ Visuals</h1>
+      <p class="sub">A live light-show on the pool screen. Pick a style, colours and tempo — it plays on the big screen, not here.</p>
+      <label class="bd-label">Style</label>
+      <div class="viz-presets" id="vizPresets">
+        <button type="button" class="viz-preset" data-preset="spectrum">
+          <span class="viz-ic">📊</span><span>Spectrum Bars</span>
+        </button>
+        <button type="button" class="viz-preset" data-preset="waveform">
+          <span class="viz-ic">〰️</span><span>Waveform</span>
+        </button>
+        <button type="button" class="viz-preset" data-preset="bass">
+          <span class="viz-ic">🔊</span><span>Bass Pulse</span>
+        </button>
+      </div>
+      <label class="bd-label">Colours</label>
+      <div class="viz-palettes" id="vizPalettes">
+        <button type="button" class="viz-pal viz-pal-neon" data-palette="neon" aria-label="Neon"></button>
+        <button type="button" class="viz-pal viz-pal-sunset" data-palette="sunset" aria-label="Sunset"></button>
+        <button type="button" class="viz-pal viz-pal-aurora" data-palette="aurora" aria-label="Aurora"></button>
+      </div>
+      <div class="viz-tempo">
+        <span class="lbl">Tempo</span>
+        <div class="viz-tempo-btns" id="vizTempo">
+          <button type="button" class="viz-tempo-btn" data-bpm="80">Slow</button>
+          <button type="button" class="viz-tempo-btn" data-bpm="120">Medium</button>
+          <button type="button" class="viz-tempo-btn" data-bpm="160">Fast</button>
+        </div>
+      </div>
+    </section>
+
   </div>
 </div>
 
@@ -269,6 +332,7 @@ let state = {
   players: [{name:'Player 1',score:0},{name:'Player 2',score:0},{name:'Player 3',score:0},{name:'Player 4',score:0}], playerCount: 2,
   memory: { cards: Array(16).fill(''), matched: Array(16).fill(false), flipped: [], mismatchAt: 0, turn: 1, scores: [0,0], winner: null },
   backdrop: { text: '', preset: 'party' },
+  viz: { preset: 'spectrum', palette: 'neon', bpm: 120 },
 };
 let busy = false; // guards every activity against double-taps firing two actions before the poll catches up
 
@@ -303,13 +367,14 @@ async function postJson(path, body){
 
 function showScreen(mode){
   const screen = playToken ? mode : 'signin';
-  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop'];
+  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer'];
   $('#screen-signin').classList.toggle('active', screen === 'signin');
   $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && !activities.includes(screen));
   $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
   $('#screen-scoreboard').classList.toggle('active', screen === 'scoreboard');
   $('#screen-memory').classList.toggle('active', screen === 'memory');
   $('#screen-backdrop').classList.toggle('active', screen === 'backdrop');
+  $('#screen-visualizer').classList.toggle('active', screen === 'visualizer');
 }
 
 // ── GOOGLE SIGN-IN ── same OAuth client + proxy backend as login.html and
@@ -438,12 +503,26 @@ function renderBackdrop(){
   document.querySelectorAll('.bd-preset').forEach(btn => btn.classList.toggle('active', btn.dataset.preset === b.preset));
 }
 
+function renderViz(){
+  const v = state.viz || { preset: 'spectrum', palette: 'neon', bpm: 120 };
+  document.querySelectorAll('.viz-preset').forEach(b => b.classList.toggle('active', b.dataset.preset === v.preset));
+  document.querySelectorAll('.viz-pal').forEach(b => b.classList.toggle('active', b.dataset.palette === v.palette));
+  // Highlight whichever tempo band the current bpm falls in, so a value that
+  // came from another phone still lights the right button.
+  document.querySelectorAll('.viz-tempo-btn').forEach(b => {
+    const bpm = Number(b.dataset.bpm);
+    const active = (bpm === 80 && v.bpm < 100) || (bpm === 120 && v.bpm >= 100 && v.bpm < 140) || (bpm === 160 && v.bpm >= 140);
+    b.classList.toggle('active', active);
+  });
+}
+
 function render(){
   showScreen(state.mode);
   renderTicTacToe();
   renderScoreboard();
   renderMemory();
   renderBackdrop();
+  renderViz();
 }
 
 async function move(i){
@@ -503,6 +582,25 @@ $('#backdropText').addEventListener('change', async () => {
 document.querySelectorAll('.bd-preset').forEach(btn => {
   btn.addEventListener('click', async () => {
     try{ state = await postJson('/game/backdrop/set', { preset: btn.dataset.preset }); render(); }catch(e){}
+  });
+});
+
+// DJ Visuals — each control is a single-tap that pushes just its own field,
+// so picking a palette never disturbs the chosen style or tempo (the server
+// merges them independently, same as the backdrop).
+document.querySelectorAll('.viz-preset').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/viz/set', { preset: btn.dataset.preset }); render(); }catch(e){}
+  });
+});
+document.querySelectorAll('.viz-pal').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/viz/set', { palette: btn.dataset.palette }); render(); }catch(e){}
+  });
+});
+document.querySelectorAll('.viz-tempo-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/viz/set', { bpm: Number(btn.dataset.bpm) }); render(); }catch(e){}
   });
 });
 
