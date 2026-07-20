@@ -12,6 +12,7 @@
 <style>
   @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-italic.woff2') format('woff2'); }
 
   /*
     This runs on a large (~130") outdoor screen by the pool as passive
@@ -62,37 +63,97 @@
   }
   .screen.active{display:flex;opacity:1}
 
-  /* ── HOME SCREEN (Welcome + Things To Do, side by side) ── */
-  .home-grid{display:flex;align-items:center;gap:4.5vw;width:100%;max-width:1900px}
-  .home-welcome{flex:0 0 32%;text-align:center}
-  .home-welcome h1{
-    font-family:var(--serif);font-weight:600;color:var(--white);
-    font-size:clamp(26px,4vw,64px);line-height:1.08;margin-bottom:1.8vh;
-    text-shadow:0 4px 30px rgba(0,0,0,.35);
-  }
-  .home-welcome .dates{
-    display:inline-flex;align-items:center;gap:.8vw;background:rgba(255,255,255,.08);border:1px solid var(--line);
-    color:var(--sand);font-weight:600;font-size:clamp(11px,1.15vw,19px);padding:.9vh 1.8vw;border-radius:100px;margin-bottom:2.4vh;
-  }
-  .home-welcome p.lead{color:var(--mist);font-size:clamp(12px,1.3vw,20px);line-height:1.6}
-  .home-welcome .wifi-note{margin-top:2.6vh;color:var(--mist);font-size:clamp(10px,.95vw,14px);opacity:.85}
+  /* ── HOME SCREEN — hero photo + welcome text, "stay at a glance" photo
+     cards, and a bottom info bar (QR / caretaker / wifi). Flex column with
+     flex-grow proportions rather than hardcoded vh sums, so it always fills
+     exactly the space #screen-home has (which itself varies slightly with
+     the header's real rendered height) without overflowing or leaving a gap. */
+  #screen-home{padding:0}
+  .home2{width:100%;height:100%;display:flex;flex-direction:column;gap:1.6vh}
 
-  .home-todo{flex:1;min-width:0}
-  .home-todo h2{
-    font-family:var(--serif);font-weight:600;font-size:clamp(22px,2.8vw,46px);color:var(--white);margin-bottom:2.2vh;text-align:center;
+  .home2-hero{
+    flex:1.7 1 0;min-height:0;position:relative;border-radius:1.2vw;overflow:hidden;
+    background-size:cover;background-position:center;display:flex;align-items:center;
   }
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4vw}
-  .card{
-    background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:1.2vw;
-    padding:1.8vh 1.1vw;display:flex;flex-direction:column;align-items:center;gap:.5vh;
-    backdrop-filter:blur(6px);
+  .home2-hero::before{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(100deg,rgba(4,15,21,.94) 0%,rgba(4,15,21,.8) 32%,rgba(4,15,21,.35) 58%,transparent 78%);
   }
-  .card .icon{font-size:clamp(18px,2.3vw,36px)}
-  .card h3{font-family:var(--serif);font-weight:600;font-size:clamp(13px,1.4vw,22px);color:var(--sand)}
-  .card p{color:var(--mist);font-size:clamp(9.5px,.92vw,14px);line-height:1.45}
-  .card .qr{background:var(--white);border-radius:.6vw;padding:.4vw;margin-top:.4vh}
-  .card .qr img{display:block;width:clamp(42px,4.6vw,74px);height:clamp(42px,4.6vw,74px)}
-  .card .qr-label{color:var(--mist);font-size:clamp(8px,.75vw,11px);opacity:.8;letter-spacing:.02em}
+  .home2-hero-text{position:relative;z-index:1;max-width:50%;padding:0 4vw}
+  .home2-hero-text .eyebrow{
+    font-family:var(--serif);font-style:italic;font-weight:600;color:var(--sand);
+    font-size:clamp(16px,2vw,32px);margin-bottom:.4vh;
+  }
+  .home2-hero-text h1{
+    font-family:var(--serif);font-weight:600;color:var(--white);text-transform:uppercase;
+    font-size:clamp(28px,4.4vw,68px);line-height:1.05;text-shadow:0 4px 30px rgba(0,0,0,.4);
+  }
+  .home2-hero-text .sub{
+    font-family:var(--serif);font-weight:600;color:var(--sand);letter-spacing:.3em;text-transform:uppercase;
+    font-size:clamp(11px,1.3vw,20px);margin:.8vh 0 1.8vh;display:flex;align-items:center;gap:.8vw;
+  }
+  .home2-hero-text .sub::before,.home2-hero-text .sub::after{content:'';flex:1;height:1px;background:rgba(232,193,126,.5)}
+  .home2-hero-text .guest{color:var(--white);font-weight:600;font-size:clamp(15px,1.7vw,26px);margin-bottom:1.6vh}
+  .home2-hero-text .dates{
+    display:inline-flex;align-items:center;gap:.6vw;color:var(--sand);font-weight:600;
+    font-size:clamp(10px,1.1vw,17px);margin-bottom:1.6vh;
+  }
+  .home2-hero-text hr{border:none;border-top:1px solid rgba(255,255,255,.25);margin-bottom:1.6vh;width:80%}
+  .home2-hero-text p{color:var(--mist);font-size:clamp(11px,1.15vw,18px);line-height:1.6;margin-bottom:.5vh}
+  .home2-hero-text p.tag{color:var(--sand);font-weight:700}
+
+  .home2-glance{flex:1.15 1 0;min-height:0;display:flex;flex-direction:column}
+  .h2-glance-head{
+    display:flex;align-items:center;gap:1.2vw;font-family:var(--serif);font-weight:600;color:var(--sand);
+    letter-spacing:.25em;text-transform:uppercase;font-size:clamp(12px,1.4vw,22px);margin-bottom:1.2vh;flex-shrink:0;
+  }
+  .h2-glance-head::before,.h2-glance-head::after{content:'';flex:1;height:1px;background:rgba(232,193,126,.4)}
+  .h2-cards{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:1.1vw}
+  .h2-card{
+    position:relative;border-radius:1vw;overflow:hidden;background:rgba(255,255,255,.06);border:1px solid var(--line);
+    background-size:cover;background-position:center;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:.5vh;padding:1vh 1vw;text-align:center;
+  }
+  .h2-card.has-photo::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,15,21,.15),rgba(4,15,21,.82) 75%)}
+  .h2-card > *{position:relative;z-index:1}
+  .h2-card .icon{width:clamp(20px,2.4vw,36px);height:clamp(20px,2.4vw,36px);color:var(--sand)}
+  .h2-card h3{font-family:var(--serif);font-weight:600;font-size:clamp(12px,1.35vw,21px);color:var(--white);letter-spacing:.05em}
+  .h2-card .rule{width:2.2vw;height:1px;background:rgba(232,193,126,.6)}
+  .h2-card p{color:var(--mist);font-size:clamp(9px,.9vw,14px);line-height:1.4}
+
+  .home2-infobar{
+    flex:0 0 auto;display:flex;background:rgba(255,255,255,.05);border:1px solid var(--line);
+    border-radius:1vw;padding:1.6vh 2vw;gap:1.6vw;backdrop-filter:blur(6px);
+  }
+  .h2-info-col{flex:1;min-width:0;display:flex;align-items:center;gap:1vw}
+  .h2-info-col + .h2-info-col{border-left:1px solid var(--line);padding-left:1.6vw}
+  .h2-info-col h4{
+    font-family:var(--serif);font-weight:600;color:var(--sand);letter-spacing:.15em;
+    font-size:clamp(10px,1.05vw,16px);margin-bottom:.4vh;
+  }
+  .h2-info-col p{color:var(--mist);font-size:clamp(9px,.92vw,14px);line-height:1.45}
+  .h2-info-col .script{font-family:var(--serif);font-style:italic;color:var(--sand);text-decoration:underline;text-underline-offset:3px}
+  .h2-qr-box{background:var(--white);border-radius:.6vw;padding:.4vw;flex-shrink:0}
+  .h2-qr-box img{display:block;width:clamp(46px,4.6vw,72px);height:clamp(46px,4.6vw,72px)}
+  .h2-avatar{
+    width:clamp(38px,3.6vw,58px);height:clamp(38px,3.6vw,58px);border-radius:50%;flex-shrink:0;
+    background:rgba(232,193,126,.14);border:1.5px solid rgba(232,193,126,.5);
+    display:flex;align-items:center;justify-content:center;color:var(--sand);
+  }
+  .h2-avatar svg{width:56%;height:56%}
+  .h2-wa-btn{
+    display:inline-flex;align-items:center;gap:.5vw;margin-top:.7vh;background:#1c8a5a;color:#fff;
+    font-weight:700;font-size:clamp(9px,.95vw,14px);letter-spacing:.08em;text-transform:uppercase;
+    padding:.7vh 1.1vw;border-radius:100px;text-decoration:none;
+  }
+  .h2-wa-btn svg{width:1.1em;height:1.1em}
+  .h2-wifi-icon{width:clamp(24px,2.6vw,40px);height:clamp(24px,2.6vw,40px);color:var(--sand);flex-shrink:0}
+  .h2-wifi-vals strong{color:var(--white);font-weight:700}
+
+  .home2-footer{
+    flex:0 0 auto;text-align:center;font-family:var(--serif);font-style:italic;font-weight:600;
+    color:var(--sand);opacity:.9;font-size:clamp(12px,1.3vw,20px);
+  }
 
   /* ── LIVE GAME SCREEN ── */
   #screen-game h2{
@@ -237,56 +298,75 @@
 
 <main>
   <section class="screen active" id="screen-home">
-    <div class="home-grid">
-      <div class="home-welcome">
-        <h1 id="welcomeHeading">Welcome!</h1>
-        <div class="dates" id="staydates" style="display:none"></div>
-        <p class="lead" id="welcomeLead">We're delighted to host you at RYST 109A Beach Villa — a private cocktail pool, sea breeze, and lazy mornings all to yourselves.</p>
-        <p class="wifi-note">Need the WiFi password, extra towels, or anything else? Message our caretaker Senthil any time.</p>
+    <div class="home2">
+      <div class="home2-hero" style="background-image:url('/assets/hero-bg.webp')">
+        <div class="home2-hero-text">
+          <p class="eyebrow">Welcome to</p>
+          <h1>RYST 109A</h1>
+          <p class="sub">Beach Villa</p>
+          <p class="guest" id="welcomeHeading">Welcome!</p>
+          <div class="dates" id="staydates" style="display:none"></div>
+          <hr>
+          <p>Your private escape by the sea.</p>
+          <p class="tag">Swim. Unwind. Celebrate. Repeat.</p>
+          <p>We hope you have an unforgettable stay.</p>
+        </div>
       </div>
-      <div class="home-todo">
-        <h2>Things To Do</h2>
-        <div class="grid">
-          <div class="card">
-            <span class="icon">📍</span>
-            <h3>Nearby Attractions</h3>
-            <p>Beaches, temples, cafes and more, all close to the villa.</p>
-            <div class="qr"><img id="qrNearby" alt="Scan for nearby attractions"></div>
-            <span class="qr-label">Scan with your phone</span>
+
+      <div class="home2-glance">
+        <div class="h2-glance-head">Your Stay at a Glance</div>
+        <div class="h2-cards">
+          <div class="h2-card has-photo" style="background-image:url('/assets/nearby/ecr-beach-private-shore.webp')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3"/><path d="M12 2v1M5 8H4M20 8h-1M6.3 2.3l.7.7M17 2.3l-.7.7"/><path d="M2 18c2-2.5 4-2.5 6 0s4 2.5 6 0 4-2.5 6 0"/></svg>
+            <h3>Beach</h3><div class="rule"></div>
+            <p>A short stroll to the shore</p>
           </div>
-          <div class="card">
-            <span class="icon">🚗</span>
-            <h3>ECR Road Trip Guide</h3>
-            <p>A curated route along East Coast Road for the day.</p>
-            <div class="qr"><img id="qrEcr" alt="Scan for the ECR road trip guide"></div>
-            <span class="qr-label">Scan with your phone</span>
+          <div class="h2-card has-photo" style="background-image:url('/assets/gallery-3.jpg')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M8 7c0-1.5-1-2-1-3M12 7c0-1.5-1-2-1-3M16 7c0-1.5-1-2-1-3"/></svg>
+            <h3>Pool &amp; Jacuzzi</h3><div class="rule"></div>
+            <p>Yours to enjoy throughout your stay</p>
           </div>
-          <div class="card">
-            <span class="icon">💬</span>
-            <h3>Contact Caretaker</h3>
-            <p>WhatsApp Senthil for anything you need during your stay.</p>
-            <div class="qr"><img id="qrCaretaker" alt="Scan to WhatsApp the caretaker"></div>
-            <span class="qr-label">Scan with your phone</span>
+          <div class="h2-card">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"/><rect x="2" y="11" width="20" height="7" rx="2"/><path d="M6 18v2M18 18v2"/></svg>
+            <h3>Games &amp; Recreation</h3><div class="rule"></div>
+            <p>Indoor &amp; outdoor fun awaits</p>
           </div>
-          <div class="card">
-            <span class="icon">🎲</span>
-            <h3>In-Villa Games</h3>
-            <p>Carrom, cards and board games are available — just ask our caretaker to set them up.</p>
-          </div>
-          <div class="card">
-            <span class="icon">🏊</span>
-            <h3>Pool &amp; Beach</h3>
-            <p>The private cocktail pool is open all day. The beach is a short walk away.</p>
-          </div>
-          <div class="card">
-            <span class="icon">❓</span>
-            <h3>Villa FAQs</h3>
-            <p>House rules, check-in/out times and common questions.</p>
-            <div class="qr"><img id="qrFaq" alt="Scan for villa FAQs"></div>
-            <span class="qr-label">Scan with your phone</span>
+          <div class="h2-card">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 2 .5 3.5 0 4.5C11 8 12.5 9 13 10a3 3 0 1 1-5 1.5C8 9 12 8 12 2z"/><path d="M5 21h14"/></svg>
+            <h3>BBQ Evenings</h3><div class="rule"></div>
+            <p>Fire up the grill and dine under the stars</p>
           </div>
         </div>
       </div>
+
+      <div class="home2-infobar">
+        <div class="h2-info-col">
+          <div class="h2-qr-box"><img id="qrGuide" alt="Scan for the digital villa guide"></div>
+          <div>
+            <h4>Your Digital Villa Guide</h4>
+            <p>Wi-Fi &bull; Villa Guide &bull; Nearby Places &bull; ECR Road Trips &bull; FAQs &amp; House Rules</p>
+            <p class="script">All you need, in one place.</p>
+          </div>
+        </div>
+        <div class="h2-info-col">
+          <div class="h2-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.8-4 5-6 8-6s6.2 2 8 6"/></svg></div>
+          <div>
+            <h4>Need Anything?</h4>
+            <p>Senthil, your villa caretaker, is here to assist throughout your stay.</p>
+          </div>
+          <div class="h2-qr-box"><img id="qrCaretaker" alt="Scan to WhatsApp the caretaker"></div>
+        </div>
+        <div class="h2-info-col">
+          <svg class="h2-wifi-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.5a16 16 0 0 1 20 0"/><path d="M5.5 12.5a11 11 0 0 1 13 0"/><path d="M9 16.5a6 6 0 0 1 6 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg>
+          <div class="h2-wifi-vals">
+            <h4>Wi-Fi</h4>
+            <p>Network<br><strong>RYST 109A</strong></p>
+            <p>Password<br><strong>Ask your caretaker</strong></p>
+          </div>
+        </div>
+      </div>
+
+      <p class="home2-footer">Cherish the moments. Create the memories. 🖤</p>
     </div>
   </section>
 
@@ -373,9 +453,10 @@ const CHECKOUT_TAKEOVER_HOURS_AFTER = 4;  // ...and switch back to the normal sc
 const GAME_ACTIVE_WINDOW_MS = 20000;      // how stale play.html's heartbeat can be before we consider nobody's playing
 
 const qr = (data, size) => `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(data)}`;
-$('#qrNearby').src = qr(SITE_URL + '/nearby.html', 200);
-$('#qrEcr').src = qr(SITE_URL + '/ecr-road-trip-guide.html', 200);
-$('#qrFaq').src = qr(SITE_URL + '/faq.html', 200);
+// One consolidated QR replaces the previous three (Nearby/ECR/FAQs each had
+// their own) — it lands on the homepage, which already links onward to all
+// of those pages, matching the "everything in one place" framing below it.
+$('#qrGuide').src = qr(SITE_URL + '/', 200);
 $('#qrCaretaker').src = qr(`https://api.whatsapp.com/send/?phone=${CARETAKER_WHATSAPP}&text=${encodeURIComponent('Hi Senthil! We are staying at RYST 109A and need some help.')}`, 200);
 $('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayMemory').src = qr(SITE_URL + '/play.html', 200);
