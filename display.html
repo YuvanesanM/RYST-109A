@@ -611,9 +611,12 @@ function renderBackdropDisplay(g){
 // showing (started/stopped from updateMainScreen) so it costs nothing the
 // rest of the time.
 const VIZ_PALETTES = {
-  neon:   { bg:'#0a0618', stops:['#17e6d4','#7a5cff','#ff2e97'] },
-  sunset: { bg:'#160a12', stops:['#ffcf4d','#ff6b3d','#d6318f'] },
-  aurora: { bg:'#04120f', stops:['#38ffb0','#17c0e6','#6a5cff'] },
+  neon:    { bg:'#0a0618', stops:['#17e6d4','#7a5cff','#ff2e97'] },
+  sunset:  { bg:'#160a12', stops:['#ffcf4d','#ff6b3d','#d6318f'] },
+  aurora:  { bg:'#04120f', stops:['#38ffb0','#17c0e6','#6a5cff'] },
+  // Full-range — every hue in order, not a curated 2-3 colour blend like the
+  // others, for a classic "whole spectrum" rainbow look.
+  rainbow: { bg:'#050510', stops:['#ff3b3b','#ff9d3b','#ffe93b','#4dff5a','#3bd6ff','#4d6bff','#b13bff','#ff3bd6'] },
 };
 const VIZ_PRESETS = ['spectrum','waveform','bass'];
 const vizCanvas = $('#vizCanvas');
