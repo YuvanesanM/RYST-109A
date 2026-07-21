@@ -876,8 +876,8 @@ function render(){
   $("#pNoLbl").textContent  = isInv ? "Invoice No" : "Quote No";
   $("#pDateLbl").textContent= isInv ? "Invoice Date" : "Quote Date";
 
-  $("#coBlock").innerHTML = `<a href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank" class="addr-link">${esc(settings.company).replace(/\n/g,"<br>")}</a>`
-    + `<a href="https://www.instagram.com/stay.ryst" target="_blank" class="co-ig"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>@stay.ryst</a>`;
+  $("#coBlock").innerHTML = `<a href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank" rel="noopener" class="addr-link">${esc(settings.company).replace(/\n/g,"<br>")}</a>`
+    + `<a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" class="co-ig"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>@stay.ryst</a>`;
 
   $("#pGuest").textContent  = $("#guest").value || "—";
   $("#pEmail").textContent  = $("#email").value || "—";
