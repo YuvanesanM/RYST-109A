@@ -1626,6 +1626,15 @@
   // ── TESTIMONIALS ── real, owner-approved guest feedback only (see
   // reviews.html's "Publish to site" toggle) — never fabricated placeholder
   // content. Stays hidden if there's nothing approved yet.
+  //
+  // Also injects a live AggregateRating/Review JSON-LD block from this same
+  // response — deliberately NOT baked into the static script tag above,
+  // since that file only updates on a deploy but reviews accrue on their
+  // own schedule. Google explicitly crawls JS-injected structured data, so
+  // this keeps the star rating in search results current with zero manual
+  // upkeep, without needing a bot with write access to this repo. Injects
+  // nothing if there's no eligible review yet, same fail-quiet stance as
+  // the visible testimonials grid below.
   (function(){
     const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
     const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -1633,18 +1642,46 @@
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         const items = (data && Array.isArray(data.testimonials)) ? data.testimonials : [];
-        if(!items.length) return;
-        const grid = document.getElementById('testimonialsGrid');
-        if(!grid) return;
-        grid.innerHTML = items.map(t => {
-          const when = t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN',{month:'long',year:'numeric'}) : '';
-          return `<div class="t-card">
-            <div class="t-mark">"</div>
-            <p class="t-quote">${esc(t.comment)}</p>
-            <div class="t-author"><strong>${esc(t.guest)}</strong>${when?`<span>${esc(when)}</span>`:''}</div>
-          </div>`;
-        }).join('');
-        document.getElementById('testimonials').style.display = '';
+        if(items.length){
+          const grid = document.getElementById('testimonialsGrid');
+          if(grid){
+            grid.innerHTML = items.map(t => {
+              const when = t.createdAt ? new Date(t.createdAt).toLocaleDateString('en-IN',{month:'long',year:'numeric'}) : '';
+              return `<div class="t-card">
+                <div class="t-mark">"</div>
+                <p class="t-quote">${esc(t.comment)}</p>
+                <div class="t-author"><strong>${esc(t.guest)}</strong>${when?`<span>${esc(when)}</span>`:''}</div>
+              </div>`;
+            }).join('');
+            document.getElementById('testimonials').style.display = '';
+          }
+        }
+
+        const agg = data && data.aggregateRating;
+        if(agg && agg.ratingCount > 0){
+          const graph = [{
+            "@type": "AggregateRating",
+            "itemReviewed": { "@id": "https://stay.ryst.in/#villa" },
+            "ratingValue": agg.ratingValue,
+            "ratingCount": agg.ratingCount,
+            "bestRating": 5,
+            "worstRating": 1
+          }];
+          items.forEach(t => {
+            if(!t.comment) return;
+            graph.push({
+              "@type": "Review",
+              "itemReviewed": { "@id": "https://stay.ryst.in/#villa" },
+              "author": { "@type": "Person", "name": t.guest || "Guest" },
+              "reviewRating": { "@type": "Rating", "ratingValue": t.rating, "bestRating": 5, "worstRating": 1 },
+              "reviewBody": t.comment
+            });
+          });
+          const script = document.createElement('script');
+          script.type = 'application/ld+json';
+          script.textContent = JSON.stringify({ "@context": "https://schema.org", "@graph": graph });
+          document.head.appendChild(script);
+        }
       })
       .catch(()=>{}); // silent — a marketing nicety, not critical path
   })();
