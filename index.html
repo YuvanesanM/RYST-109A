@@ -53,7 +53,12 @@
   <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
   <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/dm-sans-latin-wght-normal.woff2" crossorigin>
-  <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-latin-400-normal.woff2" crossorigin>
+  <!-- These two match what the hero H1/tagline actually render in (300 normal for "RYST",
+       400 italic for "109A" + the tagline) — the previous single 400-normal preload matched
+       neither, so the browser had to discover and fetch the right files after CSS parsing
+       instead of starting immediately alongside the HTML. -->
+  <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-latin-300-normal.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/cormorant-garamond-latin-400-italic.woff2" crossorigin>
   <link rel="preload" as="image" href="/assets/hero-bg-mobile.webp" media="(max-width: 768px)" fetchpriority="high">
   <link rel="preload" as="image" href="/assets/hero-bg.webp" media="(min-width: 769px)" fetchpriority="high">
 
