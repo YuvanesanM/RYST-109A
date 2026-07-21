@@ -655,15 +655,19 @@
     /* ── GALLERY ── */
     #gallery { background: var(--white); }
     .gallery-head { text-align: center; max-width: 560px; margin: 0 auto 48px; }
-    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(4, 1fr); gap: 12px; aspect-ratio: 1 / 1; max-width: 780px; margin: 0 auto; }
+    .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 780px; margin: 0 auto; }
     .gallery-cell {
       border-radius: 18px; overflow: hidden; position: relative;
-      cursor: pointer; box-shadow: var(--sh-sm);
+      cursor: pointer; box-shadow: var(--sh-sm); aspect-ratio: 4 / 3;
     }
     .no-gsap .gallery-cell { transition: transform .3s var(--ease); }
     .no-gsap .gallery-cell:hover { transform: scale(1.02); }
-    /* Full-square mosaic: hero spans 2 cols x 2 rows (landscape); the other 8 cells auto-place into the remaining grid areas, no gaps */
-    .gallery-cell:first-child { grid-column: 1 / 3; grid-row: 1 / 3; }
+    /* Mosaic: hero spans 2 cols of row 1 with a matching height (aspect-ratio
+       chosen so its row stays the same height as the plain 4/3 cell beside
+       it); every other cell is a uniform 4/3 tile that wraps into as many
+       rows as needed — sized by aspect-ratio, not a fixed row count, so
+       adding more photos later never requires recalculating the grid. */
+    .gallery-cell:first-child { grid-column: 1 / 3; grid-row: 1; aspect-ratio: 8 / 3; }
     .gc-inner { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .85s var(--ease-out); background: var(--foam); }
     .gallery-cell:hover .gc-inner { transform: scale(1.07); }
     .gc-overlay {
@@ -1228,6 +1232,22 @@
     <div class="gallery-cell">
       <img class="gc-inner" src="/assets/gallery-11.jpg" alt="Private lawn next to the pool at RYST 109A beach villa, Pearl Beach, Cheyyur" loading="lazy" width="1200" height="900">
       <div class="gc-overlay"><span class="gc-caption">The lawn</span></div>
+    </div>
+    <div class="gallery-cell">
+      <img class="gc-inner" src="/assets/gallery-12.jpg" alt="Life-size chess board on the rooftop terrace at RYST 109A, Pearl Beach, Cheyyur" loading="lazy" width="1200" height="900">
+      <div class="gc-overlay"><span class="gc-caption">Life-size chess on the terrace</span></div>
+    </div>
+    <div class="gallery-cell">
+      <img class="gc-inner" src="/assets/gallery-13.jpg" alt="Bedroom with reading chair at RYST 109A beach villa, Pearl Beach, Cheyyur" loading="lazy" width="1200" height="900">
+      <div class="gc-overlay"><span class="gc-caption">Bedroom &amp; reading nook</span></div>
+    </div>
+    <div class="gallery-cell">
+      <img class="gc-inner" src="/assets/gallery-14.jpg" alt="Bedroom with double bed at RYST 109A beach villa, Pearl Beach, Cheyyur" loading="lazy" width="1200" height="900">
+      <div class="gc-overlay"><span class="gc-caption">Another bedroom</span></div>
+    </div>
+    <div class="gallery-cell">
+      <img class="gc-inner" src="/assets/gallery-15.jpg" alt="Bedroom with tea station and window at RYST 109A beach villa, Pearl Beach, Cheyyur" loading="lazy" width="1200" height="900">
+      <div class="gc-overlay"><span class="gc-caption">Bedroom with a view</span></div>
     </div>
   </div>
   <p class="gallery-note">More photos available on <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" class="text-link no-border">stay.ryst</a></p>
