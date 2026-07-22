@@ -226,6 +226,10 @@
 
     <div class="side">
       <div class="panel">
+        <h2>Guest check-ins<span class="rem-badge" id="ciBadge" style="display:none">0</span></h2>
+        <div class="reminders" id="checkins"></div>
+      </div>
+      <div class="panel">
         <h2>Pre-arrival reminders<span class="rem-badge" id="remBadge" style="display:none">0</span></h2>
         <div class="reminders" id="reminders"></div>
       </div>
@@ -260,6 +264,16 @@
     <p class="sd" id="daySub"></p>
     <div class="mbody" id="dayBody"></div>
     <div class="mfoot"><button class="tbtn" id="dayClose">Close</button></div>
+  </div>
+</div>
+
+<!-- Guest check-in detail modal -->
+<div class="overlay" id="checkinOverlay">
+  <div class="modal">
+    <h3>Guest check-in</h3>
+    <p class="sd" id="ciSub"></p>
+    <div class="mbody" id="ciBody"></div>
+    <div class="mfoot"><button class="tbtn" id="ciClose">Close</button></div>
   </div>
 </div>
 
@@ -344,13 +358,19 @@ const VILLA_MAP_LINK = 'https://maps.app.goo.gl/taBGtjLgbcMWL6mUA';
 // How far back a check-out still shows up in the feedback-request list.
 const FEEDBACK_WINDOW_DAYS = 7;
 const FEEDBACK_FORM_URL = 'https://stay.ryst.in/feedback.html';
+// Wider than the reminder window on purpose — check-in (ID + signature)
+// should happen well before arrival, not in the last few days alongside
+// the arrival-time reminder.
+const CHECKIN_WINDOW_DAYS = 7;
+const CHECKIN_FORM_URL = 'https://stay.ryst.in/checkin.html';
 
 // ── WHATSAPP TEMPLATES ── owner-editable wording (Settings → WhatsApp
 // Templates). These hardcoded strings are only the fallback while the fetch
 // is in flight or if the proxy is unreachable.
 let waTemplates = {
   reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
-  feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
+  feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`,
+  checkinRequest: `Hi {{guest}}! Ahead of your stay at RYST 109A Beach Villa from {{checkin}} to {{checkout}}, please complete a quick digital check-in so we have everything ready for you:\n\n{{checkinLink}}\n\nTakes about 2 minutes — a government ID and your signature on our house rules. See you soon!`
 };
 // "Send WhatsApp" fires window.open() synchronously from the click handler
 // (awaiting this fetch right there would risk the browser treating the
@@ -369,9 +389,10 @@ fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' })
     if(!data || !data.templates) return;
     if(data.templates.reminder) waTemplates.reminder = data.templates.reminder;
     if(data.templates.feedbackRequest) waTemplates.feedbackRequest = data.templates.feedbackRequest;
+    if(data.templates.checkinRequest) waTemplates.checkinRequest = data.templates.checkinRequest;
   })
   .catch(()=>{}) // silent — keeps the hardcoded defaults above
-  .finally(()=>{ waTemplatesLoaded = true; renderReminders(); renderFeedbackRequests(); });
+  .finally(()=>{ waTemplatesLoaded = true; renderReminders(); renderFeedbackRequests(); renderCheckins(); });
 
 // A line containing any {{token}} whose value is empty/missing is dropped
 // entirely, so a template can mark a field optional just by giving it its
@@ -407,6 +428,14 @@ function feedbackLink(d){
 function feedbackRequestMessage(d){
   return renderWaTemplate(waTemplates.feedbackRequest, {
     guest: d.guest || 'there', feedbackLink: feedbackLink(d)
+  });
+}
+function checkinLink(d){
+  return `${CHECKIN_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent(d.guest||'')}&checkin=${encodeURIComponent(d.checkin)}&checkout=${encodeURIComponent(d.checkout)}`;
+}
+function checkinRequestMessage(d){
+  return renderWaTemplate(waTemplates.checkinRequest, {
+    guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), checkinLink: checkinLink(d)
   });
 }
 
@@ -549,9 +578,106 @@ function render(){
   renderStats();
   renderCalendar();
   renderAgenda();
+  renderCheckins();
   renderReminders();
   renderFeedbackRequests();
 }
+
+/* ---------- GUEST CHECK-INS ---------- */
+function renderCheckins(){
+  const today = todayISO();
+  const cutoff = addDays(today, CHECKIN_WINDOW_DAYS);
+  const due = STAYS
+    .filter(d=> (d.type||'invoice')!=='block' && d.checkin>=today && d.checkin<=cutoff && !isConvertedQuote(d))
+    .sort((a,b)=> a.checkin.localeCompare(b.checkin));
+
+  const badge = $('#ciBadge');
+  const pendingCount = due.filter(d=>!d.checkinInfo).length;
+  badge.style.display = pendingCount ? '' : 'none';
+  badge.textContent = pendingCount;
+
+  const list = $('#checkins');
+  if(!due.length){ list.innerHTML = '<div class="empty">No arrivals in the next '+CHECKIN_WINDOW_DAYS+' days.</div>'; return; }
+
+  list.innerHTML = due.map(d=>{
+    const days = nightsBetween(today, d.checkin);
+    const when = days<=0 ? 'Today' : days===1 ? 'Tomorrow' : `In ${days} days`;
+    const phone = normalizePhone(d.phone);
+    let statusNote, actionBtn;
+    if(d.checkinInfo){
+      statusNote = `<span class="rem-sent">✓ Checked in ${fmtDate(dateOnly(new Date(d.checkinInfo.submittedAt)))} · <a onclick="openCheckinDetail('${esc(d.no)}')">view</a></span>`;
+      actionBtn = '';
+    } else {
+      statusNote = d.checkinRequestedAt
+        ? `<span class="rem-sent">Link sent ${fmtDate(dateOnly(new Date(d.checkinRequestedAt)))} · <a onclick="markCheckinUnsent('${esc(d.no)}')">undo</a></span>`
+        : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
+      actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequest('${esc(d.no)}')">${waTemplatesLoaded?(d.checkinRequestedAt?'Resend':'Send Check-in Link'):'Loading template…'}</button>`;
+    }
+    return `<div class="rem-item">
+      <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
+      <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
+      <div class="rem-foot">${statusNote}${actionBtn}</div>
+    </div>`;
+  }).join('');
+}
+
+async function sendCheckinRequest(no){
+  if(!waTemplatesLoaded) return;
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  const phone = normalizePhone(d.phone);
+  if(!phone) return;
+  window.open(`https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(checkinRequestMessage(d))}`, '_blank');
+  d.checkinRequestedAt = new Date().toISOString();
+  try{
+    const ok = await pushStays();
+    if(ok===false) return;
+    renderCheckins();
+  }catch(e){
+    delete d.checkinRequestedAt;
+    alert('Could not save check-in link status: ' + e.message + '\n\n(The WhatsApp message still opened — this only affects the "sent" checkmark.)');
+    renderCheckins();
+  }
+}
+
+async function markCheckinUnsent(no){
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  const prev = d.checkinRequestedAt;
+  delete d.checkinRequestedAt;
+  try{
+    const ok = await pushStays();
+    if(ok===false) return;
+    renderCheckins();
+  }catch(e){
+    d.checkinRequestedAt = prev;
+    alert('Could not update check-in link status: ' + e.message);
+    renderCheckins();
+  }
+}
+
+function openCheckinDetail(no){
+  const d = STAYS.find(s=>s.no===no);
+  if(!d || !d.checkinInfo) return;
+  const c = d.checkinInfo;
+  $('#ciSub').textContent = `${d.guest||'—'} · ${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${d.no}`;
+  const row = (label, value) => value ? `<div class="ag-dates"><strong>${esc(label)}:</strong> ${esc(value)}</div>` : '';
+  $('#ciBody').innerHTML = `
+    ${row('Name', c.name)}
+    ${row('ID Type', c.idType)}
+    ${row('ID Number', c.idNumber)}
+    ${row('Address', c.address)}
+    ${row('Vehicle', c.vehicleNumber)}
+    ${row('Expected arrival', c.arrivalTime)}
+    ${row('Guests', c.guestsCount != null ? String(c.guestsCount) : '')}
+    ${row('Submitted', new Date(c.submittedAt).toLocaleString('en-IN'))}
+    ${c.idPhotoUrl ? `<div class="ag-dates" style="margin-top:10px"><strong>ID Photo:</strong></div><img src="${esc(c.idPhotoUrl)}" alt="ID photo" style="max-width:100%;border-radius:10px;margin-top:6px;border:1px solid var(--line)">` : ''}
+    ${c.signatureUrl ? `<div class="ag-dates" style="margin-top:10px"><strong>Signature:</strong></div><img src="${esc(c.signatureUrl)}" alt="Signature" style="max-width:100%;border-radius:10px;margin-top:6px;border:1px solid var(--line);background:#fff">` : ''}
+  `;
+  $('#checkinOverlay').classList.add('show');
+}
+$('#ciClose').addEventListener('click', ()=> $('#checkinOverlay').classList.remove('show'));
+$('#checkinOverlay').addEventListener('click', e=>{ if(e.target===$('#checkinOverlay')) $('#checkinOverlay').classList.remove('show'); });
 
 /* ---------- PRE-ARRIVAL REMINDERS ---------- */
 function renderReminders(){
@@ -916,7 +1042,7 @@ $('#fType').querySelectorAll('button').forEach(b=> b.addEventListener('click', (
   render();
 }));
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape'){ $('#dayOverlay').classList.remove('show'); $('#blockOverlay').classList.remove('show'); }
+  if(e.key==='Escape'){ $('#dayOverlay').classList.remove('show'); $('#blockOverlay').classList.remove('show'); $('#checkinOverlay').classList.remove('show'); }
 });
 
 /* ---------- BLOCK DATES ---------- */
