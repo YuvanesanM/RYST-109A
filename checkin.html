@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://ryst-109a-proxy.onrender.com wss://ryst-109a-proxy.onrender.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<title>Guest Check-in | RYST 109A</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+
+<style>
+  @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#e8f2f0;
+    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480;
+    --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
+    --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html,body{background:var(--foam);color:var(--ink);font-family:var(--sans);min-height:100%;-webkit-font-smoothing:antialiased}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh}
+  .wrap{max-width:560px;width:100%}
+  .card{
+    position:relative;background:var(--white);border-radius:28px;padding:clamp(26px,5vw,44px);
+    box-shadow:0 28px 70px rgba(11,61,82,.16); border:1px solid rgba(255,255,255,.8); overflow:hidden;
+  }
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sea),var(--sea-mid),var(--sand))}
+  .logo{height:44px;display:block;margin:0 auto 18px;object-fit:contain}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4vw,30px);text-align:center;color:var(--sea);margin-bottom:6px}
+  .lead{text-align:center;color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:8px}
+  .stay-summary{
+    text-align:center;background:var(--foam);border-radius:14px;padding:12px 16px;margin:14px 0 26px;
+    font-size:13.5px;color:var(--ink-mid,var(--ink));
+  }
+  .stay-summary strong{color:var(--sea)}
+
+  .f-group{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
+  .f-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+  .f-group input,.f-group textarea,.f-group select{
+    border:1.5px solid rgba(14,36,32,.12);border-radius:12px;padding:13px 16px;
+    font-family:var(--sans);font-size:14.5px;color:var(--ink);background:var(--white);
+    outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+  }
+  .f-group input:focus,.f-group textarea:focus,.f-group select:focus{border-color:var(--sea-mid);box-shadow:0 0 0 3px rgba(26,106,122,.1)}
+  .f-group textarea{resize:vertical;min-height:76px}
+  .f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:420px){ .f-row{grid-template-columns:1fr} }
+
+  .photo-box{
+    border:1.5px dashed rgba(14,36,32,.2);border-radius:14px;padding:16px;text-align:center;cursor:pointer;
+    transition:border-color .2s;background:var(--foam);
+  }
+  .photo-box:hover{border-color:var(--sea-mid)}
+  .photo-box.has-photo{padding:0;border-style:solid;border-color:var(--line);overflow:hidden;cursor:default}
+  .photo-box img{width:100%;max-height:220px;object-fit:contain;display:block;background:#000}
+  .photo-prompt{color:var(--muted);font-size:13.5px}
+  .photo-prompt svg{display:block;margin:0 auto 8px;color:var(--sea-mid)}
+  .photo-actions{display:flex;justify-content:center;padding:10px;background:var(--white)}
+  .photo-actions button{
+    background:none;border:none;color:var(--coral);font-family:var(--sans);font-size:13px;font-weight:600;
+    cursor:pointer;padding:4px 8px;
+  }
+
+  .sig-wrap{border:1.5px solid rgba(14,36,32,.12);border-radius:14px;overflow:hidden;background:var(--white)}
+  .sig-wrap canvas{display:block;width:100%;height:150px;touch-action:none;background:var(--white)}
+  .sig-foot{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--line);background:var(--foam)}
+  .sig-hint{font-size:12px;color:var(--muted)}
+  .sig-clear{background:none;border:none;color:var(--coral);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+
+  .chk-row{display:flex;align-items:flex-start;gap:9px;margin:18px 0 22px;font-size:13px;color:var(--muted);line-height:1.5}
+  .chk-row input{margin-top:3px;flex-shrink:0}
+  .chk-row a{color:var(--sea-mid)}
+
+  .submit{
+    position:relative;overflow:hidden;width:100%;padding:16px;border:none;border-radius:14px;
+    background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;font-family:var(--sans);
+    font-size:15px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:transform .15s var(--ease),box-shadow .2s;
+    box-shadow:0 10px 30px rgba(20,40,50,.26),inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .submit:hover{transform:translateY(-2px)}
+  .submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .err{color:var(--coral);font-size:13px;text-align:center;min-height:18px;margin-top:12px}
+
+  .thanks{display:none;text-align:center;padding:20px 0}
+  .thanks .tick{width:56px;height:56px;border-radius:50%;background:var(--foam);color:var(--sea-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+  .thanks h2{font-family:var(--serif);font-weight:600;font-size:24px;color:var(--sea);margin-bottom:8px}
+  .thanks p{color:var(--muted);font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
+    <div id="formView">
+      <h1>Guest Check-in</h1>
+      <p class="lead">A few quick details so we have everything ready before you arrive.</p>
+      <div class="stay-summary" id="staySummary"></div>
+
+      <form id="ciForm">
+        <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+          <label for="ci-website">Website</label>
+          <input id="ci-website" type="text" tabindex="-1" autocomplete="off">
+        </div>
+
+        <div class="f-group">
+          <label for="ci-name">Full Name *</label>
+          <input id="ci-name" type="text" placeholder="As on your government ID" required>
+        </div>
+
+        <div class="f-row">
+          <div class="f-group">
+            <label for="ci-idtype">Government ID Type *</label>
+            <select id="ci-idtype" required>
+              <option value="">Select…</option>
+              <option>Aadhaar</option>
+              <option>Passport</option>
+              <option>Driving License</option>
+              <option>Voter ID</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="f-group">
+            <label for="ci-idnumber">ID Number *</label>
+            <input id="ci-idnumber" type="text" placeholder="ID number" required>
+          </div>
+        </div>
+
+        <div class="f-group">
+          <label>ID Photo *</label>
+          <div class="photo-box" id="photoBox">
+            <div class="photo-prompt" id="photoPrompt">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              Tap to take a photo or upload your ID
+            </div>
+          </div>
+        </div>
+
+        <div class="f-group">
+          <label for="ci-address">Home Address (optional)</label>
+          <textarea id="ci-address" placeholder="Your home address"></textarea>
+        </div>
+
+        <div class="f-row">
+          <div class="f-group">
+            <label for="ci-vehicle">Vehicle Number (optional)</label>
+            <input id="ci-vehicle" type="text" placeholder="If driving">
+          </div>
+          <div class="f-group">
+            <label for="ci-arrival">Expected Arrival (optional)</label>
+            <input id="ci-arrival" type="text" placeholder="e.g. 6:00 PM">
+          </div>
+        </div>
+
+        <div class="f-group">
+          <label for="ci-guests">Number of Guests (optional)</label>
+          <input id="ci-guests" type="number" min="1" max="30" placeholder="Total staying">
+        </div>
+
+        <div class="f-group">
+          <label>Signature *</label>
+          <div class="sig-wrap">
+            <canvas id="sigCanvas"></canvas>
+            <div class="sig-foot">
+              <span class="sig-hint">Sign with your finger or mouse</span>
+              <button type="button" class="sig-clear" id="sigClear">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <label class="chk-row">
+          <input type="checkbox" id="ci-agree">
+          <span>I confirm the details above are accurate and I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">House Rules &amp; Terms</a>.</span>
+        </label>
+
+        <button type="submit" class="submit" id="ciSubmitBtn">Complete Check-in</button>
+        <p class="err" id="ciErr"></p>
+      </form>
+    </div>
+
+    <div class="thanks" id="thanksView">
+      <div class="tick"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <h2>You're all checked in!</h2>
+      <p id="thanksMsg">We'll have everything ready for your stay. See you soon at RYST 109A.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+const $ = s => document.querySelector(s);
+
+function qp(name){ return new URLSearchParams(location.search).get(name) || ''; }
+const bookingNo = qp('no');
+const guestPrefill = qp('guest');
+const checkinDate = qp('checkin');
+const checkoutDate = qp('checkout');
+if(guestPrefill) $('#ci-name').value = guestPrefill;
+
+function fmtDate(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+}
+(function renderSummary(){
+  const el = $('#staySummary');
+  if(checkinDate && checkoutDate){
+    el.innerHTML = `<strong>${guestPrefill ? guestPrefill+' — ' : ''}</strong>${fmtDate(checkinDate)} → ${fmtDate(checkoutDate)}`;
+  } else {
+    el.style.display = 'none';
+  }
+})();
+
+// ── ID PHOTO ── same capture+compress pattern as the checklist/petty-cash
+// photo uploads: read the file, downscale to a sane max dimension, export
+// as a JPEG data URI. Keeps the upload small without needing a cropping UI.
+let idPhotoDataUrl = null;
+const photoInput = document.createElement('input');
+photoInput.type = 'file'; photoInput.accept = 'image/*'; photoInput.capture = 'environment'; photoInput.hidden = true;
+document.body.appendChild(photoInput);
+
+function compressImage(file){
+  return new Promise((resolve,reject)=>{
+    if(!file) return resolve(null);
+    if(!file.type || !file.type.startsWith('image/')) return reject(new Error('Please choose an image file'));
+    const reader=new FileReader();
+    reader.onload=()=>{ const img=new Image();
+      img.onload=()=>{ const maxDim=1400; let w=img.width,h=img.height;
+        if(w>maxDim||h>maxDim){ if(w>=h){ h=Math.round(h*maxDim/w); w=maxDim; } else { w=Math.round(w*maxDim/h); h=maxDim; } }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        resolve(cv.toDataURL('image/jpeg',0.75)); };
+      img.onerror=()=>reject(new Error('Could not read image')); img.src=reader.result; };
+    reader.onerror=()=>reject(new Error('Could not read file')); reader.readAsDataURL(file);
+  });
+}
+
+function renderPhotoBox(){
+  const box = $('#photoBox');
+  if(idPhotoDataUrl){
+    box.classList.add('has-photo');
+    box.innerHTML = `<img src="${idPhotoDataUrl}" alt="ID photo preview">
+      <div class="photo-actions"><button type="button" id="photoRetake">Retake photo</button></div>`;
+    $('#photoRetake').addEventListener('click', e => { e.stopPropagation(); photoInput.value=''; photoInput.click(); });
+  } else {
+    box.classList.remove('has-photo');
+    box.innerHTML = `<div class="photo-prompt" id="photoPrompt">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Tap to take a photo or upload your ID
+    </div>`;
+  }
+}
+$('#photoBox').addEventListener('click', () => { if(!idPhotoDataUrl){ photoInput.value=''; photoInput.click(); } });
+photoInput.addEventListener('change', async () => {
+  const file = photoInput.files[0];
+  if(!file) return;
+  try{ idPhotoDataUrl = await compressImage(file); renderPhotoBox(); }
+  catch(e){ $('#ciErr').textContent = e.message; }
+});
+
+// ── SIGNATURE PAD ── plain canvas + pointer events. Sized to its own CSS
+// width in real device pixels (not just CSS pixels) so it isn't blurry on
+// high-DPI phone screens, which is where this will mostly be signed.
+const sigCanvas = $('#sigCanvas');
+const sigCtx = sigCanvas.getContext('2d');
+let sigHasDrawn = false, sigDrawing = false, sigLast = null;
+
+function sizeSigCanvas(){
+  const rect = sigCanvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  sigCanvas.width = rect.width * dpr;
+  sigCanvas.height = rect.height * dpr;
+  sigCtx.scale(dpr, dpr);
+  sigCtx.lineWidth = 2.2; sigCtx.lineCap = 'round'; sigCtx.lineJoin = 'round'; sigCtx.strokeStyle = '#0e2420';
+}
+sizeSigCanvas();
+window.addEventListener('resize', () => { const had = sigHasDrawn; sizeSigCanvas(); if(had){ /* canvas cleared by resize; require re-signing */ sigHasDrawn = false; } });
+
+function sigPoint(e){
+  const rect = sigCanvas.getBoundingClientRect();
+  return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+}
+sigCanvas.addEventListener('pointerdown', e => {
+  sigDrawing = true; sigHasDrawn = true; sigLast = sigPoint(e);
+  sigCanvas.setPointerCapture(e.pointerId);
+});
+sigCanvas.addEventListener('pointermove', e => {
+  if(!sigDrawing) return;
+  const p = sigPoint(e);
+  sigCtx.beginPath(); sigCtx.moveTo(sigLast.x, sigLast.y); sigCtx.lineTo(p.x, p.y); sigCtx.stroke();
+  sigLast = p;
+});
+['pointerup','pointerleave','pointercancel'].forEach(ev => sigCanvas.addEventListener(ev, () => { sigDrawing = false; }));
+$('#sigClear').addEventListener('click', () => {
+  sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+  sigHasDrawn = false;
+});
+
+$('#ciForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const errEl = $('#ciErr');
+  errEl.textContent = '';
+
+  const name = $('#ci-name').value.trim();
+  const idType = $('#ci-idtype').value;
+  const idNumber = $('#ci-idnumber').value.trim();
+  if(!name){ errEl.textContent = 'Please enter your name.'; return; }
+  if(!idType){ errEl.textContent = 'Please select your ID type.'; return; }
+  if(!idNumber){ errEl.textContent = 'Please enter your ID number.'; return; }
+  if(!idPhotoDataUrl){ errEl.textContent = 'Please add a photo of your ID.'; return; }
+  if(!sigHasDrawn){ errEl.textContent = 'Please sign above.'; return; }
+  if(!$('#ci-agree').checked){ errEl.textContent = 'Please agree to the House Rules & Terms.'; return; }
+
+  const btn = $('#ciSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  const payload = {
+    no: bookingNo, name, idType, idNumber,
+    idPhoto: idPhotoDataUrl,
+    signature: sigCanvas.toDataURL('image/png'),
+    address: $('#ci-address').value.trim(),
+    vehicleNumber: $('#ci-vehicle').value.trim(),
+    arrivalTime: $('#ci-arrival').value.trim(),
+    guestsCount: $('#ci-guests').value ? Number($('#ci-guests').value) : null,
+    website: $('#ci-website').value, // honeypot
+  };
+
+  try{
+    const ctrl = new AbortController();
+    const abortTimer = setTimeout(()=>ctrl.abort(), 75000);
+    const res = await fetch(PROXY_URL+'/checkin', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(payload), signal: ctrl.signal,
+    });
+    clearTimeout(abortTimer);
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ throw new Error(data.error || 'Something went wrong'); }
+    $('#formView').style.display = 'none';
+    $('#thanksView').style.display = 'block';
+    if(checkinDate && checkoutDate){
+      $('#thanksMsg').textContent = `We'll have everything ready for your stay from ${fmtDate(checkinDate)} to ${fmtDate(checkoutDate)}. See you soon!`;
+    }
+  }catch(err){
+    errEl.textContent = (err && err.name === 'AbortError')
+      ? 'The server is taking a while to respond — please try again in a moment.'
+      : (err.message || 'Could not submit — please try again.');
+    btn.disabled = false; btn.textContent = 'Complete Check-in';
+  }
+});
+</script>
+</body>
+</html>
