@@ -178,12 +178,13 @@
 
     <p class="gh-mini">Business &amp; payment</p>
     <label class="f"><span>Property address block (under the wordmark)</span><textarea class="t" id="stayCompany" rows="3"></textarea></label>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;gap:12px">
       <label class="f"><span>PAN</span><input class="t" id="stayPan" placeholder="ADVPJ1491D"></label>
       <label class="f"><span>Invoice no. prefix</span><input class="t" id="stayInvPrefix" placeholder="RYST109A/INV"></label>
       <label class="f"><span>Quote no. prefix</span><input class="t" id="stayQtPrefix" placeholder="RYST109A/QT"></label>
       <label class="f"><span>Max guests (incl.)</span><input class="t" id="stayMaxGuests" type="number" min="0" step="1" placeholder="4"></label>
       <label class="f"><span>Guest capacity (hard cap)</span><input class="t" id="stayGuestCapacity" type="number" min="0" step="1" placeholder="10"></label>
+      <label class="f"><span>Online booking advance (%)</span><input class="t" id="stayAdvancePercent" type="number" min="1" max="100" step="1" placeholder="30"></label>
     </div>
     <label class="f"><span>Bank / payment details block</span><textarea class="t" id="stayBank" rows="6"></textarea></label>
     <label class="f"><span>GST declaration</span><textarea class="t" id="stayDecl" rows="3"></textarea></label>
@@ -293,6 +294,7 @@ Account Type: Savings`,
   ],
   maxGuests: 4,
   guestCapacity: 10,
+  advancePercent: 30,
   icalFeeds: []
 };
 let stay = JSON.parse(JSON.stringify(STAY_DEFAULTS));
@@ -466,6 +468,7 @@ function renderFromStay(){
   document.getElementById("stayQtPrefix").value=stay.qtPrefix||"";
   document.getElementById("stayMaxGuests").value=stay.maxGuests!=null?stay.maxGuests:"";
   document.getElementById("stayGuestCapacity").value=stay.guestCapacity!=null?stay.guestCapacity:"";
+  document.getElementById("stayAdvancePercent").value=stay.advancePercent!=null?stay.advancePercent:"";
   document.getElementById("stayBank").value=stay.bank||"";
   document.getElementById("stayDecl").value=stay.declaration||"";
   document.getElementById("stayTerms").value=(stay.terms||[]).join("\n");
@@ -748,6 +751,8 @@ async function saveStay(){
   if(stay.maxGuests > 0 && stay.guestCapacity > 0 && stay.maxGuests > stay.guestCapacity){
     toast("⚠️ Max included guests ("+stay.maxGuests+") exceeds guest capacity ("+stay.guestCapacity+") — additional charge line can never appear");
   }
+  const apVal=document.getElementById("stayAdvancePercent").value;
+  stay.advancePercent = apVal!=="" ? Math.min(100, Math.max(1, parseInt(apVal)||STAY_DEFAULTS.advancePercent)) : STAY_DEFAULTS.advancePercent;
   stay.bank=document.getElementById("stayBank").value;
   stay.declaration=document.getElementById("stayDecl").value;
   stay.terms=(document.getElementById("stayTerms").value||"").split("\n").map(t=>t.trim()).filter(Boolean);
