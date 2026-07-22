@@ -870,6 +870,20 @@
       .avail-selected { gap: 6px; padding: 10px 12px; }
       .sel-value { font-size: 13px; }
     }
+    .avail-rate {
+      font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--sea-mid);
+      margin-bottom: 12px;
+    }
+    .price-preview {
+      margin-top: 12px; padding: 14px 16px; border-radius: 14px; background: var(--white);
+      border: 1px solid var(--line);
+    }
+    .price-preview .pp-line { font-size: 12.5px; color: var(--muted); margin-bottom: 3px; }
+    .price-preview .pp-total { font-size: 14.5px; color: var(--ink); font-weight: 600; margin-top: 6px; }
+    .price-preview .pp-advance {
+      font-size: 13.5px; color: var(--sea-mid); font-weight: 700; margin-top: 4px;
+      padding-top: 8px; border-top: 1px dashed var(--line);
+    }
     .avail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
     .avail-head h3 { font-family: var(--serif); font-size: 21px; font-weight: 600; color: var(--ink); }
     .avail-nav { display: flex; align-items: center; gap: 8px; margin-left: auto; }
@@ -1423,6 +1437,7 @@
                   <button type="button" id="availNext" aria-label="Next month">›</button>
                 </div>
               </div>
+              <p class="avail-rate" id="availRate" style="display:none"></p>
               <div class="avail-legend">
                 <span><i class="i-free"></i>Available</span>
                 <span><i class="i-taken"></i>Booked</span>
@@ -1442,6 +1457,7 @@
                   <strong class="sel-value empty" id="selCheckoutText">Not selected</strong>
                 </div>
               </div>
+              <div class="price-preview" id="pricePreview" style="display:none"></div>
             </div>
             <input type="hidden" id="f-checkin" name="checkin">
             <input type="hidden" id="f-checkout" name="checkout">
@@ -1575,6 +1591,7 @@
   // ── GUEST CAP ──
   document.getElementById('f-guests').addEventListener('input', e => {
     if(parseInt(e.target.value) > 12){ e.target.value = '12'; showToast('Maximum capacity is 12 guests.'); }
+    if(typeof updatePricePreview === 'function') updatePricePreview();
   });
 
   // ── ANALYTICS: WhatsApp CTA clicks ──
@@ -1710,6 +1727,7 @@
       }
       updateSelectedDisplay();
       render();
+      if(typeof updatePricePreview === 'function') updatePricePreview();
     }
 
     async function load(){
@@ -1827,6 +1845,46 @@
   const PROXY = 'https://ryst-109a-proxy.onrender.com';
   const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
+
+  // ── PRICING PREVIEW ── a live estimate only, shown as the guest picks
+  // dates/guests — same "client-side is UX, never the source of truth" stance
+  // as the availability calendar. The actual amount charged is still computed
+  // server-side in /booking/create-order at submit time.
+  let PRICING = null;
+  fetch(PROXY+'/pricing', { cache: 'no-store' })
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      if(!data || !data.villaRate) return;
+      PRICING = data;
+      const rateEl = document.getElementById('availRate');
+      if(rateEl){ rateEl.textContent = `₹${data.villaRate.toLocaleString('en-IN')} / night`; rateEl.style.display = ''; }
+      updatePricePreview();
+    })
+    .catch(()=>{}); // silent — the preview just stays hidden if this fails
+
+  function updatePricePreview(){
+    const el = document.getElementById('pricePreview');
+    if(!el) return;
+    const checkin = document.getElementById('f-checkin').value;
+    const checkout = document.getElementById('f-checkout').value;
+    if(!PRICING || !checkin || !checkout){ el.style.display = 'none'; return; }
+    const nights = Math.round((new Date(checkout+'T00:00:00') - new Date(checkin+'T00:00:00')) / 86400000);
+    if(nights <= 0){ el.style.display = 'none'; return; }
+    const guests = Math.max(1, parseInt(document.getElementById('f-guests').value, 10) || 0);
+    const extraGuests = PRICING.maxGuests > 0 ? Math.max(0, guests - PRICING.maxGuests) : 0;
+    const total = nights * PRICING.villaRate + extraGuests * nights * PRICING.extraGuestRate;
+    const advance = Math.max(PRICING.minAdvance, Math.round(total * PRICING.advancePercent / 100));
+    const extraLine = extraGuests > 0
+      ? `<div class="pp-line">+ ${extraGuests} extra guest${extraGuests!==1?'s':''} × ${nights} night${nights!==1?'s':''} × ₹${PRICING.extraGuestRate.toLocaleString('en-IN')}</div>`
+      : '';
+    el.innerHTML = `
+      <div class="pp-line">${nights} night${nights!==1?'s':''} × ₹${PRICING.villaRate.toLocaleString('en-IN')}</div>
+      ${extraLine}
+      <div class="pp-total">Total: ₹${total.toLocaleString('en-IN')}</div>
+      <div class="pp-advance">Advance to book (${PRICING.advancePercent}%): ₹${advance.toLocaleString('en-IN')}</div>
+    `;
+    el.style.display = '';
+  }
 
   function readBookForm(){
     return {
