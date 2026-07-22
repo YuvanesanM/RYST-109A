@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://ryst-109a-proxy.onrender.com wss://ryst-109a-proxy.onrender.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://*.razorpay.com; connect-src 'self' https://ryst-109a-proxy.onrender.com wss://ryst-109a-proxy.onrender.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com https://api.razorpay.com https://lumberjack.razorpay.com; frame-src https://accounts.google.com https://www.google.com https://api.razorpay.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 
   <!-- ── PRIMARY SEO ── -->
   <title>RYST 109A — ECR Beach Villa with Private Pool | Cheyyur</title>
@@ -820,6 +820,25 @@
     .form-submit:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(20,40,50,.32), inset 0 1px 0 rgba(255,255,255,.6); }
     .form-submit:hover::after { left: 130%; }
     .form-submit:active { transform: translateY(0); }
+    .form-fallback-link {
+      display: block; width: 100%; margin-top: 12px; padding: 8px; border: none; background: none;
+      font-family: var(--sans); font-size: 13px; color: var(--muted); text-decoration: underline;
+      text-underline-offset: 3px; cursor: pointer; text-align: center;
+    }
+    .form-fallback-link:hover { color: var(--sea-mid); }
+    .book-success {
+      text-align: center; padding: clamp(20px,4vw,32px) clamp(12px,3vw,20px);
+    }
+    .book-success .bs-icon {
+      width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--sea), var(--sea-mid)); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700;
+    }
+    .book-success h3 { font-family: var(--serif); font-size: clamp(20px,3vw,26px); margin-bottom: 6px; }
+    .book-success .bs-ref { font-weight: 600; color: var(--sea-mid); margin-bottom: 4px; }
+    .book-success p { font-size: 14.5px; color: var(--muted); line-height: 1.6; margin: 4px 0; }
+    .book-success .bs-amount { font-size: 15px; color: var(--ink); font-weight: 600; margin: 12px 0; }
+    .book-success a { color: var(--sea-mid); }
 
     /* ── AVAILABILITY CALENDAR ── */
     /* Embedded inside .book-form now, so it reads as a widget within the
@@ -1446,10 +1465,12 @@
             <textarea id="f-message" name="message" placeholder="Anything specific you'd like us to know — special celebrations, dietary needs, early check-in requests, etc."></textarea>
           </div>
         </div>
-        <button type="submit" class="form-submit" id="bookSubmitBtn">Send Booking Request →</button>
+        <button type="submit" class="form-submit" id="bookSubmitBtn">Book Now — Pay Advance →</button>
+        <button type="button" class="form-fallback-link" id="bookWaFallback">Prefer WhatsApp? Send an enquiry instead</button>
       </form>
-      <p class="form-note">
-        We'll respond via WhatsApp or email within a few hours.
+      <div class="book-success" id="bookSuccess" style="display:none" aria-live="polite"></div>
+      <p class="form-note" id="bookFormNote">
+        An advance payment confirms your dates instantly — the balance is paid at check-in.
       </p>
     </div>
   </div>
@@ -1525,6 +1546,7 @@
 <!-- GSAP + ScrollTrigger (self-hosted) for parallax, scroll reveals & menu transitions -->
 <script defer src="/assets/gsap/gsap.min.js"></script>
 <script defer src="/assets/gsap/ScrollTrigger.min.js"></script>
+<script defer src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
   // ── NAV SCROLL EFFECT + SCROLL PROGRESS ──
@@ -1793,40 +1815,49 @@
   // ── BOOKING FORM ──
   // Update WHATSAPP_NUMBER to your actual WhatsApp number (digits only, with country code, no +)
   const WHATSAPP_NUMBER = '918608008608';
+  const PROXY = 'https://ryst-109a-proxy.onrender.com';
+  const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
 
-  document.getElementById('bookForm').addEventListener('submit', async function(e){
-    e.preventDefault();
-    const name     = document.getElementById('f-name').value.trim();
-    const phone    = document.getElementById('f-phone').value.trim();
-    const email    = document.getElementById('f-email').value.trim();
-    const checkin  = document.getElementById('f-checkin').value;
-    const checkout = document.getElementById('f-checkout').value;
-    const guests   = document.getElementById('f-guests').value;
-    const occasion = document.getElementById('f-occasion').value;
-    const message  = document.getElementById('f-message').value.trim();
-    const website  = document.getElementById('f-website').value; // honeypot
+  function readBookForm(){
+    return {
+      name:     document.getElementById('f-name').value.trim(),
+      phone:    document.getElementById('f-phone').value.trim(),
+      email:    document.getElementById('f-email').value.trim(),
+      checkin:  document.getElementById('f-checkin').value,
+      checkout: document.getElementById('f-checkout').value,
+      guests:   document.getElementById('f-guests').value,
+      occasion: document.getElementById('f-occasion').value,
+      message:  document.getElementById('f-message').value.trim(),
+      website:  document.getElementById('f-website').value, // honeypot
+    };
+  }
+  function validateBookForm(f){
+    if(!f.name||!f.phone||!f.checkin||!f.checkout||!f.guests) return 'Please fill in all required fields.';
+    if(new Date(f.checkout) <= new Date(f.checkin)) return 'Check-out must be after check-in.';
+    if(availState.hasConflict(f.checkin, f.checkout)) return 'Those dates aren\'t available — please check the calendar above.';
+    return null;
+  }
 
-    if(!name||!phone||!checkin||!checkout||!guests){ showToast('Please fill in all required fields.'); return; }
-    if(new Date(checkout) <= new Date(checkin)){ showToast('Check-out must be after check-in.'); return; }
-    if(availState.hasConflict(checkin, checkout)){ showToast('Those dates aren\'t available — please check the calendar above.'); return; }
+  // The original WhatsApp-request flow — still available as a fallback for
+  // guests who'd rather not pay online immediately. Saves a (non-binding)
+  // quote to the owner's calendar, best-effort, then always hands off to
+  // WhatsApp regardless of that outcome (except a genuine date conflict).
+  document.getElementById('bookWaFallback').addEventListener('click', async function(){
+    const f = readBookForm();
+    const err = validateBookForm(f);
+    if(err){ showToast(err); return; }
 
-    const nights = Math.round((new Date(checkout)-new Date(checkin))/(1000*60*60*24));
-    const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
-
+    const nights = Math.round((new Date(f.checkout)-new Date(f.checkin))/(1000*60*60*24));
     function openWhatsApp(quoteNo){
       const vars = {
-        name, phone, email,
-        checkin: fmtDate(checkin), checkout: fmtDate(checkout),
+        name: f.name, phone: f.phone, email: f.email,
+        checkin: fmtDate(f.checkin), checkout: fmtDate(f.checkout),
         nightsLabel: `${nights} night${nights!==1?'s':''}`,
-        guests, occasion, message, quoteNo: quoteNo || ''
+        guests: f.guests, occasion: f.occasion, message: f.message, quoteNo: quoteNo || ''
       };
       const text = renderWaTemplate(waTemplates.bookingRequest, vars);
-      // The one conversion that actually matters on this page: a completed
-      // booking request handed off to WhatsApp. Fires regardless of whether
-      // the internal quote-save succeeded (openWhatsApp is the single path
-      // every outcome funnels through) — this measures guest intent, not
-      // our own backend's persistence.
-      if(typeof gtag === 'function') gtag('event', 'generate_lead', { method: 'website_quote_form', nights, guests: Number(guests)||undefined });
+      if(typeof gtag === 'function') gtag('event', 'generate_lead', { method: 'website_quote_form', nights, guests: Number(f.guests)||undefined });
       // api.whatsapp.com/send directly — NOT wa.me. wa.me's own redirect
       // service corrupts non-ASCII characters in the `text` param before
       // it reaches api.whatsapp.com (verified by inspecting its redirect
@@ -1835,27 +1866,20 @@
       window.open(`https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}&text=${encodeURIComponent(text)}`, '_blank');
     }
 
-    const btn = document.getElementById('bookSubmitBtn');
+    const btn = document.getElementById('bookWaFallback');
     const originalLabel = btn.textContent;
     btn.disabled = true; btn.textContent = 'Sending…';
-
-    // Best-effort: save a quote to the owner's calendar before handing off
-    // to WhatsApp. The proxy can cold-start for 30-60s on Render's free
-    // tier, so this gets real time to succeed — but a slow/failed request
-    // must never block the guest from reaching out, so it always falls
-    // through to WhatsApp regardless of outcome (except a genuine date
-    // conflict just detected server-side, which is worth surfacing first).
     const ctrl = new AbortController();
     const abortTimer = setTimeout(()=>ctrl.abort(), 45000);
     try{
-      const res = await fetch('https://ryst-109a-proxy.onrender.com/public-quote', {
+      const res = await fetch(PROXY+'/public-quote', {
         method: 'POST', headers: {'Content-Type':'application/json'}, signal: ctrl.signal,
-        body: JSON.stringify({ name, phone, email, checkin, checkout, guests, occasion, message, website })
+        body: JSON.stringify(f)
       });
       const data = await res.json().catch(()=>({}));
       if(res.status === 409){
         showToast(data.error || 'Those dates were just taken — please pick different dates.', 5000);
-        availState.load(); // refresh the calendar so the now-stale selection is visibly greyed out
+        availState.load();
         return;
       }
       if(res.ok && data.ok){
@@ -1874,6 +1898,108 @@
       btn.disabled = false; btn.textContent = originalLabel;
     }
   });
+
+  // The new primary flow — pay an advance online via Razorpay to confirm
+  // the booking instantly. /booking/create-order prices the stay and
+  // reserves the dates server-side; the actual confirmed write only ever
+  // happens via the server (see /booking/verify's poll below) — nothing
+  // here writes stays.json directly.
+  document.getElementById('bookForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const f = readBookForm();
+    const err = validateBookForm(f);
+    if(err){ showToast(err); return; }
+
+    const btn = document.getElementById('bookSubmitBtn');
+    const originalLabel = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Calculating price…';
+
+    try{
+      const res = await fetch(PROXY+'/booking/create-order', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(f)
+      });
+      const data = await res.json().catch(()=>({}));
+      if(res.status === 409){
+        showToast(data.error || 'Those dates were just taken — please pick different dates.', 5000);
+        availState.load();
+        return;
+      }
+      if(!res.ok || !data.ok || !data.orderId){
+        showToast(data.error || 'Could not start payment — please try WhatsApp instead.', 6000);
+        return;
+      }
+      btn.textContent = 'Opening secure payment…';
+      openRazorpayCheckout(data, f);
+    }catch(e){
+      showToast('Could not reach the booking server — please try WhatsApp instead.', 6000);
+    }finally{
+      btn.disabled = false; btn.textContent = originalLabel;
+    }
+  });
+
+  function openRazorpayCheckout(order, f){
+    if(typeof Razorpay === 'undefined'){
+      showToast('Payment could not load — please try WhatsApp instead.', 6000);
+      return;
+    }
+    const rzp = new Razorpay({
+      key: order.keyId,
+      amount: Math.round(order.amount * 100),
+      currency: order.currency || 'INR',
+      name: 'RYST 109A Beach Villa',
+      description: 'Booking advance — ' + fmtDate(f.checkin) + ' to ' + fmtDate(f.checkout),
+      order_id: order.orderId,
+      prefill: { name: f.name, contact: f.phone, email: f.email },
+      theme: { color: '#1a6a7a' },
+      handler: function(response){ verifyPayment(response); },
+      modal: { ondismiss: function(){ showToast('Payment cancelled — your dates are not booked yet.', 5000); } },
+    });
+    rzp.on('payment.failed', function(){ showToast('Payment failed — please try again or use WhatsApp.', 6000); });
+    rzp.open();
+  }
+
+  async function verifyPayment(response){
+    showToast('Confirming your payment…', 8000);
+    try{
+      const res = await fetch(PROXY+'/booking/verify', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+        })
+      });
+      const data = await res.json().catch(()=>({}));
+      if(data.ok && data.confirmed){
+        showBookingConfirmed(data);
+      } else if(data.ok){
+        showToast(data.message || 'Payment received — confirming your booking, we\'ll WhatsApp you shortly.', 10000);
+      } else {
+        showToast(data.error || 'Could not confirm your booking — please WhatsApp us with your payment details.', 10000);
+      }
+    }catch(e){
+      showToast('Could not confirm your booking — please WhatsApp us with your payment details.', 10000);
+    }
+  }
+
+  function showBookingConfirmed(data){
+    if(typeof gtag === 'function') gtag('event', 'purchase', { transaction_id: data.no, value: data.amount, currency: 'INR' });
+    availState.load(); // refresh the calendar so the now-booked dates show as taken
+    document.getElementById('bookForm').style.display = 'none';
+    document.getElementById('bookFormNote').style.display = 'none';
+    const el = document.getElementById('bookSuccess');
+    el.innerHTML = `
+      <div class="bs-icon">✓</div>
+      <h3>Booking confirmed!</h3>
+      <p class="bs-ref">${esc(data.no)}</p>
+      <p>${fmtDate(data.checkin)} → ${fmtDate(data.checkout)}</p>
+      <p class="bs-amount">Advance paid: ₹${Number(data.amount).toLocaleString('en-IN')}</p>
+      <p>Balance is payable at check-in. We'll be in touch on WhatsApp shortly — questions in the meantime?
+        <a href="https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}" target="_blank" rel="noopener">Message us</a>.</p>
+    `;
+    el.style.display = '';
+  }
 
   // ── GALLERY LIGHTBOX (independent of GSAP) ──
   (function(){
