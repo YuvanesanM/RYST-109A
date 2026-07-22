@@ -9,6 +9,7 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
   @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
@@ -37,6 +38,19 @@
     font-size:13.5px;color:var(--ink-mid,var(--ink));
   }
   .stay-summary strong{color:var(--sea)}
+
+  .gsi-block{background:var(--foam);border-radius:14px;padding:18px;text-align:center;margin-bottom:22px}
+  .gsi-hint{font-size:13.5px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+  .gsi-matched{font-size:13.5px;color:var(--sea-mid);font-weight:600}
+  #googleSignInBtn{display:flex;justify-content:center}
+
+  .admin-picker{background:var(--foam);border-radius:14px;padding:18px;margin-bottom:22px}
+  .admin-picker label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+  .admin-picker select{
+    border:1.5px solid rgba(14,36,32,.12);border-radius:12px;padding:13px 16px;
+    font-family:var(--sans);font-size:14.5px;color:var(--ink);background:var(--white);
+    outline:none;width:100%;
+  }
 
   .f-group{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
   .f-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
@@ -99,6 +113,19 @@
       <h1>Guest Check-in</h1>
       <p class="lead">A few quick details so we have everything ready before you arrive.</p>
       <div class="stay-summary" id="staySummary"></div>
+
+      <div class="gsi-block" id="gsiBlock">
+        <p class="gsi-hint" id="gsiHint">Sign in with Google to find your booking and auto-fill your details.</p>
+        <div id="googleSignInBtn"></div>
+        <p class="err" id="gsiErr"></p>
+      </div>
+
+      <div class="admin-picker" id="adminPicker" style="display:none">
+        <label for="adminGuestSelect">Signed in as staff — select a guest to check in</label>
+        <select id="adminGuestSelect">
+          <option value="">Choose a booking…</option>
+        </select>
+      </div>
 
       <form id="ciForm">
         <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
@@ -192,12 +219,16 @@
 <script>
 const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
 const $ = s => document.querySelector(s);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 function qp(name){ return new URLSearchParams(location.search).get(name) || ''; }
-const bookingNo = qp('no');
-const guestPrefill = qp('guest');
-const checkinDate = qp('checkin');
-const checkoutDate = qp('checkout');
+// let, not const — a Google sign-in match (guest or admin-picked) can
+// resolve/overwrite these after the page has already loaded with none of
+// them set from the link's query params.
+let bookingNo = qp('no');
+let guestPrefill = qp('guest');
+let checkinDate = qp('checkin');
+let checkoutDate = qp('checkout');
 if(guestPrefill) $('#ci-name').value = guestPrefill;
 
 function fmtDate(iso){
@@ -206,14 +237,143 @@ function fmtDate(iso){
   if(isNaN(d)) return iso;
   return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
 }
-(function renderSummary(){
+function renderSummary(){
   const el = $('#staySummary');
   if(checkinDate && checkoutDate){
-    el.innerHTML = `<strong>${guestPrefill ? guestPrefill+' — ' : ''}</strong>${fmtDate(checkinDate)} → ${fmtDate(checkoutDate)}`;
+    el.style.display = '';
+    el.innerHTML = `<strong>${guestPrefill ? esc(guestPrefill)+' — ' : ''}</strong>${fmtDate(checkinDate)} → ${fmtDate(checkoutDate)}`;
   } else {
     el.style.display = 'none';
   }
-})();
+}
+renderSummary();
+
+// The link already tells us which booking this is — no need to detour
+// through sign-in. Only offer it when the guest arrived without one (lost
+// the link, bookmarked the page, or an admin needs to check someone in
+// from scratch).
+function showCiForm(){
+  $('#ciForm').style.display = '';
+  $('#gsiBlock').style.display = 'none';
+  $('#adminPicker').style.display = 'none';
+}
+if(bookingNo){
+  $('#ciForm').style.display = '';
+  $('#gsiBlock').style.display = 'none';
+} else {
+  $('#ciForm').style.display = 'none';
+}
+
+const GOOGLE_CLIENT_ID = '717827758789-99ugj40a6j2rr4r7db26shn0hivq0vv0.apps.googleusercontent.com';
+
+async function handleGoogleLogin(credentialResponse){
+  const errEl = $('#gsiErr');
+  errEl.textContent = 'Verifying…';
+  const idToken = credentialResponse.credential;
+  try{
+    const res = await fetch(PROXY_URL+'/auth/checkin', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ googleIdToken: idToken }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(data.ok){
+      bookingNo = data.no;
+      guestPrefill = data.guest || guestPrefill;
+      checkinDate = data.checkin || checkinDate;
+      checkoutDate = data.checkout || checkoutDate;
+      if(guestPrefill) $('#ci-name').value = guestPrefill;
+      renderSummary();
+      $('#gsiBlock').innerHTML = `<p class="gsi-matched">✓ Signed in — matched your booking ${esc(bookingNo)}.</p>`;
+      showCiForm();
+      return;
+    }
+    // Not a guest match — this Google account might be staff instead.
+    tryStaffLogin(idToken);
+  }catch(e){
+    errEl.textContent = 'Could not reach the server — check your connection.';
+  }
+}
+
+async function tryStaffLogin(idToken){
+  const errEl = $('#gsiErr');
+  try{
+    const res = await fetch(PROXY_URL+'/auth', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ googleIdToken: idToken }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(data.ok && data.token){
+      await loadAdminPicker(data.token);
+      return;
+    }
+    errEl.textContent = "We couldn't match this Google account to an upcoming booking or staff account. If you have a check-in link from WhatsApp, please use that instead.";
+  }catch(e){
+    errEl.textContent = 'Could not reach the server — check your connection.';
+  }
+}
+
+// The admin path reuses the exact same /stays the booking calendar already
+// reads — no new backend route needed, since a staff token already has
+// full read access to it.
+let adminStays = [];
+async function loadAdminPicker(token){
+  const errEl = $('#gsiErr');
+  try{
+    const res = await fetch(PROXY_URL+'/stays', { headers: { 'X-Token': token } });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ errEl.textContent = data.error || 'Could not load bookings.'; return; }
+    const today = new Date().toISOString().slice(0,10);
+    adminStays = (Array.isArray(data.stays) ? data.stays : [])
+      .filter(s => (s.type||'invoice') !== 'block' && s.checkin && s.checkout && s.checkout >= today)
+      .sort((a,b) => a.checkin.localeCompare(b.checkin));
+    if(!adminStays.length){
+      errEl.textContent = 'No upcoming bookings found to check in.';
+      return;
+    }
+    const sel = $('#adminGuestSelect');
+    sel.innerHTML = '<option value="">Choose a booking…</option>' + adminStays.map((s,i) =>
+      `<option value="${i}">${esc(s.guest||'—')} — ${esc(s.checkin)} → ${esc(s.checkout)} (${esc(s.no)})</option>`
+    ).join('');
+    errEl.textContent = '';
+    $('#gsiBlock').style.display = 'none';
+    $('#adminPicker').style.display = '';
+  }catch(e){
+    errEl.textContent = 'Could not reach the server — check your connection.';
+  }
+}
+
+$('#adminGuestSelect').addEventListener('change', () => {
+  const idx = $('#adminGuestSelect').value;
+  if(idx === '') return;
+  const s = adminStays[Number(idx)];
+  if(!s) return;
+  bookingNo = s.no;
+  guestPrefill = s.guest || '';
+  checkinDate = s.checkin;
+  checkoutDate = s.checkout;
+  $('#ci-name').value = guestPrefill;
+  renderSummary();
+  showCiForm();
+});
+
+let gsiRendered = false;
+function initGoogleSignIn(){
+  if(gsiRendered) return;
+  if(typeof google === 'undefined' || !google.accounts || !google.accounts.id) return;
+  const target = $('#googleSignInBtn');
+  if(!target) return;
+  gsiRendered = true;
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin, auto_select: false });
+  google.accounts.id.renderButton(target, { theme:'outline', size:'large', width: 280, text:'signin_with' });
+}
+window.onGoogleLibraryLoad = initGoogleSignIn;
+window.addEventListener('load', initGoogleSignIn);
+setTimeout(() => {
+  if(!gsiRendered && $('#gsiBlock').style.display !== 'none'){
+    const errEl = $('#gsiErr');
+    if(errEl) errEl.textContent = 'Could not load Google Sign-In — check your connection or disable ad blockers.';
+  }
+}, 8000);
 
 // ── ID PHOTO ── same capture+compress pattern as the checklist/petty-cash
 // photo uploads: read the file, downscale to a sane max dimension, export
