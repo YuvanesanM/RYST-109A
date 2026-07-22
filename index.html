@@ -276,8 +276,35 @@
     gtag('js', new Date());
     gtag('config', 'G-HXR1631D1Y');
   </script>
-  <link rel="stylesheet" href="/assets/css/shared.css">
   <style>
+    /* Inlined from /assets/css/shared.css (still used as an external file by
+       nearby/faq/privacy/terms/ecr-road-trip-guide) — on this page it was a
+       second render-blocking request in the critical path for ~1.2KB of
+       content, which a real PageSpeed Insights run flagged as contributing
+       to a slow First Contentful Paint. Keep this block in sync with that
+       file if either changes. */
+    .skip-link {
+      position: absolute; top: -100px; left: 12px; z-index: 1000;
+      background: var(--ink); color: #fff; padding: 12px 20px; border-radius: 8px;
+      font-family: var(--sans); font-size: 14px; font-weight: 600; text-decoration: none;
+      transition: top .2s var(--ease);
+    }
+    .skip-link:focus { top: 12px; }
+    a:focus-visible, button:focus-visible, summary:focus-visible,
+    input:focus-visible, select:focus-visible, textarea:focus-visible,
+    [tabindex]:focus-visible {
+      outline: 2px solid var(--sea-mid); outline-offset: 2px; border-radius: 4px;
+    }
+    .wa-float {
+      position: fixed; bottom: 24px; right: 24px; z-index: 200; width: 52px; height: 52px;
+      border-radius: 50%; background: #25d366; box-shadow: 0 4px 20px rgba(37,211,102,.4);
+      display: flex; align-items: center; justify-content: center; text-decoration: none;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .wa-float:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(37,211,102,.5); }
+    .footer-brand-text span { font-size: 15px; color: rgba(246,241,230,.65); }
+    .footer-copy { font-size: 12.5px; color: rgba(246,241,230,.65); }
+
     /* ── SELF-HOSTED FONTS ── */
     /* DM Sans (variable, weight axis) */
     @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
@@ -1986,10 +2013,19 @@
     const featureBarFrom = featureBarDesktop ? { opacity: 0, y: 18, xPercent: -50 } : { opacity: 0, y: 18 };
     const featureBarTo   = featureBarDesktop ? { opacity: 1, y: 0,  xPercent: -50 } : { opacity: 1, y: 0 };
 
+    // .ht-main/.ht-sub (the "RYST 109A" wordmark) deliberately render at
+    // their natural CSS opacity from first paint, with no GSAP .from() call
+    // touching them — a real PageSpeed Insights run against production
+    // (not this sandbox) confirmed this exact text as the page's LCP
+    // element, with render delay (not resource load time) as the dominant
+    // cost. That delay traces to the fade-in never starting until
+    // DOMContentLoaded, which itself waits on GSAP + ScrollTrigger
+    // (~100-150KB) to finish downloading and executing — real, measurable
+    // seconds on a throttled mobile connection, even though a zero-latency
+    // local sandbox couldn't reproduce it. Everything else in the hero
+    // still gets the cinematic entrance.
     gsap.timeline()
       .from('.hero-eyebrow',     { opacity: 0, y: 14, duration: .7,  ease: 'power3.out' }, 0)
-      .from('.ht-main',          { opacity: 0, y: 28, duration: .8,  ease: 'power3.out' }, 0)
-      .from('.ht-sub',           { opacity: 0, y: 22, duration: .8,  ease: 'power3.out' }, .6)
       .from('.ht-keyword',       { opacity: 0, y: 12, duration: .7,  ease: 'power3.out' }, .75)
       .from('.hero-divider',     { opacity: 0, duration: .8, ease: 'power3.out' }, .8)
       .from('.hero-tagline',     { opacity: 0, y: 16, duration: .8,  ease: 'power3.out' }, .9)
