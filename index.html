@@ -839,6 +839,15 @@
     .book-success p { font-size: 14.5px; color: var(--muted); line-height: 1.6; margin: 4px 0; }
     .book-success .bs-amount { font-size: 15px; color: var(--ink); font-weight: 600; margin: 12px 0; }
     .book-success a { color: var(--sea-mid); }
+    .wallet-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 16px 0; }
+    .book-success .wallet-btn {
+      display: inline-flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 10px;
+      font-family: var(--sans); font-size: 13.5px; font-weight: 600; text-decoration: none;
+      color: #fff; transition: transform .15s var(--ease), box-shadow .2s;
+    }
+    .book-success .wallet-btn:hover { transform: translateY(-1px); }
+    .book-success .wallet-btn.apple { background: #000; }
+    .book-success .wallet-btn.google { background: linear-gradient(135deg, var(--sea), var(--sea-mid)); }
 
     /* ── AVAILABILITY CALENDAR ── */
     /* Embedded inside .book-form now, so it reads as a widget within the
@@ -1989,12 +1998,26 @@
     document.getElementById('bookForm').style.display = 'none';
     document.getElementById('bookFormNote').style.display = 'none';
     const el = document.getElementById('bookSuccess');
+    // Buttons point straight at the proxy — no fetch/blob handling needed.
+    // Apple's link stays same-tab so mobile Safari's native "Add Pass" sheet
+    // can intercept the .pkpass response; Google's opens a new tab since it
+    // 302-redirects to a different origin (pay.google.com). Both routes
+    // gracefully 503 if the backend isn't configured yet (real state until
+    // the owner has Apple/Google Wallet credentials) — nothing to hide here,
+    // the buttons are just ready for when that's in place.
+    const walletBtns = data.walletToken ? `
+      <div class="wallet-actions">
+        <a class="wallet-btn apple" href="${PROXY}/booking/wallet/apple?no=${encodeURIComponent(data.no)}&t=${encodeURIComponent(data.walletToken)}">Add to Apple Wallet</a>
+        <a class="wallet-btn google" href="${PROXY}/booking/wallet/google?no=${encodeURIComponent(data.no)}&t=${encodeURIComponent(data.walletToken)}" target="_blank" rel="noopener">Add to Google Wallet</a>
+      </div>
+    ` : '';
     el.innerHTML = `
       <div class="bs-icon">✓</div>
       <h3>Booking confirmed!</h3>
       <p class="bs-ref">${esc(data.no)}</p>
       <p>${fmtDate(data.checkin)} → ${fmtDate(data.checkout)}</p>
       <p class="bs-amount">Advance paid: ₹${Number(data.amount).toLocaleString('en-IN')}</p>
+      ${walletBtns}
       <p>Balance is payable at check-in. We'll be in touch on WhatsApp shortly — questions in the meantime?
         <a href="https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}" target="_blank" rel="noopener">Message us</a>.</p>
     `;
