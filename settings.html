@@ -176,6 +176,23 @@
     </div>
     <button class="rc-add" id="stayRcAdd">+ Add charge</button>
 
+    <p class="gh-mini">Peak pricing</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <label class="f"><span>Weekend hike — Fri/Sat nights (%)</span><input class="t" id="stayWeekendHike" type="number" min="0" step="1" placeholder="0"></label>
+      <label class="f"><span>Holiday hike (%)</span><input class="t" id="stayHolidayHike" type="number" min="0" step="1" placeholder="0"></label>
+    </div>
+    <div class="rc-table-wrap">
+      <table class="rc-table">
+        <thead><tr>
+          <th style="width:160px">Date</th>
+          <th>Label (optional)</th>
+          <th style="width:36px"></th>
+        </tr></thead>
+        <tbody id="stayHolBody"></tbody>
+      </table>
+    </div>
+    <button class="rc-add" id="stayHolAdd">+ Add holiday date</button>
+
     <p class="gh-mini">Business &amp; payment</p>
     <label class="f"><span>Property address block (under the wordmark)</span><textarea class="t" id="stayCompany" rows="3"></textarea></label>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr;gap:12px">
@@ -295,10 +312,14 @@ Account Type: Savings`,
   maxGuests: 4,
   guestCapacity: 10,
   advancePercent: 30,
+  weekendHikePercent: 0,
+  holidayHikePercent: 0,
+  holidays: [],
   icalFeeds: []
 };
 let stay = JSON.parse(JSON.stringify(STAY_DEFAULTS));
 let stayRcDraft = [];
+let stayHolDraft = [];
 let icalFeedsDraft = [];
 let proxyToken = localStorage.getItem('ryst_proxy_token')||'';
 // Admin is assigned via this very section (data-driven, cached at login),
@@ -456,6 +477,7 @@ function applyStay(d){
   stay=Object.assign({},STAY_DEFAULTS,d);
   if(!Array.isArray(stay.terms)||!stay.terms.length) stay.terms=STAY_DEFAULTS.terms.slice();
   if(!Array.isArray(stay.rates)||!stay.rates.length) stay.rates=STAY_DEFAULTS.rates.map(r=>({...r}));
+  if(!Array.isArray(stay.holidays)) stay.holidays=[];
   localStorage.setItem(K_STAY,JSON.stringify(stay));
   renderFromStay();
 }
@@ -469,6 +491,10 @@ function renderFromStay(){
   document.getElementById("stayMaxGuests").value=stay.maxGuests!=null?stay.maxGuests:"";
   document.getElementById("stayGuestCapacity").value=stay.guestCapacity!=null?stay.guestCapacity:"";
   document.getElementById("stayAdvancePercent").value=stay.advancePercent!=null?stay.advancePercent:"";
+  document.getElementById("stayWeekendHike").value=stay.weekendHikePercent!=null?stay.weekendHikePercent:"";
+  document.getElementById("stayHolidayHike").value=stay.holidayHikePercent!=null?stay.holidayHikePercent:"";
+  stayHolDraft=(stay.holidays||[]).map(h=>({...h}));
+  renderStayHolidays();
   document.getElementById("stayBank").value=stay.bank||"";
   document.getElementById("stayDecl").value=stay.declaration||"";
   document.getElementById("stayTerms").value=(stay.terms||[]).join("\n");
@@ -732,6 +758,26 @@ function renderStayRates(){
 }
 document.getElementById("stayRcAdd").addEventListener("click",()=>{ stayRcDraft.push({desc:"",rate:""}); renderStayRates(); });
 
+/* ---------- HOLIDAY DATES ---------- */
+function renderStayHolidays(){
+  const body=document.getElementById("stayHolBody"); body.innerHTML="";
+  stayHolDraft.forEach((h,i)=>{
+    const row=document.createElement("tr");
+    row.innerHTML=`
+      <td><input data-i="${i}" data-k="date" type="date" value="${esc(h.date)}"></td>
+      <td><input data-i="${i}" data-k="label" placeholder="e.g. Diwali" value="${esc(h.label)}"></td>
+      <td><button class="rc-del" data-del="${i}" title="Remove">×</button></td>`;
+    body.appendChild(row);
+  });
+  body.querySelectorAll("input[data-i]").forEach(inp=>{
+    inp.addEventListener("input",e=>{ const i=+e.target.dataset.i,k=e.target.dataset.k; stayHolDraft[i][k]=e.target.value; });
+  });
+  body.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",e=>{
+    stayHolDraft.splice(+e.target.dataset.del,1); renderStayHolidays();
+  }));
+}
+document.getElementById("stayHolAdd").addEventListener("click",()=>{ stayHolDraft.push({date:"",label:""}); renderStayHolidays(); });
+
 /* ---------- SAVE ---------- */
 async function saveStay(){
   const btn=document.getElementById("staySave");
@@ -753,6 +799,13 @@ async function saveStay(){
   }
   const apVal=document.getElementById("stayAdvancePercent").value;
   stay.advancePercent = apVal!=="" ? Math.min(100, Math.max(1, parseInt(apVal)||STAY_DEFAULTS.advancePercent)) : STAY_DEFAULTS.advancePercent;
+  const whVal=document.getElementById("stayWeekendHike").value;
+  stay.weekendHikePercent = whVal!=="" ? Math.max(0, parseFloat(whVal)||0) : 0;
+  const hhVal=document.getElementById("stayHolidayHike").value;
+  stay.holidayHikePercent = hhVal!=="" ? Math.max(0, parseFloat(hhVal)||0) : 0;
+  stay.holidays = stayHolDraft
+    .filter(h=>(h.date||"").trim()!=="")
+    .map(h=>({date:h.date.trim(), label:(h.label||"").trim()}));
   stay.bank=document.getElementById("stayBank").value;
   stay.declaration=document.getElementById("stayDecl").value;
   stay.terms=(document.getElementById("stayTerms").value||"").split("\n").map(t=>t.trim()).filter(Boolean);
@@ -774,6 +827,8 @@ async function saveStay(){
   btn.disabled=false; btn.textContent="Save stay settings";
   stayRcDraft=stay.rates.map(r=>({...r}));
   renderStayRates();
+  stayHolDraft=stay.holidays.map(h=>({...h}));
+  renderStayHolidays();
 }
 document.getElementById("staySave").addEventListener("click",saveStay);
 
