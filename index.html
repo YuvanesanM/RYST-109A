@@ -889,10 +889,6 @@
       .avail-selected { gap: 6px; padding: 10px 12px; }
       .sel-value { font-size: 13px; }
     }
-    .avail-rate {
-      font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--sea-mid);
-      margin-bottom: 12px;
-    }
     .price-preview {
       margin-top: 12px; padding: 14px 16px; border-radius: 14px; background: var(--white);
       border: 1px solid var(--line);
@@ -903,6 +899,33 @@
       font-size: 13.5px; color: var(--sea-mid); font-weight: 700; margin-top: 4px;
       padding-top: 8px; border-top: 1px dashed var(--line);
     }
+    .price-preview .pp-discount { font-size: 12.5px; color: #1a8a4a; font-weight: 600; margin-top: 3px; }
+    .coupon-row { display: flex; gap: 8px; }
+    .coupon-row input {
+      flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line);
+      font-family: var(--sans); font-size: 14px; background: var(--white); color: var(--ink);
+      text-transform: uppercase;
+    }
+    .coupon-row input:focus { outline: none; border-color: var(--sea-mid); }
+    .coupon-apply {
+      flex-shrink: 0; padding: 0 18px; border-radius: 12px; border: 1px solid var(--sea-mid);
+      background: transparent; color: var(--sea-mid); font-family: var(--sans); font-size: 13px;
+      font-weight: 700; cursor: pointer; transition: background .15s, color .15s;
+    }
+    .coupon-apply:hover { background: var(--sea-mid); color: #fff; }
+    .coupon-apply:disabled { opacity: .6; cursor: default; }
+    .coupon-status { font-size: 12.5px; margin: 6px 2px 0; min-height: 1em; }
+    .coupon-status.ok { color: #1a8a4a; font-weight: 600; }
+    .coupon-status.err { color: #b3261e; font-weight: 600; }
+    .pay-mode-choice { display: flex; flex-direction: column; gap: 10px; }
+    .pay-mode-opt {
+      display: flex; align-items: flex-start; gap: 10px; font-family: var(--sans);
+      font-size: 14px; color: var(--ink); font-weight: 500; cursor: pointer;
+      padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; transition: border-color .15s;
+    }
+    .pay-mode-opt:has(input:checked) { border-color: var(--sea-mid); background: rgba(26,106,122,.05); }
+    .pay-mode-opt input { margin-top: 3px; flex-shrink: 0; }
+    .pay-mode-save { color: #1a8a4a; font-weight: 700; }
     .avail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
     .avail-head h3 { font-family: var(--serif); font-size: 21px; font-weight: 600; color: var(--ink); }
     .avail-nav { display: flex; align-items: center; gap: 8px; margin-left: auto; }
@@ -1442,8 +1465,8 @@
         </div>
         <div class="form-row full">
           <div class="f-group">
-            <label for="f-email">Email Address</label>
-            <input id="f-email" name="email" type="email" placeholder="you@example.com">
+            <label for="f-email">Email Address *</label>
+            <input id="f-email" name="email" type="email" placeholder="you@example.com" required>
           </div>
         </div>
         <hr class="form-divider">
@@ -1459,7 +1482,6 @@
                   <button type="button" id="availNext" aria-label="Next month">›</button>
                 </div>
               </div>
-              <p class="avail-rate" id="availRate" style="display:none"></p>
               <div class="avail-legend">
                 <span><i class="i-free"></i>Available</span>
                 <span><i class="i-taken"></i>Booked</span>
@@ -1489,6 +1511,31 @@
           <div class="f-group">
             <label for="f-guests">No. of Guests *</label>
             <input id="f-guests" name="guests" type="number" min="1" max="12" placeholder="4" required>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="f-group">
+            <label for="f-coupon">Coupon code</label>
+            <div class="coupon-row">
+              <input id="f-coupon" name="couponCode" type="text" placeholder="Have a code? Enter it here" autocomplete="off">
+              <button type="button" class="coupon-apply" id="couponApplyBtn">Apply</button>
+            </div>
+            <p class="coupon-status" id="couponStatus"></p>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="f-group">
+            <label>Payment option</label>
+            <div class="pay-mode-choice" id="payModeChoice">
+              <label class="pay-mode-opt">
+                <input type="radio" name="paymentMode" value="advance" checked>
+                <span>Pay advance now — balance due at check-in</span>
+              </label>
+              <label class="pay-mode-opt">
+                <input type="radio" name="paymentMode" value="full">
+                <span>Pay in full now <span class="pay-mode-save" id="fullPayDiscountLabel"></span></span>
+              </label>
+            </div>
           </div>
         </div>
         <hr class="form-divider">
@@ -1892,17 +1939,42 @@
   }
   const fmtRateShort = rate => rate>=1000 ? Math.round(rate/1000)+'k' : String(rate);
 
+  // Walks each individual night the same way server.js's computeQuoteItems
+  // does, rather than nights*villaRate — a stay spanning a weekend/holiday
+  // must preview the same blended total the server will actually charge.
+  function villaTotalForStay(checkin, checkout){
+    const start = new Date(checkin+'T00:00:00');
+    const nights = Math.round((new Date(checkout+'T00:00:00') - start) / 86400000);
+    let total = 0;
+    for(let i=0;i<nights;i++){
+      const d = new Date(start); d.setDate(d.getDate()+i);
+      const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      total += nightlyRate(iso) || 0;
+    }
+    return { nights, total };
+  }
+
+  // Set only by a successful /coupon/check Apply click — never inferred
+  // from the raw input text, so a code that hasn't actually been validated
+  // can't silently apply a discount to the live preview.
+  let couponState = { code: null, discountPercent: 0 };
+
   fetch(PROXY+'/pricing', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
     .then(data => {
       if(!data || !data.villaRate) return;
       PRICING = data;
-      const rateEl = document.getElementById('availRate');
-      if(rateEl){ rateEl.textContent = `₹${data.villaRate.toLocaleString('en-IN')} / night`; rateEl.style.display = ''; }
+      const saveLabel = document.getElementById('fullPayDiscountLabel');
+      if(saveLabel) saveLabel.textContent = PRICING.fullPaymentDiscountPercent > 0 ? `(Save ${PRICING.fullPaymentDiscountPercent}%)` : '';
       updatePricePreview();
       if(typeof availState !== 'undefined' && availState.render) availState.render();
     })
     .catch(()=>{}); // silent — the preview just stays hidden if this fails
+
+  function selectedPaymentMode(){
+    const checked = document.querySelector('input[name="paymentMode"]:checked');
+    return checked && checked.value === 'full' ? 'full' : 'advance';
+  }
 
   function updatePricePreview(){
     const el = document.getElementById('pricePreview');
@@ -1910,22 +1982,83 @@
     const checkin = document.getElementById('f-checkin').value;
     const checkout = document.getElementById('f-checkout').value;
     if(!PRICING || !checkin || !checkout){ el.style.display = 'none'; return; }
-    const nights = Math.round((new Date(checkout+'T00:00:00') - new Date(checkin+'T00:00:00')) / 86400000);
+    const { nights, total: villaTotal } = villaTotalForStay(checkin, checkout);
     if(nights <= 0){ el.style.display = 'none'; return; }
     const guests = Math.max(1, parseInt(document.getElementById('f-guests').value, 10) || 0);
     const extraGuests = PRICING.maxGuests > 0 ? Math.max(0, guests - PRICING.maxGuests) : 0;
-    const total = nights * PRICING.villaRate + extraGuests * nights * PRICING.extraGuestRate;
-    const advance = Math.max(PRICING.minAdvance, Math.round(total * PRICING.advancePercent / 100));
+    const total = villaTotal + extraGuests * nights * PRICING.extraGuestRate;
+
+    const paymentMode = selectedPaymentMode();
+    const fullPaymentPercent = paymentMode === 'full' ? (PRICING.fullPaymentDiscountPercent || 0) : 0;
+    const couponPercent = couponState.code ? couponState.discountPercent : 0;
+    const discountAmount = Math.round(total * (couponPercent + fullPaymentPercent) / 100);
+    const netTotal = Math.max(0, total - discountAmount);
+    const payableNow = paymentMode === 'full'
+      ? netTotal
+      : Math.max(PRICING.minAdvance, Math.round(netTotal * PRICING.advancePercent / 100));
+
     const extraLine = extraGuests > 0
       ? `<div class="pp-line">+ ${extraGuests} extra guest${extraGuests!==1?'s':''} × ${nights} night${nights!==1?'s':''} × ₹${PRICING.extraGuestRate.toLocaleString('en-IN')}</div>`
       : '';
+    const discountLine = discountAmount > 0
+      ? `<div class="pp-discount">Discount (${couponPercent+fullPaymentPercent}%): −₹${discountAmount.toLocaleString('en-IN')}</div>`
+      : '';
+    const payLabel = paymentMode === 'full' ? 'Pay in full now' : `Advance to book (${PRICING.advancePercent}%)`;
     el.innerHTML = `
-      <div class="pp-line">${nights} night${nights!==1?'s':''} × ₹${PRICING.villaRate.toLocaleString('en-IN')}</div>
+      <div class="pp-line">${nights} night${nights!==1?'s':''} (avg ₹${Math.round(villaTotal/nights).toLocaleString('en-IN')}/night)</div>
       ${extraLine}
       <div class="pp-total">Total: ₹${total.toLocaleString('en-IN')}</div>
-      <div class="pp-advance">Advance to book (${PRICING.advancePercent}%): ₹${advance.toLocaleString('en-IN')}</div>
+      ${discountLine}
+      <div class="pp-advance">${payLabel}: ₹${payableNow.toLocaleString('en-IN')}</div>
     `;
     el.style.display = '';
+  }
+
+  document.querySelectorAll('input[name="paymentMode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const btn = document.getElementById('bookSubmitBtn');
+      if(btn) btn.textContent = selectedPaymentMode() === 'full' ? 'Book Now — Pay in Full →' : 'Book Now — Pay Advance →';
+      if(typeof updatePricePreview === 'function') updatePricePreview();
+    });
+  });
+
+  const couponInput = document.getElementById('f-coupon');
+  const couponStatusEl = document.getElementById('couponStatus');
+  if(couponInput){
+    couponInput.addEventListener('input', () => {
+      // Any edit invalidates a previously-applied code — it must be
+      // re-checked with Apply before it can affect the price again.
+      if(couponState.code){ couponState = { code: null, discountPercent: 0 }; updatePricePreview(); }
+      couponStatusEl.textContent = '';
+      couponStatusEl.className = 'coupon-status';
+    });
+  }
+  const couponApplyBtn = document.getElementById('couponApplyBtn');
+  if(couponApplyBtn){
+    couponApplyBtn.addEventListener('click', async () => {
+      const code = (couponInput.value||'').trim();
+      if(!code){ couponStatusEl.textContent = 'Enter a code first.'; couponStatusEl.className = 'coupon-status err'; return; }
+      couponApplyBtn.disabled = true; couponApplyBtn.textContent = 'Checking…';
+      try{
+        const res = await fetch(PROXY+'/coupon/check?code='+encodeURIComponent(code), { cache: 'no-store' });
+        const data = await res.json().catch(()=>({}));
+        if(data.ok && data.valid){
+          couponState = { code, discountPercent: Number(data.discountPercent)||0 };
+          couponStatusEl.textContent = `Applied — ${couponState.discountPercent}% off`;
+          couponStatusEl.className = 'coupon-status ok';
+        } else {
+          couponState = { code: null, discountPercent: 0 };
+          couponStatusEl.textContent = 'That code is not valid.';
+          couponStatusEl.className = 'coupon-status err';
+        }
+      }catch(e){
+        couponStatusEl.textContent = 'Could not check that code — please try again.';
+        couponStatusEl.className = 'coupon-status err';
+      }finally{
+        couponApplyBtn.disabled = false; couponApplyBtn.textContent = 'Apply';
+        updatePricePreview();
+      }
+    });
   }
 
   function readBookForm(){
@@ -1939,10 +2072,13 @@
       occasion: document.getElementById('f-occasion').value,
       message:  document.getElementById('f-message').value.trim(),
       website:  document.getElementById('f-website').value, // honeypot
+      paymentMode: selectedPaymentMode(),
+      couponCode: couponState.code || '',
     };
   }
   function validateBookForm(f){
-    if(!f.name||!f.phone||!f.checkin||!f.checkout||!f.guests) return 'Please fill in all required fields.';
+    if(!f.name||!f.phone||!f.email||!f.checkin||!f.checkout||!f.guests) return 'Please fill in all required fields.';
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return 'Please enter a valid email address.';
     if(new Date(f.checkout) <= new Date(f.checkin)) return 'Check-out must be after check-in.';
     if(availState.hasConflict(f.checkin, f.checkout)) return 'Those dates aren\'t available — please check the calendar above.';
     return null;
