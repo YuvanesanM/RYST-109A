@@ -907,7 +907,7 @@
       color: var(--muted); text-align: center; padding: 2px 0 8px;
     }
     .avail-cell {
-      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      min-height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
       border-radius: 10px; font-family: var(--sans); font-size: 13px; font-weight: 600;
       cursor: pointer; transition: background .15s, color .15s; position: relative; color: var(--ink-mid);
       background: var(--foam);
@@ -919,15 +919,18 @@
     .avail-cell:focus-visible { outline: 2px solid var(--sea-mid); outline-offset: 2px; }
     .avail-cell.sel-start, .avail-cell.sel-end { background: var(--sand); color: #fff; }
     .avail-cell.sel-range { background: rgba(200,169,122,.32); }
+    .cell-price { font-size: 9.5px; font-weight: 600; color: var(--sea-mid); line-height: 1; }
+    .avail-cell.sel-start .cell-price, .avail-cell.sel-end .cell-price { color: rgba(255,255,255,.85); }
     .avail-cell.today::after {
-      content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+      content: ''; position: absolute; top: 4px; right: 4px;
       width: 4px; height: 4px; border-radius: 50%; background: var(--sea-mid);
     }
     .avail-cell.taken.today::after, .avail-cell.past.today::after { background: var(--muted); }
     .avail-hint { font-size: 12.5px; color: var(--muted); margin-top: 12px; text-align: center; min-height: 17px; }
     .avail-hint.warn { color: var(--coral); font-weight: 600; }
     @media(max-width: 480px) {
-      .avail-cell { font-size: 12px; border-radius: 8px; }
+      .avail-cell { font-size: 12px; border-radius: 8px; min-height: 40px; }
+      .cell-price { font-size: 8.5px; }
       .avail-legend { gap: 10px; }
     }
 
@@ -1677,7 +1680,11 @@
           }
         }
         const attrs = interactive ? `tabindex="0" role="button" aria-label="${label}"` : `aria-label="${label}"`;
-        return `<div class="${cls.join(' ')}" data-iso="${c.iso}" ${attrs}>${c.date.getDate()}</div>`;
+        const priceHtml = (interactive && typeof nightlyRate === 'function') ? (() => {
+          const r = nightlyRate(c.iso);
+          return r ? `<span class="cell-price">${fmtRateShort(r)}</span>` : '';
+        })() : '';
+        return `<div class="${cls.join(' ')}" data-iso="${c.iso}" ${attrs}>${c.date.getDate()}${priceHtml}</div>`;
       }).join('');
 
       $$('.avail-cell.free').forEach(el=> {
@@ -1746,7 +1753,7 @@
     });
     $('#availNext').addEventListener('click', ()=>{ view.setMonth(view.getMonth()+1); render(); });
 
-    return { load, hasConflict, get ranges(){ return ranges; } };
+    return { load, hasConflict, render, get ranges(){ return ranges; } };
   })();
   availState.load();
 
@@ -1851,6 +1858,21 @@
   // as the availability calendar. The actual amount charged is still computed
   // server-side in /booking/create-order at submit time.
   let PRICING = null;
+  // Per-date rate for the calendar cells — mirrors server.js's
+  // nightlyVillaRate exactly (holiday takes precedence over weekend, not
+  // stacked), same "client previews, server computes the real charge"
+  // stance as the rest of this pricing preview.
+  function nightlyRate(iso){
+    if(!PRICING || !PRICING.villaRate) return null;
+    const dow = new Date(iso+'T00:00:00').getDay();
+    const isHoliday = Array.isArray(PRICING.holidays) && PRICING.holidays.includes(iso);
+    let rate = PRICING.villaRate;
+    if(isHoliday) rate *= (1 + (PRICING.holidayHikePercent||0)/100);
+    else if(dow===5 || dow===6) rate *= (1 + (PRICING.weekendHikePercent||0)/100);
+    return Math.round(rate);
+  }
+  const fmtRateShort = rate => rate>=1000 ? Math.round(rate/1000)+'k' : String(rate);
+
   fetch(PROXY+'/pricing', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
     .then(data => {
@@ -1859,6 +1881,7 @@
       const rateEl = document.getElementById('availRate');
       if(rateEl){ rateEl.textContent = `₹${data.villaRate.toLocaleString('en-IN')} / night`; rateEl.style.display = ''; }
       updatePricePreview();
+      if(typeof availState !== 'undefined' && availState.render) availState.render();
     })
     .catch(()=>{}); // silent — the preview just stays hidden if this fails
 
