@@ -847,7 +847,26 @@
     }
     .book-success .wallet-btn:hover { transform: translateY(-1px); }
     .book-success .wallet-btn.apple { background: #000; }
-    .book-success .wallet-btn.google { background: linear-gradient(135deg, var(--sea), var(--sea-mid)); }
+    .book-success .wallet-btn.pdf {
+      background: linear-gradient(135deg, var(--sea), var(--sea-mid)); border: none; cursor: pointer;
+      font-family: var(--sans);
+    }
+    .bs-balance { font-size: 14px; color: var(--coral); font-weight: 600; margin: 4px 0 12px; }
+    .bs-print-only { display: none; }
+
+    /* ── PRINT → SAVE AS PDF (booking confirmation only) ── */
+    @media print {
+      body.printing-confirmation * { visibility: hidden !important; }
+      body.printing-confirmation #bookSuccess,
+      body.printing-confirmation #bookSuccess * { visibility: visible !important; }
+      body.printing-confirmation #bookSuccess {
+        position: fixed !important; top: 0; left: 0; width: 100% !important;
+        margin: 0 !important; padding: 20mm !important; background: #fff !important;
+      }
+      body.printing-confirmation .wallet-actions,
+      body.printing-confirmation .book-success > p:last-child { display: none !important; }
+      body.printing-confirmation .bs-print-only { display: block !important; margin-top: 16px; }
+    }
 
     /* ── AVAILABILITY CALENDAR ── */
     /* Embedded inside .book-form now, so it reads as a widget within the
@@ -2042,14 +2061,14 @@
       order_id: order.orderId,
       prefill: { name: f.name, contact: f.phone, email: f.email },
       theme: { color: '#1a6a7a' },
-      handler: function(response){ verifyPayment(response); },
+      handler: function(response){ verifyPayment(response, f); },
       modal: { ondismiss: function(){ showToast('Payment cancelled — your dates are not booked yet.', 5000); } },
     });
     rzp.on('payment.failed', function(){ showToast('Payment failed — please try again or use WhatsApp.', 6000); });
     rzp.open();
   }
 
-  async function verifyPayment(response){
+  async function verifyPayment(response, f){
     showToast('Confirming your payment…', 8000);
     try{
       const res = await fetch(PROXY+'/booking/verify', {
@@ -2062,7 +2081,7 @@
       });
       const data = await res.json().catch(()=>({}));
       if(data.ok && data.confirmed){
-        showBookingConfirmed(data);
+        showBookingConfirmed(data, f);
       } else if(data.ok){
         showToast(data.message || 'Payment received — confirming your booking, we\'ll WhatsApp you shortly.', 10000);
       } else {
@@ -2073,36 +2092,67 @@
     }
   }
 
-  function showBookingConfirmed(data){
+  const VILLA_ADDRESS = '109A, Pearl Beach Site, Parmankeni, Cheyyur - 603305, Tamil Nadu';
+
+  function showBookingConfirmed(data, f){
     if(typeof gtag === 'function') gtag('event', 'purchase', { transaction_id: data.no, value: data.amount, currency: 'INR' });
     availState.load(); // refresh the calendar so the now-booked dates show as taken
     document.getElementById('bookForm').style.display = 'none';
     document.getElementById('bookFormNote').style.display = 'none';
     const el = document.getElementById('bookSuccess');
-    // Buttons point straight at the proxy — no fetch/blob handling needed.
     // Apple's link stays same-tab so mobile Safari's native "Add Pass" sheet
-    // can intercept the .pkpass response; Google's opens a new tab since it
-    // 302-redirects to a different origin (pay.google.com). Both routes
-    // gracefully 503 if the backend isn't configured yet (real state until
-    // the owner has Apple/Google Wallet credentials) — nothing to hide here,
-    // the buttons are just ready for when that's in place.
+    // can intercept the .pkpass response. Gracefully 503s if the backend
+    // isn't configured yet — nothing to hide, the button just waits for
+    // that. Google Wallet button removed (not activated/verified working)
+    // rather than left pointing at a route the owner isn't ready to support.
     const walletBtns = data.walletToken ? `
       <div class="wallet-actions">
         <a class="wallet-btn apple" href="${PROXY}/booking/wallet/apple?no=${encodeURIComponent(data.no)}&t=${encodeURIComponent(data.walletToken)}">Add to Apple Wallet</a>
-        <a class="wallet-btn google" href="${PROXY}/booking/wallet/google?no=${encodeURIComponent(data.no)}&t=${encodeURIComponent(data.walletToken)}" target="_blank" rel="noopener">Add to Google Wallet</a>
+        <button type="button" class="wallet-btn pdf" id="bsPdfBtn">Download PDF Confirmation</button>
       </div>
-    ` : '';
+    ` : `
+      <div class="wallet-actions">
+        <button type="button" class="wallet-btn pdf" id="bsPdfBtn">Download PDF Confirmation</button>
+      </div>
+    `;
+    const guestName = (f && f.name) ? f.name : '';
+    const guestsCount = data.guests || (f && f.guests) || '';
+    const hasBalance = data.balance != null;
     el.innerHTML = `
       <div class="bs-icon">✓</div>
       <h3>Booking confirmed!</h3>
-      <p class="bs-ref">${esc(data.no)}</p>
-      <p>${fmtDate(data.checkin)} → ${fmtDate(data.checkout)}</p>
-      <p class="bs-amount">Advance paid: ₹${Number(data.amount).toLocaleString('en-IN')}</p>
+      <div id="bsPrintDoc">
+        <p class="bs-ref">${esc(data.no)}</p>
+        ${guestName ? `<p>${esc(guestName)}</p>` : ''}
+        <p>${fmtDate(data.checkin)} → ${fmtDate(data.checkout)}${guestsCount ? ` · ${esc(String(guestsCount))} guests` : ''}</p>
+        <p class="bs-amount">Advance paid: ₹${Number(data.amount).toLocaleString('en-IN')}</p>
+        ${hasBalance ? `<p class="bs-balance">Balance due at check-in: ₹${Number(data.balance).toLocaleString('en-IN')}</p>` : ''}
+        <p class="bs-print-only bs-villa-address">${esc(VILLA_ADDRESS)}</p>
+      </div>
       ${walletBtns}
       <p>Balance is payable at check-in. We'll be in touch on WhatsApp shortly — questions in the meantime?
         <a href="https://api.whatsapp.com/send/?phone=${WHATSAPP_NUMBER}" target="_blank" rel="noopener">Message us</a>.</p>
     `;
     el.style.display = '';
+    const pdfBtn = document.getElementById('bsPdfBtn');
+    if(pdfBtn) pdfBtn.addEventListener('click', () => downloadConfirmationPdf(data.no));
+  }
+
+  // Mirrors stay.html's downloadPdf() pattern exactly: swap the document
+  // title so the browser's "Save as PDF" print destination suggests a
+  // sensible filename, print, then restore once the print dialog closes.
+  function downloadConfirmationPdf(no){
+    const prevTitle = document.title;
+    document.title = String(no||'RYST109A-booking').replace(/[\/\\]/g,'-');
+    document.body.classList.add('printing-confirmation');
+    const restore = () => {
+      document.title = prevTitle;
+      document.body.classList.remove('printing-confirmation');
+      window.removeEventListener('afterprint', restore);
+    };
+    window.addEventListener('afterprint', restore);
+    window.print();
+    setTimeout(restore, 1500);
   }
 
   // ── GALLERY LIGHTBOX (independent of GSAP) ──
