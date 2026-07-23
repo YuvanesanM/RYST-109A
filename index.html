@@ -1074,6 +1074,7 @@
     .policy-box-title { font-size: 12px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
     .policy-box ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
     .policy-box li { font-size: 12.5px; color: var(--muted); line-height: 1.5; padding-left: 14px; position: relative; }
+    .policy-box li a { color: var(--sea-mid); }
     .policy-box li::before { content: '•'; position: absolute; left: 0; color: var(--sea-mid); }
     .terms-check {
       display: flex; align-items: flex-start; gap: 10px; font-family: var(--sans);
@@ -1659,6 +1660,7 @@
                 <li>Cancel 3–7 days before check-in — 50% refund of booking amount</li>
                 <li>Cancel within 72 hours of check-in — no refund</li>
                 <li>Where an advance is paid, the balance is due 72 hours before check-in</li>
+                <li>Coupon and peak-season fares may vary, and some may be non-refundable — see full <a href="terms.html#cancellations" target="_blank" rel="noopener">terms</a></li>
               </ul>
             </div>
           </div>
@@ -2109,20 +2111,24 @@
   // side by side without the guest having to toggle between them. A coupon
   // discount applies to both; the full-payment discount only ever applies
   // to the "pay in full" figure.
+  // A coupon discounts the whole booking on its own — it never stacks with
+  // the full-payment incentive, matching server.js's /booking/create-order
+  // logic exactly (a guest paying in full with a coupon applied gets the
+  // coupon rate, not coupon+bonus combined).
   function computeModeAmounts(total, advancePercent, minAdvance, fullPaymentPercent, couponPercent){
-    const couponDiscountAmt = Math.round(total * couponPercent / 100);
-    const advanceNet = Math.max(0, total - couponDiscountAmt);
-    const advancePayable = Math.max(minAdvance, Math.round(advanceNet * advancePercent / 100));
-    // A coupon discounts the whole booking, so only half of couponDiscountAmt is
-    // actually reflected in what's due today (advance) — the rest shows up later
-    // as a smaller balance. The badge next to "today" must show that smaller,
-    // today-specific figure, not the full-booking discount, or it overstates
-    // what's actually being saved on this particular payment.
+    const netTotal = Math.round(total * (1 - couponPercent / 100));
+    const advancePayable = Math.max(minAdvance, Math.round(netTotal * advancePercent / 100));
+    // Only half of a coupon's rupee value actually reduces what's due today
+    // (advance) — the rest shows up later as a smaller balance. The badge
+    // next to "today" must show that smaller, today-specific figure, not
+    // the whole-booking discount, or it overstates this particular payment.
     const advanceUndiscounted = Math.max(minAdvance, Math.round(total * advancePercent / 100));
     const advanceDiscountAmt = Math.max(0, advanceUndiscounted - advancePayable);
-    const fullDiscountAmt = Math.round(total * (couponPercent + fullPaymentPercent) / 100);
-    const fullPayable = Math.max(0, total - fullDiscountAmt);
-    return { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt, total };
+
+    const fullPercent = couponPercent > 0 ? couponPercent : fullPaymentPercent;
+    const fullPayable = Math.round(total * (1 - fullPercent / 100));
+    const fullDiscountAmt = Math.max(0, total - fullPayable);
+    return { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt, netTotal, total };
   }
 
   function updatePaymentOptionLabels(amounts){
@@ -2131,7 +2137,9 @@
     if(!advSub || !fullSub || !PRICING) return;
     if(!amounts){
       advSub.textContent = 'Balance due 72 hours before check-in';
-      fullSub.textContent = PRICING.fullPaymentDiscountPercent > 0 ? `Save ${PRICING.fullPaymentDiscountPercent}%` : '';
+      const couponPercent = couponState.code ? couponState.discountPercent : 0;
+      const fullPercent = couponPercent > 0 ? couponPercent : (PRICING.fullPaymentDiscountPercent || 0);
+      fullSub.textContent = fullPercent > 0 ? `Save ${fullPercent}%` : '';
       return;
     }
     const { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt } = amounts;
@@ -2161,10 +2169,11 @@
     const extraLine = extraGuests > 0
       ? `<div class="pp-line">+ ${extraGuests} extra guest${extraGuests!==1?'s':''} × ${nights} night${nights!==1?'s':''} × ₹${PRICING.extraGuestRate.toLocaleString('en-IN')}</div>`
       : '';
+    const couponNote = couponPercent > 0 ? ` <span class="pay-mode-save">(${couponPercent}% off)</span>` : '';
     el.innerHTML = `
       <div class="pp-line">${nights} night${nights!==1?'s':''} (avg ₹${Math.round(villaTotal/nights).toLocaleString('en-IN')}/night)</div>
       ${extraLine}
-      <div class="pp-total">Total: ₹${total.toLocaleString('en-IN')}</div>
+      <div class="pp-total">Total: ₹${amounts.netTotal.toLocaleString('en-IN')}${couponNote}</div>
     `;
     el.style.display = '';
   }
