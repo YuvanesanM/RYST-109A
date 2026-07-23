@@ -1666,7 +1666,7 @@
             </label>
           </div>
         </div>
-        <button type="submit" class="form-submit" id="bookSubmitBtn">Book Now — Pay Advance →</button>
+        <button type="submit" class="form-submit" id="bookSubmitBtn">Pay Advance →</button>
         <p class="form-security-note">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
           Payments are securely processed by Razorpay — your card and bank details are never stored on our servers.
@@ -2142,9 +2142,9 @@
     if(!el) return;
     const checkin = document.getElementById('f-checkin').value;
     const checkout = document.getElementById('f-checkout').value;
-    if(!PRICING || !checkin || !checkout){ el.style.display = 'none'; updatePaymentOptionLabels(null); return; }
+    if(!PRICING || !checkin || !checkout){ el.style.display = 'none'; updatePaymentOptionLabels(null); updateSubmitButtonLabel(null); return; }
     const { nights, total: villaTotal } = villaTotalForStay(checkin, checkout);
-    if(nights <= 0){ el.style.display = 'none'; updatePaymentOptionLabels(null); return; }
+    if(nights <= 0){ el.style.display = 'none'; updatePaymentOptionLabels(null); updateSubmitButtonLabel(null); return; }
     const guests = Math.max(1, parseInt(document.getElementById('f-guests').value, 10) || 0);
     const extraGuests = PRICING.maxGuests > 0 ? Math.max(0, guests - PRICING.maxGuests) : 0;
     const total = villaTotal + extraGuests * nights * PRICING.extraGuestRate;
@@ -2152,6 +2152,7 @@
     const couponPercent = couponState.code ? couponState.discountPercent : 0;
     const amounts = computeModeAmounts(total, PRICING.advancePercent, PRICING.minAdvance, PRICING.fullPaymentDiscountPercent || 0, couponPercent);
     updatePaymentOptionLabels(amounts);
+    updateSubmitButtonLabel(amounts);
 
     const paymentMode = selectedPaymentMode();
     const payableNow = paymentMode === 'full' ? amounts.fullPayable : amounts.advancePayable;
@@ -2171,10 +2172,23 @@
     el.style.display = '';
   }
 
+  // The submit button always shows what will actually be charged — the
+  // live amount for whichever mode is selected — falling back to plain
+  // "Pay Advance/in Full" text before dates are picked (no amount to show).
+  function updateSubmitButtonLabel(amounts){
+    const btn = document.getElementById('bookSubmitBtn');
+    if(!btn) return;
+    const mode = selectedPaymentMode();
+    if(!amounts){
+      btn.textContent = mode === 'full' ? 'Pay in Full →' : 'Pay Advance →';
+      return;
+    }
+    const amount = mode === 'full' ? amounts.fullPayable : amounts.advancePayable;
+    btn.textContent = `Pay ₹${amount.toLocaleString('en-IN')} →`;
+  }
+
   document.querySelectorAll('input[name="paymentMode"]').forEach(r => {
     r.addEventListener('change', () => {
-      const btn = document.getElementById('bookSubmitBtn');
-      if(btn) btn.textContent = selectedPaymentMode() === 'full' ? 'Book Now — Pay in Full →' : 'Book Now — Pay Advance →';
       if(typeof updatePricePreview === 'function') updatePricePreview();
     });
   });
