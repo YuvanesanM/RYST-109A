@@ -1073,7 +1073,8 @@
     }
     .form-note { text-align: center; font-size: 12.5px; color: var(--muted); margin-top: 14px; line-height: 1.6; }
     .form-note a { color: var(--sea-mid); text-decoration: none; }
-    .policy-box { background: var(--foam); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+    .policy-box { background: var(--foam); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-top: 10px; }
+    .policy-box[hidden] { display: none; }
     .policy-box-title { font-size: 12px; font-weight: 700; color: var(--ink); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
     .policy-box ul { list-style: none; display: flex; flex-direction: column; gap: 6px; }
     .policy-box li { font-size: 12.5px; color: var(--muted); line-height: 1.5; padding-left: 14px; position: relative; }
@@ -1647,7 +1648,11 @@
         </div>
         <div class="form-row full">
           <div class="f-group">
-            <div class="policy-box">
+            <label class="terms-check">
+              <input type="checkbox" id="f-terms" required>
+              <span>I have read and agree to the <a href="terms.html#cancellations" target="_blank" rel="noopener" id="policyBoxToggle">Cancellation &amp; Refund Policy</a> and Terms &amp; Conditions.</span>
+            </label>
+            <div class="policy-box" id="policyBox" hidden>
               <p class="policy-box-title">Cancellation &amp; refund policy — quick glance</p>
               <ul>
                 <li>Cancel 7+ days before check-in — full refund</li>
@@ -1656,14 +1661,6 @@
                 <li>Where an advance is paid, the balance is due 72 hours before check-in</li>
               </ul>
             </div>
-          </div>
-        </div>
-        <div class="form-row full">
-          <div class="f-group">
-            <label class="terms-check">
-              <input type="checkbox" id="f-terms" required>
-              <span>I have read and agree to the <a href="terms.html#cancellations" target="_blank" rel="noopener">Cancellation &amp; Refund Policy</a> and Terms &amp; Conditions.</span>
-            </label>
           </div>
         </div>
         <button type="submit" class="form-submit" id="bookSubmitBtn">Pay Advance →</button>
@@ -2192,6 +2189,20 @@
       if(typeof updatePricePreview === 'function') updatePricePreview();
     });
   });
+
+  // The quick-glance policy box stays out of the way until the guest
+  // actually wants it — clicking the link reveals it in place instead of
+  // navigating away; the href still points to terms.html#cancellations as
+  // a real fallback (opens in a new tab via middle-click/right-click, or
+  // if JS fails to load).
+  const policyBoxToggle = document.getElementById('policyBoxToggle');
+  const policyBox = document.getElementById('policyBox');
+  if(policyBoxToggle && policyBox){
+    policyBoxToggle.addEventListener('click', (e) => {
+      e.preventDefault();
+      policyBox.hidden = !policyBox.hidden;
+    });
+  }
 
   const couponInput = document.getElementById('f-coupon');
   const couponStatusEl = document.getElementById('couponStatus');
