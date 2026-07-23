@@ -226,6 +226,7 @@ function qp(name){ return new URLSearchParams(location.search).get(name) || ''; 
 // resolve/overwrite these after the page has already loaded with none of
 // them set from the link's query params.
 let bookingNo = qp('no');
+let checkinTok = qp('t');
 let guestPrefill = qp('guest');
 let checkinDate = qp('checkin');
 let checkoutDate = qp('checkout');
@@ -278,6 +279,7 @@ async function handleGoogleLogin(credentialResponse){
     const data = await res.json().catch(()=>({}));
     if(data.ok){
       bookingNo = data.no;
+      checkinTok = data.t || checkinTok;
       guestPrefill = data.guest || guestPrefill;
       checkinDate = data.checkin || checkinDate;
       checkoutDate = data.checkout || checkoutDate;
@@ -348,6 +350,7 @@ $('#adminGuestSelect').addEventListener('change', () => {
   const s = adminStays[Number(idx)];
   if(!s) return;
   bookingNo = s.no;
+  checkinTok = s.checkinToken || '';
   guestPrefill = s.guest || '';
   checkinDate = s.checkin;
   checkoutDate = s.checkout;
@@ -479,7 +482,7 @@ $('#ciForm').addEventListener('submit', async e => {
   btn.disabled = true; btn.textContent = 'Submitting…';
 
   const payload = {
-    no: bookingNo, name, idType, idNumber,
+    no: bookingNo, t: checkinTok, name, idType, idNumber,
     idPhoto: idPhotoDataUrl,
     signature: sigCanvas.toDataURL('image/png'),
     address: $('#ci-address').value.trim(),

@@ -437,7 +437,7 @@ function feedbackRequestMessage(d){
   });
 }
 function checkinLink(d){
-  return `${CHECKIN_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent(d.guest||'')}&checkin=${encodeURIComponent(d.checkin)}&checkout=${encodeURIComponent(d.checkout)}`;
+  return `${CHECKIN_FORM_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.checkinToken||'')}&guest=${encodeURIComponent(d.guest||'')}&checkin=${encodeURIComponent(d.checkin)}&checkout=${encodeURIComponent(d.checkout)}`;
 }
 function checkinRequestMessage(d){
   return renderWaTemplate(waTemplates.checkinRequest, {
