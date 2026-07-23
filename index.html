@@ -2118,7 +2118,7 @@
     const advancePayable = Math.max(minAdvance, Math.round(advanceNet * advancePercent / 100));
     const fullDiscountAmt = Math.round(total * (couponPercent + fullPaymentPercent) / 100);
     const fullPayable = Math.max(0, total - fullDiscountAmt);
-    return { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt };
+    return { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt, total };
   }
 
   function updatePaymentOptionLabels(amounts){
@@ -2130,10 +2130,10 @@
       fullSub.textContent = PRICING.fullPaymentDiscountPercent > 0 ? `Save ${PRICING.fullPaymentDiscountPercent}%` : '';
       return;
     }
-    const { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt } = amounts;
+    const { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt, total } = amounts;
     const advSave = advanceDiscountAmt > 0 ? ` <span class="pay-mode-save">(Save ₹${advanceDiscountAmt.toLocaleString('en-IN')})</span>` : '';
     const fullSave = fullDiscountAmt > 0 ? ` <span class="pay-mode-save">(Save ₹${fullDiscountAmt.toLocaleString('en-IN')})</span>` : '';
-    advSub.innerHTML = `₹${advancePayable.toLocaleString('en-IN')} today${advSave} — balance due 72 hours before check-in`;
+    advSub.innerHTML = `₹${advancePayable.toLocaleString('en-IN')} today (of ₹${total.toLocaleString('en-IN')} total)${advSave} — balance due 72 hours before check-in`;
     fullSub.innerHTML = `₹${fullPayable.toLocaleString('en-IN')} total${fullSave}`;
   }
 
