@@ -936,6 +936,7 @@
       background: var(--white); border: 1px solid var(--line); border-radius: 14px;
       box-shadow: 0 16px 40px rgba(11,61,82,.18); padding: 10px; display: flex; flex-direction: column; gap: 8px;
     }
+    .cc-panel[hidden] { display: none; }
     .cc-search {
       padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-family: var(--sans);
       font-size: 13.5px; background: var(--white); color: var(--ink); outline: none;
@@ -951,6 +952,19 @@
     .cc-list li .cc-code { color: var(--muted); flex-shrink: 0; }
     .cc-list .cc-divider { margin: 4px 4px; border: none; border-top: 1px solid var(--line); }
     .cc-list .cc-empty { padding: 10px 8px; color: var(--muted); font-size: 13px; }
+    .guest-counter { display: flex; align-items: center; gap: 14px; }
+    .gc-btn {
+      width: 44px; height: 44px; border-radius: 12px; border: 1.5px solid rgba(14,36,32,.12); background: var(--white);
+      color: var(--ink); font-size: 19px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: border-color .15s;
+    }
+    .gc-btn:hover { border-color: var(--sea-mid); }
+    .gc-btn:disabled { opacity: .35; cursor: not-allowed; }
+    .guest-counter input#f-guests {
+      flex: 1; min-width: 0; text-align: center; padding: 13px 16px; border-radius: 12px;
+      border: 1.5px solid rgba(14,36,32,.12); font-family: var(--sans); font-size: 16px; font-weight: 600;
+      color: var(--ink); background: var(--white); cursor: default;
+    }
     .pay-mode-choice { display: flex; flex-direction: column; gap: 10px; }
     .pay-mode-opt {
       display: flex; align-items: flex-start; gap: 10px; font-family: var(--sans);
@@ -1565,7 +1579,11 @@
         <div class="form-row full">
           <div class="f-group">
             <label for="f-guests">No. of Guests *</label>
-            <input id="f-guests" name="guests" type="number" min="1" max="12" value="8" required>
+            <div class="guest-counter">
+              <button type="button" class="gc-btn" id="guestMinus" aria-label="Decrease guest count">−</button>
+              <input id="f-guests" name="guests" type="number" min="1" max="12" value="8" readonly required>
+              <button type="button" class="gc-btn" id="guestPlus" aria-label="Increase guest count">+</button>
+            </div>
           </div>
         </div>
         <div class="form-row full">
@@ -1585,7 +1603,7 @@
         <div class="form-row full" style="margin-top:4px">
           <div class="f-group">
             <label for="f-message">Special Requests or Questions</label>
-            <textarea id="f-message" name="message" placeholder="Anything specific you'd like us to know — special celebrations, dietary needs, early check-in requests, etc."></textarea>
+            <textarea id="f-message" name="message" placeholder="Preferred check-in time, special celebrations, or dietary items to avoid"></textarea>
           </div>
         </div>
         <hr class="form-divider">
@@ -1630,9 +1648,6 @@
         <button type="button" class="form-fallback-link" id="bookWaFallback">Prefer WhatsApp? Send an enquiry instead</button>
       </form>
       <div class="book-success" id="bookSuccess" style="display:none" aria-live="polite"></div>
-      <p class="form-note" id="bookFormNote">
-        An advance payment confirms your dates instantly — the balance is paid at check-in.
-      </p>
     </div>
   </div>
 </section>
@@ -1729,6 +1744,30 @@
     if(parseInt(e.target.value) > 12){ e.target.value = '12'; showToast('Maximum capacity is 12 guests.'); }
     if(typeof updatePricePreview === 'function') updatePricePreview();
   });
+
+  // ── GUEST COUNTER BUTTONS ── #f-guests is readonly (button-only entry);
+  // dispatching a real 'input' event keeps it working with the listener
+  // above and with updatePricePreview() without any other code changes.
+  function adjustGuests(delta){
+    const inp = document.getElementById('f-guests');
+    const min = parseInt(inp.min, 10) || 1;
+    const max = parseInt(inp.max, 10) || 12;
+    const next = Math.min(max, Math.max(min, (parseInt(inp.value, 10) || min) + delta));
+    inp.value = next;
+    updateGuestButtons();
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function updateGuestButtons(){
+    const inp = document.getElementById('f-guests');
+    const min = parseInt(inp.min, 10) || 1;
+    const max = parseInt(inp.max, 10) || 12;
+    const val = parseInt(inp.value, 10) || min;
+    document.getElementById('guestMinus').disabled = val <= min;
+    document.getElementById('guestPlus').disabled = val >= max;
+  }
+  document.getElementById('guestMinus').addEventListener('click', () => adjustGuests(-1));
+  document.getElementById('guestPlus').addEventListener('click', () => adjustGuests(1));
+  updateGuestButtons();
 
   // ── ANALYTICS: WhatsApp CTA clicks ──
   // A secondary engagement signal alongside the booking-form conversion
@@ -2674,7 +2713,6 @@
     if(typeof gtag === 'function') gtag('event', 'purchase', { transaction_id: data.no, value: data.amount, currency: 'INR' });
     availState.load(); // refresh the calendar so the now-booked dates show as taken
     document.getElementById('bookForm').style.display = 'none';
-    document.getElementById('bookFormNote').style.display = 'none';
     const el = document.getElementById('bookSuccess');
     // Apple's link stays same-tab so mobile Safari's native "Add Pass" sheet
     // can intercept the .pkpass response. Gracefully 503s if the backend
