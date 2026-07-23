@@ -1626,7 +1626,7 @@
             <div class="price-preview" id="pricePreview" style="display:none"></div>
           </div>
         </div>
-        <div class="form-row full">
+        <div class="form-row full" id="payModeRow">
           <div class="f-group">
             <label>Payment option</label>
             <div class="pay-mode-choice" id="payModeChoice">
@@ -2213,13 +2213,40 @@
     });
   }
 
+  // A coupon forces full payment (no advance/full choice while one is
+  // active) — remembers whatever mode was selected before the coupon was
+  // applied and restores it once the coupon is cleared, rather than always
+  // resetting to "advance".
+  let payModeBeforeCoupon = null;
+  function updatePayModeVisibility(){
+    const row = document.getElementById('payModeRow');
+    const fullRadio = document.querySelector('input[name="paymentMode"][value="full"]');
+    const advanceRadio = document.querySelector('input[name="paymentMode"][value="advance"]');
+    if(!row || !fullRadio || !advanceRadio) return;
+    if(couponState.code){
+      if(payModeBeforeCoupon === null) payModeBeforeCoupon = selectedPaymentMode();
+      row.style.display = 'none';
+      fullRadio.checked = true;
+    } else {
+      row.style.display = '';
+      if(payModeBeforeCoupon){
+        (payModeBeforeCoupon === 'full' ? fullRadio : advanceRadio).checked = true;
+        payModeBeforeCoupon = null;
+      }
+    }
+  }
+
   const couponInput = document.getElementById('f-coupon');
   const couponStatusEl = document.getElementById('couponStatus');
   if(couponInput){
     couponInput.addEventListener('input', () => {
       // Any edit invalidates a previously-applied code — it must be
       // re-checked with Apply before it can affect the price again.
-      if(couponState.code){ couponState = { code: null, discountPercent: 0 }; updatePricePreview(); }
+      if(couponState.code){
+        couponState = { code: null, discountPercent: 0 };
+        updatePayModeVisibility();
+        updatePricePreview();
+      }
       couponStatusEl.textContent = '';
       couponStatusEl.className = 'coupon-status';
     });
@@ -2247,6 +2274,7 @@
         couponStatusEl.className = 'coupon-status err';
       }finally{
         couponApplyBtn.disabled = false; couponApplyBtn.textContent = 'Apply';
+        updatePayModeVisibility();
         updatePricePreview();
       }
     });
