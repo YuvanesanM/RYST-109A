@@ -895,10 +895,6 @@
     }
     .price-preview .pp-line { font-size: 12.5px; color: var(--muted); margin-bottom: 3px; }
     .price-preview .pp-total { font-size: 14.5px; color: var(--ink); font-weight: 600; margin-top: 6px; }
-    .price-preview .pp-advance {
-      font-size: 13.5px; color: var(--sea-mid); font-weight: 700; margin-top: 4px;
-      padding-top: 8px; border-top: 1px dashed var(--line);
-    }
     .coupon-row { display: flex; gap: 8px; }
     .coupon-row input {
       flex: 1; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--line);
@@ -2131,10 +2127,10 @@
       fullSub.textContent = PRICING.fullPaymentDiscountPercent > 0 ? `Save ${PRICING.fullPaymentDiscountPercent}%` : '';
       return;
     }
-    const { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt, total } = amounts;
+    const { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt } = amounts;
     const advSave = advanceDiscountAmt > 0 ? ` <span class="pay-mode-save">(Save ₹${advanceDiscountAmt.toLocaleString('en-IN')})</span>` : '';
     const fullSave = fullDiscountAmt > 0 ? ` <span class="pay-mode-save">(Save ₹${fullDiscountAmt.toLocaleString('en-IN')})</span>` : '';
-    advSub.innerHTML = `₹${advancePayable.toLocaleString('en-IN')} today (of ₹${total.toLocaleString('en-IN')} total)${advSave} — balance due 72 hours before check-in`;
+    advSub.innerHTML = `₹${advancePayable.toLocaleString('en-IN')} today${advSave} — balance due 72 hours before check-in`;
     fullSub.innerHTML = `₹${fullPayable.toLocaleString('en-IN')} total${fullSave}`;
   }
 
@@ -2155,20 +2151,13 @@
     updatePaymentOptionLabels(amounts);
     updateSubmitButtonLabel(amounts);
 
-    const paymentMode = selectedPaymentMode();
-    const payableNow = paymentMode === 'full' ? amounts.fullPayable : amounts.advancePayable;
-    const discountAmount = paymentMode === 'full' ? amounts.fullDiscountAmt : amounts.advanceDiscountAmt;
-
     const extraLine = extraGuests > 0
       ? `<div class="pp-line">+ ${extraGuests} extra guest${extraGuests!==1?'s':''} × ${nights} night${nights!==1?'s':''} × ₹${PRICING.extraGuestRate.toLocaleString('en-IN')}</div>`
       : '';
-    const payLabel = paymentMode === 'full' ? 'Pay in full now' : `Advance to book (${PRICING.advancePercent}%)`;
-    const saveSuffix = discountAmount > 0 ? ` <span class="pay-mode-save">(Save ₹${discountAmount.toLocaleString('en-IN')})</span>` : '';
     el.innerHTML = `
       <div class="pp-line">${nights} night${nights!==1?'s':''} (avg ₹${Math.round(villaTotal/nights).toLocaleString('en-IN')}/night)</div>
       ${extraLine}
       <div class="pp-total">Total: ₹${total.toLocaleString('en-IN')}</div>
-      <div class="pp-advance">${payLabel}: ₹${payableNow.toLocaleString('en-IN')}${saveSuffix}</div>
     `;
     el.style.display = '';
   }
