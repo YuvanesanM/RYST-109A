@@ -2110,9 +2110,16 @@
   // discount applies to both; the full-payment discount only ever applies
   // to the "pay in full" figure.
   function computeModeAmounts(total, advancePercent, minAdvance, fullPaymentPercent, couponPercent){
-    const advanceDiscountAmt = Math.round(total * couponPercent / 100);
-    const advanceNet = Math.max(0, total - advanceDiscountAmt);
+    const couponDiscountAmt = Math.round(total * couponPercent / 100);
+    const advanceNet = Math.max(0, total - couponDiscountAmt);
     const advancePayable = Math.max(minAdvance, Math.round(advanceNet * advancePercent / 100));
+    // A coupon discounts the whole booking, so only half of couponDiscountAmt is
+    // actually reflected in what's due today (advance) — the rest shows up later
+    // as a smaller balance. The badge next to "today" must show that smaller,
+    // today-specific figure, not the full-booking discount, or it overstates
+    // what's actually being saved on this particular payment.
+    const advanceUndiscounted = Math.max(minAdvance, Math.round(total * advancePercent / 100));
+    const advanceDiscountAmt = Math.max(0, advanceUndiscounted - advancePayable);
     const fullDiscountAmt = Math.round(total * (couponPercent + fullPaymentPercent) / 100);
     const fullPayable = Math.max(0, total - fullDiscountAmt);
     return { advancePayable, advanceDiscountAmt, fullPayable, fullDiscountAmt, total };
