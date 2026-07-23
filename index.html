@@ -792,14 +792,14 @@
     .form-row.full { grid-template-columns: 1fr; }
     .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
     .f-group { display: flex; flex-direction: column; gap: 7px; }
-    .f-group label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; }
-    .f-group input, .f-group select, .f-group textarea {
+    .f-group > label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; }
+    .f-group input:not([type="radio"]):not([type="checkbox"]), .f-group select, .f-group textarea {
       border: 1.5px solid rgba(14,36,32,.12); border-radius: 12px;
       padding: 13px 16px; font-family: var(--sans); font-size: 14.5px; color: var(--ink);
       background: var(--white); outline: none; transition: border-color .2s, box-shadow .2s;
       width: 100%;
     }
-    .f-group input:focus, .f-group select:focus, .f-group textarea:focus {
+    .f-group input:not([type="radio"]):not([type="checkbox"]):focus, .f-group select:focus, .f-group textarea:focus {
       border-color: var(--sea-mid); box-shadow: 0 0 0 3px rgba(26,106,122,.1);
     }
     .f-group textarea { resize: vertical; min-height: 100px; }
@@ -917,6 +917,40 @@
     .coupon-status { font-size: 12.5px; margin: 6px 2px 0; min-height: 1em; }
     .coupon-status.ok { color: #1a8a4a; font-weight: 600; }
     .coupon-status.err { color: #b3261e; font-weight: 600; }
+    .phone-row { display: flex; gap: 8px; position: relative; }
+    .phone-row input {
+      flex: 1; min-width: 0; padding: 13px 16px; border-radius: 12px; border: 1.5px solid rgba(14,36,32,.12);
+      font-family: var(--sans); font-size: 14.5px; background: var(--white); color: var(--ink); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .phone-row input:focus { border-color: var(--sea-mid); box-shadow: 0 0 0 3px rgba(26,106,122,.1); }
+    .cc-select {
+      flex-shrink: 0; display: flex; align-items: center; gap: 5px; padding: 0 10px;
+      border-radius: 12px; border: 1.5px solid rgba(14,36,32,.12); background: var(--white);
+      font-family: var(--sans); font-size: 14px; color: var(--ink); cursor: pointer; white-space: nowrap;
+    }
+    .cc-select:hover, .cc-select[aria-expanded="true"] { border-color: var(--sea-mid); }
+    .cc-select .cc-caret { font-size: 10px; color: var(--muted); margin-left: 1px; }
+    .cc-panel {
+      position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: 280px; max-width: 90vw;
+      background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+      box-shadow: 0 16px 40px rgba(11,61,82,.18); padding: 10px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .cc-search {
+      padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); font-family: var(--sans);
+      font-size: 13.5px; background: var(--white); color: var(--ink); outline: none;
+    }
+    .cc-search:focus { border-color: var(--sea-mid); }
+    .cc-list { list-style: none; max-height: 240px; overflow-y: auto; }
+    .cc-list li {
+      display: flex; align-items: center; gap: 8px; padding: 8px 8px; border-radius: 8px;
+      font-family: var(--sans); font-size: 13.5px; color: var(--ink); cursor: pointer;
+    }
+    .cc-list li:hover, .cc-list li.active { background: rgba(26,106,122,.08); }
+    .cc-list li .cc-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cc-list li .cc-code { color: var(--muted); flex-shrink: 0; }
+    .cc-list .cc-divider { margin: 4px 4px; border: none; border-top: 1px solid var(--line); }
+    .cc-list .cc-empty { padding: 10px 8px; color: var(--muted); font-size: 13px; }
     .pay-mode-choice { display: flex; flex-direction: column; gap: 10px; }
     .pay-mode-opt {
       display: flex; align-items: flex-start; gap: 10px; font-family: var(--sans);
@@ -924,7 +958,8 @@
       padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; transition: border-color .15s;
     }
     .pay-mode-opt:has(input:checked) { border-color: var(--sea-mid); background: rgba(26,106,122,.05); }
-    .pay-mode-opt input { margin-top: 3px; flex-shrink: 0; }
+    .pay-mode-opt input[type="radio"] { width: 17px; height: 17px; margin: 2px 0 0; flex-shrink: 0; accent-color: var(--sea-mid); }
+    .pay-mode-opt span { line-height: 1.4; }
     .pay-mode-save { color: #1a8a4a; font-weight: 700; }
     .avail-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
     .avail-head h3 { font-family: var(--serif); font-size: 21px; font-weight: 600; color: var(--ink); }
@@ -1453,23 +1488,6 @@
           <label for="f-website">Website</label>
           <input id="f-website" name="website" type="text" tabindex="-1" autocomplete="off">
         </div>
-        <div class="form-row">
-          <div class="f-group">
-            <label for="f-name">Your Name *</label>
-            <input id="f-name" name="name" type="text" placeholder="Full name" required>
-          </div>
-          <div class="f-group">
-            <label for="f-phone">WhatsApp / Phone *</label>
-            <input id="f-phone" name="phone" type="tel" placeholder="+91 98765 43210" required>
-          </div>
-        </div>
-        <div class="form-row full">
-          <div class="f-group">
-            <label for="f-email">Email Address *</label>
-            <input id="f-email" name="email" type="email" placeholder="you@example.com" required>
-          </div>
-        </div>
-        <hr class="form-divider">
         <div class="form-row full">
           <div class="f-group">
             <label>Select your dates *</label>
@@ -1507,12 +1525,59 @@
             <input type="hidden" id="f-checkout" name="checkout">
           </div>
         </div>
+        <hr class="form-divider">
+        <div class="form-row">
+          <div class="f-group">
+            <label for="f-name">Your Name *</label>
+            <input id="f-name" name="name" type="text" placeholder="Full name" required>
+          </div>
+          <div class="f-group">
+            <label for="f-phone">WhatsApp / Phone *</label>
+            <div class="phone-row">
+              <button type="button" class="cc-select" id="ccSelectBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span id="ccFlag">🇮🇳</span><span id="ccDial">+91</span><span class="cc-caret">▾</span>
+              </button>
+              <input id="f-phone" name="phone" type="tel" inputmode="numeric" placeholder="98765 43210" maxlength="15" required>
+            </div>
+            <div class="cc-panel" id="ccPanel" hidden>
+              <input type="text" class="cc-search" id="ccSearch" placeholder="Search country or code…" autocomplete="off">
+              <ul class="cc-list" id="ccList" role="listbox" aria-label="Country code"></ul>
+            </div>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="f-group">
+            <label for="f-email">Email Address *</label>
+            <input id="f-email" name="email" type="email" placeholder="you@example.com" required>
+          </div>
+        </div>
         <div class="form-row full">
           <div class="f-group">
             <label for="f-guests">No. of Guests *</label>
-            <input id="f-guests" name="guests" type="number" min="1" max="12" placeholder="4" required>
+            <input id="f-guests" name="guests" type="number" min="1" max="12" value="8" required>
           </div>
         </div>
+        <div class="form-row full">
+          <div class="f-group">
+            <label for="f-occasion">Occasion</label>
+            <select id="f-occasion" name="occasion">
+              <option value="">Select (optional)</option>
+              <option value="Family Vacation">Family Vacation</option>
+              <option value="Friends Getaway">Friends Getaway</option>
+              <option value="Birthday / Celebration">Birthday / Celebration</option>
+              <option value="Anniversary">Anniversary</option>
+              <option value="Corporate Retreat">Corporate Retreat</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row full" style="margin-top:4px">
+          <div class="f-group">
+            <label for="f-message">Special Requests or Questions</label>
+            <textarea id="f-message" name="message" placeholder="Anything specific you'd like us to know — special celebrations, dietary needs, early check-in requests, etc."></textarea>
+          </div>
+        </div>
+        <hr class="form-divider">
         <div class="form-row full">
           <div class="f-group">
             <label for="f-coupon">Coupon code</label>
@@ -1536,27 +1601,6 @@
                 <span>Pay in full now <span class="pay-mode-save" id="fullPayDiscountLabel"></span></span>
               </label>
             </div>
-          </div>
-        </div>
-        <hr class="form-divider">
-        <div class="form-row full">
-          <div class="f-group">
-            <label for="f-occasion">Occasion</label>
-            <select id="f-occasion" name="occasion">
-              <option value="">Select (optional)</option>
-              <option value="Family Vacation">Family Vacation</option>
-              <option value="Friends Getaway">Friends Getaway</option>
-              <option value="Birthday / Celebration">Birthday / Celebration</option>
-              <option value="Anniversary">Anniversary</option>
-              <option value="Corporate Retreat">Corporate Retreat</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row full" style="margin-top:4px">
-          <div class="f-group">
-            <label for="f-message">Special Requests or Questions</label>
-            <textarea id="f-message" name="message" placeholder="Anything specific you'd like us to know — special celebrations, dietary needs, early check-in requests, etc."></textarea>
           </div>
         </div>
         <button type="submit" class="form-submit" id="bookSubmitBtn">Book Now — Pay Advance →</button>
@@ -2061,10 +2105,356 @@
     });
   }
 
+  // Country calling codes for the phone field's picker — cross-checked against
+  // a public ISO/ITU-derived reference (not hand-typed from memory) since a
+  // wrong dial code would silently produce an unreachable phone number.
+  // Heard Island & McDonald Islands omitted (uninhabited, no assigned dial
+  // code). NANP members (Canada, Caribbean nations, etc.) all use dial "1" —
+  // the guest's own choice of country name is what disambiguates, same as
+  // real-world phone pickers.
+  const COUNTRIES = [
+    {name:'Afghanistan',iso2:'AF',dial:'93'},
+    {name:'Aland Islands',iso2:'AX',dial:'358'},
+    {name:'Albania',iso2:'AL',dial:'355'},
+    {name:'Algeria',iso2:'DZ',dial:'213'},
+    {name:'American Samoa',iso2:'AS',dial:'1'},
+    {name:'Andorra',iso2:'AD',dial:'376'},
+    {name:'Angola',iso2:'AO',dial:'244'},
+    {name:'Anguilla',iso2:'AI',dial:'1'},
+    {name:'Antarctica',iso2:'AQ',dial:'672'},
+    {name:'Antigua and Barbuda',iso2:'AG',dial:'1'},
+    {name:'Argentina',iso2:'AR',dial:'54'},
+    {name:'Armenia',iso2:'AM',dial:'374'},
+    {name:'Aruba',iso2:'AW',dial:'297'},
+    {name:'Australia',iso2:'AU',dial:'61'},
+    {name:'Austria',iso2:'AT',dial:'43'},
+    {name:'Azerbaijan',iso2:'AZ',dial:'994'},
+    {name:'Bahamas',iso2:'BS',dial:'1'},
+    {name:'Bahrain',iso2:'BH',dial:'973'},
+    {name:'Bangladesh',iso2:'BD',dial:'880'},
+    {name:'Barbados',iso2:'BB',dial:'1'},
+    {name:'Belarus',iso2:'BY',dial:'375'},
+    {name:'Belgium',iso2:'BE',dial:'32'},
+    {name:'Belize',iso2:'BZ',dial:'501'},
+    {name:'Benin',iso2:'BJ',dial:'229'},
+    {name:'Bermuda',iso2:'BM',dial:'1'},
+    {name:'Bhutan',iso2:'BT',dial:'975'},
+    {name:'Bolivia',iso2:'BO',dial:'591'},
+    {name:'Bonaire, Saint Eustatius and Saba',iso2:'BQ',dial:'599'},
+    {name:'Bosnia and Herzegovina',iso2:'BA',dial:'387'},
+    {name:'Botswana',iso2:'BW',dial:'267'},
+    {name:'Bouvet Island',iso2:'BV',dial:'47'},
+    {name:'Brazil',iso2:'BR',dial:'55'},
+    {name:'British Indian Ocean Territory',iso2:'IO',dial:'246'},
+    {name:'British Virgin Islands',iso2:'VG',dial:'1'},
+    {name:'Brunei',iso2:'BN',dial:'673'},
+    {name:'Bulgaria',iso2:'BG',dial:'359'},
+    {name:'Burkina Faso',iso2:'BF',dial:'226'},
+    {name:'Burundi',iso2:'BI',dial:'257'},
+    {name:'Cambodia',iso2:'KH',dial:'855'},
+    {name:'Cameroon',iso2:'CM',dial:'237'},
+    {name:'Canada',iso2:'CA',dial:'1'},
+    {name:'Cape Verde',iso2:'CV',dial:'238'},
+    {name:'Cayman Islands',iso2:'KY',dial:'1'},
+    {name:'Central African Republic',iso2:'CF',dial:'236'},
+    {name:'Chad',iso2:'TD',dial:'235'},
+    {name:'Chile',iso2:'CL',dial:'56'},
+    {name:'China',iso2:'CN',dial:'86'},
+    {name:'Christmas Island',iso2:'CX',dial:'61'},
+    {name:'Cocos Islands',iso2:'CC',dial:'61'},
+    {name:'Colombia',iso2:'CO',dial:'57'},
+    {name:'Comoros',iso2:'KM',dial:'269'},
+    {name:'Cook Islands',iso2:'CK',dial:'682'},
+    {name:'Costa Rica',iso2:'CR',dial:'506'},
+    {name:'Croatia',iso2:'HR',dial:'385'},
+    {name:'Cuba',iso2:'CU',dial:'53'},
+    {name:'Curacao',iso2:'CW',dial:'599'},
+    {name:'Cyprus',iso2:'CY',dial:'357'},
+    {name:'Czech Republic',iso2:'CZ',dial:'420'},
+    {name:'Democratic Republic of the Congo',iso2:'CD',dial:'243'},
+    {name:'Denmark',iso2:'DK',dial:'45'},
+    {name:'Djibouti',iso2:'DJ',dial:'253'},
+    {name:'Dominica',iso2:'DM',dial:'1'},
+    {name:'Dominican Republic',iso2:'DO',dial:'1'},
+    {name:'East Timor',iso2:'TL',dial:'670'},
+    {name:'Ecuador',iso2:'EC',dial:'593'},
+    {name:'Egypt',iso2:'EG',dial:'20'},
+    {name:'El Salvador',iso2:'SV',dial:'503'},
+    {name:'Equatorial Guinea',iso2:'GQ',dial:'240'},
+    {name:'Eritrea',iso2:'ER',dial:'291'},
+    {name:'Estonia',iso2:'EE',dial:'372'},
+    {name:'Ethiopia',iso2:'ET',dial:'251'},
+    {name:'Falkland Islands',iso2:'FK',dial:'500'},
+    {name:'Faroe Islands',iso2:'FO',dial:'298'},
+    {name:'Fiji',iso2:'FJ',dial:'679'},
+    {name:'Finland',iso2:'FI',dial:'358'},
+    {name:'France',iso2:'FR',dial:'33'},
+    {name:'French Guiana',iso2:'GF',dial:'594'},
+    {name:'French Polynesia',iso2:'PF',dial:'689'},
+    {name:'French Southern Territories',iso2:'TF',dial:'262'},
+    {name:'Gabon',iso2:'GA',dial:'241'},
+    {name:'Gambia',iso2:'GM',dial:'220'},
+    {name:'Georgia',iso2:'GE',dial:'995'},
+    {name:'Germany',iso2:'DE',dial:'49'},
+    {name:'Ghana',iso2:'GH',dial:'233'},
+    {name:'Gibraltar',iso2:'GI',dial:'350'},
+    {name:'Greece',iso2:'GR',dial:'30'},
+    {name:'Greenland',iso2:'GL',dial:'299'},
+    {name:'Grenada',iso2:'GD',dial:'1'},
+    {name:'Guadeloupe',iso2:'GP',dial:'590'},
+    {name:'Guam',iso2:'GU',dial:'1'},
+    {name:'Guatemala',iso2:'GT',dial:'502'},
+    {name:'Guernsey',iso2:'GG',dial:'44'},
+    {name:'Guinea',iso2:'GN',dial:'224'},
+    {name:'Guinea-Bissau',iso2:'GW',dial:'245'},
+    {name:'Guyana',iso2:'GY',dial:'592'},
+    {name:'Haiti',iso2:'HT',dial:'509'},
+    {name:'Honduras',iso2:'HN',dial:'504'},
+    {name:'Hong Kong',iso2:'HK',dial:'852'},
+    {name:'Hungary',iso2:'HU',dial:'36'},
+    {name:'Iceland',iso2:'IS',dial:'354'},
+    {name:'India',iso2:'IN',dial:'91'},
+    {name:'Indonesia',iso2:'ID',dial:'62'},
+    {name:'Iran',iso2:'IR',dial:'98'},
+    {name:'Iraq',iso2:'IQ',dial:'964'},
+    {name:'Ireland',iso2:'IE',dial:'353'},
+    {name:'Isle of Man',iso2:'IM',dial:'44'},
+    {name:'Israel',iso2:'IL',dial:'972'},
+    {name:'Italy',iso2:'IT',dial:'39'},
+    {name:'Ivory Coast',iso2:'CI',dial:'225'},
+    {name:'Jamaica',iso2:'JM',dial:'1'},
+    {name:'Japan',iso2:'JP',dial:'81'},
+    {name:'Jersey',iso2:'JE',dial:'44'},
+    {name:'Jordan',iso2:'JO',dial:'962'},
+    {name:'Kazakhstan',iso2:'KZ',dial:'7'},
+    {name:'Kenya',iso2:'KE',dial:'254'},
+    {name:'Kiribati',iso2:'KI',dial:'686'},
+    {name:'Kosovo',iso2:'XK',dial:'383'},
+    {name:'Kuwait',iso2:'KW',dial:'965'},
+    {name:'Kyrgyzstan',iso2:'KG',dial:'996'},
+    {name:'Laos',iso2:'LA',dial:'856'},
+    {name:'Latvia',iso2:'LV',dial:'371'},
+    {name:'Lebanon',iso2:'LB',dial:'961'},
+    {name:'Lesotho',iso2:'LS',dial:'266'},
+    {name:'Liberia',iso2:'LR',dial:'231'},
+    {name:'Libya',iso2:'LY',dial:'218'},
+    {name:'Liechtenstein',iso2:'LI',dial:'423'},
+    {name:'Lithuania',iso2:'LT',dial:'370'},
+    {name:'Luxembourg',iso2:'LU',dial:'352'},
+    {name:'Macao',iso2:'MO',dial:'853'},
+    {name:'Macedonia',iso2:'MK',dial:'389'},
+    {name:'Madagascar',iso2:'MG',dial:'261'},
+    {name:'Malawi',iso2:'MW',dial:'265'},
+    {name:'Malaysia',iso2:'MY',dial:'60'},
+    {name:'Maldives',iso2:'MV',dial:'960'},
+    {name:'Mali',iso2:'ML',dial:'223'},
+    {name:'Malta',iso2:'MT',dial:'356'},
+    {name:'Marshall Islands',iso2:'MH',dial:'692'},
+    {name:'Martinique',iso2:'MQ',dial:'596'},
+    {name:'Mauritania',iso2:'MR',dial:'222'},
+    {name:'Mauritius',iso2:'MU',dial:'230'},
+    {name:'Mayotte',iso2:'YT',dial:'262'},
+    {name:'Mexico',iso2:'MX',dial:'52'},
+    {name:'Micronesia',iso2:'FM',dial:'691'},
+    {name:'Moldova',iso2:'MD',dial:'373'},
+    {name:'Monaco',iso2:'MC',dial:'377'},
+    {name:'Mongolia',iso2:'MN',dial:'976'},
+    {name:'Montenegro',iso2:'ME',dial:'382'},
+    {name:'Montserrat',iso2:'MS',dial:'1'},
+    {name:'Morocco',iso2:'MA',dial:'212'},
+    {name:'Mozambique',iso2:'MZ',dial:'258'},
+    {name:'Myanmar',iso2:'MM',dial:'95'},
+    {name:'Namibia',iso2:'NA',dial:'264'},
+    {name:'Nauru',iso2:'NR',dial:'674'},
+    {name:'Nepal',iso2:'NP',dial:'977'},
+    {name:'Netherlands',iso2:'NL',dial:'31'},
+    {name:'New Caledonia',iso2:'NC',dial:'687'},
+    {name:'New Zealand',iso2:'NZ',dial:'64'},
+    {name:'Nicaragua',iso2:'NI',dial:'505'},
+    {name:'Niger',iso2:'NE',dial:'227'},
+    {name:'Nigeria',iso2:'NG',dial:'234'},
+    {name:'Niue',iso2:'NU',dial:'683'},
+    {name:'Norfolk Island',iso2:'NF',dial:'672'},
+    {name:'North Korea',iso2:'KP',dial:'850'},
+    {name:'Northern Mariana Islands',iso2:'MP',dial:'1'},
+    {name:'Norway',iso2:'NO',dial:'47'},
+    {name:'Oman',iso2:'OM',dial:'968'},
+    {name:'Pakistan',iso2:'PK',dial:'92'},
+    {name:'Palau',iso2:'PW',dial:'680'},
+    {name:'Palestinian Territory',iso2:'PS',dial:'970'},
+    {name:'Panama',iso2:'PA',dial:'507'},
+    {name:'Papua New Guinea',iso2:'PG',dial:'675'},
+    {name:'Paraguay',iso2:'PY',dial:'595'},
+    {name:'Peru',iso2:'PE',dial:'51'},
+    {name:'Philippines',iso2:'PH',dial:'63'},
+    {name:'Pitcairn',iso2:'PN',dial:'870'},
+    {name:'Poland',iso2:'PL',dial:'48'},
+    {name:'Portugal',iso2:'PT',dial:'351'},
+    {name:'Puerto Rico',iso2:'PR',dial:'1'},
+    {name:'Qatar',iso2:'QA',dial:'974'},
+    {name:'Republic of the Congo',iso2:'CG',dial:'242'},
+    {name:'Reunion',iso2:'RE',dial:'262'},
+    {name:'Romania',iso2:'RO',dial:'40'},
+    {name:'Russia',iso2:'RU',dial:'7'},
+    {name:'Rwanda',iso2:'RW',dial:'250'},
+    {name:'Saint Barthelemy',iso2:'BL',dial:'590'},
+    {name:'Saint Helena',iso2:'SH',dial:'290'},
+    {name:'Saint Kitts and Nevis',iso2:'KN',dial:'1'},
+    {name:'Saint Lucia',iso2:'LC',dial:'1'},
+    {name:'Saint Martin',iso2:'MF',dial:'590'},
+    {name:'Saint Pierre and Miquelon',iso2:'PM',dial:'508'},
+    {name:'Saint Vincent and the Grenadines',iso2:'VC',dial:'1'},
+    {name:'Samoa',iso2:'WS',dial:'685'},
+    {name:'San Marino',iso2:'SM',dial:'378'},
+    {name:'Sao Tome and Principe',iso2:'ST',dial:'239'},
+    {name:'Saudi Arabia',iso2:'SA',dial:'966'},
+    {name:'Senegal',iso2:'SN',dial:'221'},
+    {name:'Serbia',iso2:'RS',dial:'381'},
+    {name:'Seychelles',iso2:'SC',dial:'248'},
+    {name:'Sierra Leone',iso2:'SL',dial:'232'},
+    {name:'Singapore',iso2:'SG',dial:'65'},
+    {name:'Sint Maarten',iso2:'SX',dial:'599'},
+    {name:'Slovakia',iso2:'SK',dial:'421'},
+    {name:'Slovenia',iso2:'SI',dial:'386'},
+    {name:'Solomon Islands',iso2:'SB',dial:'677'},
+    {name:'Somalia',iso2:'SO',dial:'252'},
+    {name:'South Africa',iso2:'ZA',dial:'27'},
+    {name:'South Georgia and the South Sandwich Islands',iso2:'GS',dial:'500'},
+    {name:'South Korea',iso2:'KR',dial:'82'},
+    {name:'South Sudan',iso2:'SS',dial:'211'},
+    {name:'Spain',iso2:'ES',dial:'34'},
+    {name:'Sri Lanka',iso2:'LK',dial:'94'},
+    {name:'Sudan',iso2:'SD',dial:'249'},
+    {name:'Suriname',iso2:'SR',dial:'597'},
+    {name:'Svalbard and Jan Mayen',iso2:'SJ',dial:'47'},
+    {name:'Swaziland',iso2:'SZ',dial:'268'},
+    {name:'Sweden',iso2:'SE',dial:'46'},
+    {name:'Switzerland',iso2:'CH',dial:'41'},
+    {name:'Syria',iso2:'SY',dial:'963'},
+    {name:'Taiwan',iso2:'TW',dial:'886'},
+    {name:'Tajikistan',iso2:'TJ',dial:'992'},
+    {name:'Tanzania',iso2:'TZ',dial:'255'},
+    {name:'Thailand',iso2:'TH',dial:'66'},
+    {name:'Togo',iso2:'TG',dial:'228'},
+    {name:'Tokelau',iso2:'TK',dial:'690'},
+    {name:'Tonga',iso2:'TO',dial:'676'},
+    {name:'Trinidad and Tobago',iso2:'TT',dial:'1'},
+    {name:'Tunisia',iso2:'TN',dial:'216'},
+    {name:'Turkey',iso2:'TR',dial:'90'},
+    {name:'Turkmenistan',iso2:'TM',dial:'993'},
+    {name:'Turks and Caicos Islands',iso2:'TC',dial:'1'},
+    {name:'Tuvalu',iso2:'TV',dial:'688'},
+    {name:'U.S. Virgin Islands',iso2:'VI',dial:'1'},
+    {name:'Uganda',iso2:'UG',dial:'256'},
+    {name:'Ukraine',iso2:'UA',dial:'380'},
+    {name:'United Arab Emirates',iso2:'AE',dial:'971'},
+    {name:'United Kingdom',iso2:'GB',dial:'44'},
+    {name:'United States',iso2:'US',dial:'1'},
+    {name:'United States Minor Outlying Islands',iso2:'UM',dial:'1'},
+    {name:'Uruguay',iso2:'UY',dial:'598'},
+    {name:'Uzbekistan',iso2:'UZ',dial:'998'},
+    {name:'Vanuatu',iso2:'VU',dial:'678'},
+    {name:'Vatican',iso2:'VA',dial:'379'},
+    {name:'Venezuela',iso2:'VE',dial:'58'},
+    {name:'Vietnam',iso2:'VN',dial:'84'},
+    {name:'Wallis and Futuna',iso2:'WF',dial:'681'},
+    {name:'Western Sahara',iso2:'EH',dial:'212'},
+    {name:'Yemen',iso2:'YE',dial:'967'},
+    {name:'Zambia',iso2:'ZM',dial:'260'},
+    {name:'Zimbabwe',iso2:'ZW',dial:'263'},
+  ];
+  const CC_PINNED_ISO2 = ['IN'];
+
+  // Flag emoji generated from the ISO 3166-1 alpha-2 code via the regional-
+  // indicator-symbol trick — avoids hand-maintaining ~250 emoji strings.
+  function isoToFlagEmoji(iso2){
+    return String.fromCodePoint(...[...iso2.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+  }
+
+  let selectedCountry = COUNTRIES.find(c => c.iso2 === 'IN');
+
+  (function(){
+    const btn = document.getElementById('ccSelectBtn');
+    const flagEl = document.getElementById('ccFlag');
+    const dialEl = document.getElementById('ccDial');
+    const panel = document.getElementById('ccPanel');
+    const searchEl = document.getElementById('ccSearch');
+    const listEl = document.getElementById('ccList');
+    if(!btn || !panel) return;
+
+    function updateButton(){
+      flagEl.textContent = isoToFlagEmoji(selectedCountry.iso2);
+      dialEl.textContent = '+' + selectedCountry.dial;
+    }
+
+    function renderList(query){
+      const q = (query||'').trim().toLowerCase();
+      listEl.innerHTML = '';
+      let items;
+      if(!q){
+        const pinned = CC_PINNED_ISO2.map(iso => COUNTRIES.find(c => c.iso2 === iso)).filter(Boolean);
+        const rest = COUNTRIES.filter(c => !CC_PINNED_ISO2.includes(c.iso2));
+        items = pinned.concat(rest);
+      } else {
+        items = COUNTRIES.filter(c =>
+          c.name.toLowerCase().includes(q) || c.dial.includes(q) || c.iso2.toLowerCase() === q
+        );
+      }
+      if(!items.length){
+        listEl.innerHTML = '<li class="cc-empty">No matches</li>';
+        return;
+      }
+      items.forEach((c, i) => {
+        const li = document.createElement('li');
+        li.setAttribute('role', 'option');
+        li.innerHTML = `<span>${isoToFlagEmoji(c.iso2)}</span><span class="cc-name">${esc(c.name)}</span><span class="cc-code">+${c.dial}</span>`;
+        li.addEventListener('click', () => selectCountry(c));
+        listEl.appendChild(li);
+        if(!q && i === CC_PINNED_ISO2.length - 1){
+          const hr = document.createElement('hr');
+          hr.className = 'cc-divider';
+          listEl.appendChild(hr);
+        }
+      });
+    }
+
+    function selectCountry(c){
+      selectedCountry = c;
+      updateButton();
+      closePanel();
+      document.getElementById('f-phone').focus();
+    }
+
+    function openPanel(){
+      panel.hidden = false;
+      btn.setAttribute('aria-expanded', 'true');
+      searchEl.value = '';
+      renderList('');
+      searchEl.focus();
+    }
+    function closePanel(){
+      panel.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    }
+
+    btn.addEventListener('click', () => { panel.hidden ? openPanel() : closePanel(); });
+    searchEl.addEventListener('input', () => renderList(searchEl.value));
+    document.addEventListener('click', (e) => {
+      if(!panel.hidden && !btn.contains(e.target) && !panel.contains(e.target)) closePanel();
+    });
+    document.addEventListener('keydown', (e) => {
+      if(!panel.hidden && e.key === 'Escape'){ closePanel(); btn.focus(); }
+    });
+
+    updateButton();
+  })();
+
+
   function readBookForm(){
+    const phoneDigits = document.getElementById('f-phone').value.trim();
     return {
       name:     document.getElementById('f-name').value.trim(),
-      phone:    document.getElementById('f-phone').value.trim(),
+      phone:    phoneDigits ? `+${selectedCountry.dial} ${phoneDigits}` : '',
       email:    document.getElementById('f-email').value.trim(),
       checkin:  document.getElementById('f-checkin').value,
       checkout: document.getElementById('f-checkout').value,
@@ -2079,6 +2469,12 @@
   function validateBookForm(f){
     if(!f.name||!f.phone||!f.email||!f.checkin||!f.checkout||!f.guests) return 'Please fill in all required fields.';
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(f.email)) return 'Please enter a valid email address.';
+    const phoneDigits = document.getElementById('f-phone').value.replace(/\D/g, '');
+    if(selectedCountry.iso2 === 'IN'){
+      if(!/^\d{10}$/.test(phoneDigits)) return 'Please enter a valid 10-digit phone number.';
+    } else if(phoneDigits.length < 6){
+      return 'Please enter a valid phone number.';
+    }
     if(new Date(f.checkout) <= new Date(f.checkin)) return 'Check-out must be after check-in.';
     if(availState.hasConflict(f.checkin, f.checkout)) return 'Those dates aren\'t available — please check the calendar above.';
     return null;
