@@ -239,6 +239,7 @@
       <button class="btn" id="btnNew">+ New</button>
       <button class="btn" id="btnSave" disabled>Save</button>
       <button class="btn primary" id="btnPdf">PDF</button>
+      <button class="btn" id="btnWallet" disabled title="Save the document first, then share to Wallet">Wallet</button>
     </div>
   </header>
 
@@ -769,7 +770,7 @@ function syncGuestCharges(){
 
 /* ---------- NEW DOC ---------- */
 function newDoc(){
-  editingKey=null; syncPdfBtn();
+  editingKey=null; syncPdfBtn(); syncWalletBtn();
   curNo=nextNo(docType); curDateISO=todayISO();
   $("#no").value=curNo; $("#date").value=curDateISO;
   ["guest","email","phone","guests","ref","checkin","checkout","nights","deposit","advance"].forEach(id=> $("#"+id).value="");
@@ -970,11 +971,16 @@ async function saveDoc(){
   if(idx>=0) all[idx]=doc; else all.push(doc);
   staysCache=all; editingKey=doc.no; syncPdfBtn();
   await pushStays();
+  // Re-fetch so this doc's walletToken (a server-side HMAC, not something
+  // the client can compute) comes back decorated, then the Wallet button
+  // can actually be enabled.
+  await fetchStaysFromProxy();
+  syncWalletBtn();
   toast((doc.type==="invoice"?"Invoice":"Quote")+" saved");
 }
 function loadDoc(no){
   const d=getStays().find(x=>x.no===no); if(!d) return;
-  editingKey=d.no; syncPdfBtn();
+  editingKey=d.no; syncPdfBtn(); syncWalletBtn();
   docType = (d.type==="quote") ? "quote" : "invoice";
   $("#typeSeg").querySelectorAll("button").forEach(b=> b.classList.toggle("on", b.dataset.type===docType));
   const isInv = docType==="invoice";
@@ -1061,6 +1067,25 @@ function syncPdfBtn(){
   b.disabled=!editingKey;
   b.title=editingKey?"Download PDF":"Save the document first, then download PDF";
 }
+
+/* ---------- WALLET ----------
+   walletToken only exists once the document has been saved AND a fresh
+   /stays GET has decorated it (the token is an HMAC computed server-side,
+   not something the client can derive) — so this stays disabled until
+   both have happened, same shape as syncPdfBtn but gated on the token
+   rather than just editingKey. Works for quotes and invoices alike. */
+function syncWalletBtn(){
+  const b=$("#btnWallet"); if(!b) return;
+  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const tok = stay && stay.walletToken;
+  b.disabled = !tok;
+  b.title = tok ? "Share this stay as an Apple Wallet pass" : "Save the document first, then share to Wallet";
+  b.dataset.walletUrl = tok ? `${PROXY_URL}/booking/wallet/apple?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
+}
+$("#btnWallet").addEventListener("click", ()=>{
+  const url = $("#btnWallet").dataset.walletUrl;
+  if(url) window.open(url, '_blank');
+});
 async function downloadPdf(){
   try{ await document.fonts.ready; }catch(e){}
   const prevTitle=document.title;
