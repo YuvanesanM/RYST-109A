@@ -105,14 +105,29 @@
         "currenciesAccepted": "INR",
         "slogan": "Where the coast is all yours.",
         "petsAllowed": false,
+        "additionalType": "Villa",
         "numberOfRooms": 4,
         "identifier": "RYST-109A",
-        "containsPlace": [
-          { "@type": "Accommodation", "name": "Bedroom 1", "occupancy": { "@type": "QuantitativeValue", "value": 3 } },
-          { "@type": "Accommodation", "name": "Bedroom 2", "occupancy": { "@type": "QuantitativeValue", "value": 3 } },
-          { "@type": "Accommodation", "name": "Bedroom 3", "occupancy": { "@type": "QuantitativeValue", "value": 3 } },
-          { "@type": "Accommodation", "name": "Bedroom 4", "occupancy": { "@type": "QuantitativeValue", "value": 3 } }
-        ],
+        "containsPlace": {
+          "@type": "Accommodation",
+          "additionalType": "EntirePlace",
+          "occupancy": { "@type": "QuantitativeValue", "value": 12 },
+          "numberOfRooms": 4,
+          "numberOfBedrooms": 4,
+          "amenityFeature": [
+            { "@type": "LocationFeatureSpecification", "name": "Private Beach Access", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Private Swimming Pool", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Jacuzzi", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Fully-equipped Kitchen", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Sea View", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Outdoor Games & Life-size Chess", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Barbecue / BBQ", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "High-Speed Wi-Fi", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Air Conditioning", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Power Backup", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Private Parking", "value": true }
+          ]
+        },
         "checkinTime": "14:00",
         "checkoutTime": "11:00",
         "address": {
