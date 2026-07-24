@@ -357,9 +357,30 @@
     .section-lead  { font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 580px; margin-top: 16px; }
     .section-head  { margin-bottom: 48px; }
 
+    /* ── JUMP NAV ──
+         Sticky at top:72px to sit right below nav#nav's scrolled height
+         (72px) rather than under it — the pre-existing .filter-bar below
+         used to stick at top:0 and get hidden entirely under the fixed nav
+         once scrolled; its offset is corrected below to stack under this. */
+    .jump-nav {
+      position: sticky; top: 72px; z-index: 90;
+      padding: 12px 5vw; background: rgba(251,250,248,.92);
+      backdrop-filter: blur(18px) saturate(140%);
+      border-bottom: 1px solid var(--line);
+    }
+    .jump-links { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .jump-links::-webkit-scrollbar { display: none; }
+    .jlink {
+      border: 1.5px solid rgba(11,61,82,.2); background: transparent; color: var(--ink-mid);
+      border-radius: 100px; padding: 7px 18px; text-decoration: none;
+      font-size: 13px; font-weight: 600; letter-spacing: .2px; white-space: nowrap;
+      transition: all .22s var(--ease); font-family: var(--sans);
+    }
+    .jlink:hover { border-color: var(--sea-mid); color: var(--sea); }
+
     /* ── FILTER BAR ── */
     .filter-bar {
-      position: sticky; top: 0; z-index: 50;
+      position: sticky; top: 132px; z-index: 50;
       padding: 12px 5vw; background: rgba(251,250,248,.92);
       backdrop-filter: blur(18px) saturate(140%);
       border-bottom: 1px solid var(--line);
@@ -433,7 +454,7 @@
 
     /* ── ITINERARY ── */
     .it-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-    #essentials .it-grid { grid-template-columns: repeat(5, 1fr); }
+    #food .food-ess-grid { grid-template-columns: repeat(5, 1fr); }
     .it-card {
       background: var(--white); border-radius: 20px; padding: 28px 24px;
       border: 1px solid rgba(14,36,32,.07); box-shadow: var(--sh-sm);
@@ -465,6 +486,10 @@
     .exp-card:hover .exp-icon { transform: scale(1.1) rotate(-4deg); box-shadow: 0 8px 24px rgba(77,168,184,.22); }
     .exp-icon svg { color: var(--sea-mid); }
     .exp-card strong { font-size: 12px; color: var(--ink-mid); font-weight: 600; letter-spacing: .2px; }
+
+    /* ── FOOD & DAILY NEEDS ── */
+    .food-sub { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; color: var(--sea); margin: 8px 0 24px; }
+    .food-sub:not(:first-of-type) { margin-top: 52px; }
 
     /* ── DINING ── */
     .dining-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
@@ -619,12 +644,14 @@
       .dining-grid  { grid-template-columns: repeat(2, 1fr); }
       .at-grid   { grid-template-columns: repeat(2, 1fr); }
       .it-grid   { grid-template-columns: repeat(2, 1fr); }
+      #food .food-ess-grid { grid-template-columns: repeat(2, 1fr); }
       .exp-grid  { grid-template-columns: repeat(3, 1fr); }
       .map-grid  { grid-template-columns: 1fr; }
       .map-art   { min-height: 360px; }
     }
     @media (max-width: 600px) {
       .at-grid, .dining-grid, .it-grid { grid-template-columns: 1fr; }
+      #food .food-ess-grid { grid-template-columns: 1fr; }
       .exp-grid  { grid-template-columns: repeat(2, 1fr); }
       .footer-top { flex-direction: column; gap: 28px; }
       .n-hero-title .n-ht-main { letter-spacing: 2px; }
@@ -707,24 +734,41 @@
   <a class="n-scroll-cue" href="#attractions" aria-label="Scroll to explore"></a>
 </section>
 
-<!-- ── FILTER BAR ── -->
-<div class="filter-bar" role="toolbar" aria-label="Filter attractions by category">
+<!-- ── JUMP NAV ── -->
+<nav class="jump-nav" aria-label="Jump to section">
   <div class="container">
-    <div class="filter-chips" id="filterChips"></div>
-  </div>
-</div>
-
-<!-- ── ATTRACTIONS ── -->
-<section id="attractions" aria-labelledby="attractions-title">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="section-tag">Curated around your stay</p>
-      <h2 class="section-title" id="attractions-title">Several ways to experience <em>the coastline</em></h2>
-      <p class="section-lead">A curated set of attractions within reach — from five-minute escapes to full-day coastal drives.</p>
+    <div class="jump-links">
+      <a class="jlink" href="#attractions">Attractions</a>
+      <a class="jlink" href="#itineraries">Itineraries</a>
+      <a class="jlink" href="#experiences">Experiences</a>
+      <a class="jlink" href="#food">Food &amp; Essentials</a>
+      <a class="jlink" href="#map">Map</a>
+      <a class="jlink" href="#faq">FAQ</a>
     </div>
-    <div class="at-grid" id="attractionGrid"></div>
   </div>
-</section>
+</nav>
+
+<!-- ── ATTRACTIONS (filter bar wrapped with its section so the sticky
+     filter bar unsticks once you scroll past Attractions, instead of
+     persisting for the rest of the page) ── -->
+<div class="attractions-wrap">
+  <div class="filter-bar" role="toolbar" aria-label="Filter attractions by category">
+    <div class="container">
+      <div class="filter-chips" id="filterChips"></div>
+    </div>
+  </div>
+
+  <section id="attractions" aria-labelledby="attractions-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="section-tag">Curated around your stay</p>
+        <h2 class="section-title" id="attractions-title">Several ways to experience <em>the coastline</em></h2>
+        <p class="section-lead">A curated set of attractions within reach — from five-minute escapes to full-day coastal drives.</p>
+      </div>
+      <div class="at-grid" id="attractionGrid"></div>
+    </div>
+  </section>
+</div>
 
 <!-- ── JOURNEY ── -->
 <section id="journey" aria-labelledby="journey-title">
@@ -766,7 +810,7 @@
 </section>
 
 <!-- ── ITINERARIES ── -->
-<section aria-labelledby="itinerary-title">
+<section id="itineraries" aria-labelledby="itinerary-title">
   <div class="container">
     <div class="section-head reveal">
       <p class="section-tag">Stay longer, see more</p>
@@ -828,27 +872,29 @@
   </div>
 </section>
 
-<!-- ── ESSENTIALS ──
-     Confidence varies by card. HIGH confidence, owner-confirmed: Delhi Dhaba
-     and V Nithya pharmacy (owner-supplied Google Maps links + confirmed
-     categories) and the fuel station (IndianOil locator listing, address
-     pincode 603305 matches the villa's own — genuinely in Paramankeni).
-     MODERATE confidence: Hotel Sri Saravana Vilas (owner-supplied Maps link,
-     category inferred from Tamil Nadu "Hotel X" naming convention = eatery,
-     not explicitly confirmed) and Sai Sangeethas Veg Restaurant (from
-     earlier general web search). LOW/unverified: grocery and banking cards,
-     sourced from general web search for the Cheyyur taluk area, not
-     confirmed against RYST 109A's exact location or current operating
-     status. Please confirm before relying on this, and swap in more of your
-     own picks. -->
-<section id="essentials" aria-labelledby="essentials-title">
+<!-- ── FOOD & DAILY NEEDS ──
+     Everyday Essentials confidence varies by card. HIGH confidence,
+     owner-confirmed: Delhi Dhaba and V Nithya pharmacy (owner-supplied
+     Google Maps links + confirmed categories) and the fuel station
+     (IndianOil locator listing, address pincode 603305 matches the villa's
+     own — genuinely in Paramankeni). MODERATE confidence: Hotel Sri Saravana
+     Vilas (owner-supplied Maps link, category inferred from Tamil Nadu
+     "Hotel X" naming convention = eatery, not explicitly confirmed) and Sai
+     Sangeethas Veg Restaurant (from earlier general web search). LOW/
+     unverified: grocery and banking cards, sourced from general web search
+     for the Cheyyur taluk area, not confirmed against RYST 109A's exact
+     location or current operating status. Please confirm before relying on
+     this, and swap in more of your own picks. -->
+<section id="food" aria-labelledby="food-title">
   <div class="container">
     <div class="section-head reveal">
-      <p class="section-tag">Everyday needs</p>
-      <h2 class="section-title" id="essentials-title">Nearby <em>essentials</em></h2>
-      <p class="section-lead">Grocery runs, quick meals and daily needs — all a short drive from the villa in Cheyyur town.</p>
+      <p class="section-tag">Food & daily needs</p>
+      <h2 class="section-title" id="food-title">Everything for <em>food &amp; essentials</em></h2>
+      <p class="section-lead">Grocery runs and quick meals close by, plus curated dining worth the drive to Marakkanam, Mahabalipuram and Pondicherry.</p>
     </div>
-    <div class="it-grid">
+
+    <h3 class="food-sub">Everyday Essentials</h3>
+    <div class="it-grid food-ess-grid">
       <article class="it-card reveal reveal-d1">
         <p class="it-label">Grocery</p>
         <h3>Daily Essentials</h3>
@@ -875,17 +921,8 @@
         <p class="din-rec">IndianOil (Venkateswara Agencies), right in Paramankeni on the ECR — open 24 hours, with petrol, diesel and CNG.</p>
       </article>
     </div>
-  </div>
-</section>
 
-<!-- ── DINING ── -->
-<section aria-labelledby="dining-title">
-  <div class="container">
-    <div class="section-head reveal">
-      <p class="section-tag">Coastal tables</p>
-      <h2 class="section-title" id="dining-title">Nearby dining for <em>unhurried days</em></h2>
-      <p class="section-lead">Seafood, resort dining, French cafes and familiar stops across Marakkanam, Mahabalipuram and Pondicherry.</p>
-    </div>
+    <h3 class="food-sub">Destination Dining</h3>
     <div class="dining-grid">
       <article class="din-card reveal reveal-d1">
         <div class="din-media">
@@ -925,7 +962,7 @@
 </section>
 
 <!-- ── MAP ── -->
-<section aria-labelledby="map-title">
+<section id="map" aria-labelledby="map-title">
   <div class="container">
     <div class="section-head reveal">
       <p class="section-tag">Plan your route</p>
