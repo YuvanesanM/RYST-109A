@@ -17,6 +17,10 @@
     --danger:#c0584b; --danger-soft:#fbecea; --warn:#c98a2b; --warn-soft:#fbf3e6;
     --inv:#0e7c86; --inv-soft:#e3f1f1; --qt:#c0922f; --qt-soft:#fbf0d8;
     --block:#6b7280; --block-soft:#eceef0;
+    /* OTA platform colors for blocked-date pills — matched by name against
+       each iCal feed's owner-typed label (Settings → OTA Sync), so a custom
+       or unrecognized label just falls back to --block above. */
+    --ota-airbnb:#e8484f; --ota-booking:#003580; --ota-agoda:#d97706; --ota-vrbo:#1a9e8f;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{background:var(--bg);color:var(--ink);font-family:"Outfit",system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100%}
@@ -63,6 +67,9 @@
   .cal-legend .i-inv{background:var(--inv)}
   .cal-legend .i-qt{background:var(--qt)}
   .cal-legend .i-block{background:var(--block)}
+  .cal-legend .i-airbnb{background:var(--ota-airbnb)}
+  .cal-legend .i-booking{background:var(--ota-booking)}
+  .cal-legend .i-agoda{background:var(--ota-agoda)}
   .cal-legend .i-conf{background:var(--danger)}
 
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
@@ -216,7 +223,10 @@
         <div class="cal-legend">
           <span><i class="i-inv"></i>Invoice</span>
           <span><i class="i-qt"></i>Quote</span>
-          <span><i class="i-block"></i>Blocked</span>
+          <span><i class="i-airbnb"></i>Airbnb</span>
+          <span><i class="i-booking"></i>Booking.com</span>
+          <span><i class="i-agoda"></i>Agoda</span>
+          <span><i class="i-block"></i>Other block</span>
           <span><i class="i-conf"></i>Overlap</span>
         </div>
       </div>
@@ -467,6 +477,18 @@ function nightsBetween(a,b){
 // A booking "occupies" every night from checkin (incl.) to checkout (excl.)
 function occupiesDate(d, iso){ return d.checkin && d.checkout && iso >= d.checkin && iso < d.checkout; }
 function pillClass(type){ return type==='block' ? 'block' : (type==='quote' ? 'qt' : 'inv'); }
+// Matches a blocked date's OTA feed label (owner-typed in Settings → OTA
+// Sync, e.g. "Airbnb") against known platforms so its pill gets a
+// recognizable color at a glance — anything custom/unrecognized falls
+// back to the plain grey block color.
+function otaBlockColor(label){
+  const l = (label||'').toLowerCase();
+  if(l.includes('airbnb')) return 'var(--ota-airbnb)';
+  if(l.includes('booking')) return 'var(--ota-booking)';
+  if(l.includes('agoda')) return 'var(--ota-agoda)';
+  if(l.includes('vrbo') || l.includes('homeaway')) return 'var(--ota-vrbo)';
+  return 'var(--block)';
+}
 
 function passFilter(d){
   if(FILTERS.type!=='all' && (d.type||'invoice')!==FILTERS.type) return false;
@@ -984,7 +1006,7 @@ function renderCalendar(){
     if(!hasInv && hasQt) cls.push('has-quote-only');
     else if(!hasInv && !hasQt && hasBlk) cls.push('has-block-only');
     const shown = c.dayBookings.slice(0,2).map(b=>
-      `<div class="cal-pill ${pillClass(b.type)}">${esc(b.type==='block' ? (b.guest||'Blocked') : (b.guest||b.no||''))}</div>`
+      `<div class="cal-pill ${pillClass(b.type)}"${b.type==='block' ? ` style="background:${otaBlockColor(b.guest)}"` : ''}>${esc(b.type==='block' ? (b.guest||'Blocked') : (b.guest||b.no||''))}</div>`
     ).join('');
     const more = c.dayBookings.length>2 ? `<div class="cal-more">+${c.dayBookings.length-2} more</div>` : '';
     return `<div class="${cls.join(' ')}" data-iso="${c.iso}">
@@ -1007,7 +1029,7 @@ function openDay(iso){
         if(b.type==='block'){
           return `<div class="ag-item">
             <div class="ag-top">
-              <span class="ag-no">${esc(b.guest||'Blocked')}</span>
+              <span class="ag-no" style="color:${otaBlockColor(b.guest)}">${esc(b.guest||'Blocked')}</span>
               <span class="ag-tag" style="background:var(--block-soft);color:var(--block)">Blocked</span>
             </div>
             <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s)</div>
@@ -1105,7 +1127,7 @@ function renderAgenda(){
       : d.source==='public'
       ? `<span class="ag-tag" style="background:var(--danger-soft,#fbecea);color:var(--danger,#c0584b)">New enquiry</span>` : '';
     const inner = `
-      <div class="ag-top"><span class="ag-no">${esc(d.type==='block' ? (d.guest||'Blocked') : d.no)}</span><span style="display:flex;gap:6px">${publicBadge}${tag}</span></div>
+      <div class="ag-top"><span class="ag-no"${d.type==='block' ? ` style="color:${otaBlockColor(d.guest)}"` : ''}>${esc(d.type==='block' ? (d.guest||'Blocked') : d.no)}</span><span style="display:flex;gap:6px">${publicBadge}${tag}</span></div>
       ${d.type==='block' ? '' : `<div class="ag-guest">${esc(d.guest||'—')}</div>`}
       <div class="ag-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)}</div>`;
     return d.type==='block' ? `<div class="ag-item">${inner}</div>` : `<a class="ag-item" href="stay.html?open=${encodeURIComponent(d.no)}">${inner}</a>`;
