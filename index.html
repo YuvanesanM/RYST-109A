@@ -1138,6 +1138,33 @@
       text-align: center; font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.5;
     }
     .form-security-note svg { flex-shrink: 0; color: var(--sea-mid); }
+    /* Accepted payment methods — simplified marks in the site's own icon
+       style (matching every other hand-drawn icon on the page), not exact
+       trademarked logo files. Purely a trust/recognition cue placed right
+       below the pay button. */
+    .pay-methods {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+      gap: 8px; margin-top: 12px;
+    }
+    .pm-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      height: 22px; padding: 0 9px; border-radius: 6px;
+      background: var(--foam); border: 1px solid var(--line);
+      font-family: var(--sans); font-size: 10.5px; font-weight: 700; letter-spacing: .2px;
+      color: var(--muted); line-height: 1;
+    }
+    .pm-chip svg { flex-shrink: 0; }
+    .pm-visa { color: #1a1f71; }
+    .pm-rupay { color: #0f754e; }
+    .pm-upi { color: #5f259f; }
+    .pm-gpay { color: var(--ink-mid); }
+    .pm-gpay b { color: #4285f4; font-weight: 700; }
+    .pm-mc { padding: 0 8px; }
+    .pm-mc i {
+      display: inline-block; width: 11px; height: 11px; border-radius: 50%;
+    }
+    .pm-mc i:first-child { background: #eb001b; }
+    .pm-mc i:last-child { background: #f79e1b; margin-left: -4px; mix-blend-mode: multiply; }
 
     /* ── WAVE DIVIDERS ── */
     .wave-top {
@@ -1721,6 +1748,17 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"></rect><path d="M8 11V7a4 4 0 0 1 8 0v4"></path></svg>
           Payments are securely processed by Razorpay — your card and bank details are never stored on our servers.
         </p>
+        <div class="pay-methods" aria-label="Accepted payment methods">
+          <span class="pm-chip pm-visa">VISA</span>
+          <span class="pm-chip pm-mc" aria-label="Mastercard"><i></i><i></i></span>
+          <span class="pm-chip pm-rupay">RuPay</span>
+          <span class="pm-chip pm-upi">UPI</span>
+          <span class="pm-chip pm-gpay"><b>G</b>Pay</span>
+          <span class="pm-chip pm-nb">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M4 21V10l8-6 8 6v11M9 21v-6h6v6"/></svg>
+            NetBanking
+          </span>
+        </div>
         <button type="button" class="form-fallback-link" id="bookWaFallback">Prefer WhatsApp? Send an enquiry instead</button>
       </form>
       <div class="book-success" id="bookSuccess" style="display:none" aria-live="polite"></div>
