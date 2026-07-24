@@ -904,7 +904,7 @@ function render(){
     : `<tr><td colspan="4" style="color:#aaa">Add charges…</td></tr>`;
 
   const sub = items.reduce((s,it)=>s+lineAmt(it),0);
-  const maxDisc = Math.floor(sub * 0.10);
+  const maxDisc = Math.floor(sub * 0.20);
   let discount = parseFloat($("#discountInp").value)||0;
   if(discount > maxDisc){ discount = maxDisc; $("#discountInp").value = String(maxDisc); }
   if(discount < 0){ discount = 0; $("#discountInp").value = "0"; }
