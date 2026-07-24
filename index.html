@@ -1027,7 +1027,7 @@
     .avail-legend span { display: inline-flex; align-items: center; gap: 5px; }
     .avail-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
     .avail-legend .i-free  { background: var(--sea-light); }
-    .avail-legend .i-taken { background: #d7d7d1; }
+    .avail-legend .i-taken { background: #c0392b; }
     .avail-legend .i-sel   { background: var(--sand); }
     .avail-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
     .avail-dow {
@@ -1042,7 +1042,19 @@
     }
     .avail-cell.out { visibility: hidden; }
     .avail-cell.past { background: transparent; color: var(--muted); opacity: .4; cursor: default; }
-    .avail-cell.taken { background: #e4e4e0; color: #a8aca9; text-decoration: line-through; cursor: not-allowed; }
+    .avail-cell.taken {
+      background: rgba(192,57,43,.07); color: #b0463a;
+      text-decoration: line-through; text-decoration-color: rgba(176,70,58,.55);
+      cursor: not-allowed;
+    }
+    /* Small red "sold out" badge in the corner — makes unavailable dates
+       read at a glance, rather than relying on the day number's
+       strikethrough alone. */
+    .avail-cell.taken::after {
+      content: '✕'; position: absolute; top: 3px; right: 3px;
+      width: 13px; height: 13px; border-radius: 50%; background: #c0392b;
+      color: #fff; font-size: 8px; font-weight: 700; line-height: 13px; text-align: center;
+    }
     .avail-cell.free:hover { background: rgba(26,106,122,.16); }
     .avail-cell:focus-visible { outline: 2px solid var(--sea-mid); outline-offset: 2px; }
     .avail-cell.sel-start, .avail-cell.sel-end { background: var(--sand); color: #fff; }
@@ -1571,7 +1583,7 @@
               </div>
               <div class="avail-legend">
                 <span><i class="i-free"></i>Available</span>
-                <span><i class="i-taken"></i>Booked</span>
+                <span><i class="i-taken"></i>Sold out</span>
                 <span><i class="i-sel"></i>Your selection</span>
               </div>
               <div class="avail-grid" id="availDow"></div>
@@ -1913,7 +1925,7 @@
         if(c.iso < today){
           cls.push('past'); label = `${full}, past date`;
         } else if(isTaken(c.iso)){
-          cls.push('taken'); label = `${full}, booked`;
+          cls.push('taken'); label = `${full}, sold out`;
         } else {
           cls.push('free');
           interactive = true;
