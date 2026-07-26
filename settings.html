@@ -194,8 +194,9 @@
     <button class="rc-add" id="stayHolAdd">+ Add holiday date</button>
 
     <p class="gh-mini">Discounts</p>
-    <div style="display:grid;grid-template-columns:1fr;gap:12px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <label class="f"><span>Full-payment discount — pay in full instead of advance (%)</span><input class="t" id="stayFullPayDiscount" type="number" min="0" max="100" step="1" placeholder="0"></label>
+      <label class="f"><span>Max manual discount on quotes/invoices (%)</span><input class="t" id="stayMaxDiscount" type="number" min="0" max="100" step="1" placeholder="20"></label>
     </div>
     <div class="rc-table-wrap">
       <table class="rc-table">
@@ -332,6 +333,7 @@ Account Type: Savings`,
   holidayHikePercent: 0,
   holidays: [],
   fullPaymentDiscountPercent: 0,
+  maxDiscountPercent: 20,
   coupons: [],
   icalFeeds: []
 };
@@ -515,6 +517,7 @@ function renderFromStay(){
   stayHolDraft=(stay.holidays||[]).map(h=>({...h}));
   renderStayHolidays();
   document.getElementById("stayFullPayDiscount").value=stay.fullPaymentDiscountPercent!=null?stay.fullPaymentDiscountPercent:"";
+  document.getElementById("stayMaxDiscount").value=stay.maxDiscountPercent!=null?stay.maxDiscountPercent:"";
   stayCouponDraft=(stay.coupons||[]).map(c=>({...c}));
   renderStayCoupons();
   document.getElementById("stayBank").value=stay.bank||"";
@@ -851,6 +854,8 @@ async function saveStay(){
     .map(h=>({date:h.date.trim(), label:(h.label||"").trim()}));
   const fpVal=document.getElementById("stayFullPayDiscount").value;
   stay.fullPaymentDiscountPercent = fpVal!=="" ? Math.min(100, Math.max(0, parseFloat(fpVal)||0)) : 0;
+  const mdVal=document.getElementById("stayMaxDiscount").value;
+  stay.maxDiscountPercent = mdVal!=="" ? Math.min(100, Math.max(0, parseFloat(mdVal)||0)) : STAY_DEFAULTS.maxDiscountPercent;
   stay.coupons = stayCouponDraft
     .filter(c=>(c.code||"").trim()!=="")
     .map(c=>({code:c.code.trim().toUpperCase(), discountPercent:(c.discountPercent===""||c.discountPercent==null)?0:Math.min(100,Math.max(0,parseFloat(c.discountPercent)||0))}));
