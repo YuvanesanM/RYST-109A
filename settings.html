@@ -13,6 +13,7 @@
     --bg:#f3f4f1; --panel:#ffffff; --panel2:#f7f8f5;
     --line:#e3e5e0; --accent:#3d9b69; --accent-d:#2f7d54; --accent-soft:#eaf4ee;
     --ink:#1d211c; --muted:#5f655d; --muted2:#9aa097; --danger:#c0584b;
+    --warn:#c98a2b; --warn-soft:#fbf3e6;
   }
   *{box-sizing:border-box}
   html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:"Outfit",system-ui,sans-serif;font-weight:400;-webkit-font-smoothing:antialiased}
@@ -81,6 +82,8 @@
   .sync-results{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12.5px}
   .sync-result{display:flex;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:8px;background:var(--panel2)}
   .sync-result.err{background:#fbecea;color:var(--danger)}
+  .sync-result.warn{background:var(--warn-soft);color:var(--warn)}
+  .sync-result .note{display:block;font-size:11px;font-weight:500;opacity:.85;margin-top:2px}
 
   /* ---- TOAST ---- */
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1d211c;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:60}
@@ -573,10 +576,11 @@ document.getElementById("icalSyncBtn").addEventListener("click", async ()=>{
     if(!res.ok){ out.innerHTML=`<div class="sync-result err">${esc(data.error||'Sync failed')}</div>`; }
     else if(!data.results || !data.results.length){ out.innerHTML='<div class="sync-result">No feeds configured yet — add one above and save first.</div>'; }
     else {
-      out.innerHTML=data.results.map(r=>
-        r.ok ? `<div class="sync-result"><span>${esc(r.label)}</span><span>${r.count} reservation${r.count===1?'':'s'} synced</span></div>`
-             : `<div class="sync-result err"><span>${esc(r.label)}</span><span>${esc(r.error)}</span></div>`
-      ).join('');
+      out.innerHTML=data.results.map(r=>{
+        if(!r.ok) return `<div class="sync-result err"><span>${esc(r.label)}</span><span>${esc(r.error)}</span></div>`;
+        if(r.count===0) return `<div class="sync-result warn"><span>${esc(r.label)}<span class="note">0 synced — this OTA may not export live reservations (only manual blocks, or none at all). Verify directly with the OTA and consider a manual block as a safety net.</span></span><span>0 reservations</span></div>`;
+        return `<div class="sync-result"><span>${esc(r.label)}</span><span>${r.count} reservation${r.count===1?'':'s'} synced</span></div>`;
+      }).join('');
     }
   }catch(e){ out.innerHTML='<div class="sync-result err">Could not reach the server</div>'; }
   finally{ btn.disabled=false; btn.textContent="⟳ Sync now"; }
