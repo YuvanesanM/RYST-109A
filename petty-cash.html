@@ -82,6 +82,7 @@
   .chip{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:12px;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
   .chip.pending{background:var(--warn-soft);color:var(--warn)}
   .chip.reimbursed{background:var(--accent-soft);color:var(--accent-d)}
+  .chip.na{background:var(--panel2);color:var(--muted)}
   .chip.cash{background:#eef1fb;color:#4a5aa8}
   .cat{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:8px;white-space:nowrap}
   .note{color:var(--muted);font-size:12.5px}
@@ -274,6 +275,7 @@
       <option value="All">All</option>
       <option value="pending">Pending</option>
       <option value="reimbursed">Reimbursed</option>
+      <option value="na">No reimbursement</option>
     </select></label>
     <label class="grow">Search<input id="fSearch" placeholder="note or category…" /></label>
   </div>
@@ -327,6 +329,9 @@
         <div class="field"><label>Amount (₹)</label><input type="number" id="eAmount" min="0" step="1" inputmode="numeric" placeholder="0" /></div>
       </div>
       <div class="field"><label>Category</label><div class="catgrid" id="eCatGrid"></div></div>
+      <label class="chk-row owner-only" id="eNoReimbRow" style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)">
+        <input type="checkbox" id="eNoReimb" style="width:auto"> Already paid directly — no reimbursement needed
+      </label>
       <div class="field"><label>Note</label><textarea id="eNote" placeholder="What was this for?"></textarea></div>
       <div class="field">
         <label>Receipt <span style="color:var(--danger)">*</span></label>
@@ -489,19 +494,24 @@ function normalize(doc){
 }
 
 // ── Derived totals (all-time) ──
+// 'na' (no reimbursement needed) expenses were paid directly by the owner,
+// never out of the caretaker's float — they must count toward total spend
+// (monthSpend/P&L) but NOT toward floatExpenses, or "Cash in hand" would
+// understate what the caretaker is actually holding.
 function totals(){
-  let topups=0, expenses=0, pending=0, monthSpend=0;
+  let topups=0, floatExpenses=0, allExpenses=0, pending=0, monthSpend=0;
   const nowM = monthOf(todayISO());
   for(const e of DOC.entries){
     const amt=Number(e.amount)||0;
     if(e.type==='topup') topups+=amt;
     else if(e.type==='expense'){
-      expenses+=amt;
+      allExpenses+=amt;
+      if(e.status!=='na') floatExpenses+=amt;
       if(e.status==='pending') pending+=amt;
       if(monthOf(e.date)===nowM) monthSpend+=amt;
     }
   }
-  return { cash: topups-expenses, topups, expenses, pending, monthSpend };
+  return { cash: topups-floatExpenses, topups, expenses: allExpenses, floatExpenses, pending, monthSpend };
 }
 
 // ── Filtering for ledger + reports ──
@@ -551,6 +561,7 @@ function renderCatOptions(){
   sel.innerHTML = ['All',...DOC.categories].map(c=>`<option value="${esc(c)}"${c===FILTERS.category?' selected':''}>${c==='All'?'All categories':esc(c)}</option>`).join('');
 }
 
+function statusLabel(s){ return s==='na' ? 'No reimbursement' : s; }
 function canEdit(e){ return e.type==='expense' && e.status==='pending' && (isOwner || e.createdBy===MYEMAIL); }
 // Money already changed hands on a reimbursed expense, a reimbursement
 // record, or a cash top-up — only the admin can remove any of those;
@@ -591,8 +602,8 @@ function renderLedger(){
       <td class="note td-note" data-label="Note">${esc(e.note||'')}</td>
       <td class="td-rcpt" data-label="Receipt">${rcpt}</td>
       <td class="amt debit td-amt" data-label="Amount">−${money(e.amount)}</td>
-      <td class="td-status" data-label="Status"><span class="chip ${e.status}">${e.status}</span></td>
-      <td class="td-plain td-actions">${canE ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button>`:''}${canD ? `<button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>`:''}</td>
+      <td class="td-status" data-label="Status"><span class="chip ${e.status}">${esc(statusLabel(e.status))}</span></td>
+      <td class="td-plain td-actions">${(isOwner && e.status==='pending') ? `<button class="rowbtn waive" data-id="${e.id}" title="No reimbursement needed">🚫</button>`:''}${canE ? `<button class="rowbtn edit" data-id="${e.id}" title="Edit">✎</button>`:''}${canD ? `<button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>`:''}</td>
       <td class="td-break"></td>
     </tr>`;
   }).join('');
@@ -601,11 +612,13 @@ function renderLedger(){
 function renderReports(){
   const exps = DOC.entries.filter(e=>e.type==='expense' && passFilter(e));
   const byCat={};
-  let total=0, pending=0, reimbursed=0;
+  let total=0, pending=0, reimbursed=0, direct=0;
   for(const e of exps){
     const a=Number(e.amount)||0; total+=a;
     byCat[e.category||'—']=(byCat[e.category||'—']||0)+a;
-    if(e.status==='pending') pending+=a; else reimbursed+=a;
+    if(e.status==='pending') pending+=a;
+    else if(e.status==='na') direct+=a;
+    else reimbursed+=a;
   }
   const cats=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
   const max=cats.length?cats[0][1]:0;
@@ -621,6 +634,7 @@ function renderReports(){
     <div class="row"><span class="k">Expenses</span><span class="v">${exps.length}</span></div>
     <div class="row"><span class="k">Pending</span><span class="v" style="color:var(--warn)">${money(pending)}</span></div>
     <div class="row"><span class="k">Reimbursed</span><span class="v" style="color:var(--accent-d)">${money(reimbursed)}</span></div>
+    <div class="row"><span class="k">No reimbursement needed</span><span class="v" style="color:var(--muted)">${money(direct)}</span></div>
     <div class="row total"><span class="k">Total spent</span><span class="v">${money(total)}</span></div>`;
 }
 
@@ -676,6 +690,11 @@ function openExpense(entry){
   $('#eAmount').value = entry ? entry.amount : '';
   renderCatGrid(entry ? (entry.category||DOC.categories[0]) : DOC.categories[0]);
   $('#eNote').value = entry ? (entry.note||'') : '';
+  // The no-reimbursement flag is only ever set at creation time (or via the
+  // ledger's "Waive" action on an existing pending expense) — editing an
+  // expense doesn't change it, so this checkbox is new-expense-only.
+  $('#eNoReimbRow').style.display = (entry || !isOwner) ? 'none' : '';
+  $('#eNoReimb').checked = false;
   $('#expErr').textContent='';
   renderReceiptPrev();
   $('#expOverlay').className='overlay show';
@@ -703,7 +722,8 @@ $('#expSave').onclick=async()=>{
   if(!pendingReceipt){ $('#expErr').textContent='Please add a photo of the receipt.'; return; }
   const payload = editingId
     ? { action:'edit-expense', id:editingId, date, amount, category:selectedCat, note:$('#eNote').value }
-    : { action:'add-expense', date, amount, category:selectedCat, note:$('#eNote').value, receipt:pendingReceipt };
+    : { action:'add-expense', date, amount, category:selectedCat, note:$('#eNote').value, receipt:pendingReceipt,
+        reimbursable: !(isOwner && $('#eNoReimb').checked) };
   if(editingId && receiptTouched) payload.receipt = pendingReceipt;
   const ok=await command(payload, editingId?'Expense updated':'Expense added');
   if(ok) $('#expOverlay').className='overlay';
@@ -711,12 +731,21 @@ $('#expSave').onclick=async()=>{
 
 // ── Ledger row actions (delegated) ──
 $('#ledger').addEventListener('click', e=>{
-  const editB=e.target.closest('.edit'); const delB=e.target.closest('.del'); const rc=e.target.closest('.rcpt'); const chk=e.target.closest('.selchk');
+  const editB=e.target.closest('.edit'); const delB=e.target.closest('.del'); const rc=e.target.closest('.rcpt'); const chk=e.target.closest('.selchk'); const waiveB=e.target.closest('.waive');
   if(editB){ const en=DOC.entries.find(x=>x.id===editB.dataset.id); if(en) openExpense(en); }
   else if(delB){ const en=DOC.entries.find(x=>x.id===delB.dataset.id); if(en) confirmDelete(en); }
   else if(rc){ const en=DOC.entries.find(x=>x.id===rc.dataset.id); if(en&&en.receipt) openLightbox(en.receipt); }
   else if(chk){ if(chk.checked) selected.add(chk.dataset.id); else selected.delete(chk.dataset.id); renderSelbar(); }
+  else if(waiveB){ const en=DOC.entries.find(x=>x.id===waiveB.dataset.id); if(en) confirmWaive(en); }
 });
+
+function confirmWaive(en){
+  openGen('Waive reimbursement?', `
+    <p style="color:var(--muted);font-size:13.5px">Marks <b>${esc(en.category)}</b> · ${money(en.amount)} (${esc(en.date)}) as already paid directly — it stops counting as owed to the caretaker, but stays in the ledger and P&amp;L.</p>
+    <div class="mfoot"><button class="btn ghost" id="gCancel">Cancel</button><button class="btn primary" id="gDo">Waive</button></div>`);
+  $('#gDo').onclick=async()=>{ const ok=await command({action:'waive-reimbursement', id:en.id}, 'Reimbursement waived'); if(ok) closeGen(); };
+  $('#gCancel').onclick=closeGen;
+}
 
 function confirmDelete(en){
   const isTopup = en.type==='topup';
