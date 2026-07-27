@@ -232,7 +232,14 @@
     <p class="gh-mini">OTA calendar sync</p>
     <p class="sd" style="margin-bottom:12px">Publish this villa's bookings to Airbnb/Booking.com, and pull their reservations in here so nothing double-books.</p>
 
-    <label class="f"><span>Export — paste this into Airbnb / Booking.com's "import calendar" field</span></label>
+    <label class="f"><span>Master calendar (Google) — paste this ONE link into every OTA's "import calendar" field</span></label>
+    <div class="ical-copy" style="margin-bottom:6px">
+      <input class="t" id="gcalExportUrl" readonly value="Loading…">
+      <button type="button" class="btn" id="gcalCopyBtn">Copy</button>
+    </div>
+    <p class="sd" style="margin-bottom:18px" id="gcalHint">Every OTA can safely use this same link — it's kept in sync automatically each time "Sync now" below runs, and updates for every source (direct bookings, Airbnb, Booking.com, Agoda) at once.</p>
+
+    <label class="f"><span>Direct export (fallback) — only if an OTA won't accept the Google link above</span></label>
     <div class="ical-copy" style="margin-bottom:18px">
       <input class="t" id="icalExportUrl" readonly value="Loading…">
       <button type="button" class="btn" id="icalCopyBtn">Copy</button>
@@ -403,6 +410,14 @@ function hasModule(mod){
       // literally ends in .ics before ever trying to fetch it, which the
       // query-string form fails. The server accepts both forms identically.
       if(d.icalExportKey) document.getElementById('icalExportUrl').value = PROXY_URL+'/calendar/'+d.icalExportKey+'.ics';
+      const gcalInput = document.getElementById('gcalExportUrl');
+      if(d.googleCalendarConfigured && d.googleCalendarPublicUrl){
+        gcalInput.value = d.googleCalendarPublicUrl;
+        document.getElementById('gcalCopyBtn').disabled = false;
+      } else {
+        gcalInput.value = 'Not set up yet — ask Claude to finish wiring the Google Calendar sync';
+        document.getElementById('gcalCopyBtn').disabled = true;
+      }
     } else if(!hasCache){
       throw new Error('No settings found on the server yet');
     }
@@ -568,6 +583,12 @@ document.getElementById("icalCopyBtn").addEventListener("click", async ()=>{
   try{ await navigator.clipboard.writeText(val); toast("Export link copied"); }
   catch(e){ toast("Could not copy — select and copy manually"); }
 });
+document.getElementById("gcalCopyBtn").addEventListener("click", async ()=>{
+  const val=document.getElementById("gcalExportUrl").value;
+  if(!val||val.startsWith('Not set up') || val==='Loading…') return;
+  try{ await navigator.clipboard.writeText(val); toast("Master calendar link copied"); }
+  catch(e){ toast("Could not copy — select and copy manually"); }
+});
 document.getElementById("icalSyncBtn").addEventListener("click", async ()=>{
   const btn=document.getElementById("icalSyncBtn");
   const out=document.getElementById("icalSyncResults");
@@ -579,13 +600,30 @@ document.getElementById("icalSyncBtn").addEventListener("click", async ()=>{
     if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
     const data=await res.json().catch(()=>({}));
     if(!res.ok){ out.innerHTML=`<div class="sync-result err">${esc(data.error||'Sync failed')}</div>`; }
-    else if(!data.results || !data.results.length){ out.innerHTML='<div class="sync-result">No feeds configured yet — add one above and save first.</div>'; }
     else {
-      out.innerHTML=data.results.map(r=>{
-        if(!r.ok) return `<div class="sync-result err"><span>${esc(r.label)}</span><span>${esc(r.error)}</span></div>`;
-        if(r.count===0) return `<div class="sync-result warn"><span>${esc(r.label)}<span class="note">0 synced — this OTA may not export live reservations (only manual blocks, or none at all). Verify directly with the OTA and consider a manual block as a safety net.</span></span><span>0 reservations</span></div>`;
-        return `<div class="sync-result"><span>${esc(r.label)}</span><span>${r.count} reservation${r.count===1?'':'s'} synced</span></div>`;
-      }).join('');
+      let html = (!data.results || !data.results.length)
+        ? '<div class="sync-result">No feeds configured yet — add one above and save first.</div>'
+        : data.results.map(r=>{
+            if(!r.ok) return `<div class="sync-result err"><span>${esc(r.label)}</span><span>${esc(r.error)}</span></div>`;
+            if(r.count===0) return `<div class="sync-result warn"><span>${esc(r.label)}<span class="note">0 synced — this OTA may not export live reservations (only manual blocks, or none at all). Verify directly with the OTA and consider a manual block as a safety net.</span></span><span>0 reservations</span></div>`;
+            return `<div class="sync-result"><span>${esc(r.label)}</span><span>${r.count} reservation${r.count===1?'':'s'} synced</span></div>`;
+          }).join('');
+      const g = data.googleCalendar;
+      if(g){
+        if(g.skipped) html += `<div class="sync-result"><span>Google Calendar</span><span>Not set up yet</span></div>`;
+        else if(!g.ok) html += `<div class="sync-result err"><span>Google Calendar</span><span>${esc(g.error||'Sync failed')}</span></div>`;
+        else {
+          const parts=[];
+          if(g.created) parts.push(g.created+' added');
+          if(g.updated) parts.push(g.updated+' updated');
+          if(g.deleted) parts.push(g.deleted+' removed');
+          const summary = parts.length ? parts.join(', ') : 'Already up to date';
+          html += (g.errors && g.errors.length)
+            ? `<div class="sync-result warn"><span>Google Calendar<span class="note">${esc(g.errors.join('; '))}</span></span><span>${esc(summary)}</span></div>`
+            : `<div class="sync-result"><span>Google Calendar</span><span>${esc(summary)}</span></div>`;
+        }
+      }
+      out.innerHTML = html;
     }
   }catch(e){ out.innerHTML='<div class="sync-result err">Could not reach the server</div>'; }
   finally{ btn.disabled=false; btn.textContent="⟳ Sync now"; }
