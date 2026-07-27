@@ -397,7 +397,12 @@ function hasModule(mod){
       // icalExportKey is never cached/guessed client-side — always the value
       // the server just computed, shown regardless of whether other fields
       // are populated yet (a brand-new install still needs to see this).
-      if(d.icalExportKey) document.getElementById('icalExportUrl').value = PROXY_URL+'/calendar.ics?key='+d.icalExportKey;
+      // Path form (/calendar/<key>.ics) rather than query-string
+      // (/calendar.ics?key=...) — some OTA "import calendar" forms (Agoda's
+      // among them) do a naive client-side check that the pasted URL
+      // literally ends in .ics before ever trying to fetch it, which the
+      // query-string form fails. The server accepts both forms identically.
+      if(d.icalExportKey) document.getElementById('icalExportUrl').value = PROXY_URL+'/calendar/'+d.icalExportKey+'.ics';
     } else if(!hasCache){
       throw new Error('No settings found on the server yet');
     }
