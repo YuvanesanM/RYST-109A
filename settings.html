@@ -259,6 +259,15 @@
   </div>
 
   <div class="tab-panel" data-panel="whatsapp" style="display:none">
+    <p class="gh-mini">Automated sending</p>
+    <p class="sd" style="margin-bottom:12px">When connected, the templates below are sent automatically on a schedule (check-in requests, stay reminders, feedback requests, and booking confirmations) instead of needing a manual click from Bookings.</p>
+    <div class="sync-results" id="waStatusBox" style="margin-bottom:10px"></div>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:22px">
+      <button class="btn" id="waStatusRefresh">⟳ Refresh status</button>
+      <button class="btn" id="waRunNowBtn">▶ Run now</button>
+    </div>
+    <div class="sync-results" id="waRunResults" style="margin-bottom:18px"></div>
+
     <p class="gh-mini">WhatsApp templates</p>
     <p class="sd" style="margin-bottom:12px">Wording for the WhatsApp messages the site and dashboard pre-fill. Use <code>{{token}}</code> placeholders — a line containing a token with no value for that message is left out automatically, so a field can be made optional just by giving it its own line.</p>
 
@@ -447,6 +456,7 @@ function hasModule(mod){
     loadUserAccess();
   }
   loadWaTemplates();
+  loadWhatsAppStatus();
 })();
 document.getElementById('loaderRetry').addEventListener('click', ()=>location.reload());
 
@@ -632,6 +642,48 @@ document.getElementById("icalSyncBtn").addEventListener("click", async ()=>{
     }
   }catch(e){ out.innerHTML='<div class="sync-result err">Could not reach the server</div>'; }
   finally{ btn.disabled=false; btn.textContent="⟳ Sync now"; }
+});
+
+/* ---------- WHATSAPP AUTOMATION STATUS (owner) ---------- */
+async function loadWhatsAppStatus(){
+  const box = document.getElementById('waStatusBox');
+  if(!proxyToken){ box.innerHTML = '<div class="sync-result">Sign in required</div>'; return; }
+  box.innerHTML = '<div class="sync-result">Checking…</div>';
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp/status', { headers: { 'X-Token': proxyToken }, cache: 'no-store' });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ box.innerHTML = `<div class="sync-result err"><span>WhatsApp</span><span>${esc(data.error||'Could not check status')}</span></div>`; return; }
+    if(!data.enabled){ box.innerHTML = '<div class="sync-result"><span>WhatsApp</span><span>Not set up yet</span></div>'; return; }
+    box.innerHTML = data.connected
+      ? '<div class="sync-result"><span>WhatsApp</span><span>Connected</span></div>'
+      : `<div class="sync-result warn"><span>WhatsApp<span class="note">${data.lastError?esc(data.lastError):'Needs pairing — check Render’s live logs for a QR code to scan from WhatsApp › Linked Devices'}</span></span><span>Not connected</span></div>`;
+  }catch(e){ box.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
+}
+document.getElementById('waStatusRefresh').addEventListener('click', loadWhatsAppStatus);
+document.getElementById('waRunNowBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('waRunNowBtn');
+  const out = document.getElementById('waRunResults');
+  if(!proxyToken){ toast('Sign in required'); return; }
+  btn.disabled = true; btn.textContent = 'Running…';
+  out.innerHTML = '';
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp/run-scheduled', { method:'POST', headers:{ 'X-Token': proxyToken } });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.ok===false){ out.innerHTML = `<div class="sync-result err"><span>Run now</span><span>${esc(data.error||'Failed')}</span></div>`; }
+    else if(data.skipped){ out.innerHTML = `<div class="sync-result"><span>Run now</span><span>${esc(data.reason||'Not enabled')}</span></div>`; }
+    else {
+      const parts = [`${data.sent||0} sent`];
+      if(data.failed) parts.push(`${data.failed} failed`);
+      let html = `<div class="sync-result${data.failed?' warn':''}"><span>Run now</span><span>${esc(parts.join(', '))}</span></div>`;
+      if(data.warning) html += `<div class="sync-result warn"><span>Note</span><span>${esc(data.warning)}</span></div>`;
+      if(Array.isArray(data.errors)) data.errors.forEach(e=>{ html += `<div class="sync-result err"><span>Error</span><span>${esc(e)}</span></div>`; });
+      out.innerHTML = html;
+    }
+    loadWhatsAppStatus();
+  }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
+  finally{ btn.disabled = false; btn.textContent = '▶ Run now'; }
 });
 
 /* ---------- WHATSAPP TEMPLATES (any owner) ---------- */
