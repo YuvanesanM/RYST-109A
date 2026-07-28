@@ -268,6 +268,21 @@
     </div>
     <div class="sync-results" id="waRunResults" style="margin-bottom:18px"></div>
 
+    <label class="f"><span>Active days — the scheduled run skips itself entirely on any day left unchecked</span></label>
+    <div class="user-modules" id="waAutoDays" style="margin:0 0 14px;padding-top:0;border-top:none">
+      <label class="mod-chk"><input type="checkbox" id="waDay0" value="0"> Sun</label>
+      <label class="mod-chk"><input type="checkbox" id="waDay1" value="1"> Mon</label>
+      <label class="mod-chk"><input type="checkbox" id="waDay2" value="2"> Tue</label>
+      <label class="mod-chk"><input type="checkbox" id="waDay3" value="3"> Wed</label>
+      <label class="mod-chk"><input type="checkbox" id="waDay4" value="4"> Thu</label>
+      <label class="mod-chk"><input type="checkbox" id="waDay5" value="5"> Fri</label>
+      <label class="mod-chk"><input type="checkbox" id="waDay6" value="6"> Sat</label>
+    </div>
+    <div class="feed-row" style="grid-template-columns:1fr 1fr;margin-bottom:22px">
+      <label class="f" style="margin-bottom:0"><span>Send from (IST)</span><input class="t" id="waAutoStart" type="time"></label>
+      <label class="f" style="margin-bottom:0"><span>Send until (IST)</span><input class="t" id="waAutoEnd" type="time"></label>
+    </div>
+
     <p class="gh-mini">WhatsApp templates</p>
     <p class="sd" style="margin-bottom:12px">Wording for the WhatsApp messages the site and dashboard pre-fill. Use <code>{{token}}</code> placeholders — a line containing a token with no value for that message is left out automatically, so a field can be made optional just by giving it its own line.</p>
 
@@ -696,12 +711,17 @@ const WA_DEFAULTS = {
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
 };
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
+// Mirrors WA_AUTOMATION_DEFAULT in the proxy's server.js — days are
+// 0=Sunday..6=Saturday, times are "HH:MM" in IST.
+const WA_AUTOMATION_DEFAULT = { days: [0,1,2,3,4,5,6], startTime: '09:00', endTime: '20:00' };
+let waAutomationDraft = Object.assign({}, WA_AUTOMATION_DEFAULT);
 async function loadWaTemplates(){
   try{
     const res = await fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' });
     const data = await res.json().catch(()=>({}));
     if(data && data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
-  }catch(e){ /* keeps the defaults already in waTemplatesDraft */ }
+    if(data && data.automation) waAutomationDraft = Object.assign({}, WA_AUTOMATION_DEFAULT, data.automation);
+  }catch(e){ /* keeps the defaults already in waTemplatesDraft/waAutomationDraft */ }
   renderWaTemplates();
   document.getElementById('waSave').disabled = false;
 }
@@ -710,6 +730,10 @@ function renderWaTemplates(){
   document.getElementById('waCheckinRequest').value = waTemplatesDraft.checkinRequest || '';
   document.getElementById('waReminder').value = waTemplatesDraft.reminder || '';
   document.getElementById('waFeedbackRequest').value = waTemplatesDraft.feedbackRequest || '';
+  const days = Array.isArray(waAutomationDraft.days) ? waAutomationDraft.days : WA_AUTOMATION_DEFAULT.days;
+  for(let d=0; d<7; d++) document.getElementById('waDay'+d).checked = days.includes(d);
+  document.getElementById('waAutoStart').value = waAutomationDraft.startTime || WA_AUTOMATION_DEFAULT.startTime;
+  document.getElementById('waAutoEnd').value = waAutomationDraft.endTime || WA_AUTOMATION_DEFAULT.endTime;
 }
 document.querySelectorAll('[data-reset]').forEach(b=>{
   b.addEventListener('click', ()=>{
@@ -726,16 +750,22 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
     reminder: document.getElementById('waReminder').value,
     feedbackRequest: document.getElementById('waFeedbackRequest').value
   };
+  waAutomationDraft = {
+    days: [0,1,2,3,4,5,6].filter(d=>document.getElementById('waDay'+d).checked),
+    startTime: document.getElementById('waAutoStart').value || WA_AUTOMATION_DEFAULT.startTime,
+    endTime: document.getElementById('waAutoEnd').value || WA_AUTOMATION_DEFAULT.endTime
+  };
   btn.disabled = true; btn.textContent = 'Saving…';
   try{
     const res = await fetch(PROXY_URL+'/whatsapp-templates', {
       method:'PUT', headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
-      body: JSON.stringify({ templates: waTemplatesDraft })
+      body: JSON.stringify({ templates: waTemplatesDraft, automation: waAutomationDraft })
     });
     if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
     const data = await res.json().catch(()=>({}));
     if(!res.ok){ toast(data.error || 'Save failed'); return; }
     if(data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
+    if(data.automation) waAutomationDraft = Object.assign({}, WA_AUTOMATION_DEFAULT, data.automation);
     renderWaTemplates();
     toast('WhatsApp templates saved');
   }catch(e){ toast('Could not reach the server'); }
