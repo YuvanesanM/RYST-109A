@@ -163,11 +163,14 @@
   .ob-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:16px}
   @media(max-width:800px){.ob-grid{grid-template-columns:1fr}}
   .menu-picker{max-height:420px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;padding:10px;background:var(--panel2)}
-  .mp-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--line);font-size:13px}
+  .mp-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--line);font-size:13px;transition:background .15s}
   .mp-item:last-child{border-bottom:none}
+  .mp-item.selected{background:var(--accent-soft);border-radius:8px}
   .mp-name{display:flex;align-items:center;gap:7px;font-weight:600}
   .mp-add{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700}
   .mp-add:hover{background:var(--accent-d)}
+  .mp-qty{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .mp-qty span{min-width:16px;text-align:center;font-weight:700}
   .cart-box{border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--panel2);display:flex;flex-direction:column;gap:8px}
   .cart-item{display:flex;align-items:center;gap:8px;font-size:13px;background:var(--panel);border-radius:9px;padding:7px 9px}
   .cart-item .nm{flex:1;font-weight:600}
@@ -176,6 +179,13 @@
   .cart-tot{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);padding:2px 0}
   .cart-tot.grand{font-size:15px;font-weight:700;color:var(--ink);border-top:1px solid var(--line);margin-top:4px;padding-top:8px}
   .empty{color:var(--muted2);font-size:13px;text-align:center;padding:24px 16px}
+  /* Mobile only — on a wide screen the cart is already visible beside the
+     menu, so a persistent summary bar would just be redundant chrome. */
+  .ob-cartbar{display:none}
+  @media(max-width:800px){
+    .ob-cartbar.show{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:40;align-items:center;justify-content:space-between;gap:12px;background:var(--panel);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 16px rgba(40,50,40,.1)}
+    .ob-cartbar span{font-weight:700;font-size:13.5px}
+  }
 
   .overlay{position:fixed;inset:0;background:rgba(29,33,28,.5);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;padding:18px;z-index:50}
   .overlay.show{display:flex}
@@ -283,7 +293,7 @@
             <input id="obSearch" placeholder="Search dishes…" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:13px;margin-bottom:8px">
             <div class="menu-picker" id="menuPicker"></div>
           </div>
-          <div class="cart-box">
+          <div class="cart-box" id="obCartBox">
             <div id="cartList"><div class="empty">No items added yet</div></div>
             <div class="field"><label>Discount (₹)</label><input id="obDiscount" type="number" min="0" step="1" value="0"></div>
             <div class="cart-tot"><span>Subtotal</span><span id="obSubtotal">₹0</span></div>
@@ -302,6 +312,10 @@
             <div class="merr" id="obErr"></div>
             <button class="btn primary" id="btnSaveOrder" style="width:100%;justify-content:center">Save order</button>
           </div>
+        </div>
+        <div class="ob-cartbar" id="obCartBar">
+          <span id="obCartBarInfo">0 items · ₹0</span>
+          <button type="button" class="btn primary" id="obCartBarBtn">View cart ▾</button>
         </div>
       </div>
     </div>
@@ -926,6 +940,7 @@ $('#btnToggleBuilder').addEventListener('click', ()=>{
   b.classList.toggle('show');
   $('#btnToggleBuilder').textContent = opening ? '– Hide' : '+ New order';
   if(opening && !$('#obDate').value){ $('#obDate').value = todayISO(); refreshGuestPicker(); }
+  updateCartBar();
 });
 
 // Suggests the guest currently (or, for a future-dated order, about to be)
@@ -949,6 +964,27 @@ async function refreshGuestPicker(){
 $('#obDate').addEventListener('change', refreshGuestPicker);
 $('#obGuestPick').addEventListener('change', e=>{ if(e.target.value) $('#obGuest').value = e.target.value; });
 $('#obSearch').addEventListener('input', renderMenuPicker);
+// Builds just the action area for one menu-picker row: "+ Add" if it's not
+// in the cart yet, or a −/qty/+ stepper if it is — so the selection state
+// is visible right on the dish itself, not only in the separate cart list
+// below (which is out of view under the menu on a phone).
+function mpActionsHtml(m){
+  const line = cart.find(c=>c.menuItemId===m.id);
+  if(!line) return `<button type="button" class="mp-add" data-add-cart="${esc(m.id)}">+ Add</button>`;
+  return `<div class="mp-qty"><button type="button" class="qbtn" data-mp-dec="${esc(m.id)}">−</button><span>${line.qty}</span><button type="button" class="qbtn" data-mp-inc="${esc(m.id)}">+</button></div>`;
+}
+function wireMpActionsEl(el){
+  const addBtn = el.querySelector('[data-add-cart]');
+  if(addBtn) addBtn.addEventListener('click', ()=>addToCart(addBtn.dataset.addCart));
+  const incBtn = el.querySelector('[data-mp-inc]');
+  if(incBtn) incBtn.addEventListener('click', ()=>{ const l=cart.find(c=>c.menuItemId===incBtn.dataset.mpInc); if(l){ l.qty++; afterCartChange(l.menuItemId); } });
+  const decBtn = el.querySelector('[data-mp-dec]');
+  if(decBtn) decBtn.addEventListener('click', ()=>{
+    const id = decBtn.dataset.mpDec;
+    const l = cart.find(c=>c.menuItemId===id);
+    if(l){ l.qty--; if(l.qty<=0) cart = cart.filter(c=>c!==l); afterCartChange(id); }
+  });
+}
 function renderMenuPicker(){
   const q = ($('#obSearch').value||'').trim().toLowerCase();
   const active = DOC.menu.filter(m=>m.active && (!q || m.name.toLowerCase().includes(q)));
@@ -958,13 +994,32 @@ function renderMenuPicker(){
   $('#menuPicker').innerHTML = cats.length ? cats.map(c=>`
     <div class="cat-head">${emojiFor(c)} ${esc(c)}</div>
     ${byCat[c].map(m=>`
-      <div class="mp-item">
+      <div class="mp-item${cart.find(x=>x.menuItemId===m.id)?' selected':''}" data-mp-row="${esc(m.id)}">
         <div class="mp-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}"></span>${esc(m.name)} <span style="color:var(--muted2);font-weight:500">${money(m.price)}</span></div>
-        <button type="button" class="mp-add" data-add-cart="${esc(m.id)}">+ Add</button>
+        <div class="mp-actions" data-mp-actions="${esc(m.id)}">${mpActionsHtml(m)}</div>
       </div>
     `).join('')}
   `).join('') : '<div class="empty">No dishes match.</div>';
-  $$('[data-add-cart]').forEach(b=>b.addEventListener('click', ()=>addToCart(b.dataset.addCart)));
+  $$('.mp-actions').forEach(wireMpActionsEl);
+}
+// Surgically updates just one row's action area (and its selected
+// highlight) instead of re-rendering the whole scrollable menu list —
+// replacing #menuPicker's innerHTML on every tap would reset its scroll
+// position back to the top, which is exactly the annoyance a mobile
+// ordering flow shouldn't have.
+function updateMenuPickerRow(menuItemId){
+  const actionsEl = document.querySelector(`[data-mp-actions="${CSS.escape(menuItemId)}"]`);
+  const m = DOC.menu.find(x=>x.id===menuItemId);
+  if(!actionsEl || !m) return;
+  actionsEl.innerHTML = mpActionsHtml(m);
+  wireMpActionsEl(actionsEl);
+  const rowEl = actionsEl.closest('.mp-item');
+  if(rowEl) rowEl.classList.toggle('selected', !!cart.find(c=>c.menuItemId===menuItemId));
+}
+function afterCartChange(menuItemId){
+  renderCart();
+  updateMenuPickerRow(menuItemId);
+  updateCartBar();
 }
 function addToCart(menuItemId){
   const m = DOC.menu.find(x=>x.id===menuItemId);
@@ -972,7 +1027,7 @@ function addToCart(menuItemId){
   const line = cart.find(c=>c.menuItemId===menuItemId);
   if(line) line.qty += 1;
   else cart.push({ menuItemId, name: m.name, price: m.price, qty: 1 });
-  renderCart();
+  afterCartChange(menuItemId);
 }
 function renderCart(){
   $('#cartList').innerHTML = cart.length ? cart.map(c=>`
@@ -985,15 +1040,37 @@ function renderCart(){
       <button type="button" class="qbtn" data-cart-rm="${esc(c.menuItemId)}" title="Remove">×</button>
     </div>
   `).join('') : '<div class="empty">No items added yet</div>';
-  $$('[data-cart-inc]').forEach(b=>b.addEventListener('click', ()=>{ cart.find(c=>c.menuItemId===b.dataset.cartInc).qty++; renderCart(); }));
+  $$('[data-cart-inc]').forEach(b=>b.addEventListener('click', ()=>{ cart.find(c=>c.menuItemId===b.dataset.cartInc).qty++; afterCartChange(b.dataset.cartInc); }));
   $$('[data-cart-dec]').forEach(b=>b.addEventListener('click', ()=>{
-    const line = cart.find(c=>c.menuItemId===b.dataset.cartDec);
+    const id = b.dataset.cartDec;
+    const line = cart.find(c=>c.menuItemId===id);
     line.qty--; if(line.qty<=0) cart = cart.filter(c=>c!==line);
-    renderCart();
+    afterCartChange(id);
   }));
-  $$('[data-cart-rm]').forEach(b=>b.addEventListener('click', ()=>{ cart = cart.filter(c=>c.menuItemId!==b.dataset.cartRm); renderCart(); }));
+  $$('[data-cart-rm]').forEach(b=>b.addEventListener('click', ()=>{
+    const id = b.dataset.cartRm;
+    cart = cart.filter(c=>c.menuItemId!==id);
+    afterCartChange(id);
+  }));
   updateOrderTotals();
 }
+// Mobile-only summary bar pinned to the bottom of the screen while the
+// order builder is open and has items — lets a server glance at the
+// running total/count and jump to the cart without scrolling past the
+// whole menu list first.
+function updateCartBar(){
+  const bar = $('#obCartBar');
+  const open = $('#orderBuilder').classList.contains('show');
+  const count = cart.reduce((s,c)=>s+c.qty,0);
+  if(open && count>0){
+    const total = cart.reduce((s,c)=>s+c.price*c.qty,0);
+    $('#obCartBarInfo').textContent = `${count} item${count===1?'':'s'} · ${money(total)}`;
+    bar.classList.add('show');
+  } else {
+    bar.classList.remove('show');
+  }
+}
+$('#obCartBarBtn').addEventListener('click', ()=>{ $('#obCartBox').scrollIntoView({behavior:'smooth', block:'start'}); });
 $('#obDiscount').addEventListener('input', updateOrderTotals);
 function updateOrderTotals(){
   const subtotal = cart.reduce((s,c)=>s+c.price*c.qty,0);
@@ -1025,7 +1102,11 @@ $('#btnSaveOrder').addEventListener('click', async ()=>{
   };
   const data = await runCommand(cmd, 'Order saved');
   if(data){
-    cart = []; renderCart();
+    // runCommand's own renderAll() already ran renderMenuPicker() while
+    // `cart` still held the just-ordered items (so those rows show their
+    // steppers momentarily) — clearing cart and re-rendering here is what
+    // resets every row back to "+ Add" and hides the cart bar.
+    cart = []; renderCart(); renderMenuPicker(); updateCartBar();
     $('#obGuest').value=''; $('#obGuestPick').value=''; $('#obNote').value=''; $('#obDiscount').value='0'; $('#obErr').textContent='';
     $('#obDate').value = todayISO(); $('#obTime').value = '';
     $('#orderBuilder').classList.remove('show'); $('#btnToggleBuilder').textContent = '+ New order';
