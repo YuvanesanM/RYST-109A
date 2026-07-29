@@ -268,10 +268,16 @@
     <div class="panel">
       <h2>New order<span class="spacer"></span><button class="linklike" id="btnToggleBuilder">+ New order</button></h2>
       <div class="order-builder" id="orderBuilder">
-        <div class="two" style="margin-bottom:12px">
-          <div class="field"><label>Guest / table reference</label><input id="obGuest" placeholder="e.g. Room guest — Villa, or Walk-in"></div>
-          <div class="field"><label>Note (optional)</label><input id="obNote" placeholder="e.g. No spice, extra portion"></div>
+        <div class="three" style="margin-bottom:12px">
+          <div class="field"><label>Requested date</label><input id="obDate" type="date"></div>
+          <div class="field"><label>Requested time (optional)</label><input id="obTime" type="time"></div>
+          <div class="field">
+            <label>Guest / table reference</label>
+            <select id="obGuestPick"><option value="">— Pick current stay —</option></select>
+            <input id="obGuest" placeholder="e.g. Room guest — Villa, or Walk-in">
+          </div>
         </div>
+        <div class="field" style="margin-bottom:12px"><label>Note (optional)</label><input id="obNote" placeholder="e.g. No spice, extra portion"></div>
         <div class="ob-grid">
           <div>
             <input id="obSearch" placeholder="Search dishes…" style="width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);font-size:13px;margin-bottom:8px">
@@ -443,6 +449,7 @@
       </div>
       <div class="two" style="margin-top:12px">
         <div class="field"><label>Expiry alert window (days)</label><input id="stExpDays" type="number" min="0" step="1"></div>
+        <div class="field"><label>Partner kitchen WhatsApp number</label><input id="stPartnerPhone" placeholder="e.g. 9876543210"></div>
       </div>
       <div class="merr" id="stErr"></div>
       <button class="btn primary" id="btnSaveSettings" style="margin-top:12px">Save settings</button>
@@ -915,9 +922,32 @@ $('#consumeSave').addEventListener('click', async ()=>{
 /* ── Billing / order builder ── */
 $('#btnToggleBuilder').addEventListener('click', ()=>{
   const b = $('#orderBuilder');
+  const opening = !b.classList.contains('show');
   b.classList.toggle('show');
-  $('#btnToggleBuilder').textContent = b.classList.contains('show') ? '– Hide' : '+ New order';
+  $('#btnToggleBuilder').textContent = opening ? '– Hide' : '+ New order';
+  if(opening && !$('#obDate').value){ $('#obDate').value = todayISO(); refreshGuestPicker(); }
 });
+
+// Suggests the guest currently (or, for a future-dated order, about to be)
+// staying at the villa instead of retyping their name every time — pulled
+// from the same public /active-stay endpoint display.html uses, just for
+// whatever date this order is for. A blank result (no stay covers that
+// date) just leaves the picker at "— Pick current stay —" and the free-
+// text field works exactly as before.
+async function refreshGuestPicker(){
+  const sel = $('#obGuestPick');
+  sel.innerHTML = '<option value="">— Pick current stay —</option>';
+  const date = $('#obDate').value || todayISO();
+  try{
+    const res = await fetch(PROXY_URL+'/active-stay?date='+encodeURIComponent(date), { cache:'no-store' });
+    const data = await res.json().catch(()=>({}));
+    if(data && data.active && data.guest){
+      sel.innerHTML += `<option value="${esc(data.guest)}">${esc(data.guest)} (${fmtDate(data.checkin)} → ${fmtDate(data.checkout)})</option>`;
+    }
+  }catch(e){ /* leave just the placeholder — free-text guest field still works */ }
+}
+$('#obDate').addEventListener('change', refreshGuestPicker);
+$('#obGuestPick').addEventListener('change', e=>{ if(e.target.value) $('#obGuest').value = e.target.value; });
 $('#obSearch').addEventListener('input', renderMenuPicker);
 function renderMenuPicker(){
   const q = ($('#obSearch').value||'').trim().toLowerCase();
@@ -988,6 +1018,7 @@ $('#btnSaveOrder').addEventListener('click', async ()=>{
   const cmd = {
     action:'create-order',
     guest: $('#obGuest').value, note: $('#obNote').value,
+    date: $('#obDate').value || undefined, time: $('#obTime').value || undefined,
     discount: $('#obDiscount').value,
     paymentMode: $('#obPaymentMode').value || undefined,
     items: cart.map(c=>({ menuItemId: c.menuItemId, qty: c.qty })),
@@ -995,7 +1026,8 @@ $('#btnSaveOrder').addEventListener('click', async ()=>{
   const data = await runCommand(cmd, 'Order saved');
   if(data){
     cart = []; renderCart();
-    $('#obGuest').value=''; $('#obNote').value=''; $('#obDiscount').value='0'; $('#obErr').textContent='';
+    $('#obGuest').value=''; $('#obGuestPick').value=''; $('#obNote').value=''; $('#obDiscount').value='0'; $('#obErr').textContent='';
+    $('#obDate').value = todayISO(); $('#obTime').value = '';
     $('#orderBuilder').classList.remove('show'); $('#btnToggleBuilder').textContent = '+ New order';
     const last = DOC.orders[DOC.orders.length-1];
     if(last) printReceipt(last);
@@ -1015,7 +1047,7 @@ function renderOrders(){
   $('#ordersBody').innerHTML = rows.length ? rows.map(o=>`
     <tr>
       <td>${esc(o.no)}</td>
-      <td>${fmtDate(o.date)}</td>
+      <td>${fmtDate(o.date)}${o.time?'<br><span style="color:var(--muted2);font-size:11px">'+fmtTime(o.time)+'</span>':''}</td>
       <td>${esc(o.guest||'—')}</td>
       <td>${o.items.map(it=>esc(it.name)+' ×'+it.qty).join(', ')}</td>
       <td class="amt">${money(o.total)}</td>
@@ -1023,6 +1055,7 @@ function renderOrders(){
       <td><span class="status-chip ${o.status}">${o.status}</span></td>
       <td style="white-space:nowrap">
         <button class="icon-btn" data-print-order="${esc(o.no)}">Print</button>
+        ${hasSourcedItems(o) ? `<button class="icon-btn" data-wa-order="${esc(o.no)}">📲 Partner Kitchen</button>` : ''}
         ${o.status==='open' ? `<button class="icon-btn" data-settle-order="${esc(o.no)}">Settle</button>` : ''}
         ${o.status!=='cancelled' ? `<button class="icon-btn del" data-cancel-order="${esc(o.no)}">Cancel</button>` : ''}
         <button class="icon-btn del owner-only" data-del-order="${esc(o.no)}">Delete</button>
@@ -1034,6 +1067,10 @@ function renderOrders(){
     const o = DOC.orders.find(x=>x.no===b.dataset.printOrder);
     if(o) printReceipt(o);
   }));
+  $$('[data-wa-order]').forEach(b=>b.addEventListener('click', ()=>{
+    const o = DOC.orders.find(x=>x.no===b.dataset.waOrder);
+    if(o) sendToPartnerKitchen(o);
+  }));
   $$('[data-settle-order]').forEach(b=>b.addEventListener('click', ()=>{
     const mode = prompt('Payment mode (Cash, UPI, Card, Room Account):', 'Cash');
     if(mode) runCommand({ action:'settle-order', no:b.dataset.settleOrder, paymentMode:mode }, 'Order settled');
@@ -1044,6 +1081,45 @@ function renderOrders(){
   $$('[data-del-order]').forEach(b=>b.addEventListener('click', ()=>{
     if(confirm('Permanently delete this order?')) runCommand({ action:'delete-order', no:b.dataset.delOrder }, 'Order deleted');
   }));
+}
+
+function fmtTime(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const h12 = ((h+11)%12)+1;
+  return `${h12}:${String(m).padStart(2,'0')} ${h<12?'AM':'PM'}`;
+}
+// An item counts as needing a partner-kitchen order unless its sourcing was
+// explicitly recorded as "Kitchen" (in-house) at the time of the order —
+// matches how the menu seed only tags Beverages that way, everything else
+// on this delivery-kitchen menu is partner-sourced by default.
+function isSourcedItem(it){ return (it.sourcing||'').trim().toLowerCase()!=='kitchen'; }
+function hasSourcedItems(o){ return (o.items||[]).some(isSourcedItem); }
+function normalizePhone(p){
+  const digits = String(p||'').replace(/\D/g,'');
+  if(!digits) return '';
+  return digits.length===10 ? '91'+digits : digits;
+}
+function sendToPartnerKitchen(o){
+  const sourced = (o.items||[]).filter(isSourcedItem);
+  if(!sourced.length) return;
+  const lines = sourced.map((it,i)=>`${i+1}. ${it.name} ×${it.qty} — ${money(it.price)} each — ${money(it.price*it.qty)}`);
+  const subtotal = sourced.reduce((s,it)=>s+it.price*it.qty,0);
+  const when = o.time ? `${fmtDate(o.date)}, ${fmtTime(o.time)}` : fmtDate(o.date);
+  const text = [
+    `RYST 109A — Casa de RYST order`,
+    `Requested: ${when}`,
+    '',
+    ...lines,
+    '',
+    `Subtotal (these items): ${money(subtotal)}`,
+    `Order ref: ${o.no}`,
+  ].join('\n');
+  const phone = normalizePhone(DOC.settings.partnerKitchenPhone);
+  const url = phone
+    ? `https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(text)}`
+    : `https://api.whatsapp.com/send/?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
 }
 
 function printReceipt(o){
@@ -1241,11 +1317,13 @@ function renderSettingsForm(){
   $('#stSvc').value = DOC.settings.serviceChargePercent ?? 0;
   $('#stPrefix').value = DOC.settings.invoicePrefix || 'CDR';
   $('#stExpDays').value = DOC.settings.expiryAlertDays ?? 5;
+  $('#stPartnerPhone').value = DOC.settings.partnerKitchenPhone || '';
 }
 $('#btnSaveSettings').addEventListener('click', async ()=>{
   const data = await runCommand({
     action:'update-settings', gstPercent: $('#stGst').value, serviceChargePercent: $('#stSvc').value,
     invoicePrefix: $('#stPrefix').value, expiryAlertDays: $('#stExpDays').value,
+    partnerKitchenPhone: $('#stPartnerPhone').value,
   });
   if(data) showToast('Settings saved'); else $('#stErr').textContent = 'Could not save settings';
 });
