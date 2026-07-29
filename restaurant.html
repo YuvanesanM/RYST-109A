@@ -111,7 +111,8 @@
   .veg-dot.veg{background:var(--accent)}
   .veg-dot.nonveg{background:#b0463a}
   .dish-sub{font-size:11.5px;color:var(--muted2);margin-top:2px}
-  .dish-price{font-weight:700;font-size:14px;white-space:nowrap}
+  .dish-price{font-weight:700;font-size:14px;white-space:nowrap;text-align:right}
+  .dish-cost{font-weight:500;font-size:10.5px;color:var(--muted2);white-space:nowrap;margin-top:2px}
   .dish-actions{display:flex;gap:6px;flex-shrink:0;align-items:center}
   .pill-toggle{font-size:10.5px;font-weight:700;letter-spacing:.3px;padding:3px 9px;border-radius:20px;text-transform:uppercase;border:none;cursor:pointer}
   .pill-toggle.active{background:var(--accent-soft);color:var(--accent-d)}
@@ -258,6 +259,7 @@
     <button type="button" class="tab-btn" data-tab="menu">Menu</button>
     <button type="button" class="tab-btn" data-tab="inventory">Inventory</button>
     <button type="button" class="tab-btn" data-tab="purchases">Purchases</button>
+    <button type="button" class="tab-btn owner-only" id="tabReportsBtn" data-tab="reports">Reports</button>
     <button type="button" class="tab-btn owner-only" id="tabSettingsBtn" data-tab="settings">Settings</button>
   </div>
 
@@ -374,6 +376,62 @@
     </div>
   </div>
 
+  <!-- ══ REPORTS (owner only) ══ -->
+  <div class="tab-panel owner-only" data-panel="reports" style="display:none">
+    <div class="panel">
+      <h2>Sales &amp; profit</h2>
+      <div class="filters" style="margin-bottom:14px">
+        <button type="button" class="tbtn" data-rep-preset="today">Today</button>
+        <button type="button" class="tbtn" data-rep-preset="week">This week</button>
+        <button type="button" class="tbtn" data-rep-preset="month">This month</button>
+        <button type="button" class="tbtn" data-rep-preset="all">All time</button>
+        <label>From <input id="repFrom" type="date"></label>
+        <label>To <input id="repTo" type="date"></label>
+      </div>
+      <div class="cards" style="margin-bottom:14px">
+        <div class="card hero">
+          <div class="lbl">Revenue</div>
+          <div class="val" id="repRevenue">—</div>
+          <div class="sub" id="repOrderCount">settled orders</div>
+        </div>
+        <div class="card">
+          <div class="lbl">Cost of goods sold</div>
+          <div class="val" id="repCogs">—</div>
+          <div class="sub">purchase cost of items sold</div>
+        </div>
+        <div class="card">
+          <div class="lbl">Gross profit</div>
+          <div class="val" id="repProfit">—</div>
+          <div class="sub">revenue minus cost</div>
+        </div>
+        <div class="card">
+          <div class="lbl">Margin</div>
+          <div class="val" id="repMargin">—</div>
+          <div class="sub">profit as % of revenue</div>
+        </div>
+      </div>
+      <div class="merr" id="repCostWarning" style="margin-bottom:10px"></div>
+    </div>
+    <div class="panel">
+      <h2>By category</h2>
+      <div class="tablewrap">
+        <table class="data">
+          <thead><tr><th>Category</th><th class="r">Items sold</th><th class="r">Revenue</th><th class="r">Cost</th><th class="r">Profit</th><th class="r">Margin</th></tr></thead>
+          <tbody id="repCatBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>By dish</h2>
+      <div class="tablewrap">
+        <table class="data">
+          <thead><tr><th>Dish</th><th>Category</th><th class="r">Qty sold</th><th class="r">Revenue</th><th class="r">Cost</th><th class="r">Profit</th><th class="r">Margin</th></tr></thead>
+          <tbody id="repItemBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <!-- ══ SETTINGS (owner only) ══ -->
   <div class="tab-panel owner-only" data-panel="settings" style="display:none">
     <div class="panel">
@@ -408,13 +466,24 @@
       <div class="field"><label>Dish name</label><input id="dName"></div>
       <div class="two">
         <div class="field"><label>Category</label><select id="dCategory"></select></div>
-        <div class="field"><label>Price (₹)</label><input id="dPrice" type="number" min="0" step="1"></div>
+        <div class="field"><label>Selling price (₹)</label><input id="dPrice" type="number" min="0" step="1"></div>
       </div>
       <div class="two">
+        <div class="field"><label>Cost price (₹) — what you pay per portion</label><input id="dCost" type="number" min="0" step="1"></div>
         <div class="field"><label>Type</label><select id="dVeg"><option value="true">Vegetarian</option><option value="false">Non-vegetarian</option></select></div>
-        <div class="field"><label>Calories (optional)</label><input id="dKcal" type="number" min="0" step="1"></div>
       </div>
-      <div class="field"><label>Description (optional)</label><input id="dDesc"></div>
+      <div class="two">
+        <div class="field"><label>Sourcing</label><input id="dSourcing" list="dSourcingOpts" placeholder="e.g. Partner Kitchen, Kitchen">
+          <datalist id="dSourcingOpts"><option value="Partner Kitchen"><option value="Kitchen"></datalist>
+        </div>
+        <div class="field"><label>MOQ (portions per batch)</label><input id="dMoq" type="number" min="1" step="1"></div>
+      </div>
+      <div class="two">
+        <div class="field"><label>Calories (optional)</label><input id="dKcal" type="number" min="0" step="1"></div>
+        <div class="field" style="justify-content:center"><label class="chk-toggle" style="margin-top:18px"><input type="checkbox" id="dChefSpecial"> Chef's Special</label></div>
+      </div>
+      <div class="field"><label>Description (optional, guest-facing)</label><input id="dDesc"></div>
+      <div class="field"><label>Notes (optional, internal — costing basis, availability window, etc.)</label><input id="dNotes"></div>
       <div class="merr" id="dErr"></div>
     </div>
     <div class="mfoot">
@@ -584,7 +653,7 @@ function switchTab(tab){
   $$('.tab-panel').forEach(p => p.style.display = (p.dataset.panel===tab) ? '' : 'none');
   $$('#rsTabs .tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab===tab));
 }
-if(!isOwner) $('#tabSettingsBtn').style.display = 'none';
+if(!isOwner){ $('#tabSettingsBtn').style.display = 'none'; $('#tabReportsBtn').style.display = 'none'; }
 
 /* ── Shared render ── */
 function renderAll(){
@@ -599,6 +668,7 @@ function renderAll(){
   renderCategoryEditor();
   renderMenuPicker();
   renderPuLines();
+  if(isOwner) renderReports();
 }
 
 function invStock(item){ return (item.batches||[]).reduce((s,b)=>s+Number(b.qty||0),0); }
@@ -670,10 +740,10 @@ function renderMenu(){
       ${byCat[c].map(m=>`
         <div class="dish-row">
           <div class="dish-main">
-            <div class="dish-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}"></span>${esc(m.name)}</div>
+            <div class="dish-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}"></span>${esc(m.name)}${m.chefSpecial?' ⭐':''}</div>
             <div class="dish-sub">${esc(m.description||'')}${m.kcal?' · ~'+m.kcal+' kcal':''}</div>
           </div>
-          <div class="dish-price">${money(m.price)}</div>
+          <div class="dish-price">${money(m.price)}${isOwner ? `<div class="dish-cost">cost ${money(m.cost||0)}${m.price>0?' &middot; '+Math.round((1-((Number(m.cost)||0)/m.price))*100)+'% margin':''}</div>` : ''}</div>
           <div class="dish-actions">
             <button class="pill-toggle owner-only ${m.active?'active':'inactive'}" data-toggle-active="${esc(m.id)}">${m.active?'Active':'Hidden'}</button>
             <button class="icon-btn owner-only" data-edit-dish="${esc(m.id)}">Edit</button>
@@ -702,9 +772,14 @@ function openDishModal(id){
   $('#dName').value = m ? m.name : '';
   $('#dCategory').value = m ? m.category : (DOC.categories[0]||'');
   $('#dPrice').value = m ? m.price : '';
+  $('#dCost').value = m && m.cost!=null ? m.cost : '';
   $('#dVeg').value = m ? String(!!m.veg) : 'true';
+  $('#dSourcing').value = m ? (m.sourcing||'') : '';
+  $('#dMoq').value = m && m.moq!=null ? m.moq : 1;
   $('#dKcal').value = m && m.kcal!=null ? m.kcal : '';
+  $('#dChefSpecial').checked = m ? !!m.chefSpecial : false;
   $('#dDesc').value = m ? (m.description||'') : '';
+  $('#dNotes').value = m ? (m.notes||'') : '';
   $('#dErr').textContent = '';
   $('#dishOverlay').classList.add('show');
 }
@@ -714,8 +789,10 @@ $('#dSave').addEventListener('click', async ()=>{
   const name = $('#dName').value.trim();
   if(!name){ $('#dErr').textContent = 'Dish name is required'; return; }
   const payload = {
-    name, category: $('#dCategory').value, price: $('#dPrice').value,
-    veg: $('#dVeg').value === 'true', kcal: $('#dKcal').value, description: $('#dDesc').value,
+    name, category: $('#dCategory').value, price: $('#dPrice').value, cost: $('#dCost').value,
+    veg: $('#dVeg').value === 'true', sourcing: $('#dSourcing').value, moq: $('#dMoq').value || 1,
+    chefSpecial: $('#dChefSpecial').checked, kcal: $('#dKcal').value,
+    description: $('#dDesc').value, notes: $('#dNotes').value,
   };
   const cmd = editingDishId ? Object.assign({ action:'update-menu-item', id: editingDishId }, payload) : Object.assign({ action:'add-menu-item' }, payload);
   const data = await runCommand(cmd, editingDishId ? 'Dish updated' : 'Dish added');
@@ -1079,6 +1156,83 @@ function renderPurchases(){
   $$('[data-del-purchase]').forEach(b=>b.addEventListener('click', ()=>{
     if(confirm('Delete this purchase? Its stock batches will be removed too.')) runCommand({ action:'delete-purchase', id:b.dataset.delPurchase }, 'Purchase deleted');
   }));
+}
+
+/* ── Reports tab (owner only) ── */
+// From/To default to "This month" on first load — set once here, not
+// inside renderReports, so switching tabs back and forth doesn't keep
+// resetting a date range the owner already changed.
+let repRangeInit = false;
+function repSetPreset(preset){
+  const today = todayISO();
+  const d = new Date(today+'T00:00:00');
+  let from = today, to = today;
+  if(preset==='week'){ const day=(d.getDay()+6)%7; const start=new Date(d); start.setDate(d.getDate()-day); from = start.toISOString().slice(0,10); }
+  else if(preset==='month'){ from = today.slice(0,8)+'01'; }
+  else if(preset==='all'){ from = ''; to = ''; }
+  $('#repFrom').value = from;
+  $('#repTo').value = to;
+  renderReports();
+}
+$$('[data-rep-preset]').forEach(b=>b.addEventListener('click', ()=>repSetPreset(b.dataset.repPreset)));
+$('#repFrom').addEventListener('change', renderReports);
+$('#repTo').addEventListener('change', renderReports);
+
+// Only status:'settled' orders are real, booked revenue — 'open' tabs
+// aren't final yet and 'cancelled' orders never happened. Line items
+// carry their own price/cost snapshot from when the order was created
+// (see create-order in server.js), so editing a menu item's price/cost
+// later never changes a past order's recorded profit.
+function renderReports(){
+  if(!repRangeInit){ repRangeInit = true; repSetPreset('month'); return; }
+  const from = $('#repFrom').value, to = $('#repTo').value;
+  const orders = DOC.orders.filter(o=>{
+    if(o.status!=='settled') return false;
+    if(from && o.date<from) return false;
+    if(to && o.date>to) return false;
+    return true;
+  });
+
+  let revenue=0, cost=0, missingCost=false;
+  const byItem = {}, byCat = {};
+  orders.forEach(o=>{
+    (o.items||[]).forEach(it=>{
+      const lineRevenue = (Number(it.price)||0)*(Number(it.qty)||0);
+      const hasCost = it.cost!=null;
+      if(!hasCost) missingCost = true;
+      const lineCost = hasCost ? (Number(it.cost)||0)*(Number(it.qty)||0) : 0;
+      revenue += lineRevenue; cost += lineCost;
+      const cat = it.category || 'Uncategorised';
+      const key = it.menuItemId || it.name;
+      if(!byItem[key]) byItem[key] = { name: it.name, category: cat, qty:0, revenue:0, cost:0 };
+      byItem[key].qty += Number(it.qty)||0; byItem[key].revenue += lineRevenue; byItem[key].cost += lineCost;
+      if(!byCat[cat]) byCat[cat] = { qty:0, revenue:0, cost:0 };
+      byCat[cat].qty += Number(it.qty)||0; byCat[cat].revenue += lineRevenue; byCat[cat].cost += lineCost;
+    });
+  });
+  const profit = revenue - cost;
+  const marginPct = revenue>0 ? Math.round((profit/revenue)*100) : 0;
+
+  $('#repRevenue').textContent = money(revenue);
+  $('#repOrderCount').textContent = orders.length + ' settled order' + (orders.length===1?'':'s');
+  $('#repCogs').textContent = money(cost);
+  $('#repProfit').textContent = money(profit);
+  $('#repMargin').textContent = marginPct + '%';
+  $('#repCostWarning').textContent = missingCost
+    ? 'Some orders in this range were recorded before cost tracking was added — their cost is shown as ₹0, so profit/margin here is understated.'
+    : '';
+
+  const catRows = Object.keys(byCat).sort((a,b)=>byCat[b].revenue-byCat[a].revenue);
+  $('#repCatBody').innerHTML = catRows.length ? catRows.map(c=>{
+    const r = byCat[c], p = r.revenue-r.cost, m = r.revenue>0?Math.round((p/r.revenue)*100):0;
+    return `<tr><td>${esc(c)}</td><td class="r">${fmtQty(r.qty)}</td><td class="r">${money(r.revenue)}</td><td class="r">${money(r.cost)}</td><td class="r">${money(p)}</td><td class="r">${m}%</td></tr>`;
+  }).join('') : '<tr><td colspan="6" style="color:#aaa;text-align:center">No settled orders in this range</td></tr>';
+
+  const itemRows = Object.keys(byItem).sort((a,b)=>byItem[b].revenue-byItem[a].revenue);
+  $('#repItemBody').innerHTML = itemRows.length ? itemRows.map(k=>{
+    const r = byItem[k], p = r.revenue-r.cost, m = r.revenue>0?Math.round((p/r.revenue)*100):0;
+    return `<tr><td>${esc(r.name)}</td><td>${esc(r.category)}</td><td class="r">${fmtQty(r.qty)}</td><td class="r">${money(r.revenue)}</td><td class="r">${money(r.cost)}</td><td class="r">${money(p)}</td><td class="r">${m}%</td></tr>`;
+  }).join('') : '<tr><td colspan="7" style="color:#aaa;text-align:center">No settled orders in this range</td></tr>';
 }
 
 /* ── Settings tab ── */
