@@ -268,21 +268,6 @@
     </div>
     <div class="sync-results" id="waRunResults" style="margin-bottom:18px"></div>
 
-    <label class="f"><span>Active days — the scheduled run skips itself entirely on any day left unchecked</span></label>
-    <div class="user-modules" id="waAutoDays" style="margin:0 0 14px;padding-top:0;border-top:none">
-      <label class="mod-chk"><input type="checkbox" id="waDay0" value="0"> Sun</label>
-      <label class="mod-chk"><input type="checkbox" id="waDay1" value="1"> Mon</label>
-      <label class="mod-chk"><input type="checkbox" id="waDay2" value="2"> Tue</label>
-      <label class="mod-chk"><input type="checkbox" id="waDay3" value="3"> Wed</label>
-      <label class="mod-chk"><input type="checkbox" id="waDay4" value="4"> Thu</label>
-      <label class="mod-chk"><input type="checkbox" id="waDay5" value="5"> Fri</label>
-      <label class="mod-chk"><input type="checkbox" id="waDay6" value="6"> Sat</label>
-    </div>
-    <div class="feed-row" style="grid-template-columns:1fr 1fr;margin-bottom:22px">
-      <label class="f" style="margin-bottom:0"><span>Send from (IST)</span><input class="t" id="waAutoStart" type="time"></label>
-      <label class="f" style="margin-bottom:0"><span>Send until (IST)</span><input class="t" id="waAutoEnd" type="time"></label>
-    </div>
-
     <p class="gh-mini">WhatsApp templates</p>
     <p class="sd" style="margin-bottom:12px">Wording for the WhatsApp messages the site and dashboard pre-fill. Use <code>{{token}}</code> placeholders — a line containing a token with no value for that message is left out automatically, so a field can be made optional just by giving it its own line.</p>
 
@@ -294,16 +279,28 @@
     <label class="f"><span>Check-in request — sent by you well before arrival, asks the guest to complete digital check-in</span></label>
     <p class="wa-hint">{{guest}} {{checkin}} {{checkout}} {{checkinLink}}</p>
     <textarea class="t" id="waCheckinRequest" rows="7" style="margin-bottom:8px"></textarea>
+    <div class="feed-row" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+      <label class="f" style="margin-bottom:0"><span>Days before check-in</span><input class="t" id="waCheckinRequestDays" type="number" min="0" max="60" step="1"></label>
+      <label class="f" style="margin-bottom:0"><span>Send at (IST)</span><input class="t" id="waCheckinRequestTime" type="time"></label>
+    </div>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="checkinRequest">Reset to default</button></div>
 
     <label class="f"><span>Stay reminder — sent by you to a guest a few days before check-in</span></label>
     <p class="wa-hint">{{guest}} {{checkin}} {{checkout}} {{mapLink}}</p>
     <textarea class="t" id="waReminder" rows="7" style="margin-bottom:8px"></textarea>
+    <div class="feed-row" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+      <label class="f" style="margin-bottom:0"><span>Days before check-in</span><input class="t" id="waReminderDays" type="number" min="0" max="60" step="1"></label>
+      <label class="f" style="margin-bottom:0"><span>Send at (IST)</span><input class="t" id="waReminderTime" type="time"></label>
+    </div>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="reminder">Reset to default</button></div>
 
     <label class="f"><span>Feedback request — sent by you to a guest after checkout</span></label>
     <p class="wa-hint">{{guest}} {{feedbackLink}}</p>
     <textarea class="t" id="waFeedbackRequest" rows="6" style="margin-bottom:8px"></textarea>
+    <div class="feed-row" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+      <label class="f" style="margin-bottom:0"><span>Days after check-out</span><input class="t" id="waFeedbackRequestDays" type="number" min="0" max="60" step="1"></label>
+      <label class="f" style="margin-bottom:0"><span>Send at (IST)</span><input class="t" id="waFeedbackRequestTime" type="time"></label>
+    </div>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="feedbackRequest">Reset to default</button></div>
 
     <div class="rc-foot">
@@ -711,16 +708,27 @@ const WA_DEFAULTS = {
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
 };
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
-// Mirrors WA_AUTOMATION_DEFAULT in the proxy's server.js — days are
-// 0=Sunday..6=Saturday, times are "HH:MM" in IST.
-const WA_AUTOMATION_DEFAULT = { days: [0,1,2,3,4,5,6], startTime: '09:00', endTime: '20:00' };
-let waAutomationDraft = Object.assign({}, WA_AUTOMATION_DEFAULT);
+// Mirrors WA_AUTOMATION_DEFAULT/mergeWaAutomation in the proxy's server.js —
+// per-scenario day count (before check-in, or after check-out) + a specific
+// send time in IST. bookingConfirmed has no entry — it's sent as soon as a
+// direct online booking is due, not scheduled against a stay date.
+const WA_AUTOMATION_DEFAULT = {
+  checkinRequest:  { daysBefore: 7, sendTime: '10:00' },
+  reminder:        { daysBefore: 3, sendTime: '10:00' },
+  feedbackRequest: { daysAfter: 7, sendTime: '10:00' },
+};
+function mergeWaAutomation(saved){
+  const out = {};
+  for(const key of Object.keys(WA_AUTOMATION_DEFAULT)) out[key] = Object.assign({}, WA_AUTOMATION_DEFAULT[key], (saved && saved[key]) || {});
+  return out;
+}
+let waAutomationDraft = mergeWaAutomation({});
 async function loadWaTemplates(){
   try{
     const res = await fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' });
     const data = await res.json().catch(()=>({}));
     if(data && data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
-    if(data && data.automation) waAutomationDraft = Object.assign({}, WA_AUTOMATION_DEFAULT, data.automation);
+    if(data && data.automation) waAutomationDraft = mergeWaAutomation(data.automation);
   }catch(e){ /* keeps the defaults already in waTemplatesDraft/waAutomationDraft */ }
   renderWaTemplates();
   document.getElementById('waSave').disabled = false;
@@ -730,15 +738,18 @@ function renderWaTemplates(){
   document.getElementById('waCheckinRequest').value = waTemplatesDraft.checkinRequest || '';
   document.getElementById('waReminder').value = waTemplatesDraft.reminder || '';
   document.getElementById('waFeedbackRequest').value = waTemplatesDraft.feedbackRequest || '';
-  const days = Array.isArray(waAutomationDraft.days) ? waAutomationDraft.days : WA_AUTOMATION_DEFAULT.days;
-  for(let d=0; d<7; d++) document.getElementById('waDay'+d).checked = days.includes(d);
-  document.getElementById('waAutoStart').value = waAutomationDraft.startTime || WA_AUTOMATION_DEFAULT.startTime;
-  document.getElementById('waAutoEnd').value = waAutomationDraft.endTime || WA_AUTOMATION_DEFAULT.endTime;
+  document.getElementById('waCheckinRequestDays').value = waAutomationDraft.checkinRequest.daysBefore;
+  document.getElementById('waCheckinRequestTime').value = waAutomationDraft.checkinRequest.sendTime;
+  document.getElementById('waReminderDays').value = waAutomationDraft.reminder.daysBefore;
+  document.getElementById('waReminderTime').value = waAutomationDraft.reminder.sendTime;
+  document.getElementById('waFeedbackRequestDays').value = waAutomationDraft.feedbackRequest.daysAfter;
+  document.getElementById('waFeedbackRequestTime').value = waAutomationDraft.feedbackRequest.sendTime;
 }
 document.querySelectorAll('[data-reset]').forEach(b=>{
   b.addEventListener('click', ()=>{
     const key = b.dataset.reset;
     waTemplatesDraft[key] = WA_DEFAULTS[key];
+    if(WA_AUTOMATION_DEFAULT[key]) waAutomationDraft[key] = Object.assign({}, WA_AUTOMATION_DEFAULT[key]);
     renderWaTemplates();
   });
 });
@@ -751,9 +762,9 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
     feedbackRequest: document.getElementById('waFeedbackRequest').value
   };
   waAutomationDraft = {
-    days: [0,1,2,3,4,5,6].filter(d=>document.getElementById('waDay'+d).checked),
-    startTime: document.getElementById('waAutoStart').value || WA_AUTOMATION_DEFAULT.startTime,
-    endTime: document.getElementById('waAutoEnd').value || WA_AUTOMATION_DEFAULT.endTime
+    checkinRequest: { daysBefore: parseInt(document.getElementById('waCheckinRequestDays').value, 10) || 0, sendTime: document.getElementById('waCheckinRequestTime').value || WA_AUTOMATION_DEFAULT.checkinRequest.sendTime },
+    reminder: { daysBefore: parseInt(document.getElementById('waReminderDays').value, 10) || 0, sendTime: document.getElementById('waReminderTime').value || WA_AUTOMATION_DEFAULT.reminder.sendTime },
+    feedbackRequest: { daysAfter: parseInt(document.getElementById('waFeedbackRequestDays').value, 10) || 0, sendTime: document.getElementById('waFeedbackRequestTime').value || WA_AUTOMATION_DEFAULT.feedbackRequest.sendTime },
   };
   btn.disabled = true; btn.textContent = 'Saving…';
   try{
@@ -765,7 +776,7 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
     const data = await res.json().catch(()=>({}));
     if(!res.ok){ toast(data.error || 'Save failed'); return; }
     if(data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
-    if(data.automation) waAutomationDraft = Object.assign({}, WA_AUTOMATION_DEFAULT, data.automation);
+    if(data.automation) waAutomationDraft = mergeWaAutomation(data.automation);
     renderWaTemplates();
     toast('WhatsApp templates saved');
   }catch(e){ toast('Could not reach the server'); }
