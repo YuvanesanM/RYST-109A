@@ -713,9 +713,9 @@ let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
 // send time in IST. bookingConfirmed has no entry — it's sent as soon as a
 // direct online booking is due, not scheduled against a stay date.
 const WA_AUTOMATION_DEFAULT = {
-  checkinRequest:  { daysBefore: 7, sendTime: '10:00' },
-  reminder:        { daysBefore: 3, sendTime: '10:00' },
-  feedbackRequest: { daysAfter: 7, sendTime: '10:00' },
+  checkinRequest:  { daysBefore: 7, sendTime: '19:00' },
+  reminder:        { daysBefore: 2, sendTime: '18:30' },
+  feedbackRequest: { daysAfter: 1, sendTime: '10:30' },
 };
 function mergeWaAutomation(saved){
   const out = {};
