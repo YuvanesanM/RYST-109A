@@ -1103,8 +1103,11 @@ function normalizePhone(p){
 function sendToPartnerKitchen(o){
   const sourced = (o.items||[]).filter(isSourcedItem);
   if(!sourced.length) return;
-  const lines = sourced.map((it,i)=>`${i+1}. ${it.name} ×${it.qty} — ${money(it.price)} each — ${money(it.price*it.qty)}`);
-  const subtotal = sourced.reduce((s,it)=>s+it.price*it.qty,0);
+  // Partner kitchen gets billed at OUR cost price (what we pay them), never
+  // the guest-facing selling price — those two are deliberately different
+  // (the margin is ours), so this must never show `it.price`.
+  const lines = sourced.map((it,i)=>`${i+1}. ${it.name} ×${it.qty} — ${money(it.cost)} each — ${money(it.cost*it.qty)}`);
+  const subtotal = sourced.reduce((s,it)=>s+(Number(it.cost)||0)*it.qty,0);
   const when = o.time ? `${fmtDate(o.date)}, ${fmtTime(o.time)}` : fmtDate(o.date);
   const text = [
     `RYST 109A — Casa de RYST order`,
