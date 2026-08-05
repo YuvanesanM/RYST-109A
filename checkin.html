@@ -461,7 +461,7 @@ function renderSummary(){
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDate(checkoutDate)}</span></span></div>
       ${guestCountLabel() ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">👥</span><span class="bc-text"><span class="bc-label">Guests</span><span class="bc-value">${esc(guestCountLabel())}</span></span></div>` : ''}
       ${bookingNo ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">🔖</span><span class="bc-text"><span class="bc-label">Booking ID</span><span class="bc-value">${esc(bookingNo)}</span></span></div>` : ''}
-      ${walletUrl() ? `<a class="wallet-link" href="${walletUrl()}"><img src="/assets/apple-wallet-badge.jpg" alt="Add to Apple Wallet" width="142" height="44"></a>` : ''}
+      ${walletUrl() ? `<a class="wallet-link" href="${walletUrl()}"><img src="/assets/apple-wallet-badge.png" alt="Add to Apple Wallet" width="142" height="44"></a>` : ''}
     `;
   } else {
     el.style.display = 'none';
