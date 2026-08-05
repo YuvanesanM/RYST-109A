@@ -410,7 +410,7 @@ function renderDueBanner(){
   if(amt > 0){
     el.style.display = '';
     el.innerHTML = `
-      <p>Balance due: <strong>₹${amt.toLocaleString('en-IN')}</strong> — payable 72 hours before check-in.</p>
+      <p>Balance due: <strong>₹${amt.toLocaleString('en-IN')}</strong></p>
       <button type="button" class="pay-balance-btn" id="payBalanceBtn">Pay Balance Now</button>
       <p class="pay-balance-msg" id="payBalanceMsg" role="alert" aria-live="polite"></p>
     `;
