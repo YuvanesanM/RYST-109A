@@ -386,13 +386,13 @@ function fmtDate(iso){
 }
 
 // Guest count has no on-page control at all now — it's purely derived from
-// the booking record (guestsOnBooking), shown as "Ms. Tarana +7" in the
-// summary card (primary guest + however many others are on the booking)
-// and submitted as-is. Still the same single guestsCount payload field.
-function guestNameWithParty(){
+// the booking record (guestsOnBooking) and shown as its own row in the
+// summary card below. Still submitted as-is, same single guestsCount
+// payload field.
+function guestCountLabel(){
   const n = Number(guestsOnBooking);
-  const extra = n > 1 ? n - 1 : 0;
-  return extra > 0 ? `${guestPrefill || 'Guest'} +${extra}` : (guestPrefill || 'Guest');
+  if(!(n > 0)) return '';
+  return `${n} guest${n === 1 ? '' : 's'}`;
 }
 
 // Only shown when there's an actual balance — never fabricated, and never
@@ -412,9 +412,10 @@ function renderSummary(){
   if(checkinDate && checkoutDate){
     el.style.display = '';
     el.innerHTML = `
-      <div class="bc-row"><span class="bc-icon" aria-hidden="true">👤</span><span class="bc-text"><span class="bc-label">Guest</span><span class="bc-value">${esc(guestNameWithParty())}</span></span></div>
+      <div class="bc-row"><span class="bc-icon" aria-hidden="true">👤</span><span class="bc-text"><span class="bc-label">Guest</span><span class="bc-value">${esc(guestPrefill || 'Guest')}</span></span></div>
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDate(checkinDate)}</span></span></div>
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDate(checkoutDate)}</span></span></div>
+      ${guestCountLabel() ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">👥</span><span class="bc-text"><span class="bc-label">Guests</span><span class="bc-value">${esc(guestCountLabel())}</span></span></div>` : ''}
       ${bookingNo ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">🔖</span><span class="bc-text"><span class="bc-label">Booking ID</span><span class="bc-value">${esc(bookingNo)}</span></span></div>` : ''}
     `;
   } else {
