@@ -138,22 +138,16 @@
           <input id="ci-name" type="text" placeholder="As on your government ID" required>
         </div>
 
-        <div class="f-row">
-          <div class="f-group">
-            <label for="ci-idtype">Government ID Type *</label>
-            <select id="ci-idtype" required>
-              <option value="">Select…</option>
-              <option>Aadhaar</option>
-              <option>Passport</option>
-              <option>Driving License</option>
-              <option>Voter ID</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="f-group">
-            <label for="ci-idnumber">ID Number *</label>
-            <input id="ci-idnumber" type="text" placeholder="ID number" required>
-          </div>
+        <div class="f-group">
+          <label for="ci-idtype">Government ID Type *</label>
+          <select id="ci-idtype" required>
+            <option value="">Select…</option>
+            <option>Aadhaar</option>
+            <option>Passport</option>
+            <option>Driving License</option>
+            <option>Voter ID</option>
+            <option>Other</option>
+          </select>
         </div>
 
         <div class="f-group">
@@ -470,10 +464,8 @@ $('#ciForm').addEventListener('submit', async e => {
 
   const name = $('#ci-name').value.trim();
   const idType = $('#ci-idtype').value;
-  const idNumber = $('#ci-idnumber').value.trim();
   if(!name){ errEl.textContent = 'Please enter your name.'; return; }
   if(!idType){ errEl.textContent = 'Please select your ID type.'; return; }
-  if(!idNumber){ errEl.textContent = 'Please enter your ID number.'; return; }
   if(!idPhotoDataUrl){ errEl.textContent = 'Please add a photo of your ID.'; return; }
   if(!sigHasDrawn){ errEl.textContent = 'Please sign above.'; return; }
   if(!$('#ci-agree').checked){ errEl.textContent = 'Please agree to the House Rules & Terms.'; return; }
@@ -482,7 +474,7 @@ $('#ciForm').addEventListener('submit', async e => {
   btn.disabled = true; btn.textContent = 'Submitting…';
 
   const payload = {
-    no: bookingNo, t: checkinTok, name, idType, idNumber,
+    no: bookingNo, t: checkinTok, name, idType,
     idPhoto: idPhotoDataUrl,
     signature: sigCanvas.toDataURL('image/png'),
     address: $('#ci-address').value.trim(),

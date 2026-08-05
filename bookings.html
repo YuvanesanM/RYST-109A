@@ -385,7 +385,7 @@ let waTemplates = {
   reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`,
   checkinRequest: `Hi {{guest}}! Ahead of your stay at RYST 109A Beach Villa from {{checkin}} to {{checkout}}, please complete a quick digital check-in so we have everything ready for you:\n\n{{checkinLink}}\n\nTakes about 2 minutes — a government ID and your signature on our house rules. See you soon!`,
-  bookingConfirmed: `Hi {{guest}}! Your booking at RYST 109A Beach Villa is confirmed for {{checkin}} to {{checkout}}.\n\n*Reference:* {{no}}\n*Advance received:* ₹{{amount}}\n\nThe balance is due 72 hours before check-in. We'll be in touch closer to your stay — see you soon!`
+  bookingConfirmed: `Hi {{guest}}! Your booking at RYST 109A Beach Villa is confirmed for {{checkin}} to {{checkout}}.\n\n*Reference:* {{no}}\n*Advance received:* ₹{{amount}}\n\n{{balanceLine}}\n\nWe'll be in touch closer to your stay — see you soon!`
 };
 // "Send WhatsApp" fires window.open() synchronously from the click handler
 // (awaiting this fetch right there would risk the browser treating the
@@ -455,9 +455,13 @@ function checkinRequestMessage(d){
   });
 }
 function bookingConfirmedMessage(d){
+  const balance = grandTotal(d) - toNum(d.advance);
+  const balanceLine = balance > 0
+    ? `The balance of ₹${Math.round(balance).toLocaleString('en-IN')} is due 72 hours before check-in.`
+    : `You're all paid up for this stay — no balance due.`;
   return renderWaTemplate(waTemplates.bookingConfirmed, {
     guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout),
-    no: d.no, amount: toNum(d.advance).toLocaleString('en-IN')
+    no: d.no, amount: toNum(d.advance).toLocaleString('en-IN'), balanceLine
   });
 }
 
