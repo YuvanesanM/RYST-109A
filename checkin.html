@@ -36,7 +36,6 @@
   /* Respect a guest's OS-level reduced-motion preference before anything
      else — every animation below is decorative, never load-bearing. */
   @media (prefers-reduced-motion: reduce){
-    .progress-fill{transition:none !important}
     .submit{transition:none !important}
   }
 
@@ -61,13 +60,28 @@
   .bc-text{display:flex;flex-direction:column;gap:1px;min-width:0}
   .bc-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
   .bc-value{font-size:14.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+  .wallet-link{
+    display:flex;align-items:center;justify-content:center;gap:7px;margin-top:2px;
+    background:var(--ink);color:#fff;font-size:13.5px;font-weight:600;text-decoration:none;
+    border-radius:11px;padding:11px 16px;min-height:44px;transition:opacity .2s;
+  }
+  .wallet-link:hover{opacity:.85}
 
   .due-banner{
     background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
-    border-radius:16px;padding:12px 18px;margin:0 0 16px;text-align:center;
+    border-radius:16px;padding:14px 18px;margin:0 0 16px;text-align:center;
     font-size:13.5px;color:#8a4321;line-height:1.5;
   }
   .due-banner strong{font-size:15px;color:var(--coral)}
+  .due-banner p{margin:0}
+  .pay-balance-btn{
+    margin-top:10px;background:var(--coral);color:#fff;border:none;border-radius:11px;
+    padding:11px 20px;font-family:var(--sans);font-size:13.5px;font-weight:600;
+    cursor:pointer;min-height:42px;transition:opacity .2s;
+  }
+  .pay-balance-btn:hover:not(:disabled){opacity:.88}
+  .pay-balance-btn:disabled{opacity:.6;cursor:not-allowed}
+  .pay-balance-msg{margin-top:8px;font-size:12.5px;color:#8a4321}
 
   .gsi-block{background:var(--foam);border-radius:16px;padding:18px;text-align:center;margin-bottom:16px}
   .gsi-hint{font-size:13.5px;color:var(--muted-text);margin-bottom:14px;line-height:1.5}
@@ -81,12 +95,6 @@
     font-family:var(--sans);font-size:14.5px;color:var(--ink);background:var(--white);
     outline:none;width:100%;
   }
-
-  /* ── PROGRESS ── plain in-flow bar, no sticky/fixed behavior */
-  .progress-wrap{margin:18px 0 6px}
-  .progress-track{height:6px;background:var(--foam);border-radius:999px;overflow:hidden}
-  .progress-fill{height:100%;width:33.34%;background:linear-gradient(90deg,var(--sea-mid),var(--sand));border-radius:999px;transition:width .4s var(--ease)}
-  .progress-label{margin-top:8px;font-size:12.5px;font-weight:600;letter-spacing:.2px;color:var(--muted-text);text-align:center}
 
   /* ── FORM SECTIONS ── */
   fieldset.ci-section{border:none;padding:0;margin:0 0 8px}
@@ -236,18 +244,13 @@
         </select>
       </div>
 
-      <div class="progress-wrap">
-        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-        <p class="progress-label" id="progressLabel">Step 1 of 3 · Personal Details</p>
-      </div>
-
       <form id="ciForm" novalidate>
         <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
           <label for="ci-website">Website</label>
           <input id="ci-website" type="text" tabindex="-1" autocomplete="off">
         </div>
 
-        <fieldset class="ci-section" data-label="Personal Details">
+        <fieldset class="ci-section">
           <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">👤</span><span class="ci-section-title">Personal Details</span></span></legend>
           <div class="ci-section-divider"></div>
 
@@ -287,7 +290,7 @@
           </div>
         </fieldset>
 
-        <fieldset class="ci-section" data-label="Travel Details">
+        <fieldset class="ci-section">
           <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">🧳</span><span class="ci-section-title">Travel Details</span></span></legend>
           <div class="ci-section-divider"></div>
 
@@ -304,7 +307,7 @@
 
         </fieldset>
 
-        <fieldset class="ci-section" data-label="Additional Information">
+        <fieldset class="ci-section">
           <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">📝</span><span class="ci-section-title">Additional Information</span></span></legend>
           <div class="ci-section-divider"></div>
 
@@ -369,8 +372,11 @@ let checkinTok = qp('t');
 let guestPrefill = qp('guest');
 let checkinDate = qp('checkin');
 let checkoutDate = qp('checkout');
-let guestsOnBooking = qp('guests'); // the booking's own guest count — used only as the Adults cap, never shown as a locked/uneditable value
+let guestsOnBooking = qp('guests'); // the booking's own guest count, shown as its own row in the summary card
 let dueAmount = qp('due');
+let guestPhone = qp('phone');
+let guestEmail = qp('email');
+let walletTok = qp('wallet');
 if(guestPrefill) $('#ci-name').value = guestPrefill;
 
 function fmtDate(iso){
@@ -397,10 +403,45 @@ function renderDueBanner(){
   const amt = Math.round(Number(dueAmount) || 0);
   if(amt > 0){
     el.style.display = '';
-    el.innerHTML = `Balance due: <strong>₹${amt.toLocaleString('en-IN')}</strong> — payable 72 hours before check-in.`;
+    el.innerHTML = `
+      <p>Balance due: <strong>₹${amt.toLocaleString('en-IN')}</strong> — payable 72 hours before check-in.</p>
+      <button type="button" class="pay-balance-btn" id="payBalanceBtn">Pay Balance Now</button>
+      <p class="pay-balance-msg" id="payBalanceMsg" role="alert" aria-live="polite"></p>
+    `;
+    $('#payBalanceBtn').addEventListener('click', handlePayBalanceClick);
   } else {
     el.style.display = 'none';
   }
+}
+// Creates (or reuses) a Razorpay Payment Link for the current balance via
+// the backend, then opens it in a new tab — same-tab would abandon
+// whatever the guest has already filled in on the check-in form below.
+async function handlePayBalanceClick(){
+  const btn = $('#payBalanceBtn');
+  const msgEl = $('#payBalanceMsg');
+  if(!btn || btn.disabled) return;
+  btn.disabled = true; btn.textContent = 'Preparing payment…';
+  if(msgEl) msgEl.textContent = '';
+  try{
+    const res = await fetch(PROXY_URL+'/checkin/balance-payment-link', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ no: bookingNo, t: checkinTok }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ throw new Error(data.error || 'Could not start payment.'); }
+    if(data.url){
+      window.open(data.url, '_blank', 'noopener');
+    } else if(msgEl){
+      msgEl.textContent = 'No balance is currently due.';
+    }
+  }catch(err){
+    if(msgEl) msgEl.textContent = err.message || 'Could not start payment — please try again or WhatsApp us.';
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = 'Pay Balance Now'; }
+  }
+}
+function walletUrl(){
+  return (bookingNo && walletTok) ? `${PROXY_URL}/booking/wallet/apple?no=${encodeURIComponent(bookingNo)}&t=${encodeURIComponent(walletTok)}` : '';
 }
 function renderSummary(){
   const el = $('#staySummary');
@@ -408,10 +449,13 @@ function renderSummary(){
     el.style.display = '';
     el.innerHTML = `
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">👤</span><span class="bc-text"><span class="bc-label">Guest</span><span class="bc-value">${esc(guestPrefill || 'Guest')}</span></span></div>
+      ${guestPhone ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">📞</span><span class="bc-text"><span class="bc-label">Mobile</span><span class="bc-value">${esc(guestPhone)}</span></span></div>` : ''}
+      ${guestEmail ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">📧</span><span class="bc-text"><span class="bc-label">Email</span><span class="bc-value">${esc(guestEmail)}</span></span></div>` : ''}
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDate(checkinDate)}</span></span></div>
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDate(checkoutDate)}</span></span></div>
       ${guestCountLabel() ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">👥</span><span class="bc-text"><span class="bc-label">Guests</span><span class="bc-value">${esc(guestCountLabel())}</span></span></div>` : ''}
       ${bookingNo ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">🔖</span><span class="bc-text"><span class="bc-label">Booking ID</span><span class="bc-value">${esc(bookingNo)}</span></span></div>` : ''}
+      ${walletUrl() ? `<a class="wallet-link" href="${walletUrl()}">🍎 Add to Apple Wallet</a>` : ''}
     `;
   } else {
     el.style.display = 'none';
@@ -456,6 +500,9 @@ async function handleGoogleLogin(credentialResponse){
       checkoutDate = data.checkout || checkoutDate;
       guestsOnBooking = data.guests || guestsOnBooking;
       dueAmount = data.due != null ? data.due : dueAmount;
+      guestPhone = data.phone || guestPhone;
+      guestEmail = data.email || guestEmail;
+      walletTok = data.wallet || walletTok;
       if(guestPrefill) $('#ci-name').value = guestPrefill;
       renderSummary();
       $('#gsiBlock').innerHTML = `<p class="gsi-matched">✓ Signed in — matched your booking ${esc(bookingNo)}.</p>`;
@@ -537,6 +584,9 @@ $('#adminGuestSelect').addEventListener('change', () => {
   checkoutDate = s.checkout;
   guestsOnBooking = s.guests || '';
   dueAmount = Math.max(0, Math.round(grandTotalCI(s) - toNumCI(s.advance)));
+  guestPhone = s.phone || '';
+  guestEmail = s.email || '';
+  walletTok = s.walletToken || '';
   $('#ci-name').value = guestPrefill;
   renderSummary();
   showCiForm();
@@ -747,29 +797,6 @@ $('#ciForm').addEventListener('submit', async e => {
   }
 });
 
-// ── PROGRESS ── narrowly bands the viewport centre with a native
-// IntersectionObserver to track which section the guest is currently
-// reading, no library. (A fade-in-on-scroll effect used to live here too,
-// but a section could end up stuck invisible if its observer never fired —
-// e.g. a fast scroll or a direct link past it — so it's gone; every
-// section is just visible immediately now.)
-const ciSections = Array.from(document.querySelectorAll('.ci-section'));
-function setStep(n, label){
-  $('#progressFill').style.width = (n/ciSections.length*100)+'%';
-  $('#progressLabel').textContent = `Step ${n} of ${ciSections.length} · ${label}`;
-}
-if(ciSections.length && 'IntersectionObserver' in window){
-  const stepIO = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      if(en.isIntersecting){
-        const idx = ciSections.indexOf(en.target) + 1;
-        setStep(idx, en.target.dataset.label);
-      }
-    });
-  }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
-  ciSections.forEach(s => stepIO.observe(s));
-  setStep(1, ciSections[0].dataset.label);
-}
 </script>
 </body>
 </html>
