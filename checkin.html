@@ -60,12 +60,12 @@
   .bc-text{display:flex;flex-direction:column;gap:1px;min-width:0}
   .bc-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
   .bc-value{font-size:14.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
-  .wallet-link{
-    display:flex;align-items:center;justify-content:center;gap:7px;margin-top:2px;
-    background:var(--ink);color:#fff;font-size:13.5px;font-weight:600;text-decoration:none;
-    border-radius:11px;padding:11px 16px;min-height:44px;transition:opacity .2s;
-  }
-  .wallet-link:hover{opacity:.85}
+  /* Official Apple badge already looks like a complete button (its own
+     black rounded background baked into the image) — just centre it,
+     no extra button chrome of our own around it. */
+  .wallet-link{display:flex;justify-content:center;margin-top:2px}
+  .wallet-link img{height:44px;width:auto;display:block;transition:opacity .2s}
+  .wallet-link:hover img{opacity:.85}
 
   .due-banner{
     background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
@@ -461,7 +461,7 @@ function renderSummary(){
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDate(checkoutDate)}</span></span></div>
       ${guestCountLabel() ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">👥</span><span class="bc-text"><span class="bc-label">Guests</span><span class="bc-value">${esc(guestCountLabel())}</span></span></div>` : ''}
       ${bookingNo ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">🔖</span><span class="bc-text"><span class="bc-label">Booking ID</span><span class="bc-value">${esc(bookingNo)}</span></span></div>` : ''}
-      ${walletUrl() ? `<a class="wallet-link" href="${walletUrl()}">🍎 Add to Apple Wallet</a>` : ''}
+      ${walletUrl() ? `<a class="wallet-link" href="${walletUrl()}"><img src="/assets/apple-wallet-badge.jpg" alt="Add to Apple Wallet" width="142" height="44"></a>` : ''}
     `;
   } else {
     el.style.display = 'none';
