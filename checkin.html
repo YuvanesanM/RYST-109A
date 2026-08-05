@@ -27,7 +27,7 @@
   a{color:inherit}
   .wrap{max-width:560px;width:100%}
   .card{
-    position:relative;background:var(--white);border-radius:28px;padding:clamp(26px,5vw,46px);
+    position:relative;background:var(--white);border-radius:28px;padding:clamp(22px,5vw,38px);
     box-shadow:0 28px 70px rgba(11,61,82,.14); border:1px solid rgba(255,255,255,.8); overflow:hidden;
   }
   .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sea),var(--sea-mid),var(--sand))}
@@ -36,7 +36,6 @@
   /* Respect a guest's OS-level reduced-motion preference before anything
      else — every animation below is decorative, never load-bearing. */
   @media (prefers-reduced-motion: reduce){
-    .reveal{transition:none !important;opacity:1 !important;transform:none !important}
     .progress-fill{transition:none !important}
     .submit{transition:none !important}
   }
@@ -48,18 +47,14 @@
   /* ── HERO ── */
   .hero{text-align:center;margin-bottom:6px}
   .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,5vw,32px);color:var(--sea);margin-bottom:10px}
-  .hero-subtitle{color:var(--muted-text);font-size:14.5px;line-height:1.7;margin-bottom:18px}
+  .hero-subtitle{color:var(--muted-text);font-size:14.5px;line-height:1.6;margin-bottom:14px}
   .hero-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:4px}
   .hero-badge{background:var(--foam);color:var(--sea);font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px}
-
-  /* ── shared reveal-on-scroll ── */
-  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
-  .reveal.in-view{opacity:1;transform:translateY(0)}
 
   /* ── BOOKING SUMMARY CARD ── */
   .booking-card{
     background:var(--white);border:1px solid var(--line);border-radius:20px;padding:18px 20px;
-    margin:22px 0;box-shadow:0 10px 30px rgba(11,61,82,.08);display:grid;gap:13px;
+    margin:16px 0;box-shadow:0 10px 30px rgba(11,61,82,.08);display:grid;gap:10px;
   }
   .bc-row{display:flex;align-items:center;gap:12px}
   .bc-icon{font-size:17px;width:36px;height:36px;border-radius:11px;background:var(--foam);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -69,17 +64,17 @@
 
   .due-banner{
     background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
-    border-radius:16px;padding:13px 18px;margin:0 0 20px;text-align:center;
+    border-radius:16px;padding:12px 18px;margin:0 0 16px;text-align:center;
     font-size:13.5px;color:#8a4321;line-height:1.5;
   }
   .due-banner strong{font-size:15px;color:var(--coral)}
 
-  .gsi-block{background:var(--foam);border-radius:16px;padding:20px;text-align:center;margin-bottom:22px}
+  .gsi-block{background:var(--foam);border-radius:16px;padding:18px;text-align:center;margin-bottom:16px}
   .gsi-hint{font-size:13.5px;color:var(--muted-text);margin-bottom:14px;line-height:1.5}
   .gsi-matched{font-size:13.5px;color:var(--sea-mid);font-weight:600}
   #googleSignInBtn{display:flex;justify-content:center}
 
-  .admin-picker{background:var(--foam);border-radius:16px;padding:20px;margin-bottom:22px}
+  .admin-picker{background:var(--foam);border-radius:16px;padding:18px;margin-bottom:16px}
   .admin-picker label{display:block;font-size:12.5px;font-weight:600;color:var(--muted-text);margin-bottom:10px}
   .admin-picker select{
     border:1.5px solid rgba(14,36,32,.12);border-radius:12px;padding:13px 16px;
@@ -87,21 +82,11 @@
     outline:none;width:100%;
   }
 
-  /* ── PROGRESS ── */
-  .progress-wrap{margin:26px 0 8px}
-  /* Sticky header state — toggled by JS when a sentinel just above the bar
-     scrolls out of view. Uses position:fixed (not sticky) since .card has
-     overflow:hidden, which would otherwise confine a sticky element to the
-     card's own box instead of the viewport. */
-  .progress-wrap.is-stuck{
-    position:fixed;top:0;left:0;right:0;z-index:50;margin:0;
-    background:rgba(251,250,248,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    padding:14px 24px;box-shadow:0 6px 20px rgba(11,61,82,.12);
-  }
-  .progress-wrap.is-stuck .progress-inner{max-width:512px;margin:0 auto}
+  /* ── PROGRESS ── plain in-flow bar, no sticky/fixed behavior */
+  .progress-wrap{margin:18px 0 6px}
   .progress-track{height:6px;background:var(--foam);border-radius:999px;overflow:hidden}
   .progress-fill{height:100%;width:33.34%;background:linear-gradient(90deg,var(--sea-mid),var(--sand));border-radius:999px;transition:width .4s var(--ease)}
-  .progress-label{margin-top:9px;font-size:12.5px;font-weight:600;letter-spacing:.2px;color:var(--muted-text);text-align:center}
+  .progress-label{margin-top:8px;font-size:12.5px;font-weight:600;letter-spacing:.2px;color:var(--muted-text);text-align:center}
 
   /* ── FORM SECTIONS ── */
   fieldset.ci-section{border:none;padding:0;margin:0 0 8px}
@@ -109,9 +94,9 @@
   .ci-section-head{display:flex;align-items:center;gap:10px;width:100%}
   .ci-section-icon{font-size:19px;width:38px;height:38px;border-radius:12px;background:var(--foam);display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .ci-section-title{font-family:var(--serif);font-weight:600;font-size:19px;color:var(--sea)}
-  .ci-section-divider{height:1px;background:var(--line);margin:14px 0 22px;width:100%;clear:both}
+  .ci-section-divider{height:1px;background:var(--line);margin:10px 0 16px;width:100%;clear:both}
 
-  .f-group{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+  .f-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
   .f-group label{font-size:13.5px;font-weight:600;color:var(--ink)}
   .f-group label .req{color:var(--coral);margin-left:2px}
   .f-group input,.f-group textarea,.f-group select{
@@ -122,13 +107,13 @@
   .f-group input::placeholder,.f-group textarea::placeholder{color:rgba(14,36,32,.35)}
   .f-group input:focus,.f-group textarea:focus,.f-group select:focus{border-color:var(--sea-mid);box-shadow:0 0 0 3px rgba(26,106,122,.1)}
   .f-group input[readonly]{background:var(--foam);color:var(--muted);cursor:not-allowed}
-  .f-group textarea{resize:vertical;min-height:80px}
+  .f-group textarea{resize:vertical;min-height:64px}
   .f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:420px){ .f-row{grid-template-columns:1fr} }
 
   /* ── ID VERIFICATION ── */
-  .id-verify-block{background:var(--foam);border-radius:18px;padding:18px;margin:2px 0 22px}
-  .id-verify-head{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .id-verify-block{background:var(--foam);border-radius:18px;padding:16px;margin:2px 0 16px}
+  .id-verify-head{display:flex;align-items:center;gap:9px;margin-bottom:10px}
   .id-verify-head .icon{font-size:19px}
   .id-verify-head h3{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--sea)}
   .chip-group-label{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:2px}
@@ -181,12 +166,20 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .trust-note{font-size:12px;color:var(--muted-text);line-height:1.6;margin-top:11px}
 
+  /* ── SIGNATURE ── (this block went missing during the premium redesign —
+     the canvas rendered at its unstyled browser-default size until now) */
+  .sig-wrap{border:1.5px solid rgba(14,36,32,.12);border-radius:14px;overflow:hidden;background:var(--white)}
+  .sig-wrap canvas{display:block;width:100%;height:140px;touch-action:none;background:var(--white)}
+  .sig-foot{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--line);background:var(--foam)}
+  .sig-hint{font-size:12px;color:var(--muted-text)}
+  .sig-clear{background:none;border:none;color:var(--coral);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;padding:6px 8px;min-height:32px}
+
   /* ── HOUSE RULES QUICK-GLANCE ── */
-  .house-rules-quick{background:var(--foam);border-radius:14px;padding:15px 18px;margin-bottom:18px;display:grid;gap:9px}
+  .house-rules-quick{background:var(--foam);border-radius:14px;padding:14px 18px;margin-bottom:14px;display:grid;gap:7px}
   .hr-item{font-size:13px;color:var(--ink);line-height:1.4}
   .hr-item a{color:var(--sea-mid);font-weight:600;text-decoration:underline}
 
-  .chk-row{display:flex;align-items:flex-start;gap:10px;margin:0 0 24px;font-size:13px;color:var(--muted-text);line-height:1.55}
+  .chk-row{display:flex;align-items:flex-start;gap:10px;margin:0 0 18px;font-size:13px;color:var(--muted-text);line-height:1.55}
   .chk-row input{margin-top:3px;flex-shrink:0;width:18px;height:18px}
   .chk-row a{color:var(--sea-mid);font-weight:600}
 
@@ -206,11 +199,6 @@
   .submit.is-loading .submit-spinner{display:inline-block}
   .err{color:var(--coral);font-size:13px;text-align:center;min-height:18px;margin-top:12px;transition:opacity .2s}
 
-  @media (max-width:640px){
-    .submit-bar{position:fixed;left:0;right:0;bottom:0;background:var(--white);padding:14px 20px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -10px 26px rgba(11,61,82,.14);z-index:40}
-    #ciForm{padding-bottom:104px}
-  }
-
   .thanks{display:none;text-align:center;padding:20px 0}
   .thanks .tick{width:56px;height:56px;border-radius:50%;background:var(--foam);color:var(--sea-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
   .thanks h2{font-family:var(--serif);font-weight:600;font-size:24px;color:var(--sea);margin-bottom:8px}
@@ -222,7 +210,7 @@
   <div class="card">
     <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
     <div id="formView">
-      <div class="hero reveal">
+      <div class="hero">
         <h1>Welcome to RYST 109A</h1>
         <p class="hero-subtitle">Your stay begins here.<br>Complete your secure check-in in under 2 minutes.</p>
         <div class="hero-badges">
@@ -232,7 +220,7 @@
         </div>
       </div>
 
-      <div class="booking-card reveal" id="staySummary" aria-live="polite"></div>
+      <div class="booking-card" id="staySummary" aria-live="polite"></div>
       <div class="due-banner" id="dueBanner" style="display:none" aria-live="polite"></div>
 
       <div class="gsi-block" id="gsiBlock">
@@ -248,14 +236,10 @@
         </select>
       </div>
 
-      <div id="progressSentinel" aria-hidden="true"></div>
-      <div class="progress-wrap" id="progressWrap">
-        <div class="progress-inner">
-          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-          <p class="progress-label" id="progressLabel">Step 1 of 3 · Personal Details</p>
-        </div>
+      <div class="progress-wrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <p class="progress-label" id="progressLabel">Step 1 of 3 · Personal Details</p>
       </div>
-      <div id="progressSpacer"></div>
 
       <form id="ciForm" novalidate>
         <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
@@ -263,7 +247,7 @@
           <input id="ci-website" type="text" tabindex="-1" autocomplete="off">
         </div>
 
-        <fieldset class="ci-section reveal" data-label="Personal Details">
+        <fieldset class="ci-section" data-label="Personal Details">
           <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">👤</span><span class="ci-section-title">Personal Details</span></span></legend>
           <div class="ci-section-divider"></div>
 
@@ -303,7 +287,7 @@
           </div>
         </fieldset>
 
-        <fieldset class="ci-section reveal" data-label="Travel Details">
+        <fieldset class="ci-section" data-label="Travel Details">
           <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">🧳</span><span class="ci-section-title">Travel Details</span></span></legend>
           <div class="ci-section-divider"></div>
 
@@ -320,7 +304,7 @@
 
         </fieldset>
 
-        <fieldset class="ci-section reveal" data-label="Additional Information">
+        <fieldset class="ci-section" data-label="Additional Information">
           <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">📝</span><span class="ci-section-title">Additional Information</span></span></legend>
           <div class="ci-section-divider"></div>
 
@@ -767,10 +751,12 @@ $('#ciForm').addEventListener('submit', async e => {
   }
 });
 
-// ── PROGRESS + REVEAL ── native IntersectionObserver only, no library.
-// One observer narrowly bands the viewport centre to track which section
-// the guest is currently reading; a second, wider one just fades each
-// section in the first time it appears.
+// ── PROGRESS ── narrowly bands the viewport centre with a native
+// IntersectionObserver to track which section the guest is currently
+// reading, no library. (A fade-in-on-scroll effect used to live here too,
+// but a section could end up stuck invisible if its observer never fired —
+// e.g. a fast scroll or a direct link past it — so it's gone; every
+// section is just visible immediately now.)
 const ciSections = Array.from(document.querySelectorAll('.ci-section'));
 function setStep(n, label){
   $('#progressFill').style.width = (n/ciSections.length*100)+'%';
@@ -787,40 +773,6 @@ if(ciSections.length && 'IntersectionObserver' in window){
   }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
   ciSections.forEach(s => stepIO.observe(s));
   setStep(1, ciSections[0].dataset.label);
-}
-
-// Progress bar sticks to the top once its normal position scrolls out of
-// view, so guests always know how far along they are without hunting for
-// it — a sentinel placed just above it is the trigger, rather than a
-// scroll-position math (cheaper, no scroll-event listener needed).
-const progressSentinel = $('#progressSentinel');
-const progressWrap = $('#progressWrap');
-const progressSpacer = $('#progressSpacer');
-if(progressSentinel && progressWrap && progressSpacer && 'IntersectionObserver' in window){
-  const stickyIO = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      const stuck = !en.isIntersecting;
-      // Measure height right before it goes fixed (while still in normal
-      // flow) so the spacer can hold its place open — otherwise the page
-      // jumps upward the instant the bar leaves flow.
-      if(stuck) progressSpacer.style.height = progressWrap.offsetHeight + 'px';
-      progressWrap.classList.toggle('is-stuck', stuck);
-      if(!stuck) progressSpacer.style.height = '0px';
-    });
-  }, { threshold: 0 });
-  stickyIO.observe(progressSentinel);
-}
-
-const revealEls = document.querySelectorAll('.reveal');
-if('IntersectionObserver' in window){
-  const revealIO = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      if(en.isIntersecting){ en.target.classList.add('in-view'); revealIO.unobserve(en.target); }
-    });
-  }, { threshold: 0.08 });
-  revealEls.forEach(el => revealIO.observe(el));
-} else {
-  revealEls.forEach(el => el.classList.add('in-view'));
 }
 </script>
 </body>
