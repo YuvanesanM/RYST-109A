@@ -182,6 +182,11 @@
         </div>
 
         <div class="f-group">
+          <label for="ci-note">Note to host (optional)</label>
+          <textarea id="ci-note" placeholder="Anything you'd like us to know — allergies, special occasion, requests…"></textarea>
+        </div>
+
+        <div class="f-group">
           <label>Signature *</label>
           <div class="sig-wrap">
             <canvas id="sigCanvas"></canvas>
@@ -377,7 +382,12 @@ setTimeout(() => {
 // as a JPEG data URI. Keeps the upload small without needing a cropping UI.
 let idPhotoDataUrl = null;
 const photoInput = document.createElement('input');
-photoInput.type = 'file'; photoInput.accept = 'image/*'; photoInput.capture = 'environment'; photoInput.hidden = true;
+// No `capture` attribute — this link is sent over WhatsApp, so most guests
+// open it inside WhatsApp's in-app browser, which has a known bug where a
+// file input carrying `capture` fails to open any picker at all (neither
+// camera nor gallery). Dropping it still lets the OS's native picker offer
+// "Camera" as one of its options on iOS/Android — it just stops forcing it.
+photoInput.type = 'file'; photoInput.accept = 'image/*'; photoInput.hidden = true;
 document.body.appendChild(photoInput);
 
 function compressImage(file){
@@ -481,6 +491,7 @@ $('#ciForm').addEventListener('submit', async e => {
     vehicleNumber: $('#ci-vehicle').value.trim(),
     arrivalTime: $('#ci-arrival').value.trim(),
     guestsCount: $('#ci-guests').value ? Number($('#ci-guests').value) : null,
+    note: $('#ci-note').value.trim(),
     website: $('#ci-website').value, // honeypot
   };
 
