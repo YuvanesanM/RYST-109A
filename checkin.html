@@ -121,8 +121,28 @@
   .id-verify-head{display:flex;align-items:center;gap:9px;margin-bottom:12px}
   .id-verify-head .icon{font-size:19px}
   .id-verify-head h3{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--sea)}
-  .id-accepted{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
-  .id-chip{background:var(--white);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:600;color:var(--muted-text)}
+  .chip-group-label{font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:2px}
+  .id-chips{display:flex;flex-wrap:wrap;gap:8px}
+  /* Real radio inputs (kept in the tab order, just visually hidden) so the
+     chips get native single-select + keyboard behaviour for free — the
+     label is what's actually visible and clickable. */
+  /* pointer-events:none is the important part — without it this 1px hit
+     target can end up overlapping unrelated elements further down the page
+     (position:absolute inside a flex container drops out of flow oddly)
+     and silently swallow clicks meant for them. The visible <label> stays
+     the real click target; keyboard focus/arrow-key/space still work on
+     the input itself since none of that depends on pointer events. */
+  .id-chip-input{position:absolute;opacity:0;width:1px;height:1px;overflow:hidden;pointer-events:none}
+  .id-chip{
+    display:inline-flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;
+    background:var(--white);border:1.5px solid rgba(14,36,32,.15);border-radius:999px;
+    padding:9px 15px;font-size:12.5px;font-weight:600;color:var(--muted-text);
+    transition:background .2s,border-color .2s,color .2s,transform .1s;min-height:38px;
+  }
+  .id-chip:hover{border-color:var(--sea-mid)}
+  .id-chip:active{transform:scale(.96)}
+  .id-chip-input:checked + .id-chip{background:var(--sea-mid);border-color:var(--sea-mid);color:#fff}
+  .id-chip-input:focus-visible + .id-chip{outline:2px solid var(--sea-mid);outline-offset:2px}
 
   .photo-box{
     border:1.5px dashed rgba(14,36,32,.22);border-radius:14px;padding:22px 16px;text-align:center;
@@ -258,22 +278,22 @@
 
           <div class="id-verify-block">
             <div class="id-verify-head"><span class="icon" aria-hidden="true">🪪</span><h3>Verify Your Identity</h3></div>
-            <div class="id-accepted">
-              <span class="id-chip">Aadhaar Card</span>
-              <span class="id-chip">Passport</span>
-              <span class="id-chip">Driving Licence</span>
-              <span class="id-chip">Voter ID</span>
-            </div>
 
             <div class="f-group">
-              <label for="ci-idtype">Government ID Type <span class="req" aria-hidden="true">*</span></label>
-              <select id="ci-idtype" required>
-                <option value="">Select…</option>
-                <option>Aadhaar</option>
-                <option>Passport</option>
-                <option>Driving License</option>
-                <option>Voter ID</option>
-              </select>
+              <p class="chip-group-label" id="idTypeGroupLabel">Government ID Type <span class="req" aria-hidden="true">*</span></p>
+              <div class="id-chips" role="radiogroup" aria-labelledby="idTypeGroupLabel">
+                <input type="radio" name="idType" id="idtype-aadhaar" value="Aadhaar" class="id-chip-input">
+                <label for="idtype-aadhaar" class="id-chip">Aadhaar Card</label>
+
+                <input type="radio" name="idType" id="idtype-passport" value="Passport" class="id-chip-input">
+                <label for="idtype-passport" class="id-chip">Passport</label>
+
+                <input type="radio" name="idType" id="idtype-dl" value="Driving License" class="id-chip-input">
+                <label for="idtype-dl" class="id-chip">Driving Licence</label>
+
+                <input type="radio" name="idType" id="idtype-voter" value="Voter ID" class="id-chip-input">
+                <label for="idtype-voter" class="id-chip">Voter ID</label>
+              </div>
             </div>
 
             <div class="f-group" style="margin-bottom:0">
@@ -792,7 +812,7 @@ $('#ciForm').addEventListener('submit', async e => {
   errEl.textContent = '';
 
   const name = $('#ci-name').value.trim();
-  const idType = $('#ci-idtype').value;
+  const idType = (document.querySelector('input[name="idType"]:checked') || {}).value || '';
   const totalGuests = adultsCount + childrenCount + infantsCount;
   if(!name){ errEl.textContent = 'Please enter your name.'; return; }
   if(!idType){ errEl.textContent = 'Please select your ID type.'; return; }
