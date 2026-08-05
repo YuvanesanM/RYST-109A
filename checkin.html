@@ -17,105 +17,192 @@
 
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#e8f2f0;
-    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480;
+    --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#eef4f2; --bg:#eef4f2;
+    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480; --muted-text:#5a706c;
     --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
     --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
   }
-  html,body{background:var(--foam);color:var(--ink);font-family:var(--sans);min-height:100%;-webkit-font-smoothing:antialiased}
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100%;-webkit-font-smoothing:antialiased}
   body{display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh}
+  a{color:inherit}
   .wrap{max-width:560px;width:100%}
   .card{
-    position:relative;background:var(--white);border-radius:28px;padding:clamp(26px,5vw,44px);
-    box-shadow:0 28px 70px rgba(11,61,82,.16); border:1px solid rgba(255,255,255,.8); overflow:hidden;
+    position:relative;background:var(--white);border-radius:28px;padding:clamp(26px,5vw,46px);
+    box-shadow:0 28px 70px rgba(11,61,82,.14); border:1px solid rgba(255,255,255,.8); overflow:hidden;
   }
   .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sea),var(--sea-mid),var(--sand))}
-  .logo{height:44px;display:block;margin:0 auto 18px;object-fit:contain}
-  h1{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4vw,30px);text-align:center;color:var(--sea);margin-bottom:6px}
-  .lead{text-align:center;color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:8px}
-  .stay-summary{
-    text-align:center;background:var(--foam);border-radius:14px;padding:12px 16px;margin:14px 0 26px;
-    font-size:13.5px;color:var(--ink-mid,var(--ink));
-  }
-  .stay-summary strong{color:var(--sea)}
+  .logo{height:44px;display:block;margin:0 auto 22px;object-fit:contain}
 
-  .gsi-block{background:var(--foam);border-radius:14px;padding:18px;text-align:center;margin-bottom:22px}
-  .gsi-hint{font-size:13.5px;color:var(--muted);margin-bottom:14px;line-height:1.5}
+  /* Respect a guest's OS-level reduced-motion preference before anything
+     else — every animation below is decorative, never load-bearing. */
+  @media (prefers-reduced-motion: reduce){
+    .reveal{transition:none !important;opacity:1 !important;transform:none !important}
+    .progress-fill{transition:none !important}
+    .submit{transition:none !important}
+  }
+
+  button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+    outline:2px solid var(--sea-mid);outline-offset:2px;
+  }
+
+  /* ── HERO ── */
+  .hero{text-align:center;margin-bottom:6px}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(26px,5vw,32px);color:var(--sea);margin-bottom:10px}
+  .hero-subtitle{color:var(--muted-text);font-size:14.5px;line-height:1.7;margin-bottom:18px}
+  .hero-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:4px}
+  .hero-badge{background:var(--foam);color:var(--sea);font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px}
+
+  /* ── shared reveal-on-scroll ── */
+  .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+  .reveal.in-view{opacity:1;transform:translateY(0)}
+
+  /* ── BOOKING SUMMARY CARD ── */
+  .booking-card{
+    background:var(--white);border:1px solid var(--line);border-radius:20px;padding:18px 20px;
+    margin:22px 0;box-shadow:0 10px 30px rgba(11,61,82,.08);display:grid;gap:13px;
+  }
+  .bc-row{display:flex;align-items:center;gap:12px}
+  .bc-icon{font-size:17px;width:36px;height:36px;border-radius:11px;background:var(--foam);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .bc-text{display:flex;flex-direction:column;gap:1px;min-width:0}
+  .bc-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .bc-value{font-size:14.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+
+  .due-banner{
+    background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
+    border-radius:16px;padding:13px 18px;margin:0 0 20px;text-align:center;
+    font-size:13.5px;color:#8a4321;line-height:1.5;
+  }
+  .due-banner strong{font-size:15px;color:var(--coral)}
+
+  .gsi-block{background:var(--foam);border-radius:16px;padding:20px;text-align:center;margin-bottom:22px}
+  .gsi-hint{font-size:13.5px;color:var(--muted-text);margin-bottom:14px;line-height:1.5}
   .gsi-matched{font-size:13.5px;color:var(--sea-mid);font-weight:600}
   #googleSignInBtn{display:flex;justify-content:center}
 
-  .admin-picker{background:var(--foam);border-radius:14px;padding:18px;margin-bottom:22px}
-  .admin-picker label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+  .admin-picker{background:var(--foam);border-radius:16px;padding:20px;margin-bottom:22px}
+  .admin-picker label{display:block;font-size:12.5px;font-weight:600;color:var(--muted-text);margin-bottom:10px}
   .admin-picker select{
     border:1.5px solid rgba(14,36,32,.12);border-radius:12px;padding:13px 16px;
     font-family:var(--sans);font-size:14.5px;color:var(--ink);background:var(--white);
     outline:none;width:100%;
   }
 
-  .f-group{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
-  .f-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+  /* ── PROGRESS ── */
+  .progress-wrap{margin:26px 0 8px}
+  .progress-track{height:6px;background:var(--foam);border-radius:999px;overflow:hidden}
+  .progress-fill{height:100%;width:33.34%;background:linear-gradient(90deg,var(--sea-mid),var(--sand));border-radius:999px;transition:width .4s var(--ease)}
+  .progress-label{margin-top:9px;font-size:12.5px;font-weight:600;letter-spacing:.2px;color:var(--muted-text);text-align:center}
+
+  /* ── FORM SECTIONS ── */
+  fieldset.ci-section{border:none;padding:0;margin:0 0 8px}
+  fieldset.ci-section legend{width:100%;padding:0;float:left} /* float:left is the classic fix for Firefox legend layout quirks */
+  .ci-section-head{display:flex;align-items:center;gap:10px;width:100%}
+  .ci-section-icon{font-size:19px;width:38px;height:38px;border-radius:12px;background:var(--foam);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ci-section-title{font-family:var(--serif);font-weight:600;font-size:19px;color:var(--sea)}
+  .ci-section-divider{height:1px;background:var(--line);margin:14px 0 22px;width:100%;clear:both}
+
+  .f-group{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+  .f-group label{font-size:13.5px;font-weight:600;color:var(--ink)}
+  .f-group label .req{color:var(--coral);margin-left:2px}
   .f-group input,.f-group textarea,.f-group select{
     border:1.5px solid rgba(14,36,32,.12);border-radius:12px;padding:13px 16px;
-    font-family:var(--sans);font-size:14.5px;color:var(--ink);background:var(--white);
-    outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
+    font-family:var(--sans);font-size:15px;color:var(--ink);background:var(--white);
+    outline:none;transition:border-color .2s,box-shadow .2s;width:100%;min-height:48px;
   }
+  .f-group input::placeholder,.f-group textarea::placeholder{color:rgba(14,36,32,.35)}
   .f-group input:focus,.f-group textarea:focus,.f-group select:focus{border-color:var(--sea-mid);box-shadow:0 0 0 3px rgba(26,106,122,.1)}
   .f-group input[readonly]{background:var(--foam);color:var(--muted);cursor:not-allowed}
-  .f-group textarea{resize:vertical;min-height:76px}
+  .f-group textarea{resize:vertical;min-height:80px}
   .f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:420px){ .f-row{grid-template-columns:1fr} }
 
-  .due-banner{
-    background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
-    border-radius:14px;padding:12px 16px;margin:0 0 18px;text-align:center;
-    font-size:13.5px;color:#8a4321;line-height:1.5;
-  }
-  .due-banner strong{font-size:15px;color:var(--coral)}
+  /* ── ID VERIFICATION ── */
+  .id-verify-block{background:var(--foam);border-radius:18px;padding:18px;margin:2px 0 22px}
+  .id-verify-head{display:flex;align-items:center;gap:9px;margin-bottom:12px}
+  .id-verify-head .icon{font-size:19px}
+  .id-verify-head h3{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--sea)}
+  .id-accepted{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .id-chip{background:var(--white);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:11.5px;font-weight:600;color:var(--muted-text)}
 
   .photo-box{
-    border:1.5px dashed rgba(14,36,32,.2);border-radius:14px;padding:16px;text-align:center;
-    transition:border-color .2s;background:var(--foam);
+    border:1.5px dashed rgba(14,36,32,.22);border-radius:14px;padding:22px 16px;text-align:center;
+    transition:border-color .2s;background:var(--white);
   }
-  .photo-box.has-photo{padding:0;border-style:solid;border-color:var(--line);overflow:hidden;cursor:default}
-  .photo-box img{width:100%;max-height:220px;object-fit:contain;display:block;background:#000}
-  .photo-prompt{color:var(--muted);font-size:13.5px}
-  .photo-prompt svg{display:block;margin:0 auto 8px;color:var(--sea-mid)}
-  .photo-choice{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+  .photo-box.has-photo{padding:0;border-style:solid;border-color:var(--line);overflow:hidden}
+  .photo-box img{width:100%;max-height:220px;object-fit:contain;display:block;background:#000;animation:photoIn .35s var(--ease)}
+  @keyframes photoIn{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+  .photo-prompt{color:var(--muted-text);font-size:13.5px}
+  .photo-prompt svg{display:block;margin:0 auto 10px;color:var(--sea-mid)}
+  .photo-choice{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:14px}
   .photo-choice-btn{
-    background:var(--white);border:1.5px solid rgba(14,36,32,.15);border-radius:10px;padding:10px 16px;
-    font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;transition:border-color .2s;
+    background:var(--white);border:1.5px solid rgba(14,36,32,.15);border-radius:11px;padding:11px 18px;
+    font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;
+    transition:border-color .2s,transform .1s;min-height:44px;
   }
   .photo-choice-btn:hover{border-color:var(--sea-mid);color:var(--sea-mid)}
-  .photo-actions{display:flex;justify-content:center;padding:10px;background:var(--white)}
+  .photo-choice-btn:active{transform:scale(.96)}
+  .photo-actions{display:flex;justify-content:center;padding:11px;background:var(--white)}
   .photo-actions button{
     background:none;border:none;color:var(--coral);font-family:var(--sans);font-size:13px;font-weight:600;
-    cursor:pointer;padding:4px 8px;
+    cursor:pointer;padding:6px 10px;min-height:36px;
   }
+  .photo-processing{display:flex;flex-direction:column;align-items:center;gap:12px;color:var(--muted-text);font-size:13.5px;padding:6px 0}
+  .spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(26,106,122,.2);border-top-color:var(--sea-mid);animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .trust-note{font-size:12px;color:var(--muted-text);line-height:1.6;margin-top:11px}
 
-  .sig-wrap{border:1.5px solid rgba(14,36,32,.12);border-radius:14px;overflow:hidden;background:var(--white)}
-  .sig-wrap canvas{display:block;width:100%;height:150px;touch-action:none;background:var(--white)}
-  .sig-foot{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-top:1px solid var(--line);background:var(--foam)}
-  .sig-hint{font-size:12px;color:var(--muted)}
-  .sig-clear{background:none;border:none;color:var(--coral);font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer}
+  /* ── GUEST STEPPERS ── */
+  .guest-stepper-group{background:var(--foam);border-radius:16px;padding:16px 18px}
+  .guest-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(14,36,32,.08)}
+  .guest-row:last-of-type{border-bottom:none}
+  .guest-row-title{display:block;font-size:14px;font-weight:600;color:var(--ink)}
+  .guest-row-sub{display:block;font-size:11.5px;color:var(--muted-text);margin-top:2px}
+  .stepper{display:flex;align-items:center;gap:13px;flex-shrink:0}
+  .stepper-btn{
+    width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(14,36,32,.15);background:var(--white);
+    font-size:18px;font-weight:600;color:var(--sea);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:background .2s,transform .1s,border-color .2s;
+  }
+  .stepper-btn:hover:not(:disabled){border-color:var(--sea-mid)}
+  .stepper-btn:active:not(:disabled){transform:scale(.9)}
+  .stepper-btn:disabled{opacity:.35;cursor:not-allowed}
+  .stepper-count{min-width:22px;text-align:center;font-weight:700;font-size:15.5px}
+  .guest-total{margin-top:13px;font-size:13.5px;font-weight:600;color:var(--sea);text-align:center}
 
-  .chk-row{display:flex;align-items:flex-start;gap:9px;margin:18px 0 22px;font-size:13px;color:var(--muted);line-height:1.5}
-  .chk-row input{margin-top:3px;flex-shrink:0}
-  .chk-row a{color:var(--sea-mid)}
+  /* ── HOUSE RULES QUICK-GLANCE ── */
+  .house-rules-quick{background:var(--foam);border-radius:14px;padding:15px 18px;margin-bottom:18px;display:grid;gap:9px}
+  .hr-item{font-size:13px;color:var(--ink);line-height:1.4}
+  .hr-item a{color:var(--sea-mid);font-weight:600;text-decoration:underline}
 
+  .chk-row{display:flex;align-items:flex-start;gap:10px;margin:0 0 24px;font-size:13px;color:var(--muted-text);line-height:1.55}
+  .chk-row input{margin-top:3px;flex-shrink:0;width:18px;height:18px}
+  .chk-row a{color:var(--sea-mid);font-weight:600}
+
+  /* ── SUBMIT ── */
+  .submit-bar{margin-top:4px}
   .submit{
-    position:relative;overflow:hidden;width:100%;padding:16px;border:none;border-radius:14px;
+    position:relative;overflow:hidden;width:100%;height:56px;border:none;border-radius:14px;
     background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;font-family:var(--sans);
-    font-size:15px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:transform .15s var(--ease),box-shadow .2s;
-    box-shadow:0 10px 30px rgba(20,40,50,.26),inset 0 1px 0 rgba(255,255,255,.5);
+    font-size:15.5px;font-weight:600;letter-spacing:.3px;cursor:pointer;transition:transform .15s var(--ease),box-shadow .2s;
+    box-shadow:0 10px 30px rgba(20,40,50,.24),inset 0 1px 0 rgba(255,255,255,.5);
+    display:flex;align-items:center;justify-content:center;gap:10px;
   }
   .submit:hover{transform:translateY(-2px)}
-  .submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
-  .err{color:var(--coral);font-size:13px;text-align:center;min-height:18px;margin-top:12px}
+  .submit:active{transform:translateY(0) scale(.99)}
+  .submit:disabled{opacity:.65;cursor:not-allowed;transform:none}
+  .submit-spinner{display:none;width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(26,44,51,.3);border-top-color:#1a2c33;animation:spin .8s linear infinite}
+  .submit.is-loading .submit-spinner{display:inline-block}
+  .err{color:var(--coral);font-size:13px;text-align:center;min-height:18px;margin-top:12px;transition:opacity .2s}
+
+  @media (max-width:640px){
+    .submit-bar{position:fixed;left:0;right:0;bottom:0;background:var(--white);padding:14px 20px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -10px 26px rgba(11,61,82,.14);z-index:40}
+    #ciForm{padding-bottom:104px}
+  }
 
   .thanks{display:none;text-align:center;padding:20px 0}
   .thanks .tick{width:56px;height:56px;border-radius:50%;background:var(--foam);color:var(--sea-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
   .thanks h2{font-family:var(--serif);font-weight:600;font-size:24px;color:var(--sea);margin-bottom:8px}
-  .thanks p{color:var(--muted);font-size:14px;line-height:1.6}
+  .thanks p{color:var(--muted-text);font-size:14px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -123,15 +210,23 @@
   <div class="card">
     <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
     <div id="formView">
-      <h1>Guest Check-in</h1>
-      <p class="lead">A few quick details so we have everything ready before you arrive.</p>
-      <div class="stay-summary" id="staySummary"></div>
-      <div class="due-banner" id="dueBanner" style="display:none"></div>
+      <div class="hero reveal">
+        <h1>Welcome to RYST 109A</h1>
+        <p class="hero-subtitle">Your stay begins here.<br>Complete your secure check-in in under 2 minutes.</p>
+        <div class="hero-badges">
+          <span class="hero-badge">🏠 Private Beach Villa</span>
+          <span class="hero-badge">🔒 Secure Check-in</span>
+          <span class="hero-badge">⏱ Takes about 2 minutes</span>
+        </div>
+      </div>
+
+      <div class="booking-card reveal" id="staySummary" aria-live="polite"></div>
+      <div class="due-banner" id="dueBanner" style="display:none" aria-live="polite"></div>
 
       <div class="gsi-block" id="gsiBlock">
         <p class="gsi-hint" id="gsiHint">Sign in with Google to find your booking and auto-fill your details.</p>
         <div id="googleSignInBtn"></div>
-        <p class="err" id="gsiErr"></p>
+        <p class="err" id="gsiErr" role="alert" aria-live="polite"></p>
       </div>
 
       <div class="admin-picker" id="adminPicker" style="display:none">
@@ -141,82 +236,150 @@
         </select>
       </div>
 
-      <form id="ciForm">
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <p class="progress-label" id="progressLabel">Step 1 of 3 · Personal Details</p>
+      </div>
+
+      <form id="ciForm" novalidate>
         <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
           <label for="ci-website">Website</label>
           <input id="ci-website" type="text" tabindex="-1" autocomplete="off">
         </div>
 
-        <div class="f-group">
-          <label for="ci-name">Full Name *</label>
-          <input id="ci-name" type="text" placeholder="As on your government ID" required>
-        </div>
+        <fieldset class="ci-section reveal" data-label="Personal Details">
+          <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">👤</span><span class="ci-section-title">Personal Details</span></span></legend>
+          <div class="ci-section-divider"></div>
 
-        <div class="f-group">
-          <label for="ci-idtype">Government ID Type *</label>
-          <select id="ci-idtype" required>
-            <option value="">Select…</option>
-            <option>Aadhaar</option>
-            <option>Passport</option>
-            <option>Driving License</option>
-            <option>Voter ID</option>
-          </select>
-        </div>
-
-        <div class="f-group">
-          <label>ID Photo *</label>
-          <!-- Populated entirely by renderPhotoBox() at load — its two
-               buttons (camera / gallery) need real JS-attached listeners
-               either way, so there's no static fallback markup here. -->
-          <div class="photo-box" id="photoBox"></div>
-        </div>
-
-        <div class="f-group">
-          <label for="ci-address">Home Address</label>
-          <textarea id="ci-address" placeholder="Your home address"></textarea>
-        </div>
-
-        <div class="f-row">
           <div class="f-group">
-            <label for="ci-vehicle">Vehicle Number</label>
-            <input id="ci-vehicle" type="text" placeholder="If driving">
+            <label for="ci-name">Full Name <span class="req" aria-hidden="true">*</span></label>
+            <input id="ci-name" type="text" placeholder="As on your government ID" required autocomplete="name">
           </div>
-          <div class="f-group">
-            <label for="ci-arrival">Expected Arrival</label>
-            <input id="ci-arrival" type="text" placeholder="e.g. 6:00 PM">
-          </div>
-        </div>
 
-        <div class="f-group">
-          <label for="ci-guests">Number of Guests</label>
-          <!-- Locked to what's on the booking — set from the link/booking
-               record in JS, never hand-editable here. -->
-          <input id="ci-guests" type="number" min="1" max="30" placeholder="—" readonly>
-        </div>
+          <div class="id-verify-block">
+            <div class="id-verify-head"><span class="icon" aria-hidden="true">🪪</span><h3>Verify Your Identity</h3></div>
+            <div class="id-accepted">
+              <span class="id-chip">Aadhaar Card</span>
+              <span class="id-chip">Passport</span>
+              <span class="id-chip">Driving Licence</span>
+              <span class="id-chip">Voter ID</span>
+            </div>
 
-        <div class="f-group">
-          <label for="ci-note">Note to host</label>
-          <textarea id="ci-note" placeholder="Anything you'd like us to know — allergies, special occasion, requests…"></textarea>
-        </div>
+            <div class="f-group">
+              <label for="ci-idtype">Government ID Type <span class="req" aria-hidden="true">*</span></label>
+              <select id="ci-idtype" required>
+                <option value="">Select…</option>
+                <option>Aadhaar</option>
+                <option>Passport</option>
+                <option>Driving License</option>
+                <option>Voter ID</option>
+              </select>
+            </div>
 
-        <div class="f-group">
-          <label>Signature *</label>
-          <div class="sig-wrap">
-            <canvas id="sigCanvas"></canvas>
-            <div class="sig-foot">
-              <span class="sig-hint">Sign with your finger or mouse</span>
-              <button type="button" class="sig-clear" id="sigClear">Clear</button>
+            <div class="f-group" style="margin-bottom:0">
+              <label id="photoBoxLabel">ID Photo <span class="req" aria-hidden="true">*</span></label>
+              <!-- Populated entirely by renderPhotoBox() at load — its two
+                   buttons (camera / gallery) need real JS-attached listeners
+                   either way, so there's no static fallback markup here. -->
+              <div class="photo-box" id="photoBox" role="group" aria-labelledby="photoBoxLabel"></div>
+              <p class="trust-note">🔒 Your information is encrypted and securely stored, and used only for verification during your stay — it's never shared with third parties.</p>
             </div>
           </div>
+        </fieldset>
+
+        <fieldset class="ci-section reveal" data-label="Travel Details">
+          <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">🧳</span><span class="ci-section-title">Travel Details</span></span></legend>
+          <div class="ci-section-divider"></div>
+
+          <div class="f-row">
+            <div class="f-group">
+              <label for="ci-vehicle">Vehicle Number</label>
+              <input id="ci-vehicle" type="text" placeholder="If driving" autocomplete="off">
+            </div>
+            <div class="f-group">
+              <label for="ci-arrival">Expected Arrival</label>
+              <input id="ci-arrival" type="time">
+            </div>
+          </div>
+
+          <div class="f-group" style="margin-bottom:0">
+            <label id="guestsLabel">Guests Staying</label>
+            <div class="guest-stepper-group" role="group" aria-labelledby="guestsLabel">
+              <div class="guest-row">
+                <div><span class="guest-row-title">Adults</span><span class="guest-row-sub" id="adultsSub"></span></div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" id="adultsMinus" aria-label="Decrease adults">−</button>
+                  <span class="stepper-count" id="adultsCount" aria-live="polite">1</span>
+                  <button type="button" class="stepper-btn" id="adultsPlus" aria-label="Increase adults">+</button>
+                </div>
+              </div>
+              <div class="guest-row">
+                <div><span class="guest-row-title">Children</span><span class="guest-row-sub">Ages 2–12</span></div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" id="childrenMinus" aria-label="Decrease children">−</button>
+                  <span class="stepper-count" id="childrenCount" aria-live="polite">0</span>
+                  <button type="button" class="stepper-btn" id="childrenPlus" aria-label="Increase children">+</button>
+                </div>
+              </div>
+              <div class="guest-row">
+                <div><span class="guest-row-title">Infants</span><span class="guest-row-sub">Under 2</span></div>
+                <div class="stepper">
+                  <button type="button" class="stepper-btn" id="infantsMinus" aria-label="Decrease infants">−</button>
+                  <span class="stepper-count" id="infantsCount" aria-live="polite">0</span>
+                  <button type="button" class="stepper-btn" id="infantsPlus" aria-label="Increase infants">+</button>
+                </div>
+              </div>
+              <p class="guest-total" id="guestTotalLine"></p>
+              <p class="err" id="guestErr" role="alert" aria-live="polite"></p>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="ci-section reveal" data-label="Additional Information">
+          <legend><span class="ci-section-head"><span class="ci-section-icon" aria-hidden="true">📝</span><span class="ci-section-title">Additional Information</span></span></legend>
+          <div class="ci-section-divider"></div>
+
+          <div class="f-group">
+            <label for="ci-address">Home Address</label>
+            <textarea id="ci-address" placeholder="Your home address" autocomplete="street-address"></textarea>
+          </div>
+
+          <div class="f-group">
+            <label for="ci-note">Note to Host</label>
+            <textarea id="ci-note" placeholder="Anything you'd like us to know — allergies, special occasion, requests…"></textarea>
+          </div>
+
+          <div class="f-group">
+            <label id="sigLabel">Signature <span class="req" aria-hidden="true">*</span></label>
+            <div class="sig-wrap" role="group" aria-labelledby="sigLabel">
+              <canvas id="sigCanvas" role="img" aria-label="Signature pad — sign using your finger or mouse"></canvas>
+              <div class="sig-foot">
+                <span class="sig-hint">Sign using your finger or mouse</span>
+                <button type="button" class="sig-clear" id="sigClear">Clear Signature</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="house-rules-quick">
+            <p class="hr-item">✓ Government ID required</p>
+            <p class="hr-item">✓ No loud music after 10 PM</p>
+            <p class="hr-item">✓ Pool usage at your own risk</p>
+            <p class="hr-item"><a href="/terms.html" target="_blank" rel="noopener">✓ Read Full House Rules</a></p>
+          </div>
+
+          <label class="chk-row">
+            <input type="checkbox" id="ci-agree">
+            <span>I confirm the details above are accurate and I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">House Rules &amp; Terms</a>.</span>
+          </label>
+        </fieldset>
+
+        <div class="submit-bar">
+          <button type="submit" class="submit" id="ciSubmitBtn">
+            <span class="submit-label">Complete Secure Check-in</span>
+            <span class="submit-spinner" aria-hidden="true"></span>
+          </button>
+          <p class="err" id="ciErr" role="alert" aria-live="polite"></p>
         </div>
-
-        <label class="chk-row">
-          <input type="checkbox" id="ci-agree">
-          <span>I confirm the details above are accurate and I have read and agree to the <a href="/terms.html" target="_blank" rel="noopener">House Rules &amp; Terms</a>.</span>
-        </label>
-
-        <button type="submit" class="submit" id="ciSubmitBtn">Complete Check-in</button>
-        <p class="err" id="ciErr"></p>
       </form>
     </div>
 
@@ -242,7 +405,7 @@ let checkinTok = qp('t');
 let guestPrefill = qp('guest');
 let checkinDate = qp('checkin');
 let checkoutDate = qp('checkout');
-let guestsOnBooking = qp('guests');
+let guestsOnBooking = qp('guests'); // the booking's own guest count — used only as the Adults cap, never shown as a locked/uneditable value
 let dueAmount = qp('due');
 if(guestPrefill) $('#ci-name').value = guestPrefill;
 
@@ -252,11 +415,72 @@ function fmtDate(iso){
   if(isNaN(d)) return iso;
   return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
 }
-// Guest count comes from the booking record only — never a field the guest
-// can type into (see #ci-guests' readonly attribute in the markup).
-function renderGuestsField(){
-  $('#ci-guests').value = guestsOnBooking || '';
+
+// ── GUEST COUNTERS ── Adults / Children / Infants, replacing the old single
+// numeric field. The backend still only ever receives one combined number
+// (guestsCount) — nothing about the payload shape changes. The only real
+// business rule: Adults can never exceed the headcount already on the
+// booking (Children/Infants aren't capped the same way, since a booking's
+// guest count traditionally refers to paying adults).
+let adultsCount = 1, childrenCount = 0, infantsCount = 0, adultsMax = 30;
+function computeAdultsMax(){
+  const n = Number(guestsOnBooking);
+  return (n > 0) ? n : 30; // 30 mirrors the server's own hard ceiling when no booking-specific cap is known
 }
+// Called whenever the active booking (re)resolves — link params, Google
+// sign-in match, or an admin picking a different guest — so counts always
+// start fresh for whichever booking is now in view.
+function renderGuestsField(){
+  adultsMax = computeAdultsMax();
+  const booked = Number(guestsOnBooking);
+  adultsCount = booked > 0 ? booked : 1;
+  childrenCount = 0; infantsCount = 0;
+  renderGuestCounters();
+}
+function renderGuestCounters(){
+  $('#adultsCount').textContent = adultsCount;
+  $('#childrenCount').textContent = childrenCount;
+  $('#infantsCount').textContent = infantsCount;
+  const total = adultsCount + childrenCount + infantsCount;
+  $('#guestTotalLine').textContent = `Total guests staying: ${total}`;
+
+  const hasRealCap = Number(guestsOnBooking) > 0;
+  if(hasRealCap){
+    const remaining = Math.max(0, adultsMax - adultsCount);
+    $('#adultsSub').textContent = `${adultsCount} of ${adultsMax} adults booked · ${remaining} spot${remaining===1?'':'s'} remaining`;
+  } else {
+    $('#adultsSub').textContent = '';
+  }
+
+  $('#adultsPlus').disabled = adultsCount >= adultsMax;
+  $('#adultsMinus').disabled = adultsCount <= 1;
+  $('#childrenMinus').disabled = childrenCount <= 0;
+  $('#infantsMinus').disabled = infantsCount <= 0;
+  const atOverallCap = total >= 30; // mirrors the server's own clamp — never actually reachable via Adults alone
+  $('#childrenPlus').disabled = atOverallCap;
+  $('#infantsPlus').disabled = atOverallCap;
+}
+// Surfaced only on a genuine blocked attempt to add an adult (the button is
+// disabled at the cap, so this never fires from a plain click — only if
+// something else calls the increment logic directly) — never shown just
+// because the default, correct state happens to already equal the cap,
+// which would read as an alarm before the guest has done anything.
+function flashAdultsMaxReached(){
+  const el = $('#guestErr');
+  el.textContent = 'Maximum adults allowed for this booking has been reached.';
+  clearTimeout(flashAdultsMaxReached._t);
+  flashAdultsMaxReached._t = setTimeout(() => { el.textContent = ''; }, 4000);
+}
+$('#adultsPlus').addEventListener('click', () => {
+  if(adultsCount < adultsMax){ adultsCount++; renderGuestCounters(); }
+  else { flashAdultsMaxReached(); }
+});
+$('#adultsMinus').addEventListener('click', () => { if(adultsCount > 1){ adultsCount--; renderGuestCounters(); } });
+$('#childrenPlus').addEventListener('click', () => { if(adultsCount+childrenCount+infantsCount < 30){ childrenCount++; renderGuestCounters(); } });
+$('#childrenMinus').addEventListener('click', () => { if(childrenCount > 0){ childrenCount--; renderGuestCounters(); } });
+$('#infantsPlus').addEventListener('click', () => { if(adultsCount+childrenCount+infantsCount < 30){ infantsCount++; renderGuestCounters(); } });
+$('#infantsMinus').addEventListener('click', () => { if(infantsCount > 0){ infantsCount--; renderGuestCounters(); } });
+
 // Only shown when there's an actual balance — never fabricated, and never
 // shown as zero/"all paid" noise.
 function renderDueBanner(){
@@ -273,7 +497,12 @@ function renderSummary(){
   const el = $('#staySummary');
   if(checkinDate && checkoutDate){
     el.style.display = '';
-    el.innerHTML = `<strong>${guestPrefill ? esc(guestPrefill)+' — ' : ''}</strong>${fmtDate(checkinDate)} → ${fmtDate(checkoutDate)}`;
+    el.innerHTML = `
+      <div class="bc-row"><span class="bc-icon" aria-hidden="true">👤</span><span class="bc-text"><span class="bc-label">Guest</span><span class="bc-value">${guestPrefill ? esc(guestPrefill) : 'Guest'}</span></span></div>
+      <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDate(checkinDate)}</span></span></div>
+      <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDate(checkoutDate)}</span></span></div>
+      ${bookingNo ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">🔖</span><span class="bc-text"><span class="bc-label">Booking ID</span><span class="bc-value">${esc(bookingNo)}</span></span></div>` : ''}
+    `;
   } else {
     el.style.display = 'none';
   }
@@ -483,10 +712,19 @@ function renderPhotoBox(){
     $('#photoGalleryBtn').addEventListener('click', () => { photoInputGallery.value=''; photoInputGallery.click(); });
   }
 }
+// Shows a brief spinner state while the photo is read + downscaled — on an
+// older phone with a large camera photo this can take a moment, and a
+// silent gap right after picking a file reads as broken.
+function renderPhotoProcessing(){
+  const box = $('#photoBox');
+  box.classList.remove('has-photo');
+  box.innerHTML = `<div class="photo-processing"><span class="spinner" aria-hidden="true"></span>Processing your photo…</div>`;
+}
 async function handlePhotoFile(file){
   if(!file) return;
+  renderPhotoProcessing();
   try{ idPhotoDataUrl = await compressImage(file); renderPhotoBox(); }
-  catch(e){ $('#ciErr').textContent = e.message; }
+  catch(e){ $('#ciErr').textContent = e.message; renderPhotoBox(); }
 }
 photoInputCamera.addEventListener('change', () => handlePhotoFile(photoInputCamera.files[0]));
 photoInputGallery.addEventListener('change', () => handlePhotoFile(photoInputGallery.files[0]));
@@ -530,21 +768,42 @@ $('#sigClear').addEventListener('click', () => {
   sigHasDrawn = false;
 });
 
+// Native <input type="time"> gives guests a proper keyboard-/thumb-friendly
+// picker; the payload still carries a plain human string ("6:00 PM") so the
+// backend field (a free-text, 40-char-clipped value) and everywhere it's
+// displayed (bookings.html, WhatsApp messages) are completely unaffected.
+function formatArrivalTime(hhmm){
+  if(!hhmm) return '';
+  const [hStr, mStr] = hhmm.split(':');
+  let h = parseInt(hStr, 10);
+  if(isNaN(h)) return '';
+  const m = mStr || '00';
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if(h === 0) h = 12;
+  return `${h}:${m} ${ampm}`;
+}
+
 $('#ciForm').addEventListener('submit', async e => {
   e.preventDefault();
+  const btn = $('#ciSubmitBtn');
+  if(btn.disabled) return; // guard against a double-tap firing this twice
+
   const errEl = $('#ciErr');
   errEl.textContent = '';
 
   const name = $('#ci-name').value.trim();
   const idType = $('#ci-idtype').value;
+  const totalGuests = adultsCount + childrenCount + infantsCount;
   if(!name){ errEl.textContent = 'Please enter your name.'; return; }
   if(!idType){ errEl.textContent = 'Please select your ID type.'; return; }
   if(!idPhotoDataUrl){ errEl.textContent = 'Please add a photo of your ID.'; return; }
+  if(adultsCount > adultsMax){ errEl.textContent = 'Maximum adults allowed for this booking has been reached.'; return; }
+  if(totalGuests < 1){ errEl.textContent = 'Please add at least one guest.'; return; }
   if(!sigHasDrawn){ errEl.textContent = 'Please sign above.'; return; }
   if(!$('#ci-agree').checked){ errEl.textContent = 'Please agree to the House Rules & Terms.'; return; }
 
-  const btn = $('#ciSubmitBtn');
-  btn.disabled = true; btn.textContent = 'Submitting…';
+  btn.disabled = true; btn.classList.add('is-loading');
+  $('.submit-label').textContent = 'Submitting…';
 
   const payload = {
     no: bookingNo, t: checkinTok, name, idType,
@@ -552,8 +811,8 @@ $('#ciForm').addEventListener('submit', async e => {
     signature: sigCanvas.toDataURL('image/png'),
     address: $('#ci-address').value.trim(),
     vehicleNumber: $('#ci-vehicle').value.trim(),
-    arrivalTime: $('#ci-arrival').value.trim(),
-    guestsCount: $('#ci-guests').value ? Number($('#ci-guests').value) : null,
+    arrivalTime: formatArrivalTime($('#ci-arrival').value),
+    guestsCount: totalGuests,
     note: $('#ci-note').value.trim(),
     website: $('#ci-website').value, // honeypot
   };
@@ -577,9 +836,44 @@ $('#ciForm').addEventListener('submit', async e => {
     errEl.textContent = (err && err.name === 'AbortError')
       ? 'The server is taking a while to respond — please try again in a moment.'
       : (err.message || 'Could not submit — please try again.');
-    btn.disabled = false; btn.textContent = 'Complete Check-in';
+    btn.disabled = false; btn.classList.remove('is-loading');
+    $('.submit-label').textContent = 'Complete Secure Check-in';
   }
 });
+
+// ── PROGRESS + REVEAL ── native IntersectionObserver only, no library.
+// One observer narrowly bands the viewport centre to track which section
+// the guest is currently reading; a second, wider one just fades each
+// section in the first time it appears.
+const ciSections = Array.from(document.querySelectorAll('.ci-section'));
+function setStep(n, label){
+  $('#progressFill').style.width = (n/ciSections.length*100)+'%';
+  $('#progressLabel').textContent = `Step ${n} of ${ciSections.length} · ${label}`;
+}
+if(ciSections.length && 'IntersectionObserver' in window){
+  const stepIO = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if(en.isIntersecting){
+        const idx = ciSections.indexOf(en.target) + 1;
+        setStep(idx, en.target.dataset.label);
+      }
+    });
+  }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+  ciSections.forEach(s => stepIO.observe(s));
+  setStep(1, ciSections[0].dataset.label);
+}
+
+const revealEls = document.querySelectorAll('.reveal');
+if('IntersectionObserver' in window){
+  const revealIO = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if(en.isIntersecting){ en.target.classList.add('in-view'); revealIO.unobserve(en.target); }
+    });
+  }, { threshold: 0.08 });
+  revealEls.forEach(el => revealIO.observe(el));
+} else {
+  revealEls.forEach(el => el.classList.add('in-view'));
+}
 </script>
 </body>
 </html>
