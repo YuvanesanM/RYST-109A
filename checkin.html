@@ -89,6 +89,16 @@
 
   /* ── PROGRESS ── */
   .progress-wrap{margin:26px 0 8px}
+  /* Sticky header state — toggled by JS when a sentinel just above the bar
+     scrolls out of view. Uses position:fixed (not sticky) since .card has
+     overflow:hidden, which would otherwise confine a sticky element to the
+     card's own box instead of the viewport. */
+  .progress-wrap.is-stuck{
+    position:fixed;top:0;left:0;right:0;z-index:50;margin:0;
+    background:rgba(251,250,248,.92);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    padding:14px 24px;box-shadow:0 6px 20px rgba(11,61,82,.12);
+  }
+  .progress-wrap.is-stuck .progress-inner{max-width:512px;margin:0 auto}
   .progress-track{height:6px;background:var(--foam);border-radius:999px;overflow:hidden}
   .progress-fill{height:100%;width:33.34%;background:linear-gradient(90deg,var(--sea-mid),var(--sand));border-radius:999px;transition:width .4s var(--ease)}
   .progress-label{margin-top:9px;font-size:12.5px;font-weight:600;letter-spacing:.2px;color:var(--muted-text);text-align:center}
@@ -171,24 +181,6 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .trust-note{font-size:12px;color:var(--muted-text);line-height:1.6;margin-top:11px}
 
-  /* ── GUEST STEPPERS ── */
-  .guest-stepper-group{background:var(--foam);border-radius:16px;padding:16px 18px}
-  .guest-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid rgba(14,36,32,.08)}
-  .guest-row:last-of-type{border-bottom:none}
-  .guest-row-title{display:block;font-size:14px;font-weight:600;color:var(--ink)}
-  .guest-row-sub{display:block;font-size:11.5px;color:var(--muted-text);margin-top:2px}
-  .stepper{display:flex;align-items:center;gap:13px;flex-shrink:0}
-  .stepper-btn{
-    width:38px;height:38px;border-radius:50%;border:1.5px solid rgba(14,36,32,.15);background:var(--white);
-    font-size:18px;font-weight:600;color:var(--sea);cursor:pointer;display:flex;align-items:center;justify-content:center;
-    transition:background .2s,transform .1s,border-color .2s;
-  }
-  .stepper-btn:hover:not(:disabled){border-color:var(--sea-mid)}
-  .stepper-btn:active:not(:disabled){transform:scale(.9)}
-  .stepper-btn:disabled{opacity:.35;cursor:not-allowed}
-  .stepper-count{min-width:22px;text-align:center;font-weight:700;font-size:15.5px}
-  .guest-total{margin-top:13px;font-size:13.5px;font-weight:600;color:var(--sea);text-align:center}
-
   /* ── HOUSE RULES QUICK-GLANCE ── */
   .house-rules-quick{background:var(--foam);border-radius:14px;padding:15px 18px;margin-bottom:18px;display:grid;gap:9px}
   .hr-item{font-size:13px;color:var(--ink);line-height:1.4}
@@ -256,10 +248,14 @@
         </select>
       </div>
 
+      <div id="progressSentinel" aria-hidden="true"></div>
       <div class="progress-wrap" id="progressWrap">
-        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
-        <p class="progress-label" id="progressLabel">Step 1 of 3 · Personal Details</p>
+        <div class="progress-inner">
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          <p class="progress-label" id="progressLabel">Step 1 of 3 · Personal Details</p>
+        </div>
       </div>
+      <div id="progressSpacer"></div>
 
       <form id="ciForm" novalidate>
         <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
@@ -322,37 +318,6 @@
             </div>
           </div>
 
-          <div class="f-group" style="margin-bottom:0">
-            <label id="guestsLabel">Guests Staying</label>
-            <div class="guest-stepper-group" role="group" aria-labelledby="guestsLabel">
-              <div class="guest-row">
-                <div><span class="guest-row-title">Adults</span><span class="guest-row-sub" id="adultsSub"></span></div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" id="adultsMinus" aria-label="Decrease adults">−</button>
-                  <span class="stepper-count" id="adultsCount" aria-live="polite">1</span>
-                  <button type="button" class="stepper-btn" id="adultsPlus" aria-label="Increase adults">+</button>
-                </div>
-              </div>
-              <div class="guest-row">
-                <div><span class="guest-row-title">Children</span><span class="guest-row-sub">Ages 2–12</span></div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" id="childrenMinus" aria-label="Decrease children">−</button>
-                  <span class="stepper-count" id="childrenCount" aria-live="polite">0</span>
-                  <button type="button" class="stepper-btn" id="childrenPlus" aria-label="Increase children">+</button>
-                </div>
-              </div>
-              <div class="guest-row">
-                <div><span class="guest-row-title">Infants</span><span class="guest-row-sub">Under 2</span></div>
-                <div class="stepper">
-                  <button type="button" class="stepper-btn" id="infantsMinus" aria-label="Decrease infants">−</button>
-                  <span class="stepper-count" id="infantsCount" aria-live="polite">0</span>
-                  <button type="button" class="stepper-btn" id="infantsPlus" aria-label="Increase infants">+</button>
-                </div>
-              </div>
-              <p class="guest-total" id="guestTotalLine"></p>
-              <p class="err" id="guestErr" role="alert" aria-live="polite"></p>
-            </div>
-          </div>
         </fieldset>
 
         <fieldset class="ci-section reveal" data-label="Additional Information">
@@ -395,7 +360,7 @@
 
         <div class="submit-bar">
           <button type="submit" class="submit" id="ciSubmitBtn">
-            <span class="submit-label">Complete Secure Check-in</span>
+            <span class="submit-label">Check-in</span>
             <span class="submit-spinner" aria-hidden="true"></span>
           </button>
           <p class="err" id="ciErr" role="alert" aria-live="polite"></p>
@@ -436,70 +401,15 @@ function fmtDate(iso){
   return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
 }
 
-// ── GUEST COUNTERS ── Adults / Children / Infants, replacing the old single
-// numeric field. The backend still only ever receives one combined number
-// (guestsCount) — nothing about the payload shape changes. The only real
-// business rule: Adults can never exceed the headcount already on the
-// booking (Children/Infants aren't capped the same way, since a booking's
-// guest count traditionally refers to paying adults).
-let adultsCount = 1, childrenCount = 0, infantsCount = 0, adultsMax = 30;
-function computeAdultsMax(){
+// Guest count has no on-page control at all now — it's purely derived from
+// the booking record (guestsOnBooking), shown as "Ms. Tarana +7" in the
+// summary card (primary guest + however many others are on the booking)
+// and submitted as-is. Still the same single guestsCount payload field.
+function guestNameWithParty(){
   const n = Number(guestsOnBooking);
-  return (n > 0) ? n : 30; // 30 mirrors the server's own hard ceiling when no booking-specific cap is known
+  const extra = n > 1 ? n - 1 : 0;
+  return extra > 0 ? `${guestPrefill || 'Guest'} +${extra}` : (guestPrefill || 'Guest');
 }
-// Called whenever the active booking (re)resolves — link params, Google
-// sign-in match, or an admin picking a different guest — so counts always
-// start fresh for whichever booking is now in view.
-function renderGuestsField(){
-  adultsMax = computeAdultsMax();
-  const booked = Number(guestsOnBooking);
-  adultsCount = booked > 0 ? booked : 1;
-  childrenCount = 0; infantsCount = 0;
-  renderGuestCounters();
-}
-function renderGuestCounters(){
-  $('#adultsCount').textContent = adultsCount;
-  $('#childrenCount').textContent = childrenCount;
-  $('#infantsCount').textContent = infantsCount;
-  const total = adultsCount + childrenCount + infantsCount;
-  $('#guestTotalLine').textContent = `Total guests staying: ${total}`;
-
-  const hasRealCap = Number(guestsOnBooking) > 0;
-  if(hasRealCap){
-    const remaining = Math.max(0, adultsMax - adultsCount);
-    $('#adultsSub').textContent = `${adultsCount} of ${adultsMax} adults booked · ${remaining} spot${remaining===1?'':'s'} remaining`;
-  } else {
-    $('#adultsSub').textContent = '';
-  }
-
-  $('#adultsPlus').disabled = adultsCount >= adultsMax;
-  $('#adultsMinus').disabled = adultsCount <= 1;
-  $('#childrenMinus').disabled = childrenCount <= 0;
-  $('#infantsMinus').disabled = infantsCount <= 0;
-  const atOverallCap = total >= 30; // mirrors the server's own clamp — never actually reachable via Adults alone
-  $('#childrenPlus').disabled = atOverallCap;
-  $('#infantsPlus').disabled = atOverallCap;
-}
-// Surfaced only on a genuine blocked attempt to add an adult (the button is
-// disabled at the cap, so this never fires from a plain click — only if
-// something else calls the increment logic directly) — never shown just
-// because the default, correct state happens to already equal the cap,
-// which would read as an alarm before the guest has done anything.
-function flashAdultsMaxReached(){
-  const el = $('#guestErr');
-  el.textContent = 'Maximum adults allowed for this booking has been reached.';
-  clearTimeout(flashAdultsMaxReached._t);
-  flashAdultsMaxReached._t = setTimeout(() => { el.textContent = ''; }, 4000);
-}
-$('#adultsPlus').addEventListener('click', () => {
-  if(adultsCount < adultsMax){ adultsCount++; renderGuestCounters(); }
-  else { flashAdultsMaxReached(); }
-});
-$('#adultsMinus').addEventListener('click', () => { if(adultsCount > 1){ adultsCount--; renderGuestCounters(); } });
-$('#childrenPlus').addEventListener('click', () => { if(adultsCount+childrenCount+infantsCount < 30){ childrenCount++; renderGuestCounters(); } });
-$('#childrenMinus').addEventListener('click', () => { if(childrenCount > 0){ childrenCount--; renderGuestCounters(); } });
-$('#infantsPlus').addEventListener('click', () => { if(adultsCount+childrenCount+infantsCount < 30){ infantsCount++; renderGuestCounters(); } });
-$('#infantsMinus').addEventListener('click', () => { if(infantsCount > 0){ infantsCount--; renderGuestCounters(); } });
 
 // Only shown when there's an actual balance — never fabricated, and never
 // shown as zero/"all paid" noise.
@@ -518,7 +428,7 @@ function renderSummary(){
   if(checkinDate && checkoutDate){
     el.style.display = '';
     el.innerHTML = `
-      <div class="bc-row"><span class="bc-icon" aria-hidden="true">👤</span><span class="bc-text"><span class="bc-label">Guest</span><span class="bc-value">${guestPrefill ? esc(guestPrefill) : 'Guest'}</span></span></div>
+      <div class="bc-row"><span class="bc-icon" aria-hidden="true">👤</span><span class="bc-text"><span class="bc-label">Guest</span><span class="bc-value">${esc(guestNameWithParty())}</span></span></div>
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDate(checkinDate)}</span></span></div>
       <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDate(checkoutDate)}</span></span></div>
       ${bookingNo ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">🔖</span><span class="bc-text"><span class="bc-label">Booking ID</span><span class="bc-value">${esc(bookingNo)}</span></span></div>` : ''}
@@ -526,7 +436,6 @@ function renderSummary(){
   } else {
     el.style.display = 'none';
   }
-  renderGuestsField();
   renderDueBanner();
 }
 renderSummary();
@@ -813,12 +722,9 @@ $('#ciForm').addEventListener('submit', async e => {
 
   const name = $('#ci-name').value.trim();
   const idType = (document.querySelector('input[name="idType"]:checked') || {}).value || '';
-  const totalGuests = adultsCount + childrenCount + infantsCount;
   if(!name){ errEl.textContent = 'Please enter your name.'; return; }
   if(!idType){ errEl.textContent = 'Please select your ID type.'; return; }
   if(!idPhotoDataUrl){ errEl.textContent = 'Please add a photo of your ID.'; return; }
-  if(adultsCount > adultsMax){ errEl.textContent = 'Maximum adults allowed for this booking has been reached.'; return; }
-  if(totalGuests < 1){ errEl.textContent = 'Please add at least one guest.'; return; }
   if(!sigHasDrawn){ errEl.textContent = 'Please sign above.'; return; }
   if(!$('#ci-agree').checked){ errEl.textContent = 'Please agree to the House Rules & Terms.'; return; }
 
@@ -832,7 +738,7 @@ $('#ciForm').addEventListener('submit', async e => {
     address: $('#ci-address').value.trim(),
     vehicleNumber: $('#ci-vehicle').value.trim(),
     arrivalTime: formatArrivalTime($('#ci-arrival').value),
-    guestsCount: totalGuests,
+    guestsCount: Number(guestsOnBooking) || null,
     note: $('#ci-note').value.trim(),
     website: $('#ci-website').value, // honeypot
   };
@@ -857,7 +763,7 @@ $('#ciForm').addEventListener('submit', async e => {
       ? 'The server is taking a while to respond — please try again in a moment.'
       : (err.message || 'Could not submit — please try again.');
     btn.disabled = false; btn.classList.remove('is-loading');
-    $('.submit-label').textContent = 'Complete Secure Check-in';
+    $('.submit-label').textContent = 'Check-in';
   }
 });
 
@@ -881,6 +787,28 @@ if(ciSections.length && 'IntersectionObserver' in window){
   }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
   ciSections.forEach(s => stepIO.observe(s));
   setStep(1, ciSections[0].dataset.label);
+}
+
+// Progress bar sticks to the top once its normal position scrolls out of
+// view, so guests always know how far along they are without hunting for
+// it — a sentinel placed just above it is the trigger, rather than a
+// scroll-position math (cheaper, no scroll-event listener needed).
+const progressSentinel = $('#progressSentinel');
+const progressWrap = $('#progressWrap');
+const progressSpacer = $('#progressSpacer');
+if(progressSentinel && progressWrap && progressSpacer && 'IntersectionObserver' in window){
+  const stickyIO = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      const stuck = !en.isIntersecting;
+      // Measure height right before it goes fixed (while still in normal
+      // flow) so the spacer can hold its place open — otherwise the page
+      // jumps upward the instant the bar leaves flow.
+      if(stuck) progressSpacer.style.height = progressWrap.offsetHeight + 'px';
+      progressWrap.classList.toggle('is-stuck', stuck);
+      if(!stuck) progressSpacer.style.height = '0px';
+    });
+  }, { threshold: 0 });
+  stickyIO.observe(progressSentinel);
 }
 
 const revealEls = document.querySelectorAll('.reveal');
