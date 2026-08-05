@@ -369,15 +369,21 @@ function qp(name){ return new URLSearchParams(location.search).get(name) || ''; 
 // them set from the link's query params.
 let bookingNo = qp('no');
 let checkinTok = qp('t');
-let guestPrefill = qp('guest');
-let checkinDate = qp('checkin');
-let checkoutDate = qp('checkout');
-let guestsOnBooking = qp('guests'); // the booking's own guest count, shown as its own row in the summary card
-let dueAmount = qp('due');
-let guestPhone = qp('phone');
-let guestEmail = qp('email');
-let walletTok = qp('wallet');
-if(guestPrefill) $('#ci-name').value = guestPrefill;
+// Everything else about the booking (guest name, dates, guest count, due
+// balance, phone, email, wallet token) is fetched fresh from
+// /checkin/lookup below rather than read off the URL — the link itself is
+// just ?no=&t= now. That's not only a shorter link: due in particular has
+// to reflect the CURRENT balance, so a guest who pays via Pay Balance Now
+// and reopens (or never left) this page sees what's actually still owed,
+// not a snapshot from whenever the WhatsApp message was sent.
+let guestPrefill = '';
+let checkinDate = '';
+let checkoutDate = '';
+let guestsOnBooking = '';
+let dueAmount = '';
+let guestPhone = '';
+let guestEmail = '';
+let walletTok = '';
 
 function fmtDate(iso){
   if(!iso) return '';
@@ -473,9 +479,50 @@ function showCiForm(){
   $('#gsiBlock').style.display = 'none';
   $('#adminPicker').style.display = 'none';
 }
+function renderSummaryLoading(){
+  const el = $('#staySummary');
+  el.style.display = '';
+  el.innerHTML = `<div class="bc-row"><span class="bc-icon" aria-hidden="true">⏳</span><span class="bc-text"><span class="bc-label">Loading</span><span class="bc-value">Fetching your booking…</span></span></div>`;
+}
+// Resolves the short no+t link into the actual booking fields via
+// /checkin/lookup — see the comment by the `let ...` declarations above for
+// why this replaced reading them straight off the URL.
+async function loadBookingLookup(){
+  renderSummaryLoading();
+  try{
+    const res = await fetch(PROXY_URL+'/checkin/lookup?no='+encodeURIComponent(bookingNo)+'&t='+encodeURIComponent(checkinTok));
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || !data.ok){
+      // Invalid/expired direct link — fall back to Google sign-in rather
+      // than leaving the guest on a form with no booking context at all.
+      bookingNo = ''; checkinTok = '';
+      $('#ciForm').style.display = 'none';
+      $('#staySummary').style.display = 'none';
+      $('#gsiBlock').style.display = '';
+      const errEl = $('#gsiErr');
+      if(errEl) errEl.textContent = 'This check-in link has expired or is invalid — please sign in with Google to find your booking.';
+      return;
+    }
+    guestPrefill = data.guest || '';
+    checkinDate = data.checkin || '';
+    checkoutDate = data.checkout || '';
+    guestsOnBooking = data.guests || '';
+    dueAmount = data.due != null ? data.due : '';
+    guestPhone = data.phone || '';
+    guestEmail = data.email || '';
+    walletTok = data.wallet || '';
+    if(guestPrefill) $('#ci-name').value = guestPrefill;
+    renderSummary();
+  }catch(e){
+    // Network hiccup — leave the form usable (no+t are still good enough
+    // for the actual submit later), just without a populated summary card.
+    $('#staySummary').style.display = 'none';
+  }
+}
 if(bookingNo){
   $('#ciForm').style.display = '';
   $('#gsiBlock').style.display = 'none';
+  loadBookingLookup();
 } else {
   $('#ciForm').style.display = 'none';
 }

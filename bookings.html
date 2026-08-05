@@ -446,9 +446,14 @@ function feedbackRequestMessage(d){
     guest: d.guest || 'there', feedbackLink: feedbackLink(d)
   });
 }
+// Just no+t — checkin.html fetches everything else (guest, dates, guests,
+// due, phone, email, wallet token) live from /checkin/lookup on page load,
+// rather than baking a stale snapshot into the link's query string. Keeps
+// the link short AND means it always reflects the current balance (e.g.
+// after a Pay Balance Now payment), not whatever it was when this link was
+// generated.
 function checkinLink(d){
-  const due = Math.max(0, Math.round(grandTotal(d) - toNum(d.advance)));
-  return `${CHECKIN_FORM_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.checkinToken||'')}&guest=${encodeURIComponent(d.guest||'')}&checkin=${encodeURIComponent(d.checkin)}&checkout=${encodeURIComponent(d.checkout)}&guests=${encodeURIComponent(d.guests||'')}&due=${encodeURIComponent(due)}&phone=${encodeURIComponent(d.phone||'')}&email=${encodeURIComponent(d.email||'')}&wallet=${encodeURIComponent(d.walletToken||'')}`;
+  return `${CHECKIN_FORM_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.checkinToken||'')}`;
 }
 function checkinRequestMessage(d){
   return renderWaTemplate(waTemplates.checkinRequest, {
