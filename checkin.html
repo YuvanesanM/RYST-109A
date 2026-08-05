@@ -65,14 +65,19 @@
   @media (max-width:420px){ .f-row{grid-template-columns:1fr} }
 
   .photo-box{
-    border:1.5px dashed rgba(14,36,32,.2);border-radius:14px;padding:16px;text-align:center;cursor:pointer;
+    border:1.5px dashed rgba(14,36,32,.2);border-radius:14px;padding:16px;text-align:center;
     transition:border-color .2s;background:var(--foam);
   }
-  .photo-box:hover{border-color:var(--sea-mid)}
   .photo-box.has-photo{padding:0;border-style:solid;border-color:var(--line);overflow:hidden;cursor:default}
   .photo-box img{width:100%;max-height:220px;object-fit:contain;display:block;background:#000}
   .photo-prompt{color:var(--muted);font-size:13.5px}
   .photo-prompt svg{display:block;margin:0 auto 8px;color:var(--sea-mid)}
+  .photo-choice{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+  .photo-choice-btn{
+    background:var(--white);border:1.5px solid rgba(14,36,32,.15);border-radius:10px;padding:10px 16px;
+    font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;transition:border-color .2s;
+  }
+  .photo-choice-btn:hover{border-color:var(--sea-mid);color:var(--sea-mid)}
   .photo-actions{display:flex;justify-content:center;padding:10px;background:var(--white)}
   .photo-actions button{
     background:none;border:none;color:var(--coral);font-family:var(--sans);font-size:13px;font-weight:600;
@@ -152,12 +157,10 @@
 
         <div class="f-group">
           <label>ID Photo *</label>
-          <div class="photo-box" id="photoBox">
-            <div class="photo-prompt" id="photoPrompt">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-              Tap to take a photo or upload your ID
-            </div>
-          </div>
+          <!-- Populated entirely by renderPhotoBox() at load — its two
+               buttons (camera / gallery) need real JS-attached listeners
+               either way, so there's no static fallback markup here. -->
+          <div class="photo-box" id="photoBox"></div>
         </div>
 
         <div class="f-group">
@@ -377,18 +380,28 @@ setTimeout(() => {
   }
 }, 8000);
 
-// ── ID PHOTO ── same capture+compress pattern as the checklist/petty-cash
-// photo uploads: read the file, downscale to a sane max dimension, export
-// as a JPEG data URI. Keeps the upload small without needing a cropping UI.
+// ── ID PHOTO ── same compress pattern as the checklist/petty-cash photo
+// uploads: read the file, downscale to a sane max dimension, export as a
+// JPEG data URI. Keeps the upload small without needing a cropping UI.
+//
+// Two separate hidden inputs rather than one ambiguous tap target, because
+// neither approach alone is reliable inside WhatsApp's in-app browser
+// (where most guests actually open this link):
+//   - WITH capture="environment": some WhatsApp/Android WebView versions
+//     fail to open ANY picker at all — not just skip the gallery, the
+//     whole thing silently does nothing.
+//   - WITHOUT capture: works reliably for gallery selection everywhere,
+//     but some in-app browsers' file chooser doesn't surface a camera
+//     option on its own, so there's no way to snap a fresh photo.
+// Offering both as explicit buttons means whichever one a given browser
+// actually supports still works, instead of gambling on one blended input.
 let idPhotoDataUrl = null;
-const photoInput = document.createElement('input');
-// No `capture` attribute — this link is sent over WhatsApp, so most guests
-// open it inside WhatsApp's in-app browser, which has a known bug where a
-// file input carrying `capture` fails to open any picker at all (neither
-// camera nor gallery). Dropping it still lets the OS's native picker offer
-// "Camera" as one of its options on iOS/Android — it just stops forcing it.
-photoInput.type = 'file'; photoInput.accept = 'image/*'; photoInput.hidden = true;
-document.body.appendChild(photoInput);
+const photoInputCamera = document.createElement('input');
+photoInputCamera.type = 'file'; photoInputCamera.accept = 'image/*'; photoInputCamera.setAttribute('capture', 'environment'); photoInputCamera.hidden = true;
+document.body.appendChild(photoInputCamera);
+const photoInputGallery = document.createElement('input');
+photoInputGallery.type = 'file'; photoInputGallery.accept = 'image/*'; photoInputGallery.hidden = true;
+document.body.appendChild(photoInputGallery);
 
 function compressImage(file){
   return new Promise((resolve,reject)=>{
@@ -411,23 +424,30 @@ function renderPhotoBox(){
   if(idPhotoDataUrl){
     box.classList.add('has-photo');
     box.innerHTML = `<img src="${idPhotoDataUrl}" alt="ID photo preview">
-      <div class="photo-actions"><button type="button" id="photoRetake">Retake photo</button></div>`;
-    $('#photoRetake').addEventListener('click', e => { e.stopPropagation(); photoInput.value=''; photoInput.click(); });
+      <div class="photo-actions"><button type="button" id="photoRetake">Retake / re-upload</button></div>`;
+    $('#photoRetake').addEventListener('click', () => { idPhotoDataUrl = null; renderPhotoBox(); });
   } else {
     box.classList.remove('has-photo');
     box.innerHTML = `<div class="photo-prompt" id="photoPrompt">
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      Tap to take a photo or upload your ID
+      Add a photo of your ID
+      <div class="photo-choice">
+        <button type="button" class="photo-choice-btn" id="photoTakeBtn">📷 Take Photo</button>
+        <button type="button" class="photo-choice-btn" id="photoGalleryBtn">🖼 Choose from Gallery</button>
+      </div>
     </div>`;
+    $('#photoTakeBtn').addEventListener('click', () => { photoInputCamera.value=''; photoInputCamera.click(); });
+    $('#photoGalleryBtn').addEventListener('click', () => { photoInputGallery.value=''; photoInputGallery.click(); });
   }
 }
-$('#photoBox').addEventListener('click', () => { if(!idPhotoDataUrl){ photoInput.value=''; photoInput.click(); } });
-photoInput.addEventListener('change', async () => {
-  const file = photoInput.files[0];
+async function handlePhotoFile(file){
   if(!file) return;
   try{ idPhotoDataUrl = await compressImage(file); renderPhotoBox(); }
   catch(e){ $('#ciErr').textContent = e.message; }
-});
+}
+photoInputCamera.addEventListener('change', () => handlePhotoFile(photoInputCamera.files[0]));
+photoInputGallery.addEventListener('change', () => handlePhotoFile(photoInputGallery.files[0]));
+renderPhotoBox();
 
 // ── SIGNATURE PAD ── plain canvas + pointer events. Sized to its own CSS
 // width in real device pixels (not just CSS pixels) so it isn't blurry on
