@@ -309,13 +309,8 @@
           <div class="ci-section-divider"></div>
 
           <div class="f-group">
-            <label for="ci-address">Home Address</label>
-            <textarea id="ci-address" placeholder="Your home address" autocomplete="street-address"></textarea>
-          </div>
-
-          <div class="f-group">
-            <label for="ci-note">Note to Host</label>
-            <textarea id="ci-note" placeholder="Anything you'd like us to know — allergies, special occasion, requests…"></textarea>
+            <label for="ci-note">Notes (if any)</label>
+            <textarea id="ci-note" placeholder="Anything you'd like us to know - special occasion, requests..."></textarea>
           </div>
 
           <div class="f-group">
@@ -720,7 +715,7 @@ $('#ciForm').addEventListener('submit', async e => {
     no: bookingNo, t: checkinTok, name, idType,
     idPhoto: idPhotoDataUrl,
     signature: sigCanvas.toDataURL('image/png'),
-    address: $('#ci-address').value.trim(),
+    address: '', // field removed from the form; key kept so the payload shape is unchanged
     vehicleNumber: $('#ci-vehicle').value.trim(),
     arrivalTime: formatArrivalTime($('#ci-arrival').value),
     guestsCount: Number(guestsOnBooking) || null,
