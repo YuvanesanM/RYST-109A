@@ -173,6 +173,7 @@
       --coral:      #c96a3b;
       --white:      #fbfaf8;
       --muted:      #6b8480;
+      --muted-text: #5a706c;
       --line:       rgba(14,36,32,.1);
       --gold:       #e6cd97;
       --gold-deep:  #c89a58;
@@ -354,7 +355,7 @@
     .section-tag   { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--sea-mid); margin-bottom: 12px; }
     .section-title { font-family: var(--serif); font-size: clamp(32px,5vw,58px); font-weight: 300; color: var(--ink); line-height: 1.1; }
     .section-title em { font-style: italic; color: var(--sea-mid); }
-    .section-lead  { font-size: 16px; color: var(--muted); line-height: 1.75; max-width: 580px; margin-top: 16px; }
+    .section-lead  { font-size: 16px; color: var(--muted-text); line-height: 1.75; max-width: 580px; margin-top: 16px; }
     .section-head  { margin-bottom: 48px; }
 
     /* ── JUMP NAV ──
@@ -426,7 +427,7 @@
     .at-map-btn:hover { background: rgba(11,61,82,.16); transform: scale(1.1); }
     .at-highlights { display: flex; flex-wrap: wrap; gap: 6px; }
     .at-highlight { font-size: 12px; color: var(--ink-mid); background: rgba(14,36,32,.05); border: 1px solid rgba(14,36,32,.08); padding: 4px 10px; border-radius: 100px; }
-    .at-detail { font-size: 13px; color: var(--muted); line-height: 1.6; display: grid; gap: 4px; }
+    .at-detail { font-size: 13px; color: var(--muted-text); line-height: 1.6; display: grid; gap: 4px; }
     .at-detail strong { color: var(--ink-mid); font-weight: 600; }
 
     /* ── JOURNEY (SVG MAP) ── */
@@ -443,7 +444,7 @@
       box-shadow: var(--sh-sm); backdrop-filter: blur(10px); display: grid; gap: 3px;
     }
     .j-label strong { font-family: var(--serif); color: var(--sea); font-size: 1.1rem; line-height: 1; }
-    .j-label span   { color: var(--muted); font-size: .8rem; font-weight: 600; }
+    .j-label span   { color: var(--muted-text); font-size: .8rem; font-weight: 600; }
     .j-ryst { background: rgba(11,61,82,.92); text-align: center; left: 50%; top: 44%; transform: translate(-50%, -50%); }
     .j-ryst strong, .j-ryst span { color: #fff; }
     .j-north { left: 6%; top: 14%; }
@@ -461,9 +462,9 @@
     }
     .it-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--sea-mid); margin-bottom: 8px; }
     .it-card h3 { font-family: var(--serif); font-size: 1.45rem; font-weight: 400; color: var(--sea); margin-bottom: 6px; line-height: 1.15; }
-    .it-drive { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 20px; }
+    .it-drive { font-size: 12px; color: var(--muted-text); font-weight: 600; margin-bottom: 20px; }
     .it-steps { list-style: none; display: flex; flex-direction: column; gap: 14px; }
-    .it-step { position: relative; padding-left: 20px; font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+    .it-step { position: relative; padding-left: 20px; font-size: 13.5px; color: var(--muted-text); line-height: 1.55; }
     .it-step::before { content: ''; position: absolute; left: 0; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--sand); box-shadow: 0 0 0 4px rgba(200,169,122,.15); }
     .it-step strong { color: var(--ink-mid); font-weight: 600; }
 
@@ -511,7 +512,7 @@
     .din-title { font-family: var(--serif); font-size: 1.25rem; color: var(--ink); margin-bottom: 10px; line-height: 1.2; }
     .din-meta  { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
     .din-chip  { font-size: 12px; font-weight: 600; color: var(--sea-mid); background: rgba(11,61,82,.07); padding: 4px 10px; border-radius: 100px; }
-    .din-rec   { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+    .din-rec   { font-size: 13.5px; color: var(--muted-text); line-height: 1.6; }
     .din-rec strong { color: var(--ink-mid); }
 
     /* ── MAP SECTION ── */
@@ -549,10 +550,10 @@
       display: flex; flex-direction: column; gap: 16px;
     }
     .map-panel h3 { font-family: var(--serif); font-size: 1.35rem; color: var(--sea); }
-    .map-panel p  { font-size: 14px; color: var(--muted); line-height: 1.65; }
+    .map-panel p  { font-size: 14px; color: var(--muted-text); line-height: 1.65; }
     .map-panel iframe { width: 100%; min-height: 220px; border: 0; border-radius: 14px; filter: saturate(.88); }
     .map-legend { display: flex; gap: 12px; flex-wrap: wrap; }
-    .map-legend span { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--muted); }
+    .map-legend span { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; color: var(--muted-text); }
     .map-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sea); }
     .btn-gold {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -574,7 +575,7 @@
     .faq-item summary::-webkit-details-marker { display: none; }
     .faq-item summary::after { content: '+'; font-size: 22px; color: var(--sand); flex-shrink: 0; font-family: var(--serif); }
     .faq-item[open] summary::after { content: '−'; }
-    .faq-item p { font-size: 15px; color: var(--muted); line-height: 1.75; padding-bottom: 22px; max-width: 780px; }
+    .faq-item p { font-size: 15px; color: var(--muted-text); line-height: 1.75; padding-bottom: 22px; max-width: 780px; }
 
     /* ── FINAL CTA ── */
     .n-cta {
