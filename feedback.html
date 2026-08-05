@@ -17,7 +17,7 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
     --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#e8f2f0;
-    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480;
+    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480; --muted-text:#5a706c;
     --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
     --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
   }
@@ -31,16 +31,16 @@
   .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sea),var(--sea-mid),var(--sand))}
   .logo{height:44px;display:block;margin:0 auto 18px;object-fit:contain}
   h1{font-family:var(--serif);font-weight:600;font-size:clamp(24px,4vw,30px);text-align:center;color:var(--sea);margin-bottom:6px}
-  .lead{text-align:center;color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:26px}
+  .lead{text-align:center;color:var(--muted-text);font-size:14px;line-height:1.6;margin-bottom:26px}
 
   .stars{display:flex;justify-content:center;gap:8px;margin-bottom:22px}
   .star{background:none;border:none;cursor:pointer;padding:4px;color:#d7d7d1;transition:color .15s,transform .15s}
   .star:hover{transform:scale(1.12)}
   .star.filled{color:var(--sand)}
-  .rating-label{text-align:center;font-size:12.5px;color:var(--muted);min-height:16px;margin:-14px 0 20px;font-weight:600}
+  .rating-label{text-align:center;font-size:12.5px;color:var(--muted-text);min-height:16px;margin:-14px 0 20px;font-weight:600}
 
   .f-group{display:flex;flex-direction:column;gap:7px;margin-bottom:16px}
-  .f-group label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.7px}
+  .f-group label{font-size:12px;font-weight:600;color:var(--muted-text);text-transform:uppercase;letter-spacing:.7px}
   .f-group input,.f-group textarea{
     border:1.5px solid rgba(14,36,32,.12);border-radius:12px;padding:13px 16px;
     font-family:var(--sans);font-size:14.5px;color:var(--ink);background:var(--white);
@@ -49,7 +49,7 @@
   .f-group input:focus,.f-group textarea:focus{border-color:var(--sea-mid);box-shadow:0 0 0 3px rgba(26,106,122,.1)}
   .f-group textarea{resize:vertical;min-height:100px}
 
-  .chk-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:22px;font-size:13px;color:var(--muted);line-height:1.5}
+  .chk-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:22px;font-size:13px;color:var(--muted-text);line-height:1.5}
   .chk-row input{margin-top:3px;flex-shrink:0}
 
   .submit{
@@ -65,7 +65,7 @@
   .thanks{display:none;text-align:center;padding:20px 0}
   .thanks .tick{width:56px;height:56px;border-radius:50%;background:var(--foam);color:var(--sea-mid);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
   .thanks h2{font-family:var(--serif);font-weight:600;font-size:24px;color:var(--sea);margin-bottom:8px}
-  .thanks p{color:var(--muted);font-size:14px;line-height:1.6}
+  .thanks p{color:var(--muted-text);font-size:14px;line-height:1.6}
 
   .greview{display:none;margin-top:26px;padding-top:24px;border-top:1px solid var(--line)}
   .greview p{margin-bottom:16px}
