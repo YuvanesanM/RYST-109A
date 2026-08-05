@@ -60,9 +60,17 @@
     outline:none;transition:border-color .2s,box-shadow .2s;width:100%;
   }
   .f-group input:focus,.f-group textarea:focus,.f-group select:focus{border-color:var(--sea-mid);box-shadow:0 0 0 3px rgba(26,106,122,.1)}
+  .f-group input[readonly]{background:var(--foam);color:var(--muted);cursor:not-allowed}
   .f-group textarea{resize:vertical;min-height:76px}
   .f-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   @media (max-width:420px){ .f-row{grid-template-columns:1fr} }
+
+  .due-banner{
+    background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
+    border-radius:14px;padding:12px 16px;margin:0 0 18px;text-align:center;
+    font-size:13.5px;color:#8a4321;line-height:1.5;
+  }
+  .due-banner strong{font-size:15px;color:var(--coral)}
 
   .photo-box{
     border:1.5px dashed rgba(14,36,32,.2);border-radius:14px;padding:16px;text-align:center;
@@ -118,6 +126,7 @@
       <h1>Guest Check-in</h1>
       <p class="lead">A few quick details so we have everything ready before you arrive.</p>
       <div class="stay-summary" id="staySummary"></div>
+      <div class="due-banner" id="dueBanner" style="display:none"></div>
 
       <div class="gsi-block" id="gsiBlock">
         <p class="gsi-hint" id="gsiHint">Sign in with Google to find your booking and auto-fill your details.</p>
@@ -151,7 +160,6 @@
             <option>Passport</option>
             <option>Driving License</option>
             <option>Voter ID</option>
-            <option>Other</option>
           </select>
         </div>
 
@@ -164,28 +172,30 @@
         </div>
 
         <div class="f-group">
-          <label for="ci-address">Home Address (optional)</label>
+          <label for="ci-address">Home Address</label>
           <textarea id="ci-address" placeholder="Your home address"></textarea>
         </div>
 
         <div class="f-row">
           <div class="f-group">
-            <label for="ci-vehicle">Vehicle Number (optional)</label>
+            <label for="ci-vehicle">Vehicle Number</label>
             <input id="ci-vehicle" type="text" placeholder="If driving">
           </div>
           <div class="f-group">
-            <label for="ci-arrival">Expected Arrival (optional)</label>
+            <label for="ci-arrival">Expected Arrival</label>
             <input id="ci-arrival" type="text" placeholder="e.g. 6:00 PM">
           </div>
         </div>
 
         <div class="f-group">
-          <label for="ci-guests">Number of Guests (optional)</label>
-          <input id="ci-guests" type="number" min="1" max="30" placeholder="Total staying">
+          <label for="ci-guests">Number of Guests</label>
+          <!-- Locked to what's on the booking — set from the link/booking
+               record in JS, never hand-editable here. -->
+          <input id="ci-guests" type="number" min="1" max="30" placeholder="—" readonly>
         </div>
 
         <div class="f-group">
-          <label for="ci-note">Note to host (optional)</label>
+          <label for="ci-note">Note to host</label>
           <textarea id="ci-note" placeholder="Anything you'd like us to know — allergies, special occasion, requests…"></textarea>
         </div>
 
@@ -232,6 +242,8 @@ let checkinTok = qp('t');
 let guestPrefill = qp('guest');
 let checkinDate = qp('checkin');
 let checkoutDate = qp('checkout');
+let guestsOnBooking = qp('guests');
+let dueAmount = qp('due');
 if(guestPrefill) $('#ci-name').value = guestPrefill;
 
 function fmtDate(iso){
@@ -239,6 +251,23 @@ function fmtDate(iso){
   const d = new Date(iso+'T00:00:00');
   if(isNaN(d)) return iso;
   return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+}
+// Guest count comes from the booking record only — never a field the guest
+// can type into (see #ci-guests' readonly attribute in the markup).
+function renderGuestsField(){
+  $('#ci-guests').value = guestsOnBooking || '';
+}
+// Only shown when there's an actual balance — never fabricated, and never
+// shown as zero/"all paid" noise.
+function renderDueBanner(){
+  const el = $('#dueBanner');
+  const amt = Math.round(Number(dueAmount) || 0);
+  if(amt > 0){
+    el.style.display = '';
+    el.innerHTML = `Balance due: <strong>₹${amt.toLocaleString('en-IN')}</strong> — payable 72 hours before check-in.`;
+  } else {
+    el.style.display = 'none';
+  }
 }
 function renderSummary(){
   const el = $('#staySummary');
@@ -248,6 +277,8 @@ function renderSummary(){
   } else {
     el.style.display = 'none';
   }
+  renderGuestsField();
+  renderDueBanner();
 }
 renderSummary();
 
@@ -285,6 +316,8 @@ async function handleGoogleLogin(credentialResponse){
       guestPrefill = data.guest || guestPrefill;
       checkinDate = data.checkin || checkinDate;
       checkoutDate = data.checkout || checkoutDate;
+      guestsOnBooking = data.guests || guestsOnBooking;
+      dueAmount = data.due != null ? data.due : dueAmount;
       if(guestPrefill) $('#ci-name').value = guestPrefill;
       renderSummary();
       $('#gsiBlock').innerHTML = `<p class="gsi-matched">✓ Signed in — matched your booking ${esc(bookingNo)}.</p>`;
@@ -346,6 +379,14 @@ async function loadAdminPicker(token){
   }
 }
 
+// Mirrors bookings.html's toNum/grandTotal — /stays hands the admin picker
+// full stay records (items/discount/advance included), so the due amount
+// can be computed the same way here without a separate server round-trip.
+const toNumCI = v => { const n = parseFloat(String(v==null?'':v).replace(/[^0-9.-]/g,'')); return isFinite(n) ? n : 0; };
+function grandTotalCI(d){
+  const sub = (d.items||[]).reduce((s,it)=>s+toNumCI(it.rate)*toNumCI(it.qty),0);
+  return Math.max(0, sub - toNumCI(d.discount));
+}
 $('#adminGuestSelect').addEventListener('change', () => {
   const idx = $('#adminGuestSelect').value;
   if(idx === '') return;
@@ -356,6 +397,8 @@ $('#adminGuestSelect').addEventListener('change', () => {
   guestPrefill = s.guest || '';
   checkinDate = s.checkin;
   checkoutDate = s.checkout;
+  guestsOnBooking = s.guests || '';
+  dueAmount = Math.max(0, Math.round(grandTotalCI(s) - toNumCI(s.advance)));
   $('#ci-name').value = guestPrefill;
   renderSummary();
   showCiForm();
