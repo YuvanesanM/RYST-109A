@@ -16,7 +16,7 @@
     --ink:#1d211c; --muted:#5f655d; --muted2:#9aa097;
     --danger:#c0584b; --danger-soft:#fbecea; --warn:#c98a2b; --warn-soft:#fbf3e6;
     --inv:#0e7c86; --inv-soft:#e3f1f1; --qt:#c0922f; --qt-soft:#fbf0d8;
-    --block:#6b7280; --block-soft:#eceef0;
+    --block:#6b7280; --block-soft:#eceef0; --telegram:#229ED9;
     /* OTA platform colors for blocked-date pills — matched by name against
        each iCal feed's owner-typed label (Settings → OTA Sync), so a custom
        or unrecognized label just falls back to --block above. */
@@ -111,6 +111,14 @@
   .rem-send{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600}
   .rem-send:hover{background:var(--accent-d)}
   .rem-send:disabled{background:var(--line);color:var(--muted2);cursor:not-allowed}
+  .rem-actions{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+  /* Secondary to .rem-send (outlined, not filled) — this only ever nudges a
+     Telegram message with a tap-to-send link, it doesn't send anything
+     itself, so it reads as the lighter-weight action next to "Send
+     WhatsApp"/"Send Confirmation" etc. */
+  .rem-tg{background:var(--panel);color:var(--telegram);border:1.5px solid var(--line);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600}
+  .rem-tg:hover{border-color:var(--telegram)}
+  .rem-tg:disabled{background:var(--line);color:var(--muted2);cursor:not-allowed;border-color:var(--line)}
 
   .agenda{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto}
   .ag-item{display:flex;flex-direction:column;gap:2px;padding:10px 11px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:12.5px;text-decoration:none;color:inherit;transition:.12s}
@@ -618,6 +626,44 @@ async function pushStays(){
   return true;
 }
 
+// Shared by all four "Send via Telegram" buttons below — pushes the exact
+// same message text the matching "Send WhatsApp"/"Send Confirmation" button
+// would open, but as a Telegram nudge (a one-tap api.whatsapp.com/send link
+// delivered to the owner's phone) instead of opening WhatsApp directly in
+// this browser tab. Marks the same *SentAt/*RequestedAt field as the
+// WhatsApp button on success — same "sent = the human was prompted"
+// semantics used everywhere else on this page, since there's no way to
+// confirm the owner actually tapped through from Telegram either.
+async function sendTelegramNudge({ d, field, label, text, btn, onDone }){
+  const phone = normalizePhone(d.phone);
+  if(!phone) return;
+  const originalLabel = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+  try{
+    const res = await fetch(PROXY_URL+'/telegram/notify', {
+      method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
+      body: JSON.stringify({ phone, text, field, label, guest: d.guest||'', no: d.no||'' })
+    });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.ok===false){ alert(data.error || 'Could not send Telegram notification'); return; }
+    d[field] = new Date().toISOString();
+    try{
+      const ok = await pushStays();
+      if(ok===false) return;
+      onDone();
+    }catch(e){
+      delete d[field];
+      alert('Telegram nudge sent, but could not save status: ' + e.message);
+      onDone();
+    }
+  }catch(e){
+    alert('Could not reach the server: ' + e.message);
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+  }
+}
+
 function render(){
   renderStats();
   renderCalendar();
@@ -649,12 +695,20 @@ function renderDirectBookings(){
       ? `<span class="rem-sent">Sent ${fmtDate(dateOnly(new Date(d.confirmationSentAt)))} · <a onclick="markBookingConfirmationUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendBookingConfirmation('${esc(d.no)}')">${waTemplatesLoaded?(d.confirmationSentAt?'Resend':'Send Confirmation'):'Loading template…'}</button>`;
+    const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendBookingConfirmationTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">₹${toNum(d.advance).toLocaleString('en-IN')} paid</span></div>
       <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
-      <div class="rem-foot">${statusNote}${actionBtn}</div>
+      <div class="rem-foot">${statusNote}<span class="rem-actions">${tgBtn}${actionBtn}</span></div>
     </div>`;
   }).join('');
+}
+
+async function sendBookingConfirmationTg(no, btn){
+  if(!waTemplatesLoaded) return;
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  await sendTelegramNudge({ d, field:'confirmationSentAt', label:'📩 Booking confirmation', text: bookingConfirmedMessage(d), btn, onDone: renderDirectBookings });
 }
 
 async function sendBookingConfirmation(no){
@@ -712,22 +766,30 @@ function renderCheckins(){
     const days = nightsBetween(today, d.checkin);
     const when = days<=0 ? 'Today' : days===1 ? 'Tomorrow' : `In ${days} days`;
     const phone = normalizePhone(d.phone);
-    let statusNote, actionBtn;
+    let statusNote, actionBtn, tgBtn;
     if(d.checkinInfo){
       statusNote = `<span class="rem-sent">✓ Checked in ${fmtDate(dateOnly(new Date(d.checkinInfo.submittedAt)))} · <a onclick="openCheckinDetail('${esc(d.no)}')">view</a></span>`;
-      actionBtn = '';
+      actionBtn = ''; tgBtn = '';
     } else {
       statusNote = d.checkinRequestedAt
         ? `<span class="rem-sent">Link sent ${fmtDate(dateOnly(new Date(d.checkinRequestedAt)))} · <a onclick="markCheckinUnsent('${esc(d.no)}')">undo</a></span>`
         : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
       actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequest('${esc(d.no)}')">${waTemplatesLoaded?(d.checkinRequestedAt?'Resend':'Send Check-in Link'):'Loading template…'}</button>`;
+      tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     }
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
       <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
-      <div class="rem-foot">${statusNote}${actionBtn}</div>
+      <div class="rem-foot">${statusNote}<span class="rem-actions">${tgBtn}${actionBtn}</span></div>
     </div>`;
   }).join('');
+}
+
+async function sendCheckinRequestTg(no, btn){
+  if(!waTemplatesLoaded) return;
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  await sendTelegramNudge({ d, field:'checkinRequestedAt', label:'🔑 Check-in request', text: checkinRequestMessage(d), btn, onDone: renderCheckins });
 }
 
 async function sendCheckinRequest(no){
@@ -818,12 +880,22 @@ function renderReminders(){
     const sendBtn = (!d.reminderSentAt)
       ? `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">${waTemplatesLoaded?'Send WhatsApp':'Loading template…'}</button>`
       : '';
+    const tgBtn = (!d.reminderSentAt)
+      ? `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminderTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`
+      : '';
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
       <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
-      <div class="rem-foot">${sentNote}${sendBtn}</div>
+      <div class="rem-foot">${sentNote}<span class="rem-actions">${tgBtn}${sendBtn}</span></div>
     </div>`;
   }).join('');
+}
+
+async function sendReminderTg(no, btn){
+  if(!waTemplatesLoaded) return;
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  await sendTelegramNudge({ d, field:'reminderSentAt', label:'📅 Stay reminder', text: reminderMessage(d), btn, onDone: renderReminders });
 }
 
 async function sendReminder(no){
@@ -895,12 +967,22 @@ function renderFeedbackRequests(){
     const sendBtn = (!d.feedbackRequestedAt)
       ? `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">${waTemplatesLoaded?'Send WhatsApp':'Loading template…'}</button>`
       : '';
+    const tgBtn = (!d.feedbackRequestedAt)
+      ? `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`
+      : '';
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
       <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
-      <div class="rem-foot">${sentNote}${sendBtn}</div>
+      <div class="rem-foot">${sentNote}<span class="rem-actions">${tgBtn}${sendBtn}</span></div>
     </div>`;
   }).join('');
+}
+
+async function sendFeedbackRequestTg(no, btn){
+  if(!waTemplatesLoaded) return;
+  const d = STAYS.find(s=>s.no===no);
+  if(!d) return;
+  await sendTelegramNudge({ d, field:'feedbackRequestedAt', label:'⭐ Feedback request', text: feedbackRequestMessage(d), btn, onDone: renderFeedbackRequests });
 }
 
 async function sendFeedbackRequest(no){
