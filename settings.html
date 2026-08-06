@@ -85,6 +85,23 @@
   .sync-result.warn{background:var(--warn-soft);color:var(--warn)}
   .sync-result .note{display:block;font-size:11px;font-weight:500;opacity:.85;margin-top:2px}
 
+  /* Live Telegram-connectivity indicator — a colored, (when connected)
+     gently pulsing dot rather than plain text, since this is the one thing
+     on the page that reflects real-time external state (whether the bot
+     token/chat ID actually resolve) rather than saved settings. Auto-
+     refreshes on an interval — see loadWhatsAppStatus's setInterval call —
+     so "live" isn't just a label. */
+  .tg-status{display:flex;align-items:center;gap:10px;padding:13px 15px;border-radius:12px;background:var(--panel2);margin-bottom:14px;font-size:13.5px;font-weight:600}
+  .tg-status .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;background:var(--muted2)}
+  .tg-status .dot.on{background:var(--accent);animation:tg-pulse 2s infinite}
+  .tg-status .dot.off{background:var(--danger)}
+  .tg-status .meta{margin-left:auto;font-size:11px;font-weight:500;color:var(--muted2);white-space:nowrap}
+  @keyframes tg-pulse{
+    0%{box-shadow:0 0 0 0 rgba(61,155,105,.45)}
+    70%{box-shadow:0 0 0 7px rgba(61,155,105,0)}
+    100%{box-shadow:0 0 0 0 rgba(61,155,105,0)}
+  }
+
   /* ---- TOAST ---- */
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#1d211c;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:60}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -260,10 +277,14 @@
 
   <div class="tab-panel" data-panel="whatsapp" style="display:none">
     <p class="gh-mini">Automated sending</p>
-    <p class="sd" style="margin-bottom:12px">When configured, the templates below go out automatically on a schedule (check-in requests, stay reminders, feedback requests, and booking confirmations) instead of needing a manual click from Bookings. Preferred setup is Telegram notify — a message lands on your phone with a one-tap link that opens WhatsApp pre-filled, so the actual send is still you, from your own number. Direct WhatsApp sending (the bot number) only runs if Telegram notify isn't set up.</p>
-    <div class="sync-results" id="waStatusBox" style="margin-bottom:10px"></div>
+    <p class="sd" style="margin-bottom:12px">When configured, the templates below go out automatically on a schedule (check-in requests, stay reminders, feedback requests, and booking confirmations) instead of needing a manual click from Bookings — delivered as a Telegram message with a one-tap link that opens WhatsApp pre-filled, so the actual send is still you, from your own number. There's no bot number and nothing sends WhatsApp messages on its own.</p>
+    <div class="tg-status" id="tgStatusLive">
+      <span class="dot" id="tgStatusDot"></span>
+      <span id="tgStatusText">Checking Telegram connectivity…</span>
+      <span class="meta" id="tgStatusMeta"></span>
+    </div>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px">
-      <button class="btn" id="waStatusRefresh">⟳ Refresh status</button>
+      <button class="btn" id="waStatusRefresh">⟳ Refresh now</button>
       <button class="btn" id="waRunNowBtn">▶ Run now</button>
     </div>
     <div class="sync-results" id="waRunResults" style="margin-bottom:18px"></div>
@@ -663,34 +684,51 @@ document.getElementById("icalSyncBtn").addEventListener("click", async ()=>{
   finally{ btn.disabled=false; btn.textContent="⟳ Sync now"; }
 });
 
-/* ---------- WHATSAPP AUTOMATION STATUS (owner) ---------- */
+/* ---------- TELEGRAM NOTIFY STATUS (owner) ----------
+   Telegram notify is the only automated-sending path now — direct WhatsApp
+   sending (the old Baileys bot connection) has been removed entirely, not
+   just hidden here. /whatsapp/status actually calls Telegram's getMe
+   server-side, so "connected" here reflects a just-verified live check, not
+   just "an env var happens to be set". Polls on an interval below so this
+   reads as live connectivity rather than a one-time page-load check. */
+let tgStatusLastCheck = null;
 async function loadWhatsAppStatus(){
-  const box = document.getElementById('waStatusBox');
-  if(!proxyToken){ box.innerHTML = '<div class="sync-result">Sign in required</div>'; return; }
-  box.innerHTML = '<div class="sync-result">Checking…</div>';
+  const dot = document.getElementById('tgStatusDot');
+  const text = document.getElementById('tgStatusText');
+  if(!proxyToken){ dot.className='dot'; text.textContent = 'Sign in required'; return; }
   try{
     const res = await fetch(PROXY_URL+'/whatsapp/status', { headers: { 'X-Token': proxyToken }, cache: 'no-store' });
     if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
     const data = await res.json().catch(()=>({}));
-    if(!res.ok){ box.innerHTML = `<div class="sync-result err"><span>Status</span><span>${esc(data.error||'Could not check status')}</span></div>`; return; }
-    // Telegram notify is the preferred path — shown first, and is what
-    // "Run now" below will actually use whenever it's configured (see
-    // /whatsapp/run-scheduled's useTelegramWA in server.js). The WhatsApp
-    // (Baileys) line only matters as the fallback for when Telegram isn't
-    // set up yet.
-    let html = data.telegramConfigured
-      ? '<div class="sync-result"><span>Telegram notify</span><span>Configured</span></div>'
-      : '<div class="sync-result warn"><span>Telegram notify<span class="note">Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID on Render — see below</span></span><span>Not set up</span></div>';
-    if(!data.enabled){
-      html += '<div class="sync-result"><span>WhatsApp (direct)</span><span>Not set up</span></div>';
+    if(!res.ok){ dot.className='dot off'; text.textContent = data.error || 'Could not check status'; return; }
+    tgStatusLastCheck = new Date();
+    if(!data.configured){
+      dot.className = 'dot';
+      text.textContent = 'Telegram notify — not set up yet (see below)';
+    } else if(data.connected){
+      dot.className = 'dot on';
+      text.textContent = data.botUsername ? `Telegram notify — connected (@${data.botUsername})` : 'Telegram notify — connected';
     } else {
-      html += data.connected
-        ? '<div class="sync-result"><span>WhatsApp (direct)</span><span>Connected</span></div>'
-        : `<div class="sync-result warn"><span>WhatsApp (direct)<span class="note">${data.lastError?esc(data.lastError):'Needs pairing — check Render’s live logs for a QR code to scan from WhatsApp › Linked Devices'}</span></span><span>Not connected</span></div>`;
+      dot.className = 'dot off';
+      text.textContent = 'Telegram notify — configured, but not reachable: ' + (data.error || 'unknown error');
     }
-    box.innerHTML = html;
-  }catch(e){ box.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
+    updateTgStatusMeta();
+  }catch(e){
+    dot.className = 'dot off';
+    text.textContent = 'Could not reach the server';
+    document.getElementById('tgStatusMeta').textContent = '';
+  }
 }
+function updateTgStatusMeta(){
+  const meta = document.getElementById('tgStatusMeta');
+  if(!tgStatusLastCheck){ meta.textContent = ''; return; }
+  const secs = Math.max(0, Math.round((Date.now()-tgStatusLastCheck.getTime())/1000));
+  meta.textContent = secs < 3 ? 'checked just now' : `checked ${secs}s ago`;
+}
+setInterval(updateTgStatusMeta, 1000);
+// Re-checks every 30s while this tab is actually visible — no point polling
+// a background tab nobody's looking at.
+setInterval(()=>{ if(!document.hidden) loadWhatsAppStatus(); }, 30000);
 document.getElementById('waStatusRefresh').addEventListener('click', loadWhatsAppStatus);
 document.getElementById('waRunNowBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('waRunNowBtn');
