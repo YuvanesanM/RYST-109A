@@ -877,12 +877,8 @@ function renderReminders(){
     const sentNote = d.reminderSentAt
       ? `<span class="rem-sent">✓ Reminded ${fmtDate(dateOnly(new Date(d.reminderSentAt)))} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
-    const sendBtn = (!d.reminderSentAt)
-      ? `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">${waTemplatesLoaded?'Send WhatsApp':'Loading template…'}</button>`
-      : '';
-    const tgBtn = (!d.reminderSentAt)
-      ? `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminderTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`
-      : '';
+    const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">${waTemplatesLoaded?(d.reminderSentAt?'Resend':'Send WhatsApp'):'Loading template…'}</button>`;
+    const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminderTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
       <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
@@ -964,12 +960,8 @@ function renderFeedbackRequests(){
     const sentNote = d.feedbackRequestedAt
       ? `<span class="rem-sent">✓ Requested ${fmtDate(dateOnly(new Date(d.feedbackRequestedAt)))} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
-    const sendBtn = (!d.feedbackRequestedAt)
-      ? `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">${waTemplatesLoaded?'Send WhatsApp':'Loading template…'}</button>`
-      : '';
-    const tgBtn = (!d.feedbackRequestedAt)
-      ? `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`
-      : '';
+    const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">${waTemplatesLoaded?(d.feedbackRequestedAt?'Resend':'Send WhatsApp'):'Loading template…'}</button>`;
+    const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
       <div class="rem-dates">${fmtDate(d.checkin)} → ${fmtDate(d.checkout)} · ${esc(d.no)}</div>
