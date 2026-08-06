@@ -260,13 +260,20 @@
 
   <div class="tab-panel" data-panel="whatsapp" style="display:none">
     <p class="gh-mini">Automated sending</p>
-    <p class="sd" style="margin-bottom:12px">When connected, the templates below are sent automatically on a schedule (check-in requests, stay reminders, feedback requests, and booking confirmations) instead of needing a manual click from Bookings.</p>
+    <p class="sd" style="margin-bottom:12px">When configured, the templates below go out automatically on a schedule (check-in requests, stay reminders, feedback requests, and booking confirmations) instead of needing a manual click from Bookings. Preferred setup is Telegram notify — a message lands on your phone with a one-tap link that opens WhatsApp pre-filled, so the actual send is still you, from your own number. Direct WhatsApp sending (the bot number) only runs if Telegram notify isn't set up.</p>
     <div class="sync-results" id="waStatusBox" style="margin-bottom:10px"></div>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px">
       <button class="btn" id="waStatusRefresh">⟳ Refresh status</button>
       <button class="btn" id="waRunNowBtn">▶ Run now</button>
     </div>
     <div class="sync-results" id="waRunResults" style="margin-bottom:18px"></div>
+
+    <p class="gh-mini">Telegram notify setup</p>
+    <p class="sd" style="margin-bottom:12px">One-time setup on Render: message <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> on Telegram, send <code>/newbot</code>, and set the token it gives you as <code>TELEGRAM_BOT_TOKEN</code>. Then send any message (e.g. "hi") to your new bot from the Telegram account that should receive these nudges, and use the button below to find its chat ID — set that as <code>TELEGRAM_CHAT_ID</code>. Both are Render environment variables, not set from here.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:10px">
+      <button class="btn" id="tgChatIdBtn">Find my chat ID</button>
+    </div>
+    <div class="sync-results" id="tgChatIdResults" style="margin-bottom:18px"></div>
 
     <p class="gh-mini">WhatsApp templates</p>
     <p class="sd" style="margin-bottom:12px">Wording for the WhatsApp messages the site and dashboard pre-fill. Use <code>{{token}}</code> placeholders — a line containing a token with no value for that message is left out automatically, so a field can be made optional just by giving it its own line.</p>
@@ -665,11 +672,23 @@ async function loadWhatsAppStatus(){
     const res = await fetch(PROXY_URL+'/whatsapp/status', { headers: { 'X-Token': proxyToken }, cache: 'no-store' });
     if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
     const data = await res.json().catch(()=>({}));
-    if(!res.ok){ box.innerHTML = `<div class="sync-result err"><span>WhatsApp</span><span>${esc(data.error||'Could not check status')}</span></div>`; return; }
-    if(!data.enabled){ box.innerHTML = '<div class="sync-result"><span>WhatsApp</span><span>Not set up yet</span></div>'; return; }
-    box.innerHTML = data.connected
-      ? '<div class="sync-result"><span>WhatsApp</span><span>Connected</span></div>'
-      : `<div class="sync-result warn"><span>WhatsApp<span class="note">${data.lastError?esc(data.lastError):'Needs pairing — check Render’s live logs for a QR code to scan from WhatsApp › Linked Devices'}</span></span><span>Not connected</span></div>`;
+    if(!res.ok){ box.innerHTML = `<div class="sync-result err"><span>Status</span><span>${esc(data.error||'Could not check status')}</span></div>`; return; }
+    // Telegram notify is the preferred path — shown first, and is what
+    // "Run now" below will actually use whenever it's configured (see
+    // /whatsapp/run-scheduled's useTelegramWA in server.js). The WhatsApp
+    // (Baileys) line only matters as the fallback for when Telegram isn't
+    // set up yet.
+    let html = data.telegramConfigured
+      ? '<div class="sync-result"><span>Telegram notify</span><span>Configured</span></div>'
+      : '<div class="sync-result warn"><span>Telegram notify<span class="note">Set TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID on Render — see below</span></span><span>Not set up</span></div>';
+    if(!data.enabled){
+      html += '<div class="sync-result"><span>WhatsApp (direct)</span><span>Not set up</span></div>';
+    } else {
+      html += data.connected
+        ? '<div class="sync-result"><span>WhatsApp (direct)</span><span>Connected</span></div>'
+        : `<div class="sync-result warn"><span>WhatsApp (direct)<span class="note">${data.lastError?esc(data.lastError):'Needs pairing — check Render’s live logs for a QR code to scan from WhatsApp › Linked Devices'}</span></span><span>Not connected</span></div>`;
+    }
+    box.innerHTML = html;
   }catch(e){ box.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
 }
 document.getElementById('waStatusRefresh').addEventListener('click', loadWhatsAppStatus);
@@ -696,6 +715,23 @@ document.getElementById('waRunNowBtn').addEventListener('click', async ()=>{
     loadWhatsAppStatus();
   }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
   finally{ btn.disabled = false; btn.textContent = '▶ Run now'; }
+});
+
+document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('tgChatIdBtn');
+  const out = document.getElementById('tgChatIdResults');
+  if(!proxyToken){ toast('Sign in required'); return; }
+  btn.disabled = true; btn.textContent = 'Checking…';
+  out.innerHTML = '';
+  try{
+    const res = await fetch(PROXY_URL+'/telegram/chat-id', { headers: { 'X-Token': proxyToken }, cache: 'no-store' });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.error){ out.innerHTML = `<div class="sync-result err"><span>Chat ID</span><span>${esc(data.error||'Failed')}</span></div>`; return; }
+    if(!data.chats || !data.chats.length){ out.innerHTML = '<div class="sync-result"><span>Chat ID</span><span>No messages yet — send "hi" to your bot on Telegram, then try again</span></div>'; return; }
+    out.innerHTML = data.chats.map(c=>`<div class="sync-result"><span>${esc(c.name||'Chat')}</span><span>${esc(c.id)}</span></div>`).join('');
+  }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
+  finally{ btn.disabled = false; btn.textContent = 'Find my chat ID'; }
 });
 
 /* ---------- WHATSAPP TEMPLATES (any owner) ---------- */
