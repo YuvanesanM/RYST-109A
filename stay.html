@@ -259,6 +259,20 @@
           <select class="t" id="loadQuoteSel"><option value="">— pick a quote —</option></select>
         </label>
         <label class="f"><span>Booking reference <span style="color:var(--muted2)">(optional)</span></span><input class="t" id="ref" placeholder="e.g. WhatsApp / Airbnb #"></label>
+        <label class="f"><span>Booking channel <span style="color:var(--muted2)">(for reports — optional)</span></span>
+          <select class="t" id="channel">
+            <option value="">—</option>
+            <option>Website</option>
+            <option>WhatsApp / Phone</option>
+            <option>Walk-in</option>
+            <option>Airbnb</option>
+            <option>Booking.com</option>
+            <option>MakeMyTrip</option>
+            <option>Agoda</option>
+            <option>Referral</option>
+            <option>Other</option>
+          </select>
+        </label>
       </div>
 
       <div class="group">
@@ -727,6 +741,7 @@ function loadFromQuote(qno){
   $("#checkout").value= d.checkout||"";
   syncNights();
   $("#mode").value    = d.mode||"";
+  $("#channel").value = d.channel||"";
   $("#ref").value     = d.ref||"";
   $("#deposit").value = d.deposit||"";
   $("#advance").value = d.advance||"";
@@ -777,6 +792,7 @@ function newDoc(){
   ["guest","email","phone","guests","ref","checkin","checkout","nights","deposit","advance"].forEach(id=> $("#"+id).value="");
   $("#discountInp").value="";
   $("#mode").value="";
+  $("#channel").value="";
   items=[{desc:"Villa Rental Charges",qty:"1",rate:rateFor("Villa Rental Charges"),_villaRow:true}];
   if(docType==="invoice"){ populateLoadQuoteSel(); $("#loadQuoteRow").style.display=""; }
   renderItems(); render();
@@ -960,6 +976,7 @@ function collect(){
     type: docType, no: curNo, date: curDateISO,
     guest:$("#guest").value, email:$("#email").value, phone:$("#phone").value, guests:$("#guests").value,
     ref:$("#ref").value, checkin:$("#checkin").value, checkout:$("#checkout").value, mode:$("#mode").value,
+    channel:$("#channel").value,
     deposit: parseFloat($("#deposit").value)||0, advance: parseFloat($("#advance").value)||0,
     discount: parseFloat($("#discountInp").value)||0,
     items: items.map(({desc,qty,rate,_villaRow,_autoLocked})=>({desc,qty,rate,...(_villaRow&&{_villaRow:true}),...(_autoLocked&&{_autoLocked:true})})),
@@ -992,6 +1009,7 @@ function loadDoc(no){
   $("#no").value=curNo; $("#date").value=curDateISO;
   $("#guest").value=d.guest||""; $("#email").value=d.email||""; $("#phone").value=d.phone||""; $("#guests").value=d.guests||"";
   $("#ref").value=d.ref||""; $("#checkin").value=d.checkin||""; $("#checkout").value=d.checkout||""; $("#mode").value=d.mode||"";
+  $("#channel").value=d.channel||"";
   $("#deposit").value=d.deposit||""; $("#advance").value=d.advance||"";
   $("#discountInp").value=d.discount!=null ? String(d.discount) : "";
   $("#nights").value = nightsBetween(d.checkin,d.checkout)||"";
