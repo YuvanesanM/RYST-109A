@@ -529,6 +529,23 @@ function isConvertedQuote(d){
     (email ? (s.email||'').trim().toLowerCase()===email : (guest && (s.guest||'').trim().toLowerCase()===guest)));
 }
 
+// Used by renderStats to keep "nights booked"/occupancy/"next 7 days"
+// honest: a block isn't a guest booking at all, and a quote that's been
+// shared but never paid — even partially — is only a proposal, not a
+// commitment. Mirrors stayBlocksDates in the proxy's server.js (same
+// advance>0 rule — a partial advance or paid-in-full both just show up as
+// advance>0, there's no separate "fully paid" flag), just phrased the other
+// way around since this drives dashboard stats rather than availability.
+// Deliberately NOT folded into passFilter/isConvertedQuote above — an
+// unpaid quote should still show up on the calendar and Agenda as a
+// tentative pill for the owner to track, it just shouldn't count as an
+// occupied night.
+function isNonBlockingStay(d){
+  if((d.type||'invoice')==='block') return true;
+  if((d.type||'invoice')==='quote') return !(Number(d.advance)>0);
+  return false;
+}
+
 /* ---------- LOAD ---------- */
 async function load(){
   const loader = $('#loader'), msgEl = $('#loaderMsg'), retryBtn = $('#loaderRetry');
@@ -1026,8 +1043,15 @@ function renderStats(){
   for(const d of filtered){
     // Blocks (manual holds, OTA-synced Airbnb/Booking.com reservations) mark
     // nights unavailable but aren't a booking — don't count them as "nights
-    // booked" or toward occupancy.
-    if((d.type||'invoice')==='block') continue;
+    // booked" or toward occupancy. Same reasoning for an unpaid quote: it's
+    // a proposal shared with a guest who hasn't confirmed or paid anything,
+    // not a real booking — mirrors stayBlocksDates in the proxy's
+    // server.js, which stops an unpaid quote from blocking real
+    // availability the same way. It stays visible on the calendar/agenda
+    // for tracking, it just doesn't count as an occupied night until there's
+    // real payment against it (advance > 0 covers both a partial advance
+    // and paid-in-full — there's no separate "fully paid" flag).
+    if(isNonBlockingStay(d)) continue;
     // Nights of this booking that overlap the viewed month, via a closed-form
     // range intersection rather than stepping day-by-day — a hand-entered
     // date typo (checkout years out) would otherwise turn into a very long
@@ -1041,9 +1065,10 @@ function renderStats(){
   const occ = daysInMonth ? Math.round((nights/daysInMonth)*100) : 0;
 
   const today = todayISO(), weekAhead = addDays(today,7);
-  // A block isn't a guest arriving or leaving — same exclusion as the nights
-  // count above, just missing here before.
-  const upcoming = filtered.filter(d => (d.type||'invoice')!=='block' && ((d.checkin>=today && d.checkin<=weekAhead) || (d.checkout>=today && d.checkout<=weekAhead)));
+  // Same exclusion as the nights count above — a block isn't a guest
+  // arriving or leaving, and an unpaid quote isn't a confirmed arrival
+  // either, so neither belongs in a "who's actually checking in/out" count.
+  const upcoming = filtered.filter(d => !isNonBlockingStay(d) && ((d.checkin>=today && d.checkin<=weekAhead) || (d.checkout>=today && d.checkout<=weekAhead)));
 
   $('#cNights').textContent = nights;
   $('#cNightsSub').textContent = view.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
