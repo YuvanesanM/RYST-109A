@@ -1130,6 +1130,16 @@ function openDay(iso){
           ${b.ref ? `<div class="ag-dates">Occasion: ${esc(b.ref)}</div>` : ''}
           ${b.message ? `<div class="ag-dates">"${esc(b.message)}"</div>` : ''}
         ` : '';
+        // Guest check-ins only shows arrivals due in the next
+        // CHECKIN_WINDOW_DAYS, so it's the only place openCheckinDetail was
+        // reachable from — a submitted check-in (ID, signature, etc.) became
+        // unreachable the moment the stay aged out of that window, even
+        // though checkinInfo itself never gets deleted. The calendar has no
+        // such window (any month is one click away), so this is where a
+        // past submission can actually still be looked up.
+        const checkinLine = b.checkinInfo
+          ? `<div class="ag-dates">✓ Checked in ${fmtDate(dateOnly(new Date(b.checkinInfo.submittedAt)))} · <a onclick="openCheckinDetail('${esc(b.no)}')">view</a></div>`
+          : '';
         // Only the admin account can delete anything — quote or invoice.
         // (Server-enforced in the proxy; this just controls whether the
         // button renders.) The card itself can't be an <a> once it contains
@@ -1145,7 +1155,7 @@ function openDay(iso){
           </div>
           <div class="ag-guest">${esc(b.guest||'—')}</div>
           <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s) · ${money(grandTotal(b))}</div>
-          ${extra}${delBtn}
+          ${checkinLine}${extra}${delBtn}
         </div>`;
       }).join('');
   $('#dayBody').querySelectorAll('[data-unblock]').forEach(btn=>
