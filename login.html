@@ -40,6 +40,12 @@
   .hc-icon{width:52px;height:52px;background:var(--accent-soft);border-radius:13px;display:flex;align-items:center;justify-content:center;color:var(--accent-d)}
   .hc-title{font-size:15px;font-weight:700;color:var(--ink)}
   .hc-sub{font-size:12px;color:var(--muted2);line-height:1.45}
+  /* Booking Calendar is the daily hub — first in the grid and visually
+     anchored so it reads as the default landing point, not just one tile
+     among equals. */
+  .home-card.primary{border-color:var(--accent);background:linear-gradient(180deg,var(--accent-soft) 0%,var(--panel) 60%)}
+  .home-card.primary:hover{box-shadow:0 8px 28px rgba(60,100,60,.2)}
+  .home-card.primary .hc-icon{background:var(--accent);color:#fff}
   .logout-btn{margin-top:8px;background:transparent;border:1.5px solid var(--line);color:var(--muted2);padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.3px;transition:.18s}
   .logout-btn:hover{border-color:var(--danger,#c0584b);color:var(--danger,#c0584b)}
   @media(max-width:600px){
@@ -71,10 +77,35 @@
 <div id="homeView" class="view" hidden>
   <img id="homeLogo" alt="RYST 109A" src="/assets/stay-logo.webp">
   <div class="home-cards">
+    <!-- Ordered guest-lifecycle first (Booking Calendar → Stay Quote →
+         Check-in/out → Feedback — the sequence a single stay actually moves
+         through), then daily operations (Casa de RYST → Petty Cash →
+         Inventory), then reporting/admin last (Profit & Loss → Settings,
+         the two lowest-frequency, most "look at occasionally" pages). -->
+    <button class="home-card primary" data-module="bookings" onclick="window.location.href='bookings.html'">
+      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+      <span class="hc-title">Booking Calendar</span>
+      <span class="hc-sub">Occupancy, revenue &amp; upcoming stays</span>
+    </button>
     <button class="home-card" data-module="bookings" onclick="window.location.href='stay.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V8l7-5 7 5v13"/><path d="M9 21v-6h6v6"/></svg></div>
       <span class="hc-title">Stay Quote &amp; Invoice</span>
       <span class="hc-sub">Villa invoices &amp; quotations</span>
+    </button>
+    <button class="home-card" data-module="checklist" onclick="window.location.href='checklist.html'">
+      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 12l3 3 7-7"/></svg></div>
+      <span class="hc-title">Check-in / Check-out</span>
+      <span class="hc-sub">Villa walkthrough checklist</span>
+    </button>
+    <button class="home-card" data-module="feedback" onclick="window.location.href='reviews.html'">
+      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></div>
+      <span class="hc-title">Guest Feedback</span>
+      <span class="hc-sub">Post-stay reviews &amp; ratings</span>
+    </button>
+    <button class="home-card" data-module="restaurant" onclick="window.location.href='restaurant.html'">
+      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 002-2V2M7 2v20M11 2v7a2 2 0 002 2h0a2 2 0 002-2V2"/><path d="M18 2c-1.1 1.5-1.5 3.4-1.5 5.5 0 2.2.5 4 1.5 5.5v9"/></svg></div>
+      <span class="hc-title">Casa de RYST</span>
+      <span class="hc-sub">Restaurant billing, menu &amp; inventory</span>
     </button>
     <button class="home-card" data-module="petty-cash" onclick="window.location.href='petty-cash.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><circle cx="12" cy="15" r="1.6"/></svg></div>
@@ -86,30 +117,10 @@
       <span class="hc-title">Inventory &amp; Restock</span>
       <span class="hc-sub">Consumables &amp; shopping list</span>
     </button>
-    <button class="home-card" data-module="checklist" onclick="window.location.href='checklist.html'">
-      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 12l3 3 7-7"/></svg></div>
-      <span class="hc-title">Check-in / Check-out</span>
-      <span class="hc-sub">Villa walkthrough checklist</span>
-    </button>
-    <button class="home-card" data-module="bookings" onclick="window.location.href='bookings.html'">
-      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-      <span class="hc-title">Booking Calendar</span>
-      <span class="hc-sub">Occupancy, revenue &amp; upcoming stays</span>
-    </button>
     <button class="home-card" data-module="reports" onclick="window.location.href='reports.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg></div>
       <span class="hc-title">Profit &amp; Loss</span>
       <span class="hc-sub">Revenue vs. petty-cash spend</span>
-    </button>
-    <button class="home-card" data-module="feedback" onclick="window.location.href='reviews.html'">
-      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg></div>
-      <span class="hc-title">Guest Feedback</span>
-      <span class="hc-sub">Post-stay reviews &amp; ratings</span>
-    </button>
-    <button class="home-card" data-module="restaurant" onclick="window.location.href='restaurant.html'">
-      <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 002-2V2M7 2v20M11 2v7a2 2 0 002 2h0a2 2 0 002-2V2"/><path d="M18 2c-1.1 1.5-1.5 3.4-1.5 5.5 0 2.2.5 4 1.5 5.5v9"/></svg></div>
-      <span class="hc-title">Casa de RYST</span>
-      <span class="hc-sub">Restaurant billing, menu &amp; inventory</span>
     </button>
     <button class="home-card" data-module="settings" onclick="window.location.href='settings.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg></div>
