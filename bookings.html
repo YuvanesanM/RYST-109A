@@ -767,8 +767,12 @@ async function markBookingConfirmationUnsent(no){
 function renderCheckins(){
   const today = todayISO();
   const cutoff = addDays(today, CHECKIN_WINDOW_DAYS);
+  // A quote with no advance is only a proposal, not a booking — same rule
+  // renderStats/isNonBlockingStay already applies, so an unconfirmed guest
+  // never gets a check-in link (mirrors the fix already shipped for the
+  // automated Telegram nudges in the proxy's /whatsapp/run-scheduled).
   const due = STAYS
-    .filter(d=> (d.type||'invoice')!=='block' && d.checkin>=today && d.checkin<=cutoff && !isConvertedQuote(d))
+    .filter(d=> !isNonBlockingStay(d) && d.checkin>=today && d.checkin<=cutoff && !isConvertedQuote(d))
     .sort((a,b)=> a.checkin.localeCompare(b.checkin));
 
   const badge = $('#ciBadge');
@@ -872,11 +876,12 @@ $('#checkinOverlay').addEventListener('click', e=>{ if(e.target===$('#checkinOve
 function renderReminders(){
   const today = todayISO();
   const cutoff = addDays(today, REMINDER_WINDOW_DAYS);
-  // A quote is a confirmed booking here (the invoice only gets raised after
-  // the stay), so it needs a pre-arrival reminder same as an invoice —
-  // only a block (not a real guest) is excluded.
+  // A quote with no advance is only a proposal, not a booking — same rule
+  // renderStats/isNonBlockingStay already applies, so an unconfirmed guest
+  // never gets a pre-arrival reminder (mirrors the fix already shipped for
+  // the automated Telegram nudges in the proxy's /whatsapp/run-scheduled).
   const due = STAYS
-    .filter(d=> (d.type||'invoice')!=='block' && d.checkin>=today && d.checkin<=cutoff && !isConvertedQuote(d))
+    .filter(d=> !isNonBlockingStay(d) && d.checkin>=today && d.checkin<=cutoff && !isConvertedQuote(d))
     .sort((a,b)=> a.checkin.localeCompare(b.checkin));
 
   const badge = $('#remBadge');
@@ -955,11 +960,12 @@ async function markReminderUnsent(no){
 function renderFeedbackRequests(){
   const today = todayISO();
   const cutoff = addDays(today, -FEEDBACK_WINDOW_DAYS);
-  // Same as reminders — the invoice for a stay is only raised after
-  // checkout, so restricting this to type:'invoice' would mean a
-  // quote-only booking never gets a feedback request at all.
+  // A quote with no advance is only a proposal, not a booking — same rule
+  // renderStats/isNonBlockingStay already applies, so an unconfirmed guest
+  // never gets a feedback request (mirrors the fix already shipped for the
+  // automated Telegram nudges in the proxy's /whatsapp/run-scheduled).
   const due = STAYS
-    .filter(d=> (d.type||'invoice')!=='block' && d.checkout<=today && d.checkout>=cutoff && !isConvertedQuote(d))
+    .filter(d=> !isNonBlockingStay(d) && d.checkout<=today && d.checkout>=cutoff && !isConvertedQuote(d))
     .sort((a,b)=> b.checkout.localeCompare(a.checkout));
 
   const badge = $('#fbBadge');
