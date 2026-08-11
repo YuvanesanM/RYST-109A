@@ -725,9 +725,26 @@ function setType(t){
   if(row){ row.style.display = isInv ? "" : "none"; if(isInv) populateLoadQuoteSel(); }
   render();
 }
+// A quote that already has a matching invoice (same dates + same guest
+// identity) has already been converted to a real booking — offering it
+// again in "Load from quote" would let staff load it a second time into
+// another invoice, double-booking the same dates. Mirrors bookings.html/
+// reports.html's isConvertedQuote exactly (exact checkin+checkout match,
+// then email else guest-name match against invoice records).
+function isConvertedQuote(d, stays){
+  if((d.type||"invoice")!=="quote") return false;
+  const email = (d.email||"").trim().toLowerCase();
+  const guest = (d.guest||"").trim().toLowerCase();
+  return stays.some(s=>
+    (s.type||"invoice")==="invoice" && s.checkin===d.checkin && s.checkout===d.checkout &&
+    (email ? (s.email||"").trim().toLowerCase()===email : (guest && (s.guest||"").trim().toLowerCase()===guest)));
+}
 function populateLoadQuoteSel(){
   const sel = $("#loadQuoteSel"); if(!sel) return;
-  const quotes = getStays().filter(d=> (d.no||"").startsWith(settings.qtPrefix||"RYST109A/QT")).sort((a,b)=>b.no.localeCompare(a.no));
+  const stays = getStays();
+  const quotes = stays
+    .filter(d=> (d.no||"").startsWith(settings.qtPrefix||"RYST109A/QT") && !isConvertedQuote(d, stays))
+    .sort((a,b)=>b.no.localeCompare(a.no));
   sel.innerHTML = `<option value="">— pick a quote —</option>`
     + quotes.map(d=>`<option value="${esc(d.no)}">${esc(d.no)} · ${esc(d.guest||"?")}${d.checkin?" ("+fmtDate(d.checkin)+")":""}</option>`).join("");
 }
