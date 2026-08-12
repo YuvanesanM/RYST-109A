@@ -50,16 +50,31 @@
   .hero-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:4px}
   .hero-badge{background:var(--foam);color:var(--sea);font-size:12px;font-weight:600;padding:7px 14px;border-radius:999px}
 
-  /* ── BOOKING SUMMARY CARD ── */
+  /* ── BOOKING SUMMARY CARD ──
+     Grouped by relationship rather than one boxed icon-row per field:
+     name as a heading, contact as one compact line, check-in/out/guests as
+     a boarding-pass-style column row, booking ID as a small tag. Same
+     seven fields as before, far fewer repeated icon chips. */
   .booking-card{
     background:var(--white);border:1px solid var(--line);border-radius:20px;padding:18px 20px;
-    margin:16px 0;box-shadow:0 10px 30px rgba(11,61,82,.08);display:grid;gap:10px;
+    margin:16px 0;box-shadow:0 10px 30px rgba(11,61,82,.08);display:grid;gap:14px;
   }
   .bc-row{display:flex;align-items:center;gap:12px}
   .bc-icon{font-size:17px;width:36px;height:36px;border-radius:11px;background:var(--foam);display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .bc-text{display:flex;flex-direction:column;gap:1px;min-width:0}
   .bc-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
   .bc-value{font-size:14.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+  .bc-name{display:flex;flex-direction:column;gap:2px}
+  .bc-name .bc-value{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--sea)}
+  .bc-contact{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted-text)}
+  .bc-divider{height:1px;background:var(--line)}
+  .bc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:12px 6px}
+  .bc-cell{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .bc-id{
+    display:inline-flex;align-items:center;gap:6px;width:fit-content;max-width:100%;
+    background:var(--foam);color:var(--sea);font-size:12.5px;font-weight:600;
+    padding:6px 12px;border-radius:999px;overflow-wrap:anywhere;
+  }
   /* Official Apple badge already looks like a complete button (its own
      black rounded background baked into the image) — just centre it,
      no extra button chrome of our own around it. Google's pass has no
@@ -399,6 +414,15 @@ function fmtDate(iso){
   if(isNaN(d)) return iso;
   return d.toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
 }
+// Short-month variant for the compact check-in/check-out grid in the
+// booking summary card — fmtDate's full "15 August 2026" is right for the
+// prose confirmation message but too wide for a 3-column cell.
+function fmtDateShort(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
 
 // Guest count has no on-page control at all now — it's purely derived from
 // the booking record (guestsOnBooking) and shown as its own row in the
@@ -466,13 +490,18 @@ function renderSummary(){
   if(checkinDate && checkoutDate){
     el.style.display = '';
     el.innerHTML = `
-      <div class="bc-row"><span class="bc-icon" aria-hidden="true">👤</span><span class="bc-text"><span class="bc-label">Guest</span><span class="bc-value">${esc(guestPrefill || 'Guest')}</span></span></div>
-      ${guestPhone ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">📞</span><span class="bc-text"><span class="bc-label">Mobile</span><span class="bc-value">${esc(guestPhone)}</span></span></div>` : ''}
-      ${guestEmail ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">📧</span><span class="bc-text"><span class="bc-label">Email</span><span class="bc-value">${esc(guestEmail)}</span></span></div>` : ''}
-      <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDate(checkinDate)}</span></span></div>
-      <div class="bc-row"><span class="bc-icon" aria-hidden="true">📅</span><span class="bc-text"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDate(checkoutDate)}</span></span></div>
-      ${guestCountLabel() ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">👥</span><span class="bc-text"><span class="bc-label">Guests</span><span class="bc-value">${esc(guestCountLabel())}</span></span></div>` : ''}
-      ${bookingNo ? `<div class="bc-row"><span class="bc-icon" aria-hidden="true">🔖</span><span class="bc-text"><span class="bc-label">Booking ID</span><span class="bc-value">${esc(bookingNo)}</span></span></div>` : ''}
+      <div class="bc-name"><span class="bc-label">Guest</span><span class="bc-value">${esc(guestPrefill || 'Guest')}</span></div>
+      ${(guestPhone || guestEmail) ? `<div class="bc-contact">
+        ${guestPhone ? `<span>📞 ${esc(guestPhone)}</span>` : ''}
+        ${guestEmail ? `<span>📧 ${esc(guestEmail)}</span>` : ''}
+      </div>` : ''}
+      <div class="bc-divider"></div>
+      <div class="bc-grid">
+        <div class="bc-cell"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDateShort(checkinDate)}</span></div>
+        <div class="bc-cell"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDateShort(checkoutDate)}</span></div>
+        ${guestCountLabel() ? `<div class="bc-cell"><span class="bc-label">Guests</span><span class="bc-value">${esc(guestCountLabel())}</span></div>` : ''}
+      </div>
+      ${bookingNo ? `<div class="bc-id">🔖 ${esc(bookingNo)}</div>` : ''}
       ${walletUrl() ? `<div class="wallet-links">
         <a class="apple" href="${walletUrl()}"><img src="/assets/apple-wallet-badge.png" alt="Add to Apple Wallet" width="142" height="44"></a>
         <a class="wallet-btn-google" href="${googleWalletUrl()}">${GOOGLE_G_ICON} Add to Google Wallet</a>
