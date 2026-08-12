@@ -788,10 +788,19 @@ function syncGuestCharges(){
   const extra = max > 0 ? Math.max(0, guests - max) : 0;
   const nights = nightsBetween($("#checkin").value, $("#checkout").value) || 1;
   const qty = extra * nights;
-  const idx = items.findIndex(it=> /additional.*guest/i.test(it.desc||"") && it._autoLocked);
+  // Matches by description alone, not description+_autoLocked — a staff
+  // member can create a line with this exact text manually (it's a real
+  // catalog entry, selectable whenever guests<=maxGuests or via "Other…"),
+  // and requiring _autoLocked too meant this function wouldn't recognize
+  // that row as "the" guest-charge line, so raising guest count later would
+  // push a SECOND "Additional Guest Charges" row instead of reusing it —
+  // billing the surcharge twice. Taking ownership (below) once a match is
+  // found closes that off for good.
+  const idx = items.findIndex(it=> /additional.*guest/i.test(it.desc||""));
   if(extra > 0){
     if(idx >= 0){
       items[idx].qty = String(qty);
+      items[idx]._autoLocked = true;
     } else {
       items.push({desc:"Additional Guest Charges", qty:String(qty), rate:rateFor("Additional Guest Charges"), _autoLocked:true});
     }

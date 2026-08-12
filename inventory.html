@@ -443,8 +443,15 @@ function startEditQty(el, id){
   const commit = async () => {
     const v = parseFloat(input.value);
     if(!isFinite(v) || v<0){ render(); return; }
+    // Sent as a delta off what this field showed when editing started, not
+    // an absolute "set to v" — an absolute overwrite would silently discard
+    // a +/- adjustment someone else makes from another tab/device between
+    // focus and blur here (adjust() already sends a delta for exactly this
+    // reason; the server just applies it, so the two compose correctly no
+    // matter which one lands first).
+    const delta = v - (Number(item.quantity)||0);
     try{
-      const data = await sendCommand({ action:'adjust-quantity', id, quantity: v });
+      const data = await sendCommand({ action:'adjust-quantity', id, delta });
       if(data===null) return;
       DOC.items = data.items; render();
     }catch(e){ showToast(e.message, true); render(); }

@@ -557,8 +557,18 @@ function renderMonthOptions(){
   sel.innerHTML = opts.map(m=>`<option value="${m}"${m===FILTERS.month?' selected':''}>${m==='All'?'All months':esc(monthLabel(m))}</option>`).join('');
 }
 function renderCatOptions(){
+  // Union of the current, editable category list (DOC.categories — what's
+  // offered when logging a NEW expense) and whatever category strings
+  // actually appear on existing entries — same reasoning as
+  // renderMonthOptions above. Without this, renaming or removing a category
+  // in Settings silently drops older expenses still filed under the old
+  // name out of every filtered view (though never out of the unfiltered
+  // totals, which sum by type, not category).
+  const seen = new Set(DOC.categories);
+  const cats = [...DOC.categories];
+  DOC.entries.forEach(e=>{ if(e.category && !seen.has(e.category)){ seen.add(e.category); cats.push(e.category); } });
   const sel=$('#fCat');
-  sel.innerHTML = ['All',...DOC.categories].map(c=>`<option value="${esc(c)}"${c===FILTERS.category?' selected':''}>${c==='All'?'All categories':esc(c)}</option>`).join('');
+  sel.innerHTML = ['All',...cats].map(c=>`<option value="${esc(c)}"${c===FILTERS.category?' selected':''}>${c==='All'?'All categories':esc(c)}</option>`).join('');
 }
 
 function statusLabel(s){ return s==='na' ? 'No reimbursement' : s; }
