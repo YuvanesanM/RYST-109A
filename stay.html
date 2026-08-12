@@ -1040,6 +1040,14 @@ async function saveDoc(){
 }
 function loadDoc(no){
   const d=getStays().find(x=>x.no===no); if(!d) return;
+  // type:'block' records are OTA calendar holds (Airbnb/Booking.com/...),
+  // never real documents — nothing here to view/edit, and saving one back
+  // would corrupt the booking number (see openBookings' filter comment for
+  // the real incident this is guarding against). This is the one choke
+  // point every load path goes through — the Bookings viewer already
+  // excludes blocks from its list, but a manually-typed/pasted
+  // ?open=<no> deep link wouldn't, so the guard belongs here too.
+  if((d.type||'invoice')==='block'){ toast("That's an OTA calendar hold, not an editable booking"); return; }
   editingKey=d.no; syncPdfBtn(); syncWalletBtn();
   docType = (d.type==="quote") ? "quote" : "invoice";
   $("#typeSeg").querySelectorAll("button").forEach(b=> b.classList.toggle("on", b.dataset.type===docType));
@@ -1062,7 +1070,9 @@ async function openSaved(){
   list.innerHTML = `<div class="empty">Loading…</div>`;
   $("#savedModal").hidden=false;
   await fetchStaysFromProxy();
-  const all=getStays().slice().sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
+  // Same reasoning as openBookings' filter — blocks aren't real documents,
+  // shouldn't be openable or deletable from here.
+  const all=getStays().filter(d=>(d.type||'invoice')!=='block').slice().sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
   list.innerHTML = !all.length ? `<div class="empty">No saved documents yet.</div>`
     : all.map(d=>{
         const t=(d.type==="quote")?"qt":"inv"; const tl=(d.type==="quote")?"QUOTE":"INVOICE";
@@ -1097,7 +1107,15 @@ async function openBookings(){
   list.innerHTML=`<div class="empty">Loading…</div>`;
   $("#bookingsModal").hidden=false;
   await fetchStaysFromProxy();
-  const all=getStays().filter(d=> d.checkin && d.checkout)
+  // type:'block' entries are OTA calendar holds, not real documents — they
+  // have no items/pricing/guest details to view here, and belong to the
+  // OTA sync (never manually edited). Excluded so they can't get opened
+  // and accidentally re-saved as a quote/invoice under the block's own
+  // `no` — that exact corruption is what happened before this filter
+  // existed: a block got loaded, saved, and left two records sharing one
+  // booking number (calendar sync then correctly refused to touch it,
+  // fearing data loss, until the duplicate was found and cleaned up).
+  const all=getStays().filter(d=> d.checkin && d.checkout && (d.type||'invoice')!=='block')
     .slice().sort((a,b)=> a.checkin.localeCompare(b.checkin));
   if(!all.length){
     list.innerHTML=`<div class="empty">No bookings with dates found.</div>`; return;
