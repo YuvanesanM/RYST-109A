@@ -42,6 +42,15 @@
   .btn.primary:disabled{opacity:.38;cursor:not-allowed;background:var(--accent);border-color:var(--accent)}
   .btn.icon-btn{padding:0;width:34px;height:34px;justify-content:center;flex-shrink:0}
   .bar-sep{width:1px;height:22px;background:var(--line);flex-shrink:0;margin:0 2px}
+  /* Wallet dropdown — one toolbar slot instead of a second full button,
+     since .bar-actions is flex-wrap:nowrap and this toolbar is already
+     fairly packed. Same shape as reports.html's export dropdown. */
+  .dd{position:relative;display:inline-block}
+  .dd-menu{position:absolute;right:0;top:calc(100% + 6px);background:var(--panel);border:1px solid var(--line);border-radius:9px;box-shadow:0 12px 30px rgba(30,40,30,.14);min-width:170px;z-index:40;display:none;overflow:hidden}
+  .dd.open .dd-menu{display:block}
+  .dd-item{display:block;width:100%;text-align:left;padding:9px 13px;background:none;border:none;font-size:12.5px;color:var(--ink);font-weight:500;font-family:inherit;cursor:pointer}
+  .dd-item:hover{background:var(--panel2)}
+  .dd-item:disabled{opacity:.4;cursor:not-allowed}
   .hide{display:none !important}
 
   main.work{display:grid;grid-template-columns:minmax(360px,460px) 1fr;gap:0;height:calc(100vh - 59px)}
@@ -239,7 +248,13 @@
       <button class="btn" id="btnNew">+ New</button>
       <button class="btn" id="btnSave" disabled>Save</button>
       <button class="btn primary" id="btnPdf">PDF</button>
-      <button class="btn" id="btnWallet" disabled title="Save the document first, then share to Wallet">Wallet</button>
+      <div class="dd" id="walletDd">
+        <button class="btn" id="btnWallet" disabled title="Save the document first, then share to Wallet">Wallet ▾</button>
+        <div class="dd-menu">
+          <button type="button" class="dd-item" id="btnWalletApple">🍎 Apple Wallet</button>
+          <button type="button" class="dd-item" id="btnWalletGoogle">Google Wallet</button>
+        </div>
+      </div>
     </div>
   </header>
 
@@ -1125,12 +1140,21 @@ function syncWalletBtn(){
   const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
   const tok = stay && stay.walletToken;
   b.disabled = !tok;
-  b.title = tok ? "Share this stay as an Apple Wallet pass" : "Save the document first, then share to Wallet";
-  b.dataset.walletUrl = tok ? `${PROXY_URL}/booking/wallet/apple?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
+  b.title = tok ? "Share this stay as a wallet pass" : "Save the document first, then share to Wallet";
+  $("#btnWalletApple").disabled = !tok;
+  $("#btnWalletGoogle").disabled = !tok;
+  $("#btnWalletApple").dataset.walletUrl = tok ? `${PROXY_URL}/booking/wallet/apple?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
+  $("#btnWalletGoogle").dataset.walletUrl = tok ? `${PROXY_URL}/booking/wallet/google?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
 }
-$("#btnWallet").addEventListener("click", ()=>{
-  const url = $("#btnWallet").dataset.walletUrl;
-  if(url) window.open(url, '_blank');
+const walletDd = $("#walletDd");
+$("#btnWallet").addEventListener("click", e=>{ e.stopPropagation(); if(!$("#btnWallet").disabled) walletDd.classList.toggle("open"); });
+document.addEventListener("click", ()=> walletDd.classList.remove("open"));
+["#btnWalletApple","#btnWalletGoogle"].forEach(sel=>{
+  $(sel).addEventListener("click", ()=>{
+    const url = $(sel).dataset.walletUrl;
+    if(url) window.open(url, '_blank');
+    walletDd.classList.remove("open");
+  });
 });
 async function downloadPdf(){
   try{ await document.fonts.ready; }catch(e){}
