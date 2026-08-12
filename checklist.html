@@ -107,18 +107,55 @@
      owner-only visibility is driven by this class on <body> instead. */
   body.caretaker-mode .owner-only{display:none!important}
 
+  .cl-progress-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
   .cl-progress{font-size:12.5px;color:var(--muted);font-weight:600}
+  .cl-save-status{font-size:11.5px;font-weight:600;color:var(--muted2);white-space:nowrap}
+  .cl-save-status.saving{color:var(--warn)}
+  .cl-save-status.saved{color:var(--accent-d)}
+  .cl-save-status.error{color:var(--danger)}
+  .cl-progress-bar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin:8px 0 2px}
+  .cl-progress-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .25s}
+
+  /* Room-grouped sections — plain <details>/<summary>, no JS needed for
+     expand/collapse. Falls back to a flat list (no .cl-section wrapper at
+     all) when every item lands in one bucket, e.g. the checkout template,
+     which isn't organized by room. */
+  .cl-section{border:1px solid var(--line);border-radius:12px;background:var(--panel);overflow:hidden}
+  .cl-section + .cl-section{margin-top:10px}
+  .cl-section summary{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px 14px;cursor:pointer;font-weight:700;font-size:13.5px;list-style:none;
+    background:var(--panel2);
+  }
+  .cl-section summary::-webkit-details-marker{display:none}
+  .cl-section summary::before{content:'▸';color:var(--muted2);font-size:11px;margin-right:2px;transition:transform .15s}
+  .cl-section[open] summary::before{transform:rotate(90deg)}
+  .cl-section-count{font-size:11.5px;font-weight:700;color:var(--muted);white-space:nowrap}
+  .cl-section-body{display:flex;flex-direction:column;gap:8px;padding:10px}
+
+  /* Whole row is a <label> now — tapping the item text checks it too, not
+     just the small checkbox itself. Checkbox bumped up from 19px so it's a
+     real touch target on its own as well. */
   .cl-item{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--panel2)}
-  .cl-item-top{display:flex;align-items:flex-start;gap:9px}
-  .cl-item-top input[type=checkbox]{width:19px;height:19px;margin-top:1px;flex-shrink:0}
-  .cl-item-text{flex:1;font-size:13.5px;font-weight:600}
+  .cl-item-top{display:flex;align-items:flex-start;gap:10px;cursor:pointer}
+  .cl-item-top input[type=checkbox]{width:24px;height:24px;margin-top:0;flex-shrink:0;accent-color:var(--accent)}
+  .cl-item-text{flex:1;font-size:14px;font-weight:600;padding-top:2px}
   .cl-item-text.done{text-decoration:line-through;color:var(--muted2);font-weight:500}
-  .cl-item-toggles{display:flex;gap:10px;margin-top:6px;margin-left:28px}
-  .cl-item-toggles button{background:none;border:none;color:var(--accent-d);font-size:11.5px;text-decoration:underline;cursor:pointer;padding:0}
-  .cl-item-extra{margin-left:28px;margin-top:8px;display:flex;flex-direction:column;gap:6px}
+  .cl-item-toggles{display:flex;gap:8px;margin-top:8px;margin-left:34px}
+  .cl-item-toggles button{
+    display:inline-flex;align-items:center;gap:5px;background:var(--panel);border:1px solid var(--line);
+    color:var(--accent-d);font-size:12px;font-weight:600;border-radius:8px;padding:7px 11px;cursor:pointer;
+  }
+  .cl-item-toggles button:hover{border-color:var(--accent)}
+  .cl-item-extra{margin-left:34px;margin-top:8px;display:flex;flex-direction:column;gap:6px}
   .cl-item-extra textarea{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:12.5px;width:100%;resize:vertical;min-height:50px;outline:none}
   .cl-thumb{max-width:120px;max-height:90px;border-radius:8px;display:block;border:1px solid var(--line)}
   .cl-item-extra .rm{align-self:flex-start;font-size:11px;color:var(--danger);background:none;border:none;text-decoration:underline;cursor:pointer;padding:0}
+
+  /* Flags a run whose items have at least one note attached, so an issue
+     left mid-walkthrough doesn't disappear into a "Completed ✓" row that
+     nobody reopens. */
+  .run-flag{font-size:11px;font-weight:700;color:var(--warn);white-space:nowrap}
 
   #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:100;max-width:90vw;text-align:center}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -228,7 +265,11 @@
     <h3 id="runTitle">Checklist</h3>
     <p class="sd" id="runSub"></p>
     <div class="mbody">
-      <div class="cl-progress" id="runProgress"></div>
+      <div class="cl-progress-row">
+        <div class="cl-progress" id="runProgress"></div>
+        <div class="cl-save-status" id="runSaveStatus"></div>
+      </div>
+      <div class="cl-progress-bar"><div class="cl-progress-fill" id="runProgressFill" style="width:0%"></div></div>
       <div id="runItems"></div>
       <div class="field"><label>Overall note</label><textarea id="runOverallNote" placeholder="Anything else worth recording…"></textarea></div>
       <div class="merr" id="runErr"></div>
@@ -428,12 +469,14 @@ function render(){
 
   list.innerHTML = filtered.map(r=>{
     const checked = r.items.filter(i=>i.checked).length;
+    const noted = r.items.filter(i=>i.note && i.note.trim()).length;
     const label = r.type==='checkin' ? 'Check-in' : 'Check-out';
     return `<div class="run-row" onclick="openRun('${esc(r.id)}')">
       <div class="run-main">
         <div class="run-title">${esc(r.guest||r.stayNo||'Untitled')} <span class="type-badge ${r.type}">${label}</span></div>
         <div class="run-sub">${esc(r.stayNo||'—')} · ${fmtDate(r.date)}</div>
       </div>
+      ${noted ? `<span class="run-flag" title="${noted} item(s) have a note">⚠ ${noted} note${noted===1?'':'s'}</span>` : ''}
       <div class="run-progress">${checked}/${r.items.length} done</div>
       <span class="status-badge ${r.status}">${r.status==='completed'?'Completed':'In progress'}</span>
     </div>`;
@@ -479,50 +522,162 @@ function updateProgressLabel(){
   if(!run) return;
   const checked = run.items.filter(i=>i.checked).length;
   $('#runProgress').textContent = `${checked} / ${run.items.length} items checked`;
+  const pct = run.items.length ? Math.round(checked/run.items.length*100) : 0;
+  $('#runProgressFill').style.width = pct+'%';
 }
 
-function renderRunItems(run){
-  $('#runItems').innerHTML = run.items.map((it,idx)=>`
+// Groups items purely by string-matching the item text at render time —
+// no schema change needed on the server (templates are still plain
+// strings). "Bedroom N — ..." and "Bedroom N toilet — ..." both fall
+// under "Bedroom N" so a room and its en-suite sit together. Anything
+// else (common areas, facilities, and the whole checkout template, which
+// isn't organized by room) lands in one shared bucket.
+function sectionOf(text){
+  const m = /^Bedroom (\d+)/i.exec(text||'');
+  return m ? `Bedroom ${m[1]}` : 'Common Areas & Facilities';
+}
+function groupItems(items){
+  const groups = [], byKey = {};
+  items.forEach((it,idx)=>{
+    const key = sectionOf(it.text);
+    if(!byKey[key]){ byKey[key] = { key, items: [] }; groups.push(byKey[key]); }
+    byKey[key].items.push({ ...it, idx });
+  });
+  return groups;
+}
+function itemHtml(it, idx){
+  return `
     <div class="cl-item" data-idx="${idx}">
-      <div class="cl-item-top">
+      <label class="cl-item-top">
         <input type="checkbox" ${it.checked?'checked':''} onchange="toggleItem(${idx}, this.checked)" />
-        <div class="cl-item-text ${it.checked?'done':''}">${esc(it.text)}</div>
-      </div>
+        <span class="cl-item-text ${it.checked?'done':''}">${esc(it.text)}</span>
+      </label>
       <div class="cl-item-toggles">
-        <button type="button" onclick="toggleExtra(${idx})">${it.note?'Edit note':'+ Note'}</button>
-        <button type="button" onclick="triggerPhoto(${idx})">${it.photo?'Change photo':'+ Photo'}</button>
+        <button type="button" onclick="toggleExtra(${idx})">📝 ${it.note?'Edit note':'Add note'}</button>
+        <button type="button" onclick="triggerPhoto(${idx})">📷 ${it.photo?'Change photo':'Add photo'}</button>
       </div>
       <div class="cl-item-extra" id="extra-${idx}" style="display:${it.note||it.photo?'flex':'none'}">
         <textarea placeholder="Note…" onblur="updateNote(${idx}, this.value)">${esc(it.note||'')}</textarea>
         ${it.photo ? `<img class="cl-thumb" src="${it.photo}"><button type="button" class="rm" onclick="removePhoto(${idx})">Remove photo</button>` : ''}
       </div>
     </div>
-  `).join('');
+  `;
+}
+function renderRunItems(run){
+  const wrap = $('#runItems');
+  const groups = groupItems(run.items);
+  if(groups.length<=1){
+    wrap.innerHTML = run.items.map((it,idx)=>itemHtml(it,idx)).join('');
+  }else{
+    // Preserve whatever's currently open/closed across a re-render (photo
+    // add/remove rebuilds this whole block) — on the very first render for
+    // this modal session there's nothing to preserve yet, so a section
+    // that's already fully checked off starts collapsed instead, which
+    // matters when reopening an in-progress run where some rooms are done.
+    const prevOpen = [...wrap.querySelectorAll('details.cl-section')].map(d=>d.open);
+    wrap.innerHTML = groups.map((g,gi)=>{
+      const done = g.items.filter(i=>i.checked).length;
+      const allDone = done===g.items.length;
+      const isOpen = prevOpen.length ? prevOpen[gi] : !allDone;
+      return `<details class="cl-section" ${isOpen?'open':''}>
+        <summary><span>${esc(g.key)}</span><span class="cl-section-count">${done}/${g.items.length}</span></summary>
+        <div class="cl-section-body">${g.items.map(i=>itemHtml(i,i.idx)).join('')}</div>
+      </details>`;
+    }).join('');
+  }
   updateProgressLabel();
+}
+
+/* ---------- AUTOSAVE ----------
+   Every check/note/photo change schedules a debounced background save so
+   nothing is lost if the caretaker gets interrupted mid-walkthrough —
+   status is deliberately never included here, only the explicit Save/
+   Complete buttons change a run's status. */
+let autosaveTimer = null, autosaveInFlight = false, autosavePending = false;
+function setSaveStatus(state, detail){
+  const el = $('#runSaveStatus');
+  if(!el) return;
+  el.className = 'cl-save-status '+state;
+  el.textContent = state==='saving' ? 'Saving…'
+    : state==='saved' ? 'Saved ✓'
+    : state==='unsaved' ? 'Unsaved changes…'
+    : state==='error' ? `⚠ Not saved — retrying (${detail||'error'})`
+    : '';
+}
+function scheduleAutosave(){
+  if(!currentRunId) return;
+  setSaveStatus('unsaved');
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(doAutosave, 1000);
+}
+async function doAutosave(){
+  if(!currentRunId) return;
+  if(autosaveInFlight){ autosavePending = true; return; }
+  const run = DOC.runs.find(r=>r.id===currentRunId);
+  if(!run) return;
+  autosaveInFlight = true;
+  setSaveStatus('saving');
+  const items = run.items.map(it=>({ text:it.text, checked:it.checked, note:it.note||'', photo:it.photo||null }));
+  const overallNote = $('#runOverallNote').value.trim();
+  try{
+    const data = await sendCommand({ action:'update-run', id: currentRunId, items, overallNote });
+    if(data===null) return; // sendCommand already redirected to login
+    DOC.runs = data.runs;
+    setSaveStatus('saved');
+  }catch(e){
+    setSaveStatus('error', e.message);
+    // Retry on its own — a caretaker mid-walkthrough shouldn't have to
+    // notice and manually retry a dropped connection.
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(doAutosave, 5000);
+  }finally{
+    autosaveInFlight = false;
+    if(autosavePending){ autosavePending = false; doAutosave(); }
+  }
+}
+// Flushes any pending debounced save immediately — called wherever the
+// modal can be dismissed, so closing right after the last tap never
+// discards it.
+function flushAutosave(){
+  if(autosaveTimer){ clearTimeout(autosaveTimer); autosaveTimer = null; doAutosave(); }
 }
 
 function openRun(id){
   const run = DOC.runs.find(r=>r.id===id);
   if(!run) return;
   currentRunId = id;
+  clearTimeout(autosaveTimer); autosaveTimer = null; autosavePending = false;
   const label = run.type==='checkin' ? 'Check-in' : 'Check-out';
   $('#runTitle').textContent = `${label} checklist${run.guest?' — '+run.guest:''}`;
   $('#runSub').textContent = `${run.stayNo||'No booking reference'} · ${fmtDate(run.date)}`;
   $('#runOverallNote').value = run.overallNote || '';
   $('#runErr').textContent = '';
+  setSaveStatus('');
   renderRunItems(run);
   $('#runOverlay').classList.add('show');
 }
-function closeRunModal(){ $('#runOverlay').classList.remove('show'); currentRunId = null; }
+function closeRunModal(){ flushAutosave(); $('#runOverlay').classList.remove('show'); currentRunId = null; }
 $('#runClose').addEventListener('click', closeRunModal);
 $('#runOverlay').addEventListener('click', e=>{ if(e.target===$('#runOverlay')) closeRunModal(); });
+$('#runOverallNote').addEventListener('input', scheduleAutosave);
 
 function toggleItem(idx, checked){
   const run = DOC.runs.find(r=>r.id===currentRunId);
   if(!run) return;
   run.items[idx].checked = checked;
-  $('#runItems').querySelectorAll('.cl-item')[idx].querySelector('.cl-item-text').classList.toggle('done', checked);
+  const itemEl = $('#runItems').querySelector(`.cl-item[data-idx="${idx}"]`);
+  if(itemEl){
+    itemEl.querySelector('.cl-item-text').classList.toggle('done', checked);
+    const section = itemEl.closest('.cl-section');
+    if(section){
+      const boxes = section.querySelectorAll('.cl-item-top input[type=checkbox]');
+      let done = 0; boxes.forEach(b=>{ if(b.checked) done++; });
+      const countEl = section.querySelector('.cl-section-count');
+      if(countEl) countEl.textContent = `${done}/${boxes.length}`;
+    }
+  }
   updateProgressLabel();
+  scheduleAutosave();
 }
 function toggleExtra(idx){
   const el = $('#extra-'+idx);
@@ -532,6 +687,7 @@ function updateNote(idx, value){
   const run = DOC.runs.find(r=>r.id===currentRunId);
   if(!run) return;
   run.items[idx].note = value;
+  scheduleAutosave();
 }
 
 let pendingPhotoIdx = null;
@@ -547,8 +703,12 @@ photoInput.addEventListener('change', async () => {
     const run = DOC.runs.find(r=>r.id===currentRunId);
     if(!run) return;
     run.items[pendingPhotoIdx].photo = dataUrl;
+    // renderRunItems already opens the note/photo area for any item that
+    // now has a photo — no extra toggleExtra() call needed (and calling
+    // one here used to immediately re-hide the photo right after adding
+    // it, since the freshly-rendered element already started open).
     renderRunItems(run);
-    toggleExtra(pendingPhotoIdx);
+    scheduleAutosave();
   }catch(e){ showToast(e.message, true); }
 });
 function removePhoto(idx){
@@ -556,7 +716,7 @@ function removePhoto(idx){
   if(!run) return;
   run.items[idx].photo = null;
   renderRunItems(run);
-  toggleExtra(idx);
+  scheduleAutosave();
 }
 
 function compressImage(file){
@@ -578,6 +738,10 @@ function compressImage(file){
 async function saveRun(status){
   const run = DOC.runs.find(r=>r.id===currentRunId);
   if(!run) return;
+  // This save already covers everything a pending autosave would send —
+  // drop the scheduled one so closeRunModal's flush doesn't fire a
+  // redundant second write right behind this one.
+  clearTimeout(autosaveTimer); autosaveTimer = null;
   const items = run.items.map(it=>({ text:it.text, checked:it.checked, note:it.note||'', photo:it.photo||null }));
   const overallNote = $('#runOverallNote').value.trim();
   const btn = status==='completed' ? $('#runComplete') : $('#runSaveDraft');
