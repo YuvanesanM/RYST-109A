@@ -1246,7 +1246,16 @@ function renderAgenda(){
   if(!filtered.length){ list.innerHTML = '<div class="empty">No upcoming bookings.</div>'; return; }
   list.innerHTML = filtered.slice(0,25).map(d=>{
     const isNow = d.checkin<=today && d.checkout>today;
+    // A quote with no advance against it is a proposal, not a commitment —
+    // same advance>0 rule as isNonBlockingStay/stayBlocksDates elsewhere.
+    // Tagging it "Now"/"Upcoming" alongside real invoices and paid quotes
+    // misrepresents it as a confirmed booking that's actually happening;
+    // "Tentative" says what it actually is while still surfacing it here
+    // for the owner to track (this list intentionally keeps unpaid quotes
+    // visible — see isNonBlockingStay's comment above).
+    const committed = (d.type||'invoice')!=='quote' || Number(d.advance)>0;
     const tag = d.type==='block' ? '<span class="ag-tag" style="background:var(--block-soft);color:var(--block)">Blocked</span>'
+      : !committed ? '<span class="ag-tag upcoming">Tentative</span>'
       : isNow ? '<span class="ag-tag now">Now</span>' : '<span class="ag-tag upcoming">Upcoming</span>';
     const publicBadge = d.mode==='Razorpay'
       ? `<span class="ag-tag" style="background:var(--inv-soft);color:var(--inv)">Paid online</span>`
