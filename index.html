@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://*.razorpay.com; connect-src 'self' https://ryst-109a-proxy.onrender.com wss://ryst-109a-proxy.onrender.com https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com https://api.razorpay.com https://lumberjack.razorpay.com; frame-src https://accounts.google.com https://www.google.com https://api.razorpay.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://*.razorpay.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com https://api.razorpay.com https://lumberjack.razorpay.com; frame-src https://accounts.google.com https://www.google.com https://api.razorpay.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 
   <meta name="google-site-verification" content="2CYtu5iJuDf5VZgn5JtCJ6DGW_jwmjAd1gqVz9Qe1vs" />
 
@@ -1972,7 +1972,7 @@
   // see the proxy's /availability route) so visitors can see what's free
   // before enquiring, and pick dates that prefill the form below.
   const availState = (function(){
-    const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+    const PROXY_URL = 'https://data.ryst.in';
     let ranges = [];
     let view = new Date(); view.setHours(0,0,0,0); view.setDate(1);
     let selStart = null, selEnd = null;
@@ -2122,7 +2122,7 @@
   // nothing if there's no eligible review yet, same fail-quiet stance as
   // the visible testimonials grid below.
   (function(){
-    const PROXY_URL = 'https://ryst-109a-proxy.onrender.com';
+    const PROXY_URL = 'https://data.ryst.in';
     const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     fetch(PROXY_URL+'/testimonials')
       .then(r => r.ok ? r.json() : null)
@@ -2179,7 +2179,7 @@
   let waTemplates = {
     bookingRequest: `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n*Name:* {{name}}\n*Phone:* {{phone}}\n*Email:* {{email}}\n\n*Check-in:* {{checkin}}\n*Check-out:* {{checkout}} ({{nightsLabel}})\n*Guests:* {{guests}}\n*Occasion:* {{occasion}}\n\n*Notes:* {{message}}\n\n*Reference:* {{quoteNo}}`
   };
-  fetch('https://ryst-109a-proxy.onrender.com/whatsapp-templates', { cache: 'no-store' })
+  fetch('https://data.ryst.in/whatsapp-templates', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
     .then(data => { if(data && data.templates && data.templates.bookingRequest) waTemplates.bookingRequest = data.templates.bookingRequest; })
     .catch(()=>{}); // silent — keeps the hardcoded default above
@@ -2201,7 +2201,7 @@
   // ── BOOKING FORM ──
   // Update WHATSAPP_NUMBER to your actual WhatsApp number (digits only, with country code, no +)
   const WHATSAPP_NUMBER = '918122209109';
-  const PROXY = 'https://ryst-109a-proxy.onrender.com';
+  const PROXY = 'https://data.ryst.in';
   const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   const fmtDate = d => { const [y,m,dd]=d.split('-'); return `${dd}/${m}/${y}`; };
 
