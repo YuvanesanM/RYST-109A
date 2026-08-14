@@ -241,6 +241,11 @@
       <label class="f"><span>Online booking advance (%)</span><input class="t" id="stayAdvancePercent" type="number" min="1" max="100" step="1" placeholder="30"></label>
     </div>
     <label class="f"><span>Bank / payment details block</span><textarea class="t" id="stayBank" rows="6"></textarea></label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <label class="f"><span>Wi-Fi network</span><input class="t" id="stayWifiNetwork" placeholder="RYST 109A"></label>
+      <label class="f"><span>Wi-Fi voucher code</span><input class="t" id="stayWifiVoucher" placeholder="Welcome109"></label>
+    </div>
+    <p class="sd" style="margin:-6px 0 14px">Shown to signed-in guests on the Manage My Stay portal (guest.html).</p>
     <label class="f"><span>GST declaration</span><textarea class="t" id="stayDecl" rows="3"></textarea></label>
     <label class="f"><span>Terms &amp; conditions (one per line)</span><textarea class="t" id="stayTerms" rows="7"></textarea></label>
   </div>
@@ -375,6 +380,8 @@ Account Number: 50100XXXXXXXXX
 IFSC: HDFCXXXXXXX
 Bank Name: HDFC Bank
 Account Type: Savings`,
+  wifiNetwork:"RYST 109A",
+  wifiVoucher:"",
   declaration:`Supplier is not registered under GST as the turnover is below the prescribed threshold limit under the GST Act. Hence, GST has not been charged on this invoice.`,
   terms:[
     "Full payment is due as per booking confirmation.",
@@ -599,6 +606,8 @@ function renderFromStay(){
   stayCouponDraft=(stay.coupons||[]).map(c=>({...c}));
   renderStayCoupons();
   document.getElementById("stayBank").value=stay.bank||"";
+  document.getElementById("stayWifiNetwork").value=stay.wifiNetwork||"";
+  document.getElementById("stayWifiVoucher").value=stay.wifiVoucher||"";
   document.getElementById("stayDecl").value=stay.declaration||"";
   document.getElementById("stayTerms").value=(stay.terms||[]).join("\n");
   icalFeedsDraft=(stay.icalFeeds||[]).map(f=>({...f}));
@@ -1082,6 +1091,8 @@ async function saveStay(){
     .filter(c=>(c.code||"").trim()!=="")
     .map(c=>({code:c.code.trim().toUpperCase(), discountPercent:(c.discountPercent===""||c.discountPercent==null)?0:Math.min(100,Math.max(0,parseFloat(c.discountPercent)||0))}));
   stay.bank=document.getElementById("stayBank").value;
+  stay.wifiNetwork=document.getElementById("stayWifiNetwork").value.trim();
+  stay.wifiVoucher=document.getElementById("stayWifiVoucher").value.trim();
   stay.declaration=document.getElementById("stayDecl").value;
   stay.terms=(document.getElementById("stayTerms").value||"").split("\n").map(t=>t.trim()).filter(Boolean);
   if(!stay.terms.length) stay.terms=STAY_DEFAULTS.terms.slice();
