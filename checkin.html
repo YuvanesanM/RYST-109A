@@ -523,6 +523,9 @@ function renderSummary(){
         <a class="apple" href="${walletUrl()}"><img src="/assets/apple-wallet-badge.png" alt="Add to Apple Wallet" width="142" height="44"></a>
         <a class="wallet-btn-google" href="${googleWalletUrl()}">${GOOGLE_G_ICON} Add to Google Wallet</a>
       </div>` : ''}
+      <div style="text-align:center;margin-top:2px">
+        <a class="thanks-link" href="/guest.html">🗝️ Manage My Stay — pay balance, order food, Wi-Fi</a>
+      </div>
     `;
   } else {
     el.style.display = 'none';

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<title>My Stay | RYST 109A</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="/assets/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<style>
+  @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#eef4f2; --bg:#eef4f2;
+    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480; --muted-text:#5a706c;
+    --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
+    --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
+  }
+  html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100%;-webkit-font-smoothing:antialiased}
+  body{display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh}
+  a{color:inherit}
+  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:560px;width:100%}
+  .card{
+    position:relative;background:var(--white);border-radius:28px;padding:clamp(22px,5vw,38px);
+    box-shadow:0 28px 70px rgba(11,61,82,.14); border:1px solid rgba(255,255,255,.8); overflow:hidden;
+  }
+  .card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--sea),var(--sea-mid),var(--sand))}
+  .logo{height:44px;display:block;margin:0 auto 22px;object-fit:contain}
+
+  @media (prefers-reduced-motion: reduce){ * { transition:none !important; animation:none !important; } }
+  button:focus-visible,a:focus-visible,input:focus-visible{ outline:2px solid var(--sea-mid); outline-offset:2px; }
+
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(22px,5vw,26px);color:var(--sea);margin-bottom:4px;text-align:center}
+  .sub{color:var(--muted-text);font-size:13.5px;line-height:1.55;text-align:center;margin-bottom:18px}
+  .err{color:var(--coral);font-size:13px;text-align:center;min-height:16px;margin-top:10px}
+
+  .screen{display:none}
+  .screen.active{display:block}
+  .back-btn{
+    display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--muted-text);
+    font-family:var(--sans);font-size:12.5px;font-weight:600;cursor:pointer;margin-bottom:14px;padding:4px 0;
+  }
+  .top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .logout-link{background:none;border:none;color:var(--muted-text);font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline}
+
+  #googleSignInBtn{display:flex;justify-content:center;min-height:44px;margin-bottom:8px}
+
+  /* ── BOOKING SUMMARY (mirrors checkin.html's booking-card) ── */
+  .booking-card{
+    background:var(--foam);border:1px solid var(--line);border-radius:20px;padding:18px 20px;
+    margin:0 0 16px;display:grid;gap:14px;
+  }
+  .bc-name{display:flex;flex-direction:column;gap:2px}
+  .bc-label{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .bc-value{font-size:14.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+  .bc-name .bc-value{font-family:var(--serif);font-size:21px;font-weight:600;color:var(--sea)}
+  .bc-divider{height:1px;background:var(--line)}
+  .bc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(74px,1fr));gap:12px 6px}
+  .bc-cell{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .bc-id{
+    display:inline-flex;align-items:center;gap:6px;width:fit-content;max-width:100%;
+    background:var(--white);color:var(--sea);font-size:12.5px;font-weight:600;
+    padding:6px 12px;border-radius:999px;overflow-wrap:anywhere;
+  }
+
+  .due-banner{
+    background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
+    border-radius:16px;padding:14px 18px;margin:0 0 16px;text-align:center;font-size:13.5px;color:#8a4321;line-height:1.5;
+  }
+  .due-banner strong{font-size:15px;color:var(--coral)}
+  .due-banner p{margin:0}
+  .pay-btn{
+    margin-top:10px;background:var(--coral);color:#fff;border:none;border-radius:11px;
+    padding:11px 20px;font-family:var(--sans);font-size:13.5px;font-weight:600;
+    cursor:pointer;min-height:42px;transition:opacity .2s;
+  }
+  .pay-btn:hover:not(:disabled){opacity:.88}
+  .pay-btn:disabled{opacity:.6;cursor:not-allowed}
+  .pay-msg{margin-top:8px;font-size:12.5px;color:#8a4321}
+
+  /* ── HOME TILES (mirrors play.html's menu-item) ── */
+  .menu{display:flex;flex-direction:column;gap:12px}
+  .menu-item{
+    display:flex;align-items:center;gap:14px;text-align:left;background:var(--foam);border:1.5px solid transparent;
+    border-radius:16px;padding:16px 18px;cursor:pointer;transition:border-color .15s,transform .15s;width:100%;
+    text-decoration:none;color:inherit;
+  }
+  .menu-item:active{transform:scale(.98)}
+  .menu-item.disabled{opacity:.5;cursor:not-allowed}
+  .menu-icon{font-size:26px;flex-shrink:0}
+  .menu-title{display:block;font-family:var(--serif);font-weight:600;font-size:16.5px;color:var(--sea)}
+  .menu-desc{display:block;color:var(--muted-text);font-size:12px;margin-top:2px}
+  .menu-badge{margin-left:auto;background:var(--coral);color:#fff;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;flex-shrink:0}
+
+  /* ── MENU / ORDER ── */
+  .cat-head{font-family:var(--serif);font-weight:600;font-size:15px;color:var(--sea);margin:16px 0 8px}
+  .cat-head:first-child{margin-top:0}
+  .item-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+  .item-info{flex:1;min-width:0}
+  .item-name{font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px}
+  .veg-dot{width:9px;height:9px;border-radius:2px;border:1.5px solid;flex-shrink:0}
+  .veg-dot.veg{border-color:#2e7d32;background:#2e7d32}
+  .veg-dot.nonveg{border-color:var(--coral);background:var(--coral)}
+  .item-price{font-size:12.5px;color:var(--muted-text)}
+  .qty-stepper{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .qty-btn{
+    width:30px;height:30px;border-radius:9px;border:1.5px solid var(--line);background:var(--white);
+    color:var(--sea);font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+  .qty-btn:disabled{opacity:.4;cursor:not-allowed}
+  .qty-n{min-width:18px;text-align:center;font-weight:600;font-size:14px}
+  /* Fixed to the viewport, not the card — same pattern as restaurant.html's
+     mobile order-builder cart bar (.ob-cartbar), which is where this
+     convention comes from. #screen-menu gets matching bottom padding so
+     the item list never sits underneath it. */
+  .cart-bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:40;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--white);border-top:1px solid var(--line);
+    padding:12px 20px calc(12px + env(safe-area-inset-bottom));
+    box-shadow:0 -4px 16px rgba(11,61,82,.1);
+  }
+  #screen-menu{padding-bottom:70px}
+  .cart-total{font-size:13.5px;color:var(--muted-text)}
+  .cart-total strong{color:var(--ink);font-size:15px}
+  .place-order-btn{
+    background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;border:none;border-radius:11px;
+    padding:11px 20px;font-family:var(--sans);font-size:13.5px;font-weight:600;cursor:pointer;min-height:42px;
+  }
+  .place-order-btn:disabled{opacity:.5;cursor:not-allowed}
+
+  /* ── FOOD BILL ── */
+  .order-card{background:var(--foam);border-radius:14px;padding:14px 16px;margin-bottom:10px}
+  .order-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+  .order-no{font-size:12px;color:var(--muted-text)}
+  .order-total{font-weight:700;font-size:16px;color:var(--sea)}
+  .order-items{font-size:12.5px;color:var(--muted-text);line-height:1.5}
+  .order-status{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .order-status.open{background:#fdeee3;color:#8a4321}
+  .order-status.settled{background:#e3f0ea;color:#215f3f}
+  .empty-note{color:var(--muted-text);font-size:13.5px;text-align:center;padding:20px 0}
+
+  /* ── WI-FI ── */
+  .wifi-card{background:var(--foam);border-radius:16px;padding:20px;text-align:center}
+  .wifi-field{margin:14px 0}
+  .wifi-value{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--sea);word-break:break-word}
+  .copy-btn{
+    margin-top:6px;background:var(--white);border:1.5px solid var(--line);border-radius:9px;
+    padding:6px 14px;font-size:12px;font-weight:600;color:var(--sea-mid);cursor:pointer;
+  }
+
+  .spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(26,106,122,.2);border-top-color:var(--sea-mid);animation:spin .8s linear infinite;margin:24px auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
+
+    <section class="screen active" id="screen-signin">
+      <h1>Manage Your Stay</h1>
+      <p class="sub">Sign in with the email used for your booking to view your invoice, pay your balance, order food and more.</p>
+      <div id="googleSignInBtn"></div>
+      <p class="err" id="signinErr"></p>
+    </section>
+
+    <section class="screen" id="screen-loading">
+      <div class="spinner"></div>
+    </section>
+
+    <section class="screen" id="screen-home">
+      <div class="top-row">
+        <h1 style="text-align:left;margin:0">Welcome back</h1>
+        <button type="button" class="logout-link" id="logoutBtn">Sign out</button>
+      </div>
+      <div id="homeBooking"></div>
+      <div id="homeDue"></div>
+      <div class="menu">
+        <button type="button" class="menu-item" data-mode="menu">
+          <span class="menu-icon">🍽️</span>
+          <span><span class="menu-title">Food Menu &amp; Order</span><span class="menu-desc">Browse Casa de RYST and place an order</span></span>
+        </button>
+        <button type="button" class="menu-item" data-mode="foodbill">
+          <span class="menu-icon">🧾</span>
+          <span><span class="menu-title">Food Bill</span><span class="menu-desc">View and pay your food orders</span></span>
+          <span class="menu-badge" id="foodBadge" style="display:none"></span>
+        </button>
+        <a class="menu-item" id="playLink" href="/play.html">
+          <span class="menu-icon">🎮</span>
+          <span><span class="menu-title">Play &amp; Entertainment</span><span class="menu-desc" id="playDesc">Games on the pool screen</span></span>
+        </a>
+        <button type="button" class="menu-item" data-mode="wifi">
+          <span class="menu-icon">📶</span>
+          <span><span class="menu-title">Wi-Fi</span><span class="menu-desc">Network &amp; voucher code</span></span>
+        </button>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-menu">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1 style="text-align:left">Food Menu</h1>
+      <p class="sub" style="text-align:left;margin-bottom:10px">Tap + to add an item — your order goes straight to the kitchen.</p>
+      <div id="menuList"></div>
+      <div class="cart-bar">
+        <span class="cart-total">Total: <strong id="cartTotal">₹0</strong></span>
+        <button type="button" class="place-order-btn" id="placeOrderBtn" disabled>Place Order</button>
+      </div>
+      <p class="err" id="menuErr"></p>
+    </section>
+
+    <section class="screen" id="screen-foodbill">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1 style="text-align:left">Food Bill</h1>
+      <div id="billList"></div>
+      <div id="billPay"></div>
+    </section>
+
+    <section class="screen" id="screen-wifi">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1 style="text-align:left">Wi-Fi</h1>
+      <div class="wifi-card" id="wifiCard"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const PROXY_URL = 'https://data.ryst.in';
+const $ = s => document.querySelector(s);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const money = n => '₹' + Math.round(Number(n)||0).toLocaleString('en-IN');
+
+let portalToken = localStorage.getItem('ryst_portal_token') || '';
+let me = null;      // last /portal/me response
+let cart = {};       // menuItemId -> qty
+
+function fmtDateShort(iso){
+  if(!iso) return '';
+  const d = new Date(iso+'T00:00:00');
+  if(isNaN(d)) return iso;
+  return d.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+}
+function fmtDateTime(iso, time){
+  const d = fmtDateShort(iso);
+  return time ? `${d}, ${time}` : d;
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-'+id);
+  if(el) el.classList.add('active');
+}
+document.querySelectorAll('[data-back]').forEach(btn => btn.addEventListener('click', () => showScreen('home')));
+
+// ── Sign-in ──────────────────────────────────────────────────────────────
+const GOOGLE_CLIENT_ID = '717827758789-99ugj40a6j2rr4r7db26shn0hivq0vv0.apps.googleusercontent.com';
+
+async function handleGoogleLogin(credentialResponse){
+  const errEl = $('#signinErr');
+  errEl.textContent = 'Verifying…';
+  try{
+    const res = await fetch(PROXY_URL+'/auth/portal', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ googleIdToken: credentialResponse.credential }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(data.ok && data.token){
+      portalToken = data.token;
+      localStorage.setItem('ryst_portal_token', portalToken);
+      errEl.textContent = '';
+      loadMe();
+    } else {
+      errEl.textContent = data.error || 'Could not sign in.';
+    }
+  }catch(e){
+    errEl.textContent = 'Could not reach the server — check your connection.';
+  }
+}
+let gsiRendered = false;
+function initGoogleSignIn(){
+  if(gsiRendered) return;
+  if(typeof google === 'undefined' || !google.accounts || !google.accounts.id) return;
+  const target = $('#googleSignInBtn');
+  if(!target) return;
+  gsiRendered = true;
+  google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin, auto_select: false });
+  google.accounts.id.renderButton(target, { theme:'outline', size:'large', width: 300, text:'signin_with' });
+}
+window.onGoogleLibraryLoad = initGoogleSignIn;
+window.addEventListener('load', initGoogleSignIn);
+setTimeout(() => {
+  if(!gsiRendered && $('#screen-signin').classList.contains('active')){
+    const errEl = $('#signinErr');
+    if(errEl) errEl.textContent = 'Could not load Google Sign-In — check your connection or disable ad blockers.';
+  }
+}, 8000);
+
+function logout(){
+  portalToken = '';
+  localStorage.removeItem('ryst_portal_token');
+  me = null; cart = {};
+  showScreen('signin');
+}
+$('#logoutBtn').addEventListener('click', logout);
+
+// ── Data load ────────────────────────────────────────────────────────────
+async function loadMe(){
+  showScreen('loading');
+  try{
+    const res = await fetch(PROXY_URL+'/portal/me', { headers:{ 'X-Token': portalToken } });
+    if(res.status === 401){ logout(); return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || !data.ok){
+      $('#signinErr').textContent = data.error || 'Could not load your stay.';
+      showScreen('signin');
+      return;
+    }
+    me = data;
+    renderHome();
+    showScreen('home');
+  }catch(e){
+    $('#signinErr').textContent = 'Could not reach the server — check your connection.';
+    showScreen('signin');
+  }
+}
+if(portalToken) loadMe();
+
+// ── Home ─────────────────────────────────────────────────────────────────
+function renderHome(){
+  const b = me.stay;
+  const bookingEl = $('#homeBooking');
+  if(b){
+    bookingEl.innerHTML = `
+      <div class="booking-card">
+        <div class="bc-name"><span class="bc-label">Guest</span><span class="bc-value">${esc(b.guest||'Guest')}</span></div>
+        <div class="bc-divider"></div>
+        <div class="bc-grid">
+          <div class="bc-cell"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDateShort(b.checkin)}</span></div>
+          <div class="bc-cell"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDateShort(b.checkout)}</span></div>
+          ${b.guests ? `<div class="bc-cell"><span class="bc-label">Guests</span><span class="bc-value">${esc(String(b.guests))}</span></div>` : ''}
+        </div>
+        <div class="bc-id">🔖 ${esc(b.no)}</div>
+      </div>`;
+  } else {
+    bookingEl.innerHTML = `<p class="empty-note">We couldn't find a confirmed booking for this account. If you've just booked, please check back shortly, or WhatsApp us.</p>`;
+  }
+
+  const dueEl = $('#homeDue');
+  if(b && b.balance > 0){
+    dueEl.innerHTML = `
+      <div class="due-banner">
+        <p>Balance due: <strong>${money(b.balance)}</strong></p>
+        <button type="button" class="pay-btn" id="payBalanceBtn">Pay Balance Now</button>
+        <p class="pay-msg" id="payBalanceMsg"></p>
+      </div>`;
+    $('#payBalanceBtn').addEventListener('click', () => payLink('balance', $('#payBalanceBtn'), $('#payBalanceMsg')));
+  } else {
+    dueEl.innerHTML = '';
+  }
+
+  const badge = $('#foodBadge');
+  if(me.foodBalance > 0){ badge.style.display = ''; badge.textContent = money(me.foodBalance); }
+  else badge.style.display = 'none';
+
+  const playLink = $('#playLink'), playDesc = $('#playDesc');
+  if(me.playAvailable){
+    playLink.classList.remove('disabled');
+    playDesc.textContent = 'Available now — games on the pool screen';
+  } else {
+    playDesc.textContent = 'Opens automatically during your stay';
+  }
+
+  document.querySelectorAll('.menu-item[data-mode]').forEach(btn => {
+    btn.onclick = () => {
+      const mode = btn.dataset.mode;
+      if(mode === 'menu') renderMenu();
+      if(mode === 'foodbill') renderBill();
+      if(mode === 'wifi') renderWifi();
+      showScreen(mode);
+    };
+  });
+}
+
+async function payLink(kind, btn, msgEl){
+  if(!btn || btn.disabled) return;
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = 'Preparing payment…';
+  if(msgEl) msgEl.textContent = '';
+  try{
+    const path = kind === 'balance' ? '/portal/balance-payment-link' : '/portal/food-payment-link';
+    const res = await fetch(PROXY_URL+path, { method:'POST', headers:{ 'X-Token': portalToken } });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error || 'Could not start payment.');
+    if(data.url) window.open(data.url, '_blank', 'noopener');
+    else if(msgEl) msgEl.textContent = 'Nothing currently due.';
+  }catch(err){
+    if(msgEl) msgEl.textContent = err.message || 'Could not start payment — please try again or WhatsApp us.';
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = orig; }
+  }
+}
+
+// ── Menu & order ─────────────────────────────────────────────────────────
+function cartTotal(){
+  return (me.menu||[]).reduce((s,m)=> s + (cart[m.id]||0) * m.price, 0);
+}
+function renderMenu(){
+  cart = {};
+  const list = $('#menuList');
+  $('#menuErr').textContent = '';
+  const menu = me.menu || [];
+  if(!menu.length){ list.innerHTML = `<p class="empty-note">The menu isn't available right now — please WhatsApp us to order.</p>`; }
+  else {
+    const cats = [...new Set(menu.map(m=>m.category||'Miscellaneous'))];
+    list.innerHTML = cats.map(cat => `
+      <div class="cat-head">${esc(cat)}${menu.find(m=>m.category===cat && m.chefSpecial) ? ' ⭐' : ''}</div>
+      ${menu.filter(m=>(m.category||'Miscellaneous')===cat).map(m => `
+        <div class="item-row" data-id="${esc(m.id)}">
+          <div class="item-info">
+            <div class="item-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}"></span>${esc(m.name)}${m.chefSpecial?' ⭐':''}</div>
+            <div class="item-price">${money(m.price)}</div>
+          </div>
+          <div class="qty-stepper">
+            <button type="button" class="qty-btn" data-act="dec" data-id="${esc(m.id)}">&minus;</button>
+            <span class="qty-n" data-qty="${esc(m.id)}">0</span>
+            <button type="button" class="qty-btn" data-act="inc" data-id="${esc(m.id)}">+</button>
+          </div>
+        </div>
+      `).join('')}
+    `).join('');
+  }
+  list.querySelectorAll('.qty-btn').forEach(btn => btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    const cur = cart[id] || 0;
+    const next = btn.dataset.act === 'inc' ? cur + 1 : Math.max(0, cur - 1);
+    cart[id] = next;
+    if(!next) delete cart[id];
+    list.querySelector(`[data-qty="${CSS.escape(id)}"]`).textContent = next;
+    renderCartBar();
+  }));
+  renderCartBar();
+}
+function renderCartBar(){
+  $('#cartTotal').textContent = money(cartTotal());
+  $('#placeOrderBtn').disabled = Object.keys(cart).length === 0;
+}
+$('#placeOrderBtn').addEventListener('click', async () => {
+  const btn = $('#placeOrderBtn'), errEl = $('#menuErr');
+  const items = Object.entries(cart).map(([menuItemId,qty]) => ({ menuItemId, qty }));
+  if(!items.length) return;
+  btn.disabled = true; btn.textContent = 'Placing order…';
+  errEl.textContent = '';
+  try{
+    const res = await fetch(PROXY_URL+'/portal/food-order', {
+      method:'POST', headers:{ 'Content-Type':'application/json', 'X-Token': portalToken },
+      body: JSON.stringify({ items }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error || 'Could not place order.');
+    cart = {};
+    await loadMe();
+    renderBill();
+    showScreen('foodbill');
+  }catch(err){
+    errEl.textContent = err.message || 'Could not place order — please try again.';
+    btn.textContent = 'Place Order';
+    renderCartBar();
+  }
+});
+
+// ── Food bill ────────────────────────────────────────────────────────────
+function renderBill(){
+  const list = $('#billList');
+  const orders = me.orders || [];
+  if(!orders.length){
+    list.innerHTML = `<p class="empty-note">No food orders yet — place one from the Food Menu.</p>`;
+  } else {
+    list.innerHTML = orders.map(o => `
+      <div class="order-card">
+        <div class="order-head"><span class="order-no">${esc(o.no)} · ${esc(fmtDateTime(o.date, o.time))}</span><span class="order-total">${money(o.total)}</span></div>
+        <div class="order-items">${(o.items||[]).map(it => `${it.qty}× ${esc(it.name)}`).join(', ')}</div>
+        <span class="order-status ${o.status==='settled'?'settled':'open'}">${o.status==='settled' ? 'Paid' : 'Unpaid'}</span>
+      </div>
+    `).join('');
+  }
+  const payEl = $('#billPay');
+  if(me.foodBalance > 0){
+    payEl.innerHTML = `
+      <div class="due-banner">
+        <p>Food bill outstanding: <strong>${money(me.foodBalance)}</strong></p>
+        <button type="button" class="pay-btn" id="payFoodBtn">Pay Food Bill Now</button>
+        <p class="pay-msg" id="payFoodMsg"></p>
+      </div>`;
+    $('#payFoodBtn').addEventListener('click', () => payLink('food', $('#payFoodBtn'), $('#payFoodMsg')));
+  } else {
+    payEl.innerHTML = '';
+  }
+}
+
+// ── Wi-Fi ────────────────────────────────────────────────────────────────
+function renderWifi(){
+  const network = me.wifiNetwork || 'RYST 109A';
+  const voucher = me.wifiVoucher || '';
+  $('#wifiCard').innerHTML = `
+    <div class="wifi-field">
+      <span class="bc-label">Network</span>
+      <div class="wifi-value">${esc(network)}</div>
+    </div>
+    ${voucher ? `<div class="wifi-field">
+      <span class="bc-label">Voucher Code</span>
+      <div class="wifi-value" id="wifiVoucherVal">${esc(voucher)}</div>
+      <button type="button" class="copy-btn" id="wifiCopyBtn">Copy code</button>
+    </div>` : `<p class="sub">Please check with the coordinator for your voucher code.</p>`}
+  `;
+  const copyBtn = $('#wifiCopyBtn');
+  if(copyBtn) copyBtn.addEventListener('click', async () => {
+    try{ await navigator.clipboard.writeText(voucher); copyBtn.textContent = 'Copied!'; setTimeout(()=>{ copyBtn.textContent = 'Copy code'; }, 1500); }
+    catch(e){ /* clipboard unavailable — the code is already shown on screen */ }
+  });
+}
+</script>
+</body>
+</html>
