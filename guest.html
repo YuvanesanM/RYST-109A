@@ -70,6 +70,15 @@
     padding:6px 12px;border-radius:999px;overflow-wrap:anywhere;
   }
 
+  /* ── STAFF "ACTING AS" ── */
+  .acting-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--foam);
+    border:1px dashed var(--sea-mid);border-radius:12px;padding:9px 14px;margin-bottom:14px;font-size:12.5px;color:var(--sea);
+  }
+  .acting-bar strong{font-weight:700}
+  .switch-link{background:none;border:none;color:var(--sea-mid);font-size:12px;font-weight:700;cursor:pointer;text-decoration:underline;flex-shrink:0}
+  .admin-guest-list{display:flex;flex-direction:column;gap:10px}
+
   .due-banner{
     background:linear-gradient(135deg,#fdeee3,#fbe0cd);border:1px solid rgba(201,106,59,.25);
     border-radius:16px;padding:14px 18px;margin:0 0 16px;text-align:center;font-size:13.5px;color:#8a4321;line-height:1.5;
@@ -176,11 +185,22 @@
       <div class="spinner"></div>
     </section>
 
+    <section class="screen" id="screen-adminpicker">
+      <div class="top-row">
+        <h1 style="text-align:left;margin:0">Choose a guest</h1>
+        <button type="button" class="logout-link" id="adminLogoutBtn">Sign out</button>
+      </div>
+      <p class="sub" style="text-align:left">Staff sign-in — pick a guest currently staying to view and act on their behalf.</p>
+      <div id="adminPickerList"></div>
+      <p class="err" id="adminPickerErr"></p>
+    </section>
+
     <section class="screen" id="screen-home">
       <div class="top-row">
         <h1 style="text-align:left;margin:0">Welcome back</h1>
         <button type="button" class="logout-link" id="logoutBtn">Sign out</button>
       </div>
+      <div class="acting-bar" id="actingAsBar" style="display:none"></div>
       <div id="homeBooking"></div>
       <div id="homeDue"></div>
       <div class="menu">
@@ -238,8 +258,10 @@ const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':
 const money = n => '₹' + Math.round(Number(n)||0).toLocaleString('en-IN');
 
 let portalToken = localStorage.getItem('ryst_portal_token') || '';
+let isStaff = localStorage.getItem('ryst_portal_is_staff') === 'true';
 let me = null;      // last /portal/me response
 let cart = {};       // menuItemId -> qty
+let adminStays = []; // active stays, staff picker only
 
 function fmtDateShort(iso){
   if(!iso) return '';
@@ -273,9 +295,11 @@ async function handleGoogleLogin(credentialResponse){
     const data = await res.json().catch(()=>({}));
     if(data.ok && data.token){
       portalToken = data.token;
+      isStaff = !!data.isStaff;
       localStorage.setItem('ryst_portal_token', portalToken);
+      localStorage.setItem('ryst_portal_is_staff', isStaff ? 'true' : 'false');
       errEl.textContent = '';
-      loadMe();
+      if(isStaff) loadAdminPicker(); else loadMe();
     } else {
       errEl.textContent = data.error || 'Could not sign in.';
     }
@@ -303,38 +327,96 @@ setTimeout(() => {
 }, 8000);
 
 function logout(){
-  portalToken = '';
+  portalToken = ''; isStaff = false;
   localStorage.removeItem('ryst_portal_token');
-  me = null; cart = {};
+  localStorage.removeItem('ryst_portal_is_staff');
+  me = null; cart = {}; adminStays = [];
   showScreen('signin');
 }
 $('#logoutBtn').addEventListener('click', logout);
+$('#adminLogoutBtn').addEventListener('click', logout);
+
+// ── Staff "acting on behalf of" picker ──────────────────────────────────
+// Reuses /stays exactly like checkin.html's own admin picker — a staff
+// token already has full read access to it (gated on hasModule bookings/
+// reports server-side), so no new listing route is needed. Filtered to
+// stays that are ACTIVE right now (checkin<=today<=checkout, non-block) —
+// matches the server's own resolvePortalStay() override window, so nothing
+// shown here can ever fail to resolve once picked.
+async function loadAdminPicker(){
+  showScreen('loading');
+  const errEl = $('#adminPickerErr');
+  errEl.textContent = '';
+  try{
+    const res = await fetch(PROXY_URL+'/stays', { headers:{ 'X-Token': portalToken } });
+    if(res.status === 401){ logout(); return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok){ errEl.textContent = data.error || 'Could not load bookings.'; showScreen('adminpicker'); return; }
+    const today = new Date().toISOString().slice(0,10);
+    adminStays = (Array.isArray(data.stays) ? data.stays : [])
+      .filter(s => (s.type||'invoice') !== 'block' && s.checkin && s.checkout && s.checkin <= today && today <= s.checkout)
+      .sort((a,b) => (a.guest||'').localeCompare(b.guest||''));
+    renderAdminPicker();
+    showScreen('adminpicker');
+  }catch(e){
+    errEl.textContent = 'Could not reach the server — check your connection.';
+    showScreen('adminpicker');
+  }
+}
+function renderAdminPicker(){
+  const list = $('#adminPickerList');
+  if(!adminStays.length){
+    list.innerHTML = `<p class="empty-note">No one is currently staying at RYST 109A.</p>`;
+    return;
+  }
+  list.innerHTML = `<div class="admin-guest-list">${adminStays.map(s => `
+    <button type="button" class="menu-item" data-no="${esc(s.no)}">
+      <span class="menu-icon">🧳</span>
+      <span><span class="menu-title">${esc(s.guest||'Guest')}</span><span class="menu-desc">${fmtDateShort(s.checkin)} → ${fmtDateShort(s.checkout)} · ${esc(s.no)}</span></span>
+    </button>
+  `).join('')}</div>`;
+  list.querySelectorAll('[data-no]').forEach(btn => btn.addEventListener('click', () => loadMe(btn.dataset.no)));
+}
 
 // ── Data load ────────────────────────────────────────────────────────────
-async function loadMe(){
+async function loadMe(stayNo){
   showScreen('loading');
   try{
-    const res = await fetch(PROXY_URL+'/portal/me', { headers:{ 'X-Token': portalToken } });
+    const path = stayNo ? '/portal/me?stayNo='+encodeURIComponent(stayNo) : '/portal/me';
+    const res = await fetch(PROXY_URL+path, { headers:{ 'X-Token': portalToken } });
     if(res.status === 401){ logout(); return; }
     const data = await res.json().catch(()=>({}));
     if(!res.ok || !data.ok){
-      $('#signinErr').textContent = data.error || 'Could not load your stay.';
-      showScreen('signin');
+      const errEl = isStaff ? $('#adminPickerErr') : $('#signinErr');
+      if(errEl) errEl.textContent = data.error || 'Could not load booking.';
+      showScreen(isStaff ? 'adminpicker' : 'signin');
       return;
     }
     me = data;
+    isStaff = !!data.isStaff;
     renderHome();
     showScreen('home');
   }catch(e){
-    $('#signinErr').textContent = 'Could not reach the server — check your connection.';
-    showScreen('signin');
+    const errEl = isStaff ? $('#adminPickerErr') : $('#signinErr');
+    if(errEl) errEl.textContent = 'Could not reach the server — check your connection.';
+    showScreen(isStaff ? 'adminpicker' : 'signin');
   }
 }
-if(portalToken) loadMe();
+if(portalToken){ if(isStaff) loadAdminPicker(); else loadMe(); }
 
 // ── Home ─────────────────────────────────────────────────────────────────
 function renderHome(){
   const b = me.stay;
+
+  const actingEl = $('#actingAsBar');
+  if(isStaff && b){
+    actingEl.style.display = '';
+    actingEl.innerHTML = `<span>Viewing as staff — <strong>${esc(b.guest||'Guest')}</strong></span><button type="button" class="switch-link" id="switchGuestBtn">Switch guest</button>`;
+    $('#switchGuestBtn').addEventListener('click', loadAdminPicker);
+  } else {
+    actingEl.style.display = 'none';
+  }
+
   const bookingEl = $('#homeBooking');
   if(b){
     bookingEl.innerHTML = `
@@ -394,7 +476,10 @@ async function payLink(kind, btn, msgEl){
   if(msgEl) msgEl.textContent = '';
   try{
     const path = kind === 'balance' ? '/portal/balance-payment-link' : '/portal/food-payment-link';
-    const res = await fetch(PROXY_URL+path, { method:'POST', headers:{ 'X-Token': portalToken } });
+    const res = await fetch(PROXY_URL+path, {
+      method:'POST', headers:{ 'Content-Type':'application/json', 'X-Token': portalToken },
+      body: JSON.stringify({ stayNo: (me.stay && me.stay.no) || undefined }),
+    });
     const data = await res.json().catch(()=>({}));
     if(!res.ok) throw new Error(data.error || 'Could not start payment.');
     if(data.url) window.open(data.url, '_blank', 'noopener');
@@ -457,14 +542,15 @@ $('#placeOrderBtn').addEventListener('click', async () => {
   btn.disabled = true; btn.textContent = 'Placing order…';
   errEl.textContent = '';
   try{
+    const stayNo = me.stay && me.stay.no;
     const res = await fetch(PROXY_URL+'/portal/food-order', {
       method:'POST', headers:{ 'Content-Type':'application/json', 'X-Token': portalToken },
-      body: JSON.stringify({ items }),
+      body: JSON.stringify({ items, stayNo }),
     });
     const data = await res.json().catch(()=>({}));
     if(!res.ok) throw new Error(data.error || 'Could not place order.');
     cart = {};
-    await loadMe();
+    await loadMe(stayNo);
     renderBill();
     showScreen('foodbill');
   }catch(err){
