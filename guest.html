@@ -353,6 +353,20 @@ function logout(){
 $('#logoutBtn').addEventListener('click', logout);
 $('#adminLogoutBtn').addEventListener('click', logout);
 
+// Mirrors bookings.html's isConvertedQuote (and the proxy's own copy of the
+// same check) — once a quote has a real invoice for the same checkin/
+// checkout and guest identity, it's a superseded draft, not a second
+// booking. Without this a converted quote and its invoice both show up as
+// separate picker entries for what's actually one guest, one stay.
+function isConvertedQuote(s, allStays){
+  if((s.type||'invoice')!=='quote') return false;
+  const email = (s.email||'').trim().toLowerCase();
+  const guest = (s.guest||'').trim().toLowerCase();
+  return allStays.some(x=>
+    (x.type||'invoice')==='invoice' && x.checkin===s.checkin && x.checkout===s.checkout &&
+    (email ? (x.email||'').trim().toLowerCase()===email : (guest && (x.guest||'').trim().toLowerCase()===guest)));
+}
+
 // ── Staff "acting on behalf of" picker ──────────────────────────────────
 // Reuses /stays exactly like checkin.html's own admin picker — a staff
 // token already has full read access to it (gated on hasModule bookings/
@@ -370,8 +384,9 @@ async function loadAdminPicker(){
     const data = await res.json().catch(()=>({}));
     if(!res.ok){ errEl.textContent = data.error || 'Could not load bookings.'; showScreen('adminpicker'); return; }
     const today = new Date().toISOString().slice(0,10);
-    adminStays = (Array.isArray(data.stays) ? data.stays : [])
-      .filter(s => (s.type||'invoice') !== 'block' && s.checkin && s.checkout && s.checkin <= today && today <= s.checkout)
+    const allStays = Array.isArray(data.stays) ? data.stays : [];
+    adminStays = allStays
+      .filter(s => (s.type||'invoice') !== 'block' && s.checkin && s.checkout && s.checkin <= today && today <= s.checkout && !isConvertedQuote(s, allStays))
       .sort((a,b) => (a.guest||'').localeCompare(b.guest||''));
     renderAdminPicker();
     showScreen('adminpicker');
