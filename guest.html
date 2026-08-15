@@ -575,7 +575,6 @@ async function payLink(kind, btn, msgEl){
 const MEAL_CATEGORY = { Breakfast: 'Breakfast Combos', Lunch: 'Meals', Dinner: 'Dinner' };
 const MEAL_PERIODS = ['Breakfast', 'Lunch', 'Dinner'];
 let selectedMeal = ''; // set by defaultMeal() on first render, preserved across chip taps/back-navigation after that
-let editingOrderNo = null; // set when the menu screen was opened via "Edit" on an existing open order
 
 // A reasonable starting meal for whenever the guest happens to open the
 // menu — before 11am defaults to Breakfast, before 4pm to Lunch, else
@@ -597,24 +596,9 @@ function renderMealChips(){
     renderMenu();
   }));
 }
-// orderToEdit (optional): an entry from me.orders — opens the menu screen
-// pre-filled with that order's own items/meal/date instead of a blank cart,
-// and switches Place Order into Save Changes mode (see editingOrderNo).
-function renderMenu(orderToEdit){
-  editingOrderNo = orderToEdit ? orderToEdit.no : null;
+function renderMenu(){
   cart = {};
-  if(orderToEdit){
-    (orderToEdit.items||[]).forEach(it => { if(it.menuItemId) cart[it.menuItemId] = (cart[it.menuItemId]||0) + it.qty; });
-    selectedMeal = orderToEdit.meal || defaultMeal();
-  } else {
-    selectedMeal = selectedMeal || defaultMeal();
-  }
-
-  $('#menuTitle').textContent = editingOrderNo ? 'Edit Order' : 'Food Menu';
-  $('#menuSub').textContent = editingOrderNo
-    ? `Editing ${esc(editingOrderNo)} — adjust items below and save.`
-    : "Order ahead for any day of your stay — pick a meal and a date, then tap + to add items.";
-  $('#placeOrderBtn').textContent = editingOrderNo ? 'Save Changes' : 'Place Order';
+  selectedMeal = selectedMeal || defaultMeal();
 
   // Guests can pre-order for any day of their actual stay, never outside
   // it — the date input is hard-bounded to [checkin, checkout], same
@@ -623,9 +607,7 @@ function renderMenu(orderToEdit){
   const b = me.stay;
   if(b){
     dateInput.min = b.checkin; dateInput.max = b.checkout;
-    if(orderToEdit && orderToEdit.date >= b.checkin && orderToEdit.date <= b.checkout){
-      dateInput.value = orderToEdit.date;
-    } else if(!dateInput.value || dateInput.value < b.checkin || dateInput.value > b.checkout){
+    if(!dateInput.value || dateInput.value < b.checkin || dateInput.value > b.checkout){
       const today = new Date().toISOString().slice(0,10);
       dateInput.value = (today >= b.checkin && today <= b.checkout) ? today : b.checkin;
     }
@@ -678,26 +660,24 @@ $('#placeOrderBtn').addEventListener('click', async () => {
   if(!items.length) return;
   const date = $('#orderDate').value;
   if(!date){ errEl.textContent = 'Please choose a date.'; return; }
-  const isEdit = !!editingOrderNo;
-  btn.disabled = true; btn.textContent = isEdit ? 'Saving…' : 'Placing order…';
+  btn.disabled = true; btn.textContent = 'Placing order…';
   errEl.textContent = '';
   try{
     const stayNo = me.stay && me.stay.no;
-    const path = isEdit ? '/portal/food-order/edit' : '/portal/food-order';
-    const body = isEdit ? { no: editingOrderNo, items, date, meal: selectedMeal, stayNo } : { items, date, meal: selectedMeal, stayNo };
-    const res = await fetch(PROXY_URL+path, {
+    const body = { items, date, meal: selectedMeal, stayNo };
+    const res = await fetch(PROXY_URL+'/portal/food-order', {
       method:'POST', headers:{ 'Content-Type':'application/json', 'X-Token': portalToken },
       body: JSON.stringify(body),
     });
     const data = await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(data.error || (isEdit ? 'Could not save changes.' : 'Could not place order.'));
-    cart = {}; editingOrderNo = null;
+    if(!res.ok) throw new Error(data.error || 'Could not place order.');
+    cart = {};
     await loadMe(stayNo);
     renderBill();
     showScreen('foodbill');
   }catch(err){
     errEl.textContent = err.message || 'Could not save — please try again.';
-    btn.textContent = isEdit ? 'Save Changes' : 'Place Order';
+    btn.textContent = 'Place Order';
     renderCartBar();
   }
 });
@@ -716,16 +696,11 @@ function renderBill(){
         <div class="order-foot">
           <span class="order-status ${o.status==='settled'?'settled':'open'}">${o.status==='settled' ? 'Paid' : 'Unpaid'}</span>
           <div class="order-actions">
-            ${o.status==='open' ? `<button type="button" class="order-action-btn" data-edit-order="${esc(o.no)}">Edit</button>` : ''}
             <button type="button" class="order-action-btn" data-print-order="${esc(o.no)}">Print / PDF</button>
           </div>
         </div>
       </div>
     `).join('');
-    list.querySelectorAll('[data-edit-order]').forEach(btn => btn.addEventListener('click', () => {
-      const o = (me.orders||[]).find(x => x.no === btn.dataset.editOrder);
-      if(o){ renderMenu(o); showScreen('menu'); }
-    }));
     list.querySelectorAll('[data-print-order]').forEach(btn => btn.addEventListener('click', () => {
       const o = (me.orders||[]).find(x => x.no === btn.dataset.printOrder);
       if(o) printReceipt(o);
