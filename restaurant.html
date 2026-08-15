@@ -970,7 +970,14 @@ $('#btnToggleBuilder').addEventListener('click', ()=>{
   b.classList.toggle('show');
   $('#btnToggleBuilder').textContent = opening ? '– Hide' : '+ New order';
   if(!opening) resetOrderBuilder(); // closing without saving discards any in-progress edit
-  if(opening && !$('#obDate').value){ $('#obDate').value = todayISO(); refreshGuestPicker(); }
+  if(opening){
+    if(!$('#obDate').value) $('#obDate').value = todayISO();
+    // Always refresh (not just on first open with a blank date) — both the
+    // active-stay suggestion and the "recent guests" list below need to
+    // reflect whatever DOC.orders looks like right now, including any order
+    // just saved a moment ago in this same session.
+    refreshGuestPicker();
+  }
   updateCartBar();
 });
 
@@ -981,28 +988,59 @@ $('#btnToggleBuilder').addEventListener('click', ()=>{
 // date) just leaves the picker at "— Pick current stay —" and the free-
 // text field works exactly as before.
 //
+// A guest legitimately has more than one food bill over a stay (breakfast,
+// then dinner, then a forgotten room-service charge added later) — but
+// /active-stay only ever knows about whoever is staying RIGHT NOW. Once a
+// guest has checked out, or the order being entered is for a day outside
+// today's active-stay window, there was no way to map a second bill back
+// to them at all. So the picker also lists "recent guests" — every distinct
+// stayNo already seen on a past order, sourced from DOC.orders (already
+// loaded client-side, no extra request), newest first, capped at 20 so the
+// list stays short — letting staff pick any guest who already has a bill on
+// record, not just today's.
+//
 // obStayNo carries the picked booking's `no` through to the order (see
 // /portal/food-order's stayNo, which is what makes an order show up on
 // that guest's own food bill in guest.html) — a staff-entered order was
 // otherwise never linked to a stay at all, invisible to the guest even
-// though it was billed to their room. Only set when the picker's exact
-// suggested match is used; cleared the moment staff types over the guest
-// name by hand (no longer safe to assume it's still the same booking), on
-// every date change (the picker's options — and whatever was selected —
-// are rebuilt from scratch), and after a successful save.
+// though it was billed to their room. Only set when a picker option is
+// used; cleared the moment staff types over the guest name by hand (no
+// longer safe to assume it's still the same booking), on every date change
+// (the picker's options — and whatever was selected — are rebuilt from
+// scratch), and after a successful save.
 let obStayNo = '';
 async function refreshGuestPicker(){
   const sel = $('#obGuestPick');
-  sel.innerHTML = '<option value="">— Pick current stay —</option>';
   obStayNo = '';
   const date = $('#obDate').value || todayISO();
+
+  const seenStayNos = new Set();
+  const recentGuests = [];
+  for(let i = DOC.orders.length - 1; i >= 0 && recentGuests.length < 20; i--){
+    const o = DOC.orders[i];
+    if(!o.stayNo || seenStayNos.has(o.stayNo)) continue;
+    seenStayNos.add(o.stayNo);
+    recentGuests.push({ guest: o.guest || 'Guest', no: o.stayNo });
+  }
+
+  let activeNo = '';
+  let html = '<option value="">— Pick current stay —</option>';
   try{
     const res = await fetch(PROXY_URL+'/active-stay?date='+encodeURIComponent(date), { cache:'no-store' });
     const data = await res.json().catch(()=>({}));
     if(data && data.active && data.guest){
-      sel.innerHTML += `<option value="${esc(data.guest)}" data-no="${esc(data.no||'')}">${esc(data.guest)} (${fmtDate(data.checkin)} → ${fmtDate(data.checkout)})</option>`;
+      activeNo = data.no || '';
+      html += `<option value="${esc(data.guest)}" data-no="${esc(activeNo)}">${esc(data.guest)} (${fmtDate(data.checkin)} → ${fmtDate(data.checkout)})</option>`;
     }
   }catch(e){ /* leave just the placeholder — free-text guest field still works */ }
+
+  const recentOptions = recentGuests.filter(g => g.no !== activeNo);
+  if(recentOptions.length){
+    html += `<optgroup label="Recent guests — map another bill to them">${recentOptions.map(g =>
+      `<option value="${esc(g.guest)}" data-no="${esc(g.no)}">${esc(g.guest)} — ${esc(g.no)}</option>`
+    ).join('')}</optgroup>`;
+  }
+  sel.innerHTML = html;
 }
 $('#obDate').addEventListener('change', refreshGuestPicker);
 $('#obGuestPick').addEventListener('change', e=>{
