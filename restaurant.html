@@ -1189,6 +1189,7 @@ function renderOrders(){
         <button class="icon-btn" data-print-order="${esc(o.no)}">Print</button>
         ${hasSourcedItems(o) ? `<button class="icon-btn" data-wa-order="${esc(o.no)}">📲 Partner Kitchen</button>` : ''}
         ${o.status==='open' ? `<button class="icon-btn" data-settle-order="${esc(o.no)}">Settle</button>` : ''}
+        ${o.status==='settled' ? `<button class="icon-btn owner-only" data-edit-status="${esc(o.no)}">Edit status</button>` : ''}
         ${o.status!=='cancelled' ? `<button class="icon-btn del" data-cancel-order="${esc(o.no)}">Cancel</button>` : ''}
         <button class="icon-btn del owner-only" data-del-order="${esc(o.no)}">Delete</button>
       </td>
@@ -1206,6 +1207,22 @@ function renderOrders(){
   $$('[data-settle-order]').forEach(b=>b.addEventListener('click', ()=>{
     const mode = prompt('Payment mode (Cash, UPI, Card, Room Account):', 'Cash');
     if(mode) runCommand({ action:'settle-order', no:b.dataset.settleOrder, paymentMode:mode }, 'Order settled');
+  }));
+  // Corrects a settled order's payment mode, or reopens it back to an open
+  // tab (e.g. it was marked settled/Room Account by mistake and the guest
+  // hasn't actually paid — reopening makes it count again as outstanding on
+  // their food bill in guest.html). Owner-only, same plain confirm/prompt
+  // pattern as Settle above rather than a new modal for a two-way choice.
+  $$('[data-edit-status]').forEach(b=>b.addEventListener('click', ()=>{
+    const no = b.dataset.editStatus;
+    const o = DOC.orders.find(x=>x.no===no);
+    if(!o) return;
+    if(confirm(`Reopen order ${no} back to an open tab?\n\nOK = reopen (removes the payment mode, counts again as outstanding)\nCancel = just correct the payment mode instead`)){
+      runCommand({ action:'edit-order-status', no, status:'open' }, 'Order reopened');
+    } else {
+      const mode = prompt('Correct payment mode (Cash, UPI, Card, Room Account):', o.paymentMode||'Cash');
+      if(mode) runCommand({ action:'edit-order-status', no, status:'settled', paymentMode:mode }, 'Payment mode updated');
+    }
   }));
   $$('[data-cancel-order]').forEach(b=>b.addEventListener('click', ()=>{
     if(confirm('Cancel this order?')) runCommand({ action:'cancel-order', no:b.dataset.cancelOrder }, 'Order cancelled');
