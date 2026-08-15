@@ -163,9 +163,15 @@
   .order-no{font-size:12px;color:var(--muted-text)}
   .order-total{font-weight:700;font-size:16px;color:var(--sea)}
   .order-items{font-size:12.5px;color:var(--muted-text);line-height:1.5}
-  .order-status{display:inline-block;margin-top:6px;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
+  .order-status{display:inline-block;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px}
   .order-status.open{background:#fdeee3;color:#8a4321}
   .order-status.settled{background:#e3f0ea;color:#215f3f}
+  .order-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+  .order-actions{display:flex;gap:8px}
+  .order-action-btn{
+    background:var(--white);border:1.5px solid var(--line);border-radius:8px;
+    padding:5px 12px;font-size:11.5px;font-weight:600;color:var(--sea-mid);cursor:pointer;
+  }
   .empty-note{color:var(--muted-text);font-size:13.5px;text-align:center;padding:20px 0}
 
   /* ── WI-FI ── */
@@ -179,6 +185,41 @@
 
   .spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(26,106,122,.2);border-top-color:var(--sea-mid);animation:spin .8s linear infinite;margin:24px auto}
   @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── PRINT / SAVE AS PDF (customer receipt) ──
+     Same structure as restaurant.html's own printReceipt — a guest and
+     staff printing the same order should get a document that looks like it
+     belongs to the same villa, not two different tools. */
+  #receiptArea{display:none}
+  @page{ size:A4; margin:14mm }
+  @media print{
+    body *{visibility:hidden}
+    #receiptArea, #receiptArea *{visibility:visible}
+    #receiptArea{display:block!important;position:absolute;top:0;left:0;width:100%;font-family:var(--sans);color:var(--ink)}
+    #receiptArea, #receiptArea *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    .r-doc{max-width:480px;margin:0 auto}
+    .r-head{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:3px solid var(--sea-mid)}
+    .r-head img{height:46px;object-fit:contain;flex-shrink:0}
+    .r-head .nm{font-family:var(--serif);font-size:20px;font-weight:600;color:var(--sea)}
+    .r-head .sub{font-size:11px;color:var(--muted-text);margin-top:2px}
+    .r-title{font-size:12px;font-weight:700;letter-spacing:1.5px;color:var(--muted-text);text-align:center;margin:18px 0}
+    .r-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;font-size:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+    .r-meta div{display:flex;flex-direction:column;gap:2px}
+    .r-meta .r-lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+    .r-meta b{font-size:13px;font-weight:700}
+    .r-meta .r-right{text-align:right}
+    table.r-items{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:4px}
+    table.r-items th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted-text);padding:0 0 8px;border-bottom:1.5px solid var(--ink)}
+    table.r-items td{padding:8px 0;border-bottom:1px solid var(--foam);vertical-align:top}
+    table.r-items th.num,table.r-items td.num{text-align:right;white-space:nowrap}
+    table.r-items td.nm{font-weight:600}
+    .r-totals{margin-top:14px;padding-top:2px}
+    .r-tot{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;color:var(--muted-text)}
+    .r-tot.grand{font-weight:700;font-size:16px;color:var(--ink);border-top:1.5px solid var(--ink);margin-top:8px;padding-top:10px}
+    .r-tot.grand span:last-child{color:var(--sea-mid)}
+    .r-foot{text-align:center;font-size:11px;color:var(--muted-text);line-height:1.6;margin-top:32px;padding-top:14px;border-top:1px dashed var(--line)}
+    .r-foot .brand{font-weight:700;color:var(--sea-mid);letter-spacing:.3px}
+  }
 </style>
 </head>
 <body>
@@ -238,8 +279,8 @@
 
     <section class="screen" id="screen-menu">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1 style="text-align:left">Food Menu</h1>
-      <p class="sub" style="text-align:left;margin-bottom:10px">Order ahead for any day of your stay — pick a meal and a date, then tap + to add items.</p>
+      <h1 style="text-align:left" id="menuTitle">Food Menu</h1>
+      <p class="sub" style="text-align:left;margin-bottom:10px" id="menuSub">Order ahead for any day of your stay — pick a meal and a date, then tap + to add items.</p>
       <div class="meal-picker">
         <div class="meal-chips" id="mealChips"></div>
         <label class="f-label" for="orderDate">Date</label>
@@ -267,6 +308,8 @@
     </section>
   </div>
 </div>
+
+<div id="receiptArea"></div>
 
 <script>
 const PROXY_URL = 'https://data.ryst.in';
@@ -532,6 +575,7 @@ async function payLink(kind, btn, msgEl){
 const MEAL_CATEGORY = { Breakfast: 'Breakfast Combos', Lunch: 'Meals', Dinner: 'Dinner' };
 const MEAL_PERIODS = ['Breakfast', 'Lunch', 'Dinner'];
 let selectedMeal = ''; // set by defaultMeal() on first render, preserved across chip taps/back-navigation after that
+let editingOrderNo = null; // set when the menu screen was opened via "Edit" on an existing open order
 
 // A reasonable starting meal for whenever the guest happens to open the
 // menu — before 11am defaults to Breakfast, before 4pm to Lunch, else
@@ -553,9 +597,24 @@ function renderMealChips(){
     renderMenu();
   }));
 }
-function renderMenu(){
+// orderToEdit (optional): an entry from me.orders — opens the menu screen
+// pre-filled with that order's own items/meal/date instead of a blank cart,
+// and switches Place Order into Save Changes mode (see editingOrderNo).
+function renderMenu(orderToEdit){
+  editingOrderNo = orderToEdit ? orderToEdit.no : null;
   cart = {};
-  selectedMeal = selectedMeal || defaultMeal();
+  if(orderToEdit){
+    (orderToEdit.items||[]).forEach(it => { if(it.menuItemId) cart[it.menuItemId] = (cart[it.menuItemId]||0) + it.qty; });
+    selectedMeal = orderToEdit.meal || defaultMeal();
+  } else {
+    selectedMeal = selectedMeal || defaultMeal();
+  }
+
+  $('#menuTitle').textContent = editingOrderNo ? 'Edit Order' : 'Food Menu';
+  $('#menuSub').textContent = editingOrderNo
+    ? `Editing ${esc(editingOrderNo)} — adjust items below and save.`
+    : "Order ahead for any day of your stay — pick a meal and a date, then tap + to add items.";
+  $('#placeOrderBtn').textContent = editingOrderNo ? 'Save Changes' : 'Place Order';
 
   // Guests can pre-order for any day of their actual stay, never outside
   // it — the date input is hard-bounded to [checkin, checkout], same
@@ -564,7 +623,9 @@ function renderMenu(){
   const b = me.stay;
   if(b){
     dateInput.min = b.checkin; dateInput.max = b.checkout;
-    if(!dateInput.value || dateInput.value < b.checkin || dateInput.value > b.checkout){
+    if(orderToEdit && orderToEdit.date >= b.checkin && orderToEdit.date <= b.checkout){
+      dateInput.value = orderToEdit.date;
+    } else if(!dateInput.value || dateInput.value < b.checkin || dateInput.value > b.checkout){
       const today = new Date().toISOString().slice(0,10);
       dateInput.value = (today >= b.checkin && today <= b.checkout) ? today : b.checkin;
     }
@@ -589,7 +650,7 @@ function renderMenu(){
           </div>
           <div class="qty-stepper">
             <button type="button" class="qty-btn" data-act="dec" data-id="${esc(m.id)}">&minus;</button>
-            <span class="qty-n" data-qty="${esc(m.id)}">0</span>
+            <span class="qty-n" data-qty="${esc(m.id)}">${cart[m.id]||0}</span>
             <button type="button" class="qty-btn" data-act="inc" data-id="${esc(m.id)}">+</button>
           </div>
         </div>
@@ -617,23 +678,26 @@ $('#placeOrderBtn').addEventListener('click', async () => {
   if(!items.length) return;
   const date = $('#orderDate').value;
   if(!date){ errEl.textContent = 'Please choose a date.'; return; }
-  btn.disabled = true; btn.textContent = 'Placing order…';
+  const isEdit = !!editingOrderNo;
+  btn.disabled = true; btn.textContent = isEdit ? 'Saving…' : 'Placing order…';
   errEl.textContent = '';
   try{
     const stayNo = me.stay && me.stay.no;
-    const res = await fetch(PROXY_URL+'/portal/food-order', {
+    const path = isEdit ? '/portal/food-order/edit' : '/portal/food-order';
+    const body = isEdit ? { no: editingOrderNo, items, date, meal: selectedMeal, stayNo } : { items, date, meal: selectedMeal, stayNo };
+    const res = await fetch(PROXY_URL+path, {
       method:'POST', headers:{ 'Content-Type':'application/json', 'X-Token': portalToken },
-      body: JSON.stringify({ items, date, meal: selectedMeal, stayNo }),
+      body: JSON.stringify(body),
     });
     const data = await res.json().catch(()=>({}));
-    if(!res.ok) throw new Error(data.error || 'Could not place order.');
-    cart = {};
+    if(!res.ok) throw new Error(data.error || (isEdit ? 'Could not save changes.' : 'Could not place order.'));
+    cart = {}; editingOrderNo = null;
     await loadMe(stayNo);
     renderBill();
     showScreen('foodbill');
   }catch(err){
-    errEl.textContent = err.message || 'Could not place order — please try again.';
-    btn.textContent = 'Place Order';
+    errEl.textContent = err.message || 'Could not save — please try again.';
+    btn.textContent = isEdit ? 'Save Changes' : 'Place Order';
     renderCartBar();
   }
 });
@@ -649,9 +713,23 @@ function renderBill(){
       <div class="order-card">
         <div class="order-head"><span class="order-no">${o.meal ? `${esc(o.meal)} · ` : ''}${esc(fmtDateTime(o.date, o.meal ? null : o.time))} · ${esc(o.no)}</span><span class="order-total">${money(o.total)}</span></div>
         <div class="order-items">${(o.items||[]).map(it => `${it.qty}× ${esc(it.name)}`).join(', ')}</div>
-        <span class="order-status ${o.status==='settled'?'settled':'open'}">${o.status==='settled' ? 'Paid' : 'Unpaid'}</span>
+        <div class="order-foot">
+          <span class="order-status ${o.status==='settled'?'settled':'open'}">${o.status==='settled' ? 'Paid' : 'Unpaid'}</span>
+          <div class="order-actions">
+            ${o.status==='open' ? `<button type="button" class="order-action-btn" data-edit-order="${esc(o.no)}">Edit</button>` : ''}
+            <button type="button" class="order-action-btn" data-print-order="${esc(o.no)}">Print / PDF</button>
+          </div>
+        </div>
       </div>
     `).join('');
+    list.querySelectorAll('[data-edit-order]').forEach(btn => btn.addEventListener('click', () => {
+      const o = (me.orders||[]).find(x => x.no === btn.dataset.editOrder);
+      if(o){ renderMenu(o); showScreen('menu'); }
+    }));
+    list.querySelectorAll('[data-print-order]').forEach(btn => btn.addEventListener('click', () => {
+      const o = (me.orders||[]).find(x => x.no === btn.dataset.printOrder);
+      if(o) printReceipt(o);
+    }));
   }
   const payEl = $('#billPay');
   if(me.foodBalance > 0){
@@ -687,6 +765,48 @@ function renderWifi(){
     try{ await navigator.clipboard.writeText(voucher); copyBtn.textContent = 'Copied!'; setTimeout(()=>{ copyBtn.textContent = 'Copy code'; }, 1500); }
     catch(e){ /* clipboard unavailable — the code is already shown on screen */ }
   });
+}
+
+// ── Print / Save as PDF ─────────────────────────────────────────────────
+// Same customer-receipt design restaurant.html's own printReceipt builds —
+// a guest printing their own order gets the same document staff would hand
+// them, just triggered from their own phone. /portal/me now sends enough
+// of each order (subtotal/discount/GST/service charge/paymentMode) to
+// render it without a second round-trip.
+function printReceipt(o){
+  const whenLabel = o.meal ? `${fmtDateShort(o.date)} · ${esc(o.meal)}` : (o.time ? `${fmtDateShort(o.date)}, ${esc(o.time)}` : fmtDateShort(o.date));
+  const guestName = (me.stay && me.stay.guest) || 'Guest';
+  $('#receiptArea').innerHTML = `
+    <div class="r-doc">
+      <div class="r-head">
+        <img src="/assets/stay-logo.png" alt="RYST 109A">
+        <div>
+          <div class="nm">Casa de RYST</div>
+          <div class="sub">RYST 109A, Pearl Beach, Paramankeni, Cheyyur — 603305</div>
+        </div>
+      </div>
+      <div class="r-title">CUSTOMER RECEIPT</div>
+      <div class="r-meta">
+        <div><span class="r-lbl">Order No</span><b>${esc(o.no)}</b></div>
+        <div class="r-right"><span class="r-lbl">Guest</span><b>${esc(guestName)}</b></div>
+        <div><span class="r-lbl">Date${o.meal?' &amp; Meal':''}</span><b>${whenLabel}</b></div>
+        <div class="r-right"><span class="r-lbl">Status</span><b>${o.status==='settled' ? esc(o.paymentMode||'Paid') : 'Open Tab'}</b></div>
+      </div>
+      <table class="r-items">
+        <thead><tr><th>Item</th><th class="num">Rate</th><th class="num">Qty</th><th class="num">Amount</th></tr></thead>
+        <tbody>${(o.items||[]).map(it=>`<tr><td class="nm">${esc(it.name)}</td><td class="num">${money(it.price)}</td><td class="num">${it.qty}</td><td class="num">${money(it.price*it.qty)}</td></tr>`).join('')}</tbody>
+      </table>
+      <div class="r-totals">
+        <div class="r-tot"><span>Subtotal</span><span>${money(o.subtotal)}</span></div>
+        ${o.discount>0?`<div class="r-tot"><span>Discount</span><span>− ${money(o.discount)}</span></div>`:''}
+        ${o.gstAmount>0?`<div class="r-tot"><span>GST (${o.gstPercent}%)</span><span>${money(o.gstAmount)}</span></div>`:''}
+        ${o.serviceChargeAmount>0?`<div class="r-tot"><span>Service charge (${o.serviceChargePercent}%)</span><span>${money(o.serviceChargeAmount)}</span></div>`:''}
+        <div class="r-tot grand"><span>Total</span><span>${money(o.total)}</span></div>
+      </div>
+      <div class="r-foot">Thank you for dining with us — a table beside the pool.<br><span class="brand">RYST 109A</span> · stay.ryst.in</div>
+    </div>
+  `;
+  setTimeout(()=>window.print(), 50);
 }
 </script>
 </body>
