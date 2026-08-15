@@ -204,20 +204,49 @@
   @keyframes sp{to{transform:rotate(360deg)}}
 
   #receiptArea{display:none}
+  @page{ size:A4; margin:14mm }
   @media print{
     body *{visibility:hidden}
     #receiptArea, #receiptArea *{visibility:visible}
-    #receiptArea{display:block!important;position:absolute;top:0;left:0;width:100%;padding:20px}
-    .r-head{text-align:center;margin-bottom:14px}
-    .r-head .nm{font-size:20px;font-weight:700}
-    .r-head .sub{font-size:11px;color:#555}
-    .r-meta{display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:10px;border-bottom:1px dashed #999;padding-bottom:8px}
-    table.r-items{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px}
-    table.r-items th,table.r-items td{padding:4px 2px;text-align:left}
-    table.r-items th:last-child,table.r-items td:last-child{text-align:right}
-    .r-tot{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}
-    .r-tot.grand{font-weight:700;font-size:14px;border-top:1px solid #333;margin-top:6px;padding-top:6px}
-    .r-foot{text-align:center;font-size:11px;color:#555;margin-top:16px}
+    #receiptArea{
+      display:block!important;position:absolute;top:0;left:0;width:100%;
+      font-family:"Outfit",system-ui,sans-serif;color:#1d211c;
+    }
+    #receiptArea, #receiptArea *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+    .r-doc{max-width:480px;margin:0 auto}
+
+    .r-head{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:3px solid #3d9b69}
+    .r-head img{height:46px;object-fit:contain;flex-shrink:0}
+    .r-head .nm{font-size:19px;font-weight:700;letter-spacing:.2px}
+    .r-head .sub{font-size:11px;color:#5f655d;margin-top:2px}
+
+    .r-title{font-size:12px;font-weight:700;letter-spacing:1.5px;color:#5f655d;text-align:center;margin:18px 0}
+
+    .r-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;font-size:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #e3e5e0}
+    .r-meta div{display:flex;flex-direction:column;gap:2px}
+    .r-meta .r-lbl{font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:#9aa097}
+    .r-meta b{font-size:13px;font-weight:700}
+    .r-meta .r-right{text-align:right}
+
+    table.r-items{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:4px}
+    table.r-items th{
+      text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#5f655d;
+      padding:0 0 8px;border-bottom:1.5px solid #1d211c;
+    }
+    table.r-items td{padding:8px 0;border-bottom:1px solid #eef0ed;vertical-align:top}
+    table.r-items th.num,table.r-items td.num{text-align:right;white-space:nowrap}
+    table.r-items td.nm{font-weight:600}
+
+    .r-totals{margin-top:14px;padding-top:2px}
+    .r-tot{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;color:#5f655d}
+    .r-tot.grand{
+      font-weight:700;font-size:16px;color:#1d211c;border-top:1.5px solid #1d211c;
+      margin-top:8px;padding-top:10px;
+    }
+    .r-tot.grand span:last-child{color:#2f7d54}
+
+    .r-foot{text-align:center;font-size:11px;color:#5f655d;line-height:1.6;margin-top:32px;padding-top:14px;border-top:1px dashed #cfd3cc}
+    .r-foot .brand{font-weight:700;color:#2f7d54;letter-spacing:.3px}
   }
 
   @media(max-width:680px){
@@ -1207,25 +1236,39 @@ function sendToPartnerKitchen(o){
 }
 
 function printReceipt(o){
+  // Date/meal reads as one line ("20 Aug 2026 · Dinner") when the order
+  // carries a meal period (guest-portal pre-orders always do); falls back
+  // to date + free-text time for older/staff-entered orders that don't.
+  const whenLabel = o.meal ? `${fmtDate(o.date)} · ${esc(o.meal)}` : (o.time ? `${fmtDate(o.date)}, ${fmtTime(o.time)}` : fmtDate(o.date));
   $('#receiptArea').innerHTML = `
-    <div class="r-head">
-      <div class="nm">Casa de RYST</div>
-      <div class="sub">RYST 109A, Pearl Beach, Paramankeni, Cheyyur — 603305</div>
+    <div class="r-doc">
+      <div class="r-head">
+        <img src="/assets/stay-logo.png" alt="RYST 109A">
+        <div>
+          <div class="nm">Casa de RYST</div>
+          <div class="sub">RYST 109A, Pearl Beach, Paramankeni, Cheyyur — 603305</div>
+        </div>
+      </div>
+      <div class="r-title">CUSTOMER RECEIPT</div>
+      <div class="r-meta">
+        <div><span class="r-lbl">Order No</span><b>${esc(o.no)}</b></div>
+        <div class="r-right"><span class="r-lbl">Guest</span><b>${esc(o.guest||'Walk-in')}</b></div>
+        <div><span class="r-lbl">Date${o.meal?' &amp; Meal':''}</span><b>${whenLabel}</b></div>
+        <div class="r-right"><span class="r-lbl">Status</span><b>${o.status==='open'?'Open Tab':esc(o.paymentMode||'')}</b></div>
+      </div>
+      <table class="r-items">
+        <thead><tr><th>Item</th><th class="num">Rate</th><th class="num">Qty</th><th class="num">Amount</th></tr></thead>
+        <tbody>${o.items.map(it=>`<tr><td class="nm">${esc(it.name)}</td><td class="num">${money(it.price)}</td><td class="num">${it.qty}</td><td class="num">${money(it.price*it.qty)}</td></tr>`).join('')}</tbody>
+      </table>
+      <div class="r-totals">
+        <div class="r-tot"><span>Subtotal</span><span>${money(o.subtotal)}</span></div>
+        ${o.discount>0?`<div class="r-tot"><span>Discount</span><span>− ${money(o.discount)}</span></div>`:''}
+        ${o.gstAmount>0?`<div class="r-tot"><span>GST (${o.gstPercent}%)</span><span>${money(o.gstAmount)}</span></div>`:''}
+        ${o.serviceChargeAmount>0?`<div class="r-tot"><span>Service charge (${o.serviceChargePercent}%)</span><span>${money(o.serviceChargeAmount)}</span></div>`:''}
+        <div class="r-tot grand"><span>Total</span><span>${money(o.total)}</span></div>
+      </div>
+      <div class="r-foot">Thank you for dining with us — a table beside the pool.<br><span class="brand">RYST 109A</span> · stay.ryst.in</div>
     </div>
-    <div class="r-meta">
-      <div>Order ${esc(o.no)}<br>${fmtDate(o.date)}</div>
-      <div style="text-align:right">${esc(o.guest||'Walk-in')}<br>${o.status==='open'?'OPEN TAB':esc(o.paymentMode||'')}</div>
-    </div>
-    <table class="r-items">
-      <thead><tr><th>Item</th><th>Qty</th><th>Amt</th></tr></thead>
-      <tbody>${o.items.map(it=>`<tr><td>${esc(it.name)}</td><td>${it.qty}</td><td>${money(it.price*it.qty)}</td></tr>`).join('')}</tbody>
-    </table>
-    <div class="r-tot"><span>Subtotal</span><span>${money(o.subtotal)}</span></div>
-    ${o.discount>0?`<div class="r-tot"><span>Discount</span><span>− ${money(o.discount)}</span></div>`:''}
-    <div class="r-tot"><span>GST (${o.gstPercent}%)</span><span>${money(o.gstAmount)}</span></div>
-    <div class="r-tot"><span>Service charge (${o.serviceChargePercent}%)</span><span>${money(o.serviceChargeAmount)}</span></div>
-    <div class="r-tot grand"><span>Total</span><span>${money(o.total)}</span></div>
-    <div class="r-foot">Thank you for dining with us — a table beside the pool.</div>
   `;
   setTimeout(()=>window.print(), 50);
 }
