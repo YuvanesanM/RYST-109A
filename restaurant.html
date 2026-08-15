@@ -625,6 +625,7 @@ const emojiFor = c => CATEGORY_EMOJI[c] || '🏷️';
 
 let DOC = { settings:{}, categories:[], menu:[], inventory:[], purchases:[], orders:[] };
 let cart = []; // [{menuItemId, name, price, qty, veg}]
+let editingOrderNo = null; // set via "Edit" on an open order — routes Save through edit-order-items instead of create-order
 let catRowsDraft = [];
 
 function showToast(msg, isErr){
@@ -968,6 +969,7 @@ $('#btnToggleBuilder').addEventListener('click', ()=>{
   const opening = !b.classList.contains('show');
   b.classList.toggle('show');
   $('#btnToggleBuilder').textContent = opening ? '– Hide' : '+ New order';
+  if(!opening) resetOrderBuilder(); // closing without saving discards any in-progress edit
   if(opening && !$('#obDate').value){ $('#obDate').value = todayISO(); refreshGuestPicker(); }
   updateCartBar();
 });
@@ -1139,9 +1141,57 @@ function updateOrderTotals(){
   $('#obSvc').textContent = money(svc);
   $('#obTotal').textContent = money(total);
 }
+// Clears the order builder back to its blank "new order" state — used both
+// after a successful save and when Hide is tapped without saving, so a
+// half-finished edit never leaks into the next order.
+function resetOrderBuilder(){
+  editingOrderNo = null;
+  // runCommand's own renderAll() already ran renderMenuPicker() while
+  // `cart` still held the just-saved items (so those rows show their
+  // steppers momentarily) — clearing cart and re-rendering here is what
+  // resets every row back to "+ Add" and hides the cart bar.
+  cart = []; renderCart(); renderMenuPicker(); updateCartBar();
+  $('#obGuest').value=''; $('#obGuestPick').value=''; $('#obNote').value=''; $('#obDiscount').value='0'; $('#obErr').textContent='';
+  obStayNo = '';
+  $('#obDate').value = todayISO(); $('#obTime').value = '';
+  $('#btnSaveOrder').textContent = 'Save order';
+}
+// Opens the order builder pre-filled with an existing OPEN order's items,
+// date/time, guest, note, discount and stay link so staff can correct a
+// mistake in place instead of cancelling and re-entering the whole order.
+// Save then routes through edit-order-items (see editingOrderNo) instead of
+// create-order — restaurant.html only, available to caretaker and admin
+// alike (day-to-day correction, not owner-gated like Edit status below,
+// which corrects an already-settled order's payment record).
+function openOrderForEdit(o){
+  editingOrderNo = o.no;
+  cart = (o.items||[]).filter(it=>it.menuItemId).map(it=>({ menuItemId: it.menuItemId, name: it.name, price: it.price, qty: it.qty }));
+  $('#obDate').value = o.date || todayISO();
+  $('#obTime').value = o.time || '';
+  $('#obGuest').value = o.guest || '';
+  $('#obGuestPick').value = '';
+  obStayNo = o.stayNo || '';
+  $('#obNote').value = o.note || '';
+  $('#obDiscount').value = o.discount || 0;
+  $('#obErr').textContent = '';
+  $('#btnSaveOrder').textContent = 'Save changes';
+  renderCart(); renderMenuPicker(); updateCartBar();
+  const b = $('#orderBuilder');
+  b.classList.add('show');
+  $('#btnToggleBuilder').textContent = '– Hide';
+  b.scrollIntoView({behavior:'smooth', block:'start'});
+}
 $('#btnSaveOrder').addEventListener('click', async ()=>{
   if(!cart.length){ $('#obErr').textContent = 'Add at least one item'; return; }
-  const cmd = {
+  const isEdit = !!editingOrderNo;
+  const cmd = isEdit ? {
+    action:'edit-order-items', no: editingOrderNo,
+    guest: $('#obGuest').value, note: $('#obNote').value,
+    date: $('#obDate').value || undefined, time: $('#obTime').value || undefined,
+    discount: $('#obDiscount').value,
+    items: cart.map(c=>({ menuItemId: c.menuItemId, qty: c.qty })),
+    stayNo: obStayNo || undefined,
+  } : {
     action:'create-order',
     guest: $('#obGuest').value, note: $('#obNote').value,
     date: $('#obDate').value || undefined, time: $('#obTime').value || undefined,
@@ -1150,20 +1200,15 @@ $('#btnSaveOrder').addEventListener('click', async ()=>{
     items: cart.map(c=>({ menuItemId: c.menuItemId, qty: c.qty })),
     stayNo: obStayNo || undefined,
   };
-  const data = await runCommand(cmd, 'Order saved');
+  const data = await runCommand(cmd, isEdit ? 'Order updated' : 'Order saved');
   if(data){
-    // runCommand's own renderAll() already ran renderMenuPicker() while
-    // `cart` still held the just-ordered items (so those rows show their
-    // steppers momentarily) — clearing cart and re-rendering here is what
-    // resets every row back to "+ Add" and hides the cart bar.
-    cart = []; renderCart(); renderMenuPicker(); updateCartBar();
-    $('#obGuest').value=''; $('#obGuestPick').value=''; $('#obNote').value=''; $('#obDiscount').value='0'; $('#obErr').textContent='';
-    obStayNo = '';
-    $('#obDate').value = todayISO(); $('#obTime').value = '';
+    resetOrderBuilder();
     $('#orderBuilder').classList.remove('show'); $('#btnToggleBuilder').textContent = '+ New order';
-    const last = DOC.orders[DOC.orders.length-1];
-    if(last) printReceipt(last);
-  } else $('#obErr').textContent = 'Could not save order — check the items above';
+    if(!isEdit){
+      const last = DOC.orders[DOC.orders.length-1];
+      if(last) printReceipt(last);
+    }
+  } else $('#obErr').textContent = isEdit ? 'Could not save changes — check the items above' : 'Could not save order — check the items above';
 });
 
 let ordFilters = { q:'', status:'all' };
@@ -1188,6 +1233,7 @@ function renderOrders(){
       <td style="white-space:nowrap">
         <button class="icon-btn" data-print-order="${esc(o.no)}">Print</button>
         ${hasSourcedItems(o) ? `<button class="icon-btn" data-wa-order="${esc(o.no)}">📲 Partner Kitchen</button>` : ''}
+        ${o.status==='open' ? `<button class="icon-btn" data-edit-order="${esc(o.no)}">Edit</button>` : ''}
         ${o.status==='open' ? `<button class="icon-btn" data-settle-order="${esc(o.no)}">Settle</button>` : ''}
         ${o.status==='settled' ? `<button class="icon-btn owner-only" data-edit-status="${esc(o.no)}">Edit status</button>` : ''}
         ${o.status!=='cancelled' ? `<button class="icon-btn del" data-cancel-order="${esc(o.no)}">Cancel</button>` : ''}
@@ -1203,6 +1249,10 @@ function renderOrders(){
   $$('[data-wa-order]').forEach(b=>b.addEventListener('click', ()=>{
     const o = DOC.orders.find(x=>x.no===b.dataset.waOrder);
     if(o) sendToPartnerKitchen(o);
+  }));
+  $$('[data-edit-order]').forEach(b=>b.addEventListener('click', ()=>{
+    const o = DOC.orders.find(x=>x.no===b.dataset.editOrder);
+    if(o) openOrderForEdit(o);
   }));
   $$('[data-settle-order]').forEach(b=>b.addEventListener('click', ()=>{
     const mode = prompt('Payment mode (Cash, UPI, Card, Room Account):', 'Cash');
