@@ -978,20 +978,40 @@ $('#btnToggleBuilder').addEventListener('click', ()=>{
 // whatever date this order is for. A blank result (no stay covers that
 // date) just leaves the picker at "— Pick current stay —" and the free-
 // text field works exactly as before.
+//
+// obStayNo carries the picked booking's `no` through to the order (see
+// /portal/food-order's stayNo, which is what makes an order show up on
+// that guest's own food bill in guest.html) — a staff-entered order was
+// otherwise never linked to a stay at all, invisible to the guest even
+// though it was billed to their room. Only set when the picker's exact
+// suggested match is used; cleared the moment staff types over the guest
+// name by hand (no longer safe to assume it's still the same booking), on
+// every date change (the picker's options — and whatever was selected —
+// are rebuilt from scratch), and after a successful save.
+let obStayNo = '';
 async function refreshGuestPicker(){
   const sel = $('#obGuestPick');
   sel.innerHTML = '<option value="">— Pick current stay —</option>';
+  obStayNo = '';
   const date = $('#obDate').value || todayISO();
   try{
     const res = await fetch(PROXY_URL+'/active-stay?date='+encodeURIComponent(date), { cache:'no-store' });
     const data = await res.json().catch(()=>({}));
     if(data && data.active && data.guest){
-      sel.innerHTML += `<option value="${esc(data.guest)}">${esc(data.guest)} (${fmtDate(data.checkin)} → ${fmtDate(data.checkout)})</option>`;
+      sel.innerHTML += `<option value="${esc(data.guest)}" data-no="${esc(data.no||'')}">${esc(data.guest)} (${fmtDate(data.checkin)} → ${fmtDate(data.checkout)})</option>`;
     }
   }catch(e){ /* leave just the placeholder — free-text guest field still works */ }
 }
 $('#obDate').addEventListener('change', refreshGuestPicker);
-$('#obGuestPick').addEventListener('change', e=>{ if(e.target.value) $('#obGuest').value = e.target.value; });
+$('#obGuestPick').addEventListener('change', e=>{
+  if(e.target.value){
+    $('#obGuest').value = e.target.value;
+    obStayNo = e.target.selectedOptions[0]?.dataset.no || '';
+  } else {
+    obStayNo = '';
+  }
+});
+$('#obGuest').addEventListener('input', ()=>{ obStayNo = ''; });
 $('#obSearch').addEventListener('input', renderMenuPicker);
 // Builds just the action area for one menu-picker row: "+ Add" if it's not
 // in the cart yet, or a −/qty/+ stepper if it is — so the selection state
@@ -1128,6 +1148,7 @@ $('#btnSaveOrder').addEventListener('click', async ()=>{
     discount: $('#obDiscount').value,
     paymentMode: $('#obPaymentMode').value || undefined,
     items: cart.map(c=>({ menuItemId: c.menuItemId, qty: c.qty })),
+    stayNo: obStayNo || undefined,
   };
   const data = await runCommand(cmd, 'Order saved');
   if(data){
@@ -1137,6 +1158,7 @@ $('#btnSaveOrder').addEventListener('click', async ()=>{
     // resets every row back to "+ Add" and hides the cart bar.
     cart = []; renderCart(); renderMenuPicker(); updateCartBar();
     $('#obGuest').value=''; $('#obGuestPick').value=''; $('#obNote').value=''; $('#obDiscount').value='0'; $('#obErr').textContent='';
+    obStayNo = '';
     $('#obDate').value = todayISO(); $('#obTime').value = '';
     $('#orderBuilder').classList.remove('show'); $('#btnToggleBuilder').textContent = '+ New order';
     const last = DOC.orders[DOC.orders.length-1];
