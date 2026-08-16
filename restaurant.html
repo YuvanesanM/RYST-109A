@@ -1024,6 +1024,7 @@ async function refreshGuestPicker(){
   }
 
   let activeNo = '';
+  const turnoverNos = new Set();
   let html = '<option value="">— Pick current stay —</option>';
   try{
     const res = await fetch(PROXY_URL+'/active-stay?date='+encodeURIComponent(date), { cache:'no-store' });
@@ -1032,9 +1033,19 @@ async function refreshGuestPicker(){
       activeNo = data.no || '';
       html += `<option value="${esc(data.guest)}" data-no="${esc(activeNo)}">${esc(data.guest)} (${fmtDate(data.checkin)} → ${fmtDate(data.checkout)})</option>`;
     }
+    // On a same-day turnover, /active-stay's own single active/guest fields
+    // only ever surface whoever is checking in today — the guest checking
+    // OUT that same day was otherwise impossible to pick here at all (their
+    // very first bill of the stay has no earlier order to fall back on via
+    // "Recent guests" below either). `others` lists them explicitly.
+    (data && Array.isArray(data.others) ? data.others : []).forEach(o => {
+      if(!o.no) return;
+      turnoverNos.add(o.no);
+      html += `<option value="${esc(o.guest||'Guest')}" data-no="${esc(o.no)}">${esc(o.guest||'Guest')} (checking out today)</option>`;
+    });
   }catch(e){ /* leave just the placeholder — free-text guest field still works */ }
 
-  const recentOptions = recentGuests.filter(g => g.no !== activeNo);
+  const recentOptions = recentGuests.filter(g => g.no !== activeNo && !turnoverNos.has(g.no));
   if(recentOptions.length){
     html += `<optgroup label="Recent guests — map another bill to them">${recentOptions.map(g =>
       `<option value="${esc(g.guest)}" data-no="${esc(g.no)}">${esc(g.guest)} — ${esc(g.no)}</option>`
