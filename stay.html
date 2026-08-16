@@ -1180,24 +1180,23 @@ document.addEventListener("click", ()=> walletDd.classList.remove("open"));
 /* ---------- GUEST PORTAL LINK ----------
    For a guest with no Google account to sign in with — a magic link
    (?no=&t=) that logs them straight into guest.html, same no-account-needed
-   idea as the checkin-request link already sent via WhatsApp. Needs the
-   same three things /portal/* itself will check server-side (see
-   guestPortalStays in the proxy): a saved+refetched portalToken (same
-   gating as Wallet above), a guest email on the record (the portal session
-   is keyed to it), and the stay actually being "committed" — an invoice, or
-   a quote with some advance paid — so staff never hand out a link that's
-   just going to fail the moment the guest taps it. */
+   idea as the checkin-request link already sent via WhatsApp. Works with NO
+   email on the record at all — that's the whole point of this door: proving
+   possession of the link (the token) is the credential, same as
+   checkinToken elsewhere, not a match against a stored email. Just needs a
+   saved+refetched portalToken (same gating as Wallet above) and the stay
+   actually being "committed" — an invoice, or a quote with some advance
+   paid — so staff never hand out a link that's just going to fail the
+   moment the guest taps it. */
 function syncPortalBtn(){
   const b=$("#btnPortalLink"); if(!b) return;
   const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
   const tok = stay && stay.portalToken;
-  const hasEmail = stay && String(stay.email||"").trim();
   const committed = stay && ((stay.type||"invoice")!=="quote" || Number(stay.advance)>0);
-  const ready = !!(tok && hasEmail && committed);
+  const ready = !!(tok && committed);
   b.disabled = !ready;
   b.title = ready ? "Copy a guest portal link for this booking (no Google account needed)"
     : !tok ? "Save the document first, then copy a guest portal link"
-    : !hasEmail ? "Add a guest email first — the portal link is tied to it"
     : "Only available once this is an invoice, or a quote with an advance paid";
   b.dataset.portalUrl = ready ? `${GUEST_PORTAL_URL}?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
 }
