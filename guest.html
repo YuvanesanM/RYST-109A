@@ -407,6 +407,49 @@ async function handleGoogleLogin(credentialResponse){
     errEl.textContent = 'Could not reach the server — check your connection.';
   }
 }
+// ── Magic-link sign-in (no Google account needed) ──────────────────────
+// The same no-account-needed pattern checkin.html already uses for digital
+// check-in: a per-booking unguessable token in the URL (?no=&t=) proves the
+// caller was handed THIS booking's link, verified server-side via
+// portalToken(no) — see POST /auth/portal-link — then exchanged for the
+// exact same portal session token /auth/portal's Google path issues.
+// Staff build this link from stay.html (Stay Builder → Guest Portal Link)
+// for a guest who has no Google account to sign in with. Takes priority
+// over any already-stored session — a fresh magic-link tap always wins
+// (e.g. on a shared/kiosk device that previously had someone else's
+// session on it) — and the token is stripped from the address bar the
+// moment it's read, since the session now lives in localStorage and there's
+// no reason to leave the raw credential sitting in the URL/history any
+// longer than it takes to load.
+async function tryMagicLinkLogin(){
+  const params = new URLSearchParams(location.search);
+  const no = params.get('no'), t = params.get('t');
+  if(!no || !t) return 'none';
+  history.replaceState(null, '', location.pathname);
+  showScreen('loading');
+  try{
+    const res = await fetch(PROXY_URL+'/auth/portal-link', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ no, t }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(data.ok && data.token){
+      portalToken = data.token;
+      isStaff = false;
+      localStorage.setItem('ryst_portal_token', portalToken);
+      localStorage.setItem('ryst_portal_is_staff', 'false');
+      return 'success';
+    }
+    $('#signinErr').textContent = data.error || 'This link is invalid or has expired.';
+    showScreen('signin');
+    return 'failed';
+  }catch(e){
+    $('#signinErr').textContent = 'Could not reach the server — check your connection.';
+    showScreen('signin');
+    return 'failed';
+  }
+}
+
 let gsiRendered = false;
 function initGoogleSignIn(){
   if(gsiRendered) return;
@@ -518,7 +561,12 @@ async function loadMe(stayNo){
     showScreen(isStaff ? 'adminpicker' : 'signin');
   }
 }
-if(portalToken){ if(isStaff) loadAdminPicker(); else loadMe(); }
+(async () => {
+  const magicResult = await tryMagicLinkLogin();
+  if(magicResult === 'success'){ loadMe(); return; }
+  if(magicResult === 'failed') return; // error already shown on the sign-in screen
+  if(portalToken){ if(isStaff) loadAdminPicker(); else loadMe(); }
+})();
 
 // ── Home ─────────────────────────────────────────────────────────────────
 function renderHome(){
