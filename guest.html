@@ -524,7 +524,8 @@ async function loadAdminPicker(){
     const today = new Date().toISOString().slice(0,10);
     const allStays = Array.isArray(data.stays) ? data.stays : [];
     adminStays = allStays
-      .filter(s => (s.type||'invoice') !== 'block' && s.checkin && s.checkout && s.checkin <= today && today <= s.checkout && !isConvertedQuote(s, allStays))
+      .filter(s => (s.type||'invoice') !== 'block' && s.checkin && s.checkout && s.checkin <= today && today <= s.checkout &&
+        ((s.type||'invoice') !== 'quote' || Number(s.advance) > 0) && !isConvertedQuote(s, allStays))
       .sort((a,b) => (a.guest||'').localeCompare(b.guest||''));
     renderAdminPicker();
     showScreen('adminpicker');
