@@ -385,12 +385,13 @@ const FEEDBACK_FORM_URL = 'https://stay.ryst.in/feedback.html';
 // the arrival-time reminder.
 const CHECKIN_WINDOW_DAYS = 7;
 const CHECKIN_FORM_URL = 'https://stay.ryst.in/checkin.html';
+const GUEST_PORTAL_URL = 'https://stay.ryst.in/guest.html';
 
 // ── WHATSAPP TEMPLATES ── owner-editable wording (Settings → WhatsApp
 // Templates). These hardcoded strings are only the fallback while the fetch
 // is in flight or if the proxy is unreachable.
 let waTemplates = {
-  reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
+  reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nManage your stay any time — check your invoice, order food, and pay your balance — here: {{portalLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`,
   checkinRequest: `Hi {{guest}}! Ahead of your stay at RYST 109A Beach Villa from {{checkin}} to {{checkout}}, please complete a quick digital check-in so we have everything ready for you:\n\n{{checkinLink}}\n\nTakes about 2 minutes — a government ID and your signature on our house rules. See you soon!`,
   bookingConfirmed: `Hi {{guest}}! Your booking at RYST 109A Beach Villa is confirmed for {{checkin}} to {{checkout}}.\n\n*Reference:* {{no}}\n*Advance received:* ₹{{amount}}\n\n{{balanceLine}}\n\nWe'll be in touch closer to your stay — see you soon!`
@@ -441,9 +442,20 @@ function normalizePhone(p){
   if(digits.length===10) return '91'+digits;
   return digits;
 }
+// Same magic-link the "Guest Portal" button on the Stay Builder copies
+// (stay.html) — no Google account needed, just this token. The reminders
+// list already only shows stays that are non-block, committed (advance>0
+// for a quote), and not a superseded quote (see isNonBlockingStay/
+// isConvertedQuote above), so d.portalToken being present here always
+// means the link is live — same "committed" gate the portal itself checks
+// server-side on every request regardless.
+function portalLink(d){
+  return `${GUEST_PORTAL_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.portalToken||'')}`;
+}
 function reminderMessage(d){
   return renderWaTemplate(waTemplates.reminder, {
-    guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), mapLink: VILLA_MAP_LINK
+    guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), mapLink: VILLA_MAP_LINK,
+    portalLink: d.portalToken ? portalLink(d) : '',
   });
 }
 function feedbackLink(d){
