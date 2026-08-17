@@ -306,7 +306,7 @@
 
   <div class="panel">
     <h2>Revenue trend</h2>
-    <p class="phint" id="trendHint">Invoiced revenue by check-in date</p>
+    <p class="phint" id="trendHint">Stays (by check-in date) + food sales</p>
     <div class="chart-host" id="chTrend" data-desc="Revenue over time"></div>
   </div>
 
@@ -531,7 +531,7 @@ function leadDaysOf(s){
 /* ============================================================
    4. ENRICH — one pass per load(), never per render
    ============================================================ */
-let STAYS = [], EXPENSES = [];
+let STAYS = [], EXPENSES = [], ORDERS = [];
 let ROWS = [];       // enriched stays (quotes/invoices/blocks)
 let NIGHTS = new Map(); // ISO -> night record
 
@@ -684,8 +684,26 @@ function computeMetrics(startISO, endISO, F){
   const allQuotesInRange = ROWS.filter(r=>r.type==='quote' && inRange(r.checkin,startISO,endISO));
   const convertedInRange = allQuotesInRange.filter(r=> r.converted || r.advance>0);
 
-  const revenue = invoices.reduce((s,r)=>s+r.total,0);
-  const collected = invoices.reduce((s,r)=>s+r.advance,0);
+  // stayRevenue/stayCollected: room-only, invoice-derived — the figure
+  // ADR/RevPAN/avgBookingValue need, since those are per-night or per-
+  // booking room-pricing metrics that food sales would distort. The
+  // headline "revenue"/"collected" below fold food sales in on top —
+  // same accrual-vs-cash split as stays: an order counts as revenue the
+  // moment it's placed (status!=='cancelled'), same way an invoice counts
+  // regardless of payment status, but only a 'settled' order has actually
+  // been collected — an 'open' one is exactly as uncollected as an
+  // invoice's unpaid balance, and folds into "outstanding" the same way.
+  // Doesn't account for food cost of goods sold (tracked separately in
+  // the Restaurant module's own inventory/purchases, not here) — Net
+  // Profit below is still just revenue minus petty-cash expenses, same
+  // simplification already in place for room revenue.
+  const stayRevenue = invoices.reduce((s,r)=>s+r.total,0);
+  const stayCollected = invoices.reduce((s,r)=>s+r.advance,0);
+  const foodOrders = ORDERS.filter(o=>o.status!=='cancelled' && o.date && inRange(o.date,startISO,endISO));
+  const foodRevenue = foodOrders.reduce((s,o)=>s+toNum(o.total),0);
+  const foodCollected = foodOrders.filter(o=>o.status==='settled').reduce((s,o)=>s+toNum(o.total),0);
+  const revenue = stayRevenue + foodRevenue;
+  const collected = stayCollected + foodCollected;
   const outstanding = Math.max(0, revenue-collected);
   const expenses = sliceExpenses(startISO,endISO).filter(e=>e.type==='expense').reduce((s,e)=>s+toNum(e.amount),0);
   const net = revenue-expenses;
@@ -718,7 +736,7 @@ function computeMetrics(startISO, endISO, F){
   // metric. "revenue"/RevPAN above stay invoice-only (accounting-grade).
   const committedRevenue = committed.reduce((s,r)=>s+r.total,0);
   const adr = nightsBooked ? committedRevenue/nightsBooked : 0;
-  const revPAN = revenue/days;
+  const revPAN = stayRevenue/days;
 
   const leadVals = rows.filter(r=>r.leadDays!=null).map(r=>r.leadDays);
   const leadTimeAvg = leadVals.length>=3 ? leadVals.reduce((s,v)=>s+v,0)/leadVals.length : null;
@@ -746,9 +764,10 @@ function computeMetrics(startISO, endISO, F){
 
   return {
     revenue, collected, outstanding, expenses, net, marginPct,
+    stayRevenue, foodRevenue,
     bookings: invoices.length, quotesTotal: allQuotesInRange.length, quotesConverted: convertedInRange.length,
     conversionPct: allQuotesInRange.length>=3 ? (convertedInRange.length/allQuotesInRange.length)*100 : null,
-    avgBookingValue: invoices.length ? revenue/invoices.length : 0,
+    avgBookingValue: invoices.length ? stayRevenue/invoices.length : 0,
     avgStayNights: committed.length ? committed.reduce((s,r)=>s+r.nights,0)/committed.length : 0,
     avgPartySize: committed.length ? committed.reduce((s,r)=>s+r.guestCount,0)/committed.length : 0,
     totalGuests: committed.reduce((s,r)=>s+r.guestCount,0),
@@ -911,6 +930,11 @@ function drawColumnChart(hostSel, opt){
   const barsPerGroup = opt.groups[0].bars.length;
   const barW = Math.min(26, (gw*0.62)/barsPerGroup);
   const gap = 2;
+  // x-axis labels — thin out if too many, same rule drawLineChart already
+  // uses just above (max ~8 labels, always including the last one), so a
+  // month's worth of daily groups doesn't render all 30+ labels stacked
+  // illegibly on top of each other.
+  const step = Math.max(1, Math.ceil(n/8));
   opt.groups.forEach((g,gi)=>{
     const gx = fr.pad.l + gi*gw + gw/2;
     const totalW = barsPerGroup*barW + (barsPerGroup-1)*gap;
@@ -925,7 +949,7 @@ function drawColumnChart(hostSel, opt){
       rect.addEventListener('focus', ()=> TIP.show([{label:b.label,color:b.color,value:(opt.fmtY||FMT.moneyK)(b.value)}], g.label, bx+fr.svg.getBoundingClientRect().left, y1+fr.svg.getBoundingClientRect().top));
       rect.addEventListener('blur', ()=>TIP.hide());
     });
-    svgText(fr.svg, gx, fr.pad.t+fr.ih+16, g.label, 'axis-lbl');
+    if(gi%step===0 || gi===n-1) svgText(fr.svg, gx, fr.pad.t+fr.ih+16, g.label, 'axis-lbl');
   });
 
   if(opt.legend!==false && barsPerGroup>1){
@@ -1177,7 +1201,7 @@ function renderFilterBar(R){
 function renderKpis(cur, prev, S, R){
   const unfiltered = facetsActive(F);
   const financeCards = [
-    { label:'Revenue', value:cur.revenue, prev:prev.revenue, fmt:'money', hero:true, sub:'invoiced, by check-in date', spark:S.map(b=>b.revenue), prevLabel:R.prev.label },
+    { label:'Revenue', value:cur.revenue, prev:prev.revenue, fmt:'money', hero:true, sub:'stays (by check-in) + food sales', spark:S.map(b=>b.revenue), prevLabel:R.prev.label },
     { label:'Expenses', value:cur.expenses, prev:prev.expenses, fmt:'money', invert:true, sub:'petty cash, all statuses', unfiltered, prevLabel:R.prev.label },
     { label:'Net Profit', value:cur.net, prev:prev.net, fmt:'money', sub:'revenue − expenses', unfiltered, prevLabel:R.prev.label },
     { label:'Profit Margin', value:cur.marginPct, prev:prev.marginPct, fmt:'pct', na: cur.marginPct==null, sub:'net ÷ revenue', unfiltered, prevLabel:R.prev.label },
@@ -1198,6 +1222,7 @@ function renderKpis(cur, prev, S, R){
     { label:'Total Guests', value:cur.totalGuests, prev:prev.totalGuests, fmt:'int', prevLabel:R.prev.label },
     { label:'Avg Guests / Booking', value:cur.avgPartySize, prev:prev.avgPartySize, fmt:'int', na: cur.nightsBooked===0, prevLabel:R.prev.label },
     { label:'Pending Quotations', value:cur.pendingQuotes, prev:prev.pendingQuotes, fmt:'money', sub: cur.pendingQuoteCount+' quote'+(cur.pendingQuoteCount===1?'':'s')+' — not yet confirmed', prevLabel:R.prev.label },
+    { label:'Food Sales', value:cur.foodRevenue, prev:prev.foodRevenue, fmt:'money', sub:'Casa de RYST, all orders except cancelled', prevLabel:R.prev.label },
   ];
   $('#kpiFinance').innerHTML = financeCards.map(kpiCard).join('');
   $('#kpiBookings').innerHTML = bookingCards.map(kpiCard).join('');
@@ -1207,12 +1232,12 @@ function renderKpis(cur, prev, S, R){
 
 function renderCharts(S, cur, R){
   drawLineChart('#chTrend', { series:[{key:'rev',label:'Revenue',color:'var(--c-rev)',values:S.map(b=>({label:b.label,y:b.revenue}))}], area:true, fmtY:FMT.moneyK, legend:false });
-  $('#trendHint').textContent = 'Invoiced revenue by check-in date · '+ (S.length<=45?'daily':(S.length<=200?'weekly':'monthly')) + ' buckets';
+  $('#trendHint').textContent = 'Stays (by check-in date) + food sales · '+ (S.length<=45?'daily':(S.length<=200?'weekly':'monthly')) + ' buckets';
 
   drawColumnChart('#chPnl', { groups: S.map(b=>({label:b.label, bars:[
     {label:'Revenue',color:'var(--c-rev)',value:b.revenue},
     {label:'Expenses',color:'var(--c-exp)',value:b.expenses},
-  ]})), fmtY:FMT.moneyK });
+  ]})), fmtY:FMT.moneyK, legend:false });
   $('#lgPnl').innerHTML = `<span class="lk"><span class="sw" style="background:var(--c-rev)"></span>Revenue</span><span class="lk"><span class="sw" style="background:var(--c-exp)"></span>Expenses</span>`;
 
   // Monthly comparison — always the trailing 12 real months, independent of the period filter
@@ -1251,7 +1276,7 @@ function renderCharts(S, cur, R){
   $('#pricingTiles').innerHTML = [
     ['Highest booking', cur.highestBooking?money(cur.highestBooking.total):'—', cur.highestBooking?esc(cur.highestBooking.guest):''],
     ['Lowest booking', cur.lowestBooking?money(cur.lowestBooking.total):'—', cur.lowestBooking?esc(cur.lowestBooking.guest):''],
-    ['Revenue / occupied night', money(cur.revPAN * (cur.daysInRange/(cur.nightsBooked||1)) )>0 ? money(cur.nightsBooked?cur.revenue/cur.nightsBooked:0) : '—', 'invoiced revenue only'],
+    ['Revenue / occupied night', money(cur.revPAN * (cur.daysInRange/(cur.nightsBooked||1)) )>0 ? money(cur.nightsBooked?cur.stayRevenue/cur.nightsBooked:0) : '—', 'room revenue only, excludes food'],
   ].map(([l,v,s])=>`<div class="mini-tile"><div class="l">${esc(l)}</div><div class="v">${v}</div><div class="v"><small>${esc(s)}</small></div></div>`).join('');
 
   $('#expTotal').textContent = cur.expByCat.length ? money(cur.expenses)+' total' : '';
@@ -1282,6 +1307,9 @@ function renderFootnotes(cur){
     Booking lead time only includes online/website bookings — staff-entered bookings don't have a reliable creation
     timestamp (it updates on every edit). Cancellation rate isn't shown: this system has no record of cancelled
     bookings (deleting one leaves no trace).
+    Revenue includes Casa de RYST food sales (every order except a cancelled one, counted on its order date) alongside
+    stay invoices — Net Profit and Margin subtract petty-cash expenses only, not food's own ingredient cost, so
+    they run a little rich wherever food sales are a meaningful share of the period.
   `;
 }
 
@@ -1369,16 +1397,25 @@ async function load(){
   const slowTimer = setTimeout(() => { msgEl.textContent = 'Waking up the server… this can take up to a minute.'; }, 4000);
   const abortTimer = setTimeout(() => ctrl.abort(), 75000);
   try{
-    const [staysRes, pcRes] = await Promise.all([
+    // /restaurant is fetched alongside the two required sources, but its
+    // absence is never fatal to the page — food sales are an enhancement
+    // to the revenue figure, not a prerequisite. A user without the
+    // 'restaurant' module gets a 403 here, or a fetch itself can just
+    // fail; either way this settles rather than rejects, and ORDERS
+    // simply stays empty (food revenue reads as ₹0, not an error).
+    const [staysRes, pcRes, rsRes] = await Promise.all([
       fetch(PROXY_URL+'/stays', { headers:{'X-Token':TOKEN}, signal: ctrl.signal }),
       fetch(PROXY_URL+'/petty-cash', { headers:{'X-Token':TOKEN}, signal: ctrl.signal }),
+      fetch(PROXY_URL+'/restaurant', { headers:{'X-Token':TOKEN}, signal: ctrl.signal }).catch(()=>null),
     ]);
     if(staysRes.status===401 || pcRes.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
     if(!staysRes.ok || !pcRes.ok) throw new Error('Server error');
     const staysData = await staysRes.json().catch(()=>({}));
     const pcData = await pcRes.json().catch(()=>({}));
+    const rsData = (rsRes && rsRes.ok) ? await rsRes.json().catch(()=>({})) : {};
     STAYS = Array.isArray(staysData.stays) ? staysData.stays.filter(s=>s.checkin && s.checkout) : [];
     EXPENSES = Array.isArray(pcData.entries) ? pcData.entries.filter(e=>e.date) : [];
+    ORDERS = Array.isArray(rsData.orders) ? rsData.orders.filter(o=>o.date) : [];
     buildRows();
     buildNightIndex();
     render();
