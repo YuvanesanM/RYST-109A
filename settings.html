@@ -319,7 +319,7 @@
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="checkinRequest">Reset to default</button></div>
 
     <label class="f"><span>Stay reminder — sent by you to a guest a few days before check-in</span></label>
-    <p class="wa-hint">{{guest}} {{checkin}} {{checkout}} {{mapLink}}</p>
+    <p class="wa-hint">{{guest}} {{checkin}} {{checkout}} {{mapLink}} {{portalLink}}</p>
     <textarea class="t" id="waReminder" rows="7" style="margin-bottom:8px"></textarea>
     <div class="feed-row" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
       <label class="f" style="margin-bottom:0"><span>Days before check-in</span><input class="t" id="waReminderDays" type="number" min="0" max="60" step="1"></label>
@@ -787,7 +787,7 @@ document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
 const WA_DEFAULTS = {
   bookingRequest: `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n*Name:* {{name}}\n*Phone:* {{phone}}\n*Email:* {{email}}\n\n*Check-in:* {{checkin}}\n*Check-out:* {{checkout}} ({{nightsLabel}})\n*Guests:* {{guests}}\n*Occasion:* {{occasion}}\n\n*Notes:* {{message}}\n\n*Reference:* {{quoteNo}}`,
   checkinRequest: `Hi {{guest}}! Ahead of your stay at RYST 109A Beach Villa from {{checkin}} to {{checkout}}, please complete a quick digital check-in so we have everything ready for you:\n\n{{checkinLink}}\n\nTakes about 2 minutes — a government ID and your signature on our house rules. See you soon!`,
-  reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
+  reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nLocation: {{mapLink}}\n\nManage your stay any time — check your invoice, order food, and pay your balance — here: {{portalLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
 };
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
