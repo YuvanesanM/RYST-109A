@@ -263,6 +263,7 @@
     <button class="btn primary" id="addBtn">＋ Add expense</button>
     <button class="btn warn owner-only" id="reimburseBtn">↺ Reimburse pending</button>
     <button class="btn ghost owner-only" id="topupBtn">＋ Add cash / top-up</button>
+    <button class="btn ghost owner-only" id="withdrawBtn">− Collect cash back</button>
     <button class="btn ghost owner-only" id="floatBtn">⚑ Set float</button>
     <button class="btn ghost" id="csvBtn">⤓ Export CSV</button>
     <button class="btn ghost" id="printBtn">⎙ Print report</button>
@@ -499,11 +500,12 @@ function normalize(doc){
 // (monthSpend/P&L) but NOT toward floatExpenses, or "Cash in hand" would
 // understate what the caretaker is actually holding.
 function totals(){
-  let topups=0, floatExpenses=0, allExpenses=0, pending=0, monthSpend=0;
+  let topups=0, withdrawals=0, floatExpenses=0, allExpenses=0, pending=0, monthSpend=0;
   const nowM = monthOf(todayISO());
   for(const e of DOC.entries){
     const amt=Number(e.amount)||0;
     if(e.type==='topup') topups+=amt;
+    else if(e.type==='withdrawal') withdrawals+=amt;
     else if(e.type==='expense'){
       allExpenses+=amt;
       if(e.status!=='na') floatExpenses+=amt;
@@ -511,14 +513,14 @@ function totals(){
       if(monthOf(e.date)===nowM) monthSpend+=amt;
     }
   }
-  return { cash: topups-floatExpenses, topups, expenses: allExpenses, floatExpenses, pending, monthSpend };
+  return { cash: topups-withdrawals-floatExpenses, topups, withdrawals, expenses: allExpenses, floatExpenses, pending, monthSpend };
 }
 
 // ── Filtering for ledger + reports ──
 function passFilter(e){
   if(FILTERS.month!=='All' && monthOf(e.date)!==FILTERS.month) return false;
   const q=FILTERS.q.trim().toLowerCase();
-  if(e.type==='topup'){
+  if(e.type==='topup' || e.type==='withdrawal'){
     // Cash movements only shown when not narrowing to a category/status.
     if(FILTERS.category!=='All' || FILTERS.status!=='All') return false;
     if(q && !((e.note||'').toLowerCase().includes(q))) return false;
@@ -578,7 +580,7 @@ function canEdit(e){ return e.type==='expense' && e.status==='pending' && (isOwn
 // everyone else (including other owners) can still delete their own/any
 // pending expense as before.
 function canDelete(e){
-  if(e.type==='topup') return IS_ADMIN;
+  if(e.type==='topup' || e.type==='withdrawal') return IS_ADMIN;
   return e.type==='expense' && (e.status==='reimbursed' ? IS_ADMIN : (isOwner || e.createdBy===MYEMAIL));
 }
 
@@ -597,6 +599,19 @@ function renderLedger(){
         <td class="note td-note" data-label="Note">${esc(e.note||'')}</td>
         <td class="td-plain td-rcpt"></td>
         <td class="amt credit td-amt" data-label="Amount">+${money(e.amount)}</td>
+        <td class="td-plain td-status"></td>
+        <td class="td-plain td-actions">${canDelete(e) ? `<button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : ''}</td>
+        <td class="td-break"></td>
+      </tr>`;
+    }
+    if(e.type==='withdrawal'){
+      return `<tr>
+        <td class="td-plain td-sel"></td>
+        <td class="td-date" data-label="Date">${esc(e.date||'')}</td>
+        <td class="td-cat" data-label="Type"><span class="chip cash">Cash collected</span></td>
+        <td class="note td-note" data-label="Note">${esc(e.note||'')}</td>
+        <td class="td-plain td-rcpt"></td>
+        <td class="amt debit td-amt" data-label="Amount">−${money(e.amount)}</td>
         <td class="td-plain td-status"></td>
         <td class="td-plain td-actions">${canDelete(e) ? `<button class="rowbtn del" data-id="${e.id}" title="Delete">🗑</button>` : ''}</td>
         <td class="td-break"></td>
@@ -758,12 +773,13 @@ function confirmWaive(en){
 }
 
 function confirmDelete(en){
-  const isTopup = en.type==='topup';
-  const label = isTopup ? (en.subtype==='reimbursement' ? 'Reimbursement' : 'Cash top-up') : en.category;
-  openGen(isTopup ? 'Delete this entry?' : 'Delete expense?', `
+  const isCashMove = en.type==='topup' || en.type==='withdrawal';
+  const label = en.type==='topup' ? (en.subtype==='reimbursement' ? 'Reimbursement' : 'Cash top-up')
+    : en.type==='withdrawal' ? 'Cash collected' : en.category;
+  openGen(isCashMove ? 'Delete this entry?' : 'Delete expense?', `
     <p style="color:var(--muted);font-size:13.5px">This removes <b>${esc(label)}</b> · ${money(en.amount)} (${esc(en.date)}). This can’t be undone.</p>
     <div class="mfoot"><button class="btn ghost" id="gCancel">Cancel</button><button class="btn primary" id="gDo" style="background:var(--danger)">Delete</button></div>`);
-  $('#gDo').onclick=async()=>{ const ok=await command({action:'delete-entry',id:en.id}, isTopup ? 'Entry deleted' : 'Expense deleted'); if(ok) closeGen(); };
+  $('#gDo').onclick=async()=>{ const ok=await command({action:'delete-entry',id:en.id}, isCashMove ? 'Entry deleted' : 'Expense deleted'); if(ok) closeGen(); };
   $('#gCancel').onclick=closeGen;
 }
 
@@ -809,6 +825,20 @@ function openTopup(){
     const ok=await command({action:'topup', amount:a, date:$('#gDate').value, note:$('#gNote').value}, 'Cash added'); if(ok) closeGen(); };
 }
 
+// ── Owner: withdraw (collect cash back) ──
+function openWithdraw(){
+  openGen('Collect cash back', `
+    <p style="color:var(--muted);font-size:13.5px">Record cash you're taking back from the caretaker — e.g. shrinking the float, or pulling out a surplus. This reduces cash in hand; use "Set float" separately if the target itself should change too.</p>
+    <div class="two"><div class="field"><label>Date</label><input type="date" id="gDate" value="${todayISO()}" /></div>
+    <div class="field"><label>Amount (₹)</label><input type="number" id="gAmt" min="0" step="1" inputmode="numeric" placeholder="0" /></div></div>
+    <div class="field"><label>Note</label><input id="gNote" placeholder="e.g. reducing float" /></div>
+    <div class="merr" id="gErr"></div>
+    <div class="mfoot"><button class="btn ghost" id="gCancel">Cancel</button><button class="btn primary" id="gDo">Collect cash</button></div>`);
+  $('#gCancel').onclick=closeGen;
+  $('#gDo').onclick=async()=>{ const a=Math.round(parseFloat($('#gAmt').value)); if(!(a>0)){ $('#gErr').textContent='Enter a valid amount.'; return; }
+    const ok=await command({action:'withdraw', amount:a, date:$('#gDate').value, note:$('#gNote').value}, 'Cash collected'); if(ok) closeGen(); };
+}
+
 // ── Owner: set float ──
 function openFloat(){
   openGen('Set float target', `
@@ -827,7 +857,7 @@ function exportCSV(){
   const head=['Date','Type','Category','Note','Amount','Status','Added by'];
   const lines=[head.join(',')];
   for(const e of rows){
-    const type = e.type==='topup' ? (e.subtype==='reimbursement'?'Reimbursement':'Top-up') : 'Expense';
+    const type = e.type==='topup' ? (e.subtype==='reimbursement'?'Reimbursement':'Top-up') : e.type==='withdrawal' ? 'Withdrawal' : 'Expense';
     const amt = e.type==='topup' ? e.amount : -e.amount;
     const cells=[e.date||'', type, e.category||'', (e.note||'').replace(/"/g,'""'), amt, e.status||'', e.createdBy||''];
     lines.push(cells.map(c=>/[",\n]/.test(String(c))?`"${c}"`:c).join(','));
@@ -842,6 +872,7 @@ function exportCSV(){
 $('#addBtn').onclick=()=>openExpense(null);
 $('#reimburseBtn').onclick=()=>reimburse(null);
 $('#topupBtn').onclick=openTopup;
+$('#withdrawBtn').onclick=openWithdraw;
 $('#floatBtn').onclick=openFloat;
 $('#csvBtn').onclick=exportCSV;
 $('#printBtn').onclick=()=>window.print();
