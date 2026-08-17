@@ -87,9 +87,14 @@
   .cat{font-size:11px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);padding:2px 8px;border-radius:8px;white-space:nowrap}
   .note{color:var(--muted);font-size:12.5px}
   .rcpt{width:34px;height:34px;border-radius:7px;object-fit:cover;border:1px solid var(--line);cursor:pointer;display:block}
-  .rowbtn{background:none;border:none;color:var(--muted2);padding:4px;border-radius:6px;line-height:0}
-  .rowbtn:hover{color:var(--accent-d);background:var(--accent-soft)}
-  .rowbtn.del:hover{color:var(--danger);background:var(--danger-soft)}
+  /* A visible fill+border at rest (not just on :hover) so each icon reads
+     as its own tappable button instead of bare floating glyphs — the
+     fixed width/height gives a predictable touch target regardless of
+     which emoji glyph is inside. */
+  .rowbtn{background:var(--panel2);border:1px solid var(--line);color:var(--muted2);width:30px;height:30px;border-radius:8px;line-height:0;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .rowbtn:hover{color:var(--accent-d);background:var(--accent-soft);border-color:var(--accent-soft)}
+  .rowbtn.del:hover{color:var(--danger);background:var(--danger-soft);border-color:var(--danger-soft)}
+  .td-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
   .empty{padding:40px 16px;text-align:center;color:var(--muted2);font-size:13.5px}
   .selbar{display:none;align-items:center;gap:12px;padding:11px 16px;background:var(--accent-soft);border-bottom:1px solid #cfe6d8;font-size:13px;font-weight:600;color:var(--accent-d)}
   .selbar.show{display:flex}
@@ -164,7 +169,7 @@
     .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .actions .btn{width:100%;justify-content:center;padding:12px 10px}
     .filters select,.filters input,.field input,.field select,.field textarea{font-size:16px}
-    .rowbtn{padding:9px;line-height:0}
+    .rowbtn{width:36px;height:36px}
     .selchk{width:20px;height:20px}
     .rcpt{width:40px;height:40px}
     /* Category picker as an even 3-col x 2-row grid instead of flex-wrap
@@ -215,7 +220,6 @@
     .td-status{order:9; flex:0 0 auto}
 
     .rcpt{width:32px; height:32px}
-    .rowbtn{padding:5px}
   }
   @media print{
     header.top .tbtn,.actions,.filters,.rowbtn,.selbar,#loader,#toast,.rcpt{display:none!important}
