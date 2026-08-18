@@ -128,7 +128,15 @@
   .ag-item .ag-tag{font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:20px;text-transform:uppercase}
   .ag-tag.now{background:var(--inv-soft);color:var(--inv)}
   .ag-tag.past{background:#f0f0f0;color:var(--muted2)}
-  .ag-tag.upcoming{background:var(--qt-soft);color:var(--qt)}
+  /* Same status-color convention petty-cash.html already uses for its
+     pending/reimbursed chips — yellow for not-yet-committed, green for
+     confirmed, grey for a manual/OTA hold (.ag-tag's Blocked case,
+     styled inline further down since it also needs the OTA-color
+     override on .ag-no next to it). Tentative and Upcoming used to
+     share this one class/color, which made an unpaid quote look exactly
+     like a real confirmed booking at a glance. */
+  .ag-tag.tentative{background:var(--warn-soft);color:var(--warn)}
+  .ag-tag.upcoming{background:var(--accent-soft);color:var(--accent-d)}
   .ag-item .ag-guest{font-weight:600}
   .ag-item .ag-dates{color:var(--muted);font-size:11.5px}
   .empty{color:var(--muted2);font-size:13px;text-align:center;padding:20px}
@@ -1194,7 +1202,7 @@ function openDay(iso){
         return `<div class="ag-item">
           <div class="ag-top">
             <a class="ag-no" href="stay.html?open=${encodeURIComponent(b.no)}">${esc(b.no)}</a>
-            <span style="display:flex;gap:6px">${publicBadge}<span class="ag-tag ${b.type==='quote'?'upcoming':'now'}">${b.type==='quote'?'Quote':'Invoice'}</span></span>
+            <span style="display:flex;gap:6px">${publicBadge}<span class="ag-tag" style="${b.type==='quote'?'background:var(--qt-soft);color:var(--qt)':'background:var(--inv-soft);color:var(--inv)'}">${b.type==='quote'?'Quote':'Invoice'}</span></span>
           </div>
           <div class="ag-guest">${esc(b.guest||'—')}</div>
           <div class="ag-dates">${fmtDate(b.checkin)} → ${fmtDate(b.checkout)} · ${nightsBetween(b.checkin,b.checkout)} night(s) · ${money(grandTotal(b))}</div>
@@ -1267,7 +1275,7 @@ function renderAgenda(){
     // visible — see isNonBlockingStay's comment above).
     const committed = (d.type||'invoice')!=='quote' || Number(d.advance)>0;
     const tag = d.type==='block' ? '<span class="ag-tag" style="background:var(--block-soft);color:var(--block)">Blocked</span>'
-      : !committed ? '<span class="ag-tag upcoming">Tentative</span>'
+      : !committed ? '<span class="ag-tag tentative">Tentative</span>'
       : isNow ? '<span class="ag-tag now">Now</span>' : '<span class="ag-tag upcoming">Upcoming</span>';
     const publicBadge = d.mode==='Razorpay'
       ? `<span class="ag-tag" style="background:var(--inv-soft);color:var(--inv)">Paid online</span>`
