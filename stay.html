@@ -1014,8 +1014,22 @@ function render(){
 }
 
 /* ---------- SAVE / LOAD ---------- */
+// Starts from the EXISTING stored record (when editing one) rather than
+// building a bare object from just the form's own fields. Every /stays PUT
+// is a full-array overwrite (see server.js's validateStaysPut comment),
+// and several other routes write fields onto a stay record directly —
+// checkinInfo (POST /checkin), the *SentAt WhatsApp-automation dedup flags
+// (/whatsapp/run-scheduled), balancePaymentLink/foodPaymentLink including
+// .paidAt (/checkin/balance-payment-link, /portal/*-payment-link),
+// source:'public' (/public-quote) — none of which this form has an input
+// for. Without the spread below, saving here after any of those had
+// already run would silently erase whichever one it was: a guest's
+// submitted check-in, a payment link's paid status, or an automation
+// dedup flag that then lets a reminder/request go out a second time.
 function collect(){
+  const existing = editingKey ? getStays().find(s=>s.no===editingKey) : null;
   return {
+    ...(existing||{}),
     type: docType, no: curNo, date: curDateISO,
     guest:$("#guest").value, email:$("#email").value, phone:$("#phone").value, guests:$("#guests").value,
     ref:$("#ref").value, checkin:$("#checkin").value, checkout:$("#checkout").value, mode:$("#mode").value,
@@ -1027,6 +1041,12 @@ function collect(){
   };
 }
 async function saveDoc(){
+  // Refreshed right before merging, not whatever staysCache happened to
+  // hold from whenever this page loaded — narrows (doesn't fully close,
+  // a save could still race a write landing in the same instant) the
+  // window where collect()'s merge above would be working from a stale
+  // copy of the very fields it's trying to protect.
+  if(editingKey) await fetchStaysFromProxy();
   const doc=collect(); if(!doc.no){ toast("No document number"); return; }
   if(!doc.guest.trim()){ toast("Add a guest name first"); return; }
   const all=getStays(); const key=editingKey||doc.no; const idx=all.findIndex(x=>x.no===key);
