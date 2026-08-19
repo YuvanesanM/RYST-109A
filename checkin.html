@@ -540,6 +540,17 @@ function showCiForm(){
   $('#gsiBlock').style.display = 'none';
   $('#adminPicker').style.display = 'none';
 }
+// A guest reopening their check-in link (or signing in again) after already
+// submitting should see confirmation, not a blank form asking them to redo
+// it — same completion screen the live submit handler below shows, just
+// worded for "already done" instead of "just done".
+function showAlreadyCheckedIn(){
+  $('#formView').style.display = 'none';
+  $('#thanksView').style.display = 'block';
+  $('#thanksMsg').textContent = (checkinDate && checkoutDate)
+    ? `You're already checked in for your stay from ${fmtDate(checkinDate)} to ${fmtDate(checkoutDate)}. See you soon!`
+    : `You're already checked in. See you soon at RYST 109A.`;
+}
 function renderSummaryLoading(){
   const el = $('#staySummary');
   el.style.display = '';
@@ -573,6 +584,7 @@ async function loadBookingLookup(){
     guestEmail = data.email || '';
     walletTok = data.wallet || '';
     if(guestPrefill) $('#ci-name').value = guestPrefill;
+    if(data.alreadyCheckedIn){ showAlreadyCheckedIn(); return; }
     renderSummary();
   }catch(e){
     // Network hiccup — leave the form usable (no+t are still good enough
@@ -612,6 +624,7 @@ async function handleGoogleLogin(credentialResponse){
       guestEmail = data.email || guestEmail;
       walletTok = data.wallet || walletTok;
       if(guestPrefill) $('#ci-name').value = guestPrefill;
+      if(data.alreadyCheckedIn){ showAlreadyCheckedIn(); return; }
       renderSummary();
       $('#gsiBlock').innerHTML = `<p class="gsi-matched">✓ Signed in — matched your booking ${esc(bookingNo)}.</p>`;
       showCiForm();
