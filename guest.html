@@ -763,20 +763,18 @@ function renderHome(){
     playDesc.textContent = 'Opens automatically during your stay';
   }
 
-  // Rating a stay that hasn't started yet doesn't make sense — same
-  // .disabled treatment (visual only, doesn't hard-block) the Play tile
-  // already uses for "not yet". Once submitted, the tile stays enabled
-  // (a guest partway through a multi-day stay may want to add more) —
-  // just the description changes, tracked with a simple per-booking
-  // localStorage flag since there's no server-side "already submitted"
-  // linkage to check against.
+  // Hidden entirely (not just disabled) until checkout day — rating a
+  // stay that's still in progress is premature. Once submitted, the tile
+  // stays enabled and visible (a guest checking back after checkout may
+  // want to add more) — the description just changes, tracked with a
+  // simple per-booking localStorage flag since there's no server-side
+  // "already submitted" linkage to check against.
   const feedbackTile = $('#feedbackTile'), feedbackDesc = $('#feedbackDesc');
-  if(b && new Date().toISOString().slice(0,10) < b.checkin){
-    feedbackTile.classList.add('disabled');
-    feedbackDesc.textContent = 'Available once your stay begins';
+  if(!b || new Date().toISOString().slice(0,10) < b.checkout){
+    feedbackTile.style.display = 'none';
   } else {
-    feedbackTile.classList.remove('disabled');
-    feedbackDesc.textContent = (b && localStorage.getItem('ryst_feedback_'+b.no))
+    feedbackTile.style.display = '';
+    feedbackDesc.textContent = localStorage.getItem('ryst_feedback_'+b.no)
       ? "Thanks for your feedback! Tap to add more."
       : "Tell us how everything's going";
   }
