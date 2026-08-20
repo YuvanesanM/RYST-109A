@@ -369,6 +369,9 @@
     <div class="filters">
       <input class="grow" id="menuSearch" placeholder="Search dishes…">
       <select id="menuCatFilter"><option value="all">All categories</option></select>
+      <button class="btn owner-only" id="btnExportMenu">⬇ Export CSV</button>
+      <button class="btn owner-only" id="btnImportMenu">⬆ Import CSV</button>
+      <input type="file" id="menuImportFile" accept=".csv,text/csv" style="display:none">
       <button class="btn primary owner-only" id="btnAddDish">＋ Add dish</button>
     </div>
     <div id="menuList"></div>
@@ -542,6 +545,30 @@
     <div class="mfoot">
       <button class="btn" id="dCancel">Cancel</button>
       <button class="btn primary" id="dSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import menu CSV — preview before committing -->
+<div class="overlay" id="importOverlay">
+  <div class="modal" style="width:min(760px,100%)">
+    <h3>Import menu — preview</h3>
+    <div class="mbody">
+      <div id="importSummary" style="font-size:13px;color:var(--muted);margin-bottom:10px"></div>
+      <div style="max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:10px">
+        <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+          <thead><tr style="text-align:left;background:var(--panel2)">
+            <th style="padding:7px 9px">Row</th><th style="padding:7px 9px">Dish</th><th style="padding:7px 9px">Category</th>
+            <th style="padding:7px 9px;text-align:right">Price</th><th style="padding:7px 9px">Status</th>
+          </tr></thead>
+          <tbody id="importRows"></tbody>
+        </table>
+      </div>
+      <div class="merr" id="importErr"></div>
+    </div>
+    <div class="mfoot">
+      <button class="btn" id="importCancel">Cancel</button>
+      <button class="btn primary" id="importConfirm">Import</button>
     </div>
   </div>
 </div>
@@ -853,6 +880,140 @@ $('#dSave').addEventListener('click', async ()=>{
   if(data) $('#dishOverlay').classList.remove('show');
   else $('#dErr').textContent = 'Could not save — check the fields above';
 });
+
+/* ── Menu bulk import / export ── */
+function csvCell(v){ const s=String(v==null?'':v); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; }
+function downloadCSV(filename, rows){
+  const lines = rows.map(r=>r.map(csvCell).join(','));
+  const blob = new Blob([lines.join('\n')], { type:'text/csv' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+}
+function exportMenuCSV(){
+  const head = ['ID','Dish Name','Category','Price','Cost','Veg','Active','Chef Special','Sourcing','MOQ','Calories','Description','Notes'];
+  const rows = DOC.menu.map(m=>[
+    m.id, m.name, m.category||'', m.price, m.cost||0, m.veg?'Yes':'No', m.active!==false?'Yes':'No',
+    m.chefSpecial?'Yes':'No', m.sourcing||'', m.moq||1, m.kcal==null?'':m.kcal, m.description||'', m.notes||'',
+  ]);
+  downloadCSV(`ryst-menu-${todayISO()}.csv`, [head, ...rows]);
+}
+$('#btnExportMenu').addEventListener('click', exportMenuCSV);
+
+// Minimal RFC4180-ish CSV parser — handles quoted fields with embedded
+// commas/newlines and "" escaped quotes, which round-tripping the export
+// through Excel/Sheets (a dish description with a comma, say) can easily
+// produce.
+function parseCsv(text){
+  const rows = []; let row = []; let cell = ''; let inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c==='"'){ if(text[i+1]==='"'){ cell+='"'; i++; } else inQuotes=false; }
+      else cell += c;
+    } else {
+      if(c==='"') inQuotes = true;
+      else if(c===',') { row.push(cell); cell=''; }
+      else if(c==='\n'){ row.push(cell); rows.push(row); row=[]; cell=''; }
+      else if(c==='\r'){ /* skip — \r\n's \n does the row push */ }
+      else cell += c;
+    }
+  }
+  if(cell!=='' || row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r=>r.length>1 || r[0]!=='');
+}
+// Tolerant of header spelling/casing/spacing so a re-export from Excel or a
+// hand-written sheet both still match ("Dish Name", "dish_name", "Name"…).
+const normalizeCsvHeader = h => String(h||'').toLowerCase().replace(/[^a-z]/g,'');
+const MENU_CSV_HEADER_MAP = {
+  id:'id', dishname:'name', name:'name', category:'category',
+  price:'price', sellingprice:'price', cost:'cost', costprice:'cost',
+  veg:'veg', vegetarian:'veg', type:'veg', active:'active',
+  chefspecial:'chefSpecial', sourcing:'sourcing', moq:'moq',
+  calories:'kcal', kcal:'kcal', description:'description', notes:'notes',
+};
+function parseBoolCell(v, def){
+  const s = String(v==null?'':v).trim().toLowerCase();
+  if(!s) return def;
+  if(['true','yes','y','1','veg','vegetarian'].includes(s)) return true;
+  if(['false','no','n','0','non-veg','nonveg','non-vegetarian'].includes(s)) return false;
+  return def;
+}
+$('#btnImportMenu').addEventListener('click', ()=>$('#menuImportFile').click());
+$('#menuImportFile').addEventListener('change', async e=>{
+  const file = e.target.files[0];
+  e.target.value = ''; // so picking the same file again still fires 'change'
+  if(!file) return;
+  const text = await file.text();
+  const grid = parseCsv(text);
+  if(grid.length < 2){ showToast('CSV has no data rows', true); return; }
+  const headerKeys = grid[0].map(normalizeCsvHeader).map(h=>MENU_CSV_HEADER_MAP[h] || null);
+  if(!headerKeys.includes('name') || !headerKeys.includes('price')){
+    showToast('CSV must have a "Dish Name" and "Price" column', true); return;
+  }
+  // Each row is validated against the same rules the server enforces
+  // (name required, price >= 0) so the preview's add/update/error split
+  // is what will actually happen — the server-side import-menu command
+  // re-checks the same fields, but only as a defensive backstop.
+  const preview = [];
+  for(let r=1; r<grid.length; r++){
+    const cells = grid[r];
+    if(cells.length===1 && cells[0].trim()==='') continue; // trailing blank line
+    const obj = {};
+    headerKeys.forEach((key,i)=>{ if(key) obj[key] = cells[i]; });
+    const name = String(obj.name||'').trim().slice(0,100);
+    const priceRaw = String(obj.price==null?'':obj.price).trim();
+    const price = priceRaw==='' ? 0 : Number(priceRaw);
+    let status, reason = '';
+    if(!name){ status='error'; reason='Missing dish name'; }
+    else if(priceRaw!=='' && !(price>=0)){ status='error'; reason='Invalid price'; }
+    else status = (obj.id && DOC.menu.some(m=>m.id===obj.id)) ? 'update' : 'add';
+    preview.push({
+      rowNum: r+1, status, reason,
+      display: { name, category: (obj.category||'').trim(), price },
+      row: status==='error' ? null : {
+        id: obj.id || undefined, name, category: (obj.category||'').trim(), price,
+        cost: (obj.cost===undefined||obj.cost==='') ? undefined : Number(obj.cost),
+        veg: parseBoolCell(obj.veg, true), active: parseBoolCell(obj.active, true),
+        chefSpecial: parseBoolCell(obj.chefSpecial, false),
+        sourcing: (obj.sourcing||'').trim(),
+        moq: (obj.moq===undefined||obj.moq==='') ? undefined : Number(obj.moq),
+        kcal: (obj.kcal===undefined||obj.kcal==='') ? undefined : Number(obj.kcal),
+        description: (obj.description||'').trim(), notes: (obj.notes||'').trim(),
+      },
+    });
+  }
+  openImportPreview(preview);
+});
+function openImportPreview(preview){
+  const added = preview.filter(p=>p.status==='add').length;
+  const updated = preview.filter(p=>p.status==='update').length;
+  const errors = preview.filter(p=>p.status==='error').length;
+  $('#importSummary').textContent = `${preview.length} row${preview.length===1?'':'s'} parsed — ${added} to add, ${updated} to update${errors?`, ${errors} skipped (errors)`:''}.`;
+  $('#importRows').innerHTML = preview.map(p=>`
+    <tr>
+      <td style="padding:6px 9px">${p.rowNum}</td>
+      <td style="padding:6px 9px">${esc(p.display.name||'—')}</td>
+      <td style="padding:6px 9px">${esc(p.display.category||'')}</td>
+      <td style="padding:6px 9px;text-align:right">${p.status!=='error'?money(p.display.price):''}</td>
+      <td style="padding:6px 9px">${
+        p.status==='add' ? `<span style="color:var(--accent-d)">+ New</span>`
+        : p.status==='update' ? `<span style="color:var(--warn)">Update</span>`
+        : `<span style="color:var(--danger)">${esc(p.reason)}</span>`
+      }</td>
+    </tr>
+  `).join('');
+  $('#importErr').textContent = '';
+  const validRows = preview.filter(p=>p.status!=='error').map(p=>p.row);
+  $('#importConfirm').disabled = !validRows.length;
+  $('#importConfirm').onclick = async ()=>{
+    if(!validRows.length) return;
+    const data = await runCommand({ action:'import-menu', rows: validRows }, `Imported ${validRows.length} dish${validRows.length===1?'':'es'}`);
+    if(data) $('#importOverlay').classList.remove('show');
+    else $('#importErr').textContent = 'Import failed — please try again';
+  };
+  $('#importOverlay').classList.add('show');
+}
+$('#importCancel').addEventListener('click', ()=>$('#importOverlay').classList.remove('show'));
 
 /* ── Inventory tab ── */
 let invFilters = { q:'', cat:'all', lowOnly:false, expOnly:false };
