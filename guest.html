@@ -18,7 +18,12 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
     --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#eef4f2; --bg:#eef4f2;
-    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480; --muted-text:#5a706c;
+    --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8;
+    /* was #6b8480 — that failed WCAG AA (4.5:1) for the small uppercase
+       labels (.bc-label, .f-label, .r-lbl) that use it; this passes on
+       both --white and --foam with a comfortable margin and is otherwise
+       visually near-identical. */
+    --muted:#596d6a; --muted-text:#5a706c;
     --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
     --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
     --shadow-sm:0 2px 8px rgba(11,61,82,.08); --shadow-md:0 10px 24px rgba(11,61,82,.12);
@@ -82,6 +87,29 @@
     background:var(--white);color:var(--sea);font-size:12.5px;font-weight:700;
     padding:7px 13px;border-radius:999px;overflow-wrap:anywhere;box-shadow:var(--shadow-sm);
   }
+  /* Trip-status + check-in nudge pills sit alongside the booking-id pill —
+     same .bc-id pill shape, state-specific fill via modifier classes so
+     everything still reads as one pill family. */
+  .bc-pills{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .bc-id.status-upcoming{background:var(--foam);color:var(--sea-mid)}
+  /* Same coral gradient .menu-badge already uses for "live now" emphasis. */
+  .bc-id.status-staying{background:linear-gradient(135deg,#d3764a,var(--coral));color:#fff;box-shadow:0 4px 10px rgba(201,106,59,.28)}
+  .bc-id.status-checkedout{background:var(--foam);color:var(--muted-text)}
+  .bc-id.checkin-nudge{background:var(--sea-mid);color:#fff;text-decoration:none;cursor:pointer;border:none}
+  .bc-id.checkin-nudge:hover{opacity:.92}
+  /* Same green .order-status.settled already uses for "done/paid". */
+  .bc-id.checkin-done{background:#e3f0ea;color:#215f3f}
+  .bc-id svg{flex-shrink:0}
+  /* ── Wallet pass (mirrors checkin.html's wallet-links block) ── */
+  .wallet-links{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:2px;flex-wrap:wrap}
+  .wallet-links img{height:44px;width:auto;display:block;transition:opacity .2s}
+  .wallet-links a.apple:hover img{opacity:.85}
+  .wallet-btn-google{
+    display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:8px;
+    background:#fff;border:1px solid #dadce0;color:#3c4043;font-family:var(--sans);
+    font-size:14px;font-weight:500;text-decoration:none;transition:box-shadow .2s;
+  }
+  .wallet-btn-google:hover{box-shadow:0 1px 4px rgba(60,64,67,.3)}
 
   /* ── STAFF "ACTING AS" ── */
   .acting-bar{
@@ -155,14 +183,20 @@
   .item-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
   .item-info{flex:1;min-width:0}
   .item-name{font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px}
-  .veg-dot{width:9px;height:9px;border-radius:2px;border:1.5px solid;flex-shrink:0}
+  /* A visible V/N glyph, not color alone — the red/green dot is a familiar
+     convention worth keeping as reinforcement, but color-only status fails
+     WCAG 1.4.1 for colorblind sighted users, not just screen readers. */
+  .veg-dot{
+    width:14px;height:14px;border-radius:3px;border:1.5px solid;flex-shrink:0;
+    display:inline-flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;color:#fff;line-height:1;
+  }
   .veg-dot.veg{border-color:#2e7d32;background:#2e7d32}
   .veg-dot.nonveg{border-color:var(--coral);background:var(--coral)}
   .item-price{font-size:12.5px;color:var(--muted-text);margin-top:1px}
   .qty-stepper{display:flex;align-items:center;gap:9px;flex-shrink:0}
   .qty-btn{
-    width:32px;height:32px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--white);
-    color:var(--sea);font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;
+    width:44px;height:44px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--white);
+    color:var(--sea);font-size:19px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;
     transition:background .15s,border-color .15s,transform .12s var(--ease);
   }
   .qty-btn:hover:not(:disabled){border-color:var(--sea-mid);background:var(--foam)}
@@ -267,6 +301,20 @@
   .r-foot{text-align:center;font-size:11px;color:var(--muted-text);line-height:1.6;margin-top:32px;padding-top:14px;border-top:1px dashed var(--line)}
   .r-foot .brand{font-weight:700;color:var(--sea-mid);letter-spacing:.3px}
 
+  /* ── FEEDBACK (reuses .receipt-overlay's full-screen shell, own inner
+     card — .r-doc's table/invoice layout doesn't fit a rating form) ── */
+  .fb-doc{max-width:480px;margin:0 auto;background:var(--white);border-radius:var(--r-lg);padding:22px 20px;box-shadow:var(--shadow-lg);border:1px solid var(--line)}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  .fb-stars{display:flex;gap:6px;justify-content:center;margin:18px 0}
+  .fb-star{position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);cursor:pointer;color:var(--line);transition:color .15s,background .15s}
+  .fb-star input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer}
+  .fb-star.filled{color:var(--sand)}
+  .fb-doc textarea{
+    width:100%;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:10px 12px;resize:vertical;
+    font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--white);outline:none;transition:border-color .15s;
+  }
+  .fb-doc textarea:focus{border-color:var(--sea-mid)}
+
   @page{ size:A4; margin:14mm }
   @media print{
     body *{visibility:hidden}
@@ -287,7 +335,7 @@
       <h1>Manage Your Stay</h1>
       <p class="sub">Sign in with the email used for your booking to view your invoice, pay your balance, order food and more.</p>
       <div id="googleSignInBtn"></div>
-      <p class="err" id="signinErr"></p>
+      <p class="err" id="signinErr" role="alert" aria-live="polite"></p>
     </section>
 
     <section class="screen" id="screen-loading">
@@ -301,7 +349,7 @@
       </div>
       <p class="sub" style="text-align:left">Staff sign-in — pick a guest currently staying to view and act on their behalf.</p>
       <div id="adminPickerList"></div>
-      <p class="err" id="adminPickerErr"></p>
+      <p class="err" id="adminPickerErr" role="alert" aria-live="polite"></p>
     </section>
 
     <section class="screen" id="screen-home">
@@ -314,24 +362,34 @@
       <div id="homeDue"></div>
       <div class="menu">
         <button type="button" class="menu-item" data-mode="menu">
-          <span class="menu-icon">🍽️</span>
+          <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v6a2 2 0 0 0 4 0V2"/><path d="M8 2v20"/><path d="M18 2c-2 2-2 5-2 7s0 3 2 3 2-1 2-3 0-5-2-7Z"/><path d="M18 12v10"/></svg></span>
           <span class="menu-body"><span class="menu-title">Food Menu &amp; Order</span><span class="menu-desc">Browse Casa de RYST and place an order</span></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
         </button>
         <button type="button" class="menu-item" data-mode="foodbill">
-          <span class="menu-icon">🧾</span>
+          <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></span>
           <span class="menu-body"><span class="menu-title">Food Bill</span><span class="menu-desc">View and pay your food orders</span></span>
           <span class="menu-badge" id="foodBadge" style="display:none"></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
         </button>
         <a class="menu-item" id="playLink" href="/play.html">
-          <span class="menu-icon">🎮</span>
+          <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="10" rx="5"/><path d="M7 10v4M5 12h4"/><circle cx="15" cy="10.5" r="1"/><circle cx="17.5" cy="13" r="1"/></svg></span>
           <span class="menu-body"><span class="menu-title">Play &amp; Entertainment</span><span class="menu-desc" id="playDesc">Games on the pool screen</span></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
         </a>
         <button type="button" class="menu-item" data-mode="wifi">
-          <span class="menu-icon">📶</span>
+          <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.5a16 16 0 0 1 20 0"/><path d="M5.5 12.5a11 11 0 0 1 13 0"/><path d="M9 16.5a6 6 0 0 1 6 0"/><circle cx="12" cy="20" r="1" fill="currentColor" stroke="none"/></svg></span>
           <span class="menu-body"><span class="menu-title">Wi-Fi</span><span class="menu-desc">Network &amp; voucher code</span></span>
+          <span class="menu-chevron" aria-hidden="true">›</span>
+        </button>
+        <a class="menu-item" href="/nearby.html">
+          <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-7.58 7-12.5A7 7 0 0 0 5 9.5C5 14.42 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
+          <span class="menu-body"><span class="menu-title">Explore Nearby</span><span class="menu-desc">Beaches, cafes and things to do near the villa</span></span>
+          <span class="menu-chevron" aria-hidden="true">›</span>
+        </a>
+        <button type="button" class="menu-item" data-mode="feedback" id="feedbackTile">
+          <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15 9 22 9.5 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.5 9 9"/></svg></span>
+          <span class="menu-body"><span class="menu-title">Rate Your Stay</span><span class="menu-desc" id="feedbackDesc">Tell us how everything's going</span></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
         </button>
       </div>
@@ -351,7 +409,7 @@
         <span class="cart-total">Total: <strong id="cartTotal">₹0</strong></span>
         <button type="button" class="place-order-btn" id="placeOrderBtn" disabled>Place Order</button>
       </div>
-      <p class="err" id="menuErr"></p>
+      <p class="err" id="menuErr" role="alert" aria-live="polite"></p>
     </section>
 
     <section class="screen" id="screen-foodbill">
@@ -372,6 +430,11 @@
 <div class="receipt-overlay" id="receiptOverlay">
   <div class="receipt-overlay-bar"><button type="button" class="back-btn" id="closeReceiptBtn">&larr; Back</button></div>
   <div id="receiptArea"></div>
+</div>
+
+<div class="receipt-overlay" id="feedbackOverlay">
+  <div class="receipt-overlay-bar"><button type="button" class="back-btn" id="closeFeedbackBtn">&larr; Back</button></div>
+  <div id="feedbackArea"></div>
 </div>
 
 <script>
@@ -396,6 +459,50 @@ function fmtDateTime(iso, time){
   const d = fmtDateShort(iso);
   return time ? `${d}, ${time}` : d;
 }
+
+// Small inline-SVG glyphs used inside dynamically-built template strings
+// (the static tile icons are inlined directly in the HTML above — these
+// three are the only icons actually assembled at render time: the
+// check-in-done pill, the feedback star rating, and the staff admin
+// picker's guest-entry icon). Same stroke-based, currentColor convention
+// as checkin.html's own inline SVGs.
+const ICON_CHECK = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`;
+const ICON_STAR = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15 9 22 9.5 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.5 9 9"/></svg>`;
+const ICON_SUITCASE = `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`;
+
+// ── Trip status (client-side hint only — the server's own checkin<=today<=
+// checkout + grace-period logic is the real access gate; a wrong device
+// clock just means an occasional wrong chip, never a security issue) ──
+function tripStatusChip(b){
+  const today = new Date().toISOString().slice(0,10);
+  if(today < b.checkin){
+    const nights = Math.max(1, Math.round((new Date(b.checkin) - new Date(today)) / 86400000));
+    return { cls:'status-upcoming', label: `${nights} night${nights===1?'':'s'} to go` };
+  }
+  if(today <= b.checkout) return { cls:'status-staying', label:'Currently staying' };
+  return { cls:'status-checkedout', label:'Checked out' };
+}
+function checkinNudgePill(b){
+  if(b.checkedIn) return `<span class="bc-id checkin-done">${ICON_CHECK} Checked in</span>`;
+  if(!b.checkinToken) return ''; // defensive — never render a t=undefined link
+  const href = `checkin.html?no=${encodeURIComponent(b.no)}&t=${encodeURIComponent(b.checkinToken)}`;
+  return `<a class="bc-id checkin-nudge" href="${href}">Complete your check-in ›</a>`;
+}
+
+// ── Wallet pass — same walletUrl()/googleWalletUrl()/GOOGLE_G_ICON pattern
+// checkin.html uses, taking the current stay (`b`) as an argument rather
+// than a module-level bookingNo/walletTok pair: guest.html already holds
+// the active stay reactively in me.stay (and staff can switch guests
+// mid-session via the admin picker), so a second global would just be a
+// second source of truth to keep in sync — b is already in scope wherever
+// these are called from.
+function walletUrl(b){
+  return (b && b.no && b.wallet) ? `${PROXY_URL}/booking/wallet/apple?no=${encodeURIComponent(b.no)}&t=${encodeURIComponent(b.wallet)}` : '';
+}
+function googleWalletUrl(b){
+  return (b && b.no && b.wallet) ? `${PROXY_URL}/booking/wallet/google?no=${encodeURIComponent(b.no)}&t=${encodeURIComponent(b.wallet)}` : '';
+}
+const GOOGLE_G_ICON = `<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>`;
 
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -553,7 +660,7 @@ function renderAdminPicker(){
   }
   list.innerHTML = `<div class="admin-guest-list">${adminStays.map(s => `
     <button type="button" class="menu-item" data-no="${esc(s.no)}">
-      <span class="menu-icon">🧳</span>
+      <span class="menu-icon">${ICON_SUITCASE}</span>
       <span class="menu-body"><span class="menu-title">${esc(s.guest||'Guest')}</span><span class="menu-desc">${fmtDateShort(s.checkin)} → ${fmtDateShort(s.checkout)} · ${esc(s.no)}</span></span>
       <span class="menu-chevron" aria-hidden="true">›</span>
     </button>
@@ -607,6 +714,7 @@ function renderHome(){
 
   const bookingEl = $('#homeBooking');
   if(b){
+    const tripStatus = tripStatusChip(b);
     bookingEl.innerHTML = `
       <div class="booking-card">
         <div class="bc-name"><span class="bc-label">Guest</span><span class="bc-value">${esc(b.guest||'Guest')}</span></div>
@@ -616,7 +724,15 @@ function renderHome(){
           <div class="bc-cell"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDateShort(b.checkout)}</span></div>
           ${b.guests ? `<div class="bc-cell"><span class="bc-label">Guests</span><span class="bc-value">${esc(String(b.guests))}</span></div>` : ''}
         </div>
-        <div class="bc-id">🔖 ${esc(b.no)}</div>
+        <div class="bc-pills">
+          <div class="bc-id">🔖 ${esc(b.no)}</div>
+          <div class="bc-id ${tripStatus.cls}">${esc(tripStatus.label)}</div>
+          ${checkinNudgePill(b)}
+        </div>
+        ${walletUrl(b) ? `<div class="wallet-links">
+          <a class="apple" href="${walletUrl(b)}"><img src="/assets/apple-wallet-badge.png" alt="Add to Apple Wallet" width="142" height="44"></a>
+          <a class="wallet-btn-google" href="${googleWalletUrl(b)}">${GOOGLE_G_ICON} Add to Google Wallet</a>
+        </div>` : ''}
       </div>`;
   } else {
     bookingEl.innerHTML = `<p class="empty-note">We couldn't find a confirmed booking for this account. If you've just booked, please check back shortly, or WhatsApp us.</p>`;
@@ -628,7 +744,7 @@ function renderHome(){
       <div class="due-banner">
         <p>Balance due: <strong>${money(b.balance)}</strong></p>
         <button type="button" class="pay-btn" id="payBalanceBtn">Pay Balance Now</button>
-        <p class="pay-msg" id="payBalanceMsg"></p>
+        <p class="pay-msg" id="payBalanceMsg" role="alert" aria-live="polite"></p>
       </div>`;
     $('#payBalanceBtn').addEventListener('click', () => payLink('balance', $('#payBalanceBtn'), $('#payBalanceMsg')));
   } else {
@@ -647,13 +763,31 @@ function renderHome(){
     playDesc.textContent = 'Opens automatically during your stay';
   }
 
+  // Rating a stay that hasn't started yet doesn't make sense — same
+  // .disabled treatment (visual only, doesn't hard-block) the Play tile
+  // already uses for "not yet". Once submitted, the tile stays enabled
+  // (a guest partway through a multi-day stay may want to add more) —
+  // just the description changes, tracked with a simple per-booking
+  // localStorage flag since there's no server-side "already submitted"
+  // linkage to check against.
+  const feedbackTile = $('#feedbackTile'), feedbackDesc = $('#feedbackDesc');
+  if(b && new Date().toISOString().slice(0,10) < b.checkin){
+    feedbackTile.classList.add('disabled');
+    feedbackDesc.textContent = 'Available once your stay begins';
+  } else {
+    feedbackTile.classList.remove('disabled');
+    feedbackDesc.textContent = (b && localStorage.getItem('ryst_feedback_'+b.no))
+      ? "Thanks for your feedback! Tap to add more."
+      : "Tell us how everything's going";
+  }
+
   document.querySelectorAll('.menu-item[data-mode]').forEach(btn => {
     btn.onclick = () => {
       const mode = btn.dataset.mode;
-      if(mode === 'menu') renderMenu();
-      if(mode === 'foodbill') renderBill();
-      if(mode === 'wifi') renderWifi();
-      showScreen(mode);
+      if(mode === 'menu'){ renderMenu(); showScreen(mode); }
+      if(mode === 'foodbill'){ renderBill(); showScreen(mode); }
+      if(mode === 'wifi'){ renderWifi(); showScreen(mode); }
+      if(mode === 'feedback') openFeedbackForm();
     };
   });
 }
@@ -704,7 +838,7 @@ function cartTotal(){
 }
 function renderMealChips(){
   $('#mealChips').innerHTML = MEAL_PERIODS.map(m =>
-    `<button type="button" class="meal-chip${m===selectedMeal?' active':''}" data-meal="${m}">${m}</button>`
+    `<button type="button" class="meal-chip${m===selectedMeal?' active':''}" data-meal="${m}" aria-pressed="${m===selectedMeal}">${m}</button>`
   ).join('');
   $('#mealChips').querySelectorAll('.meal-chip').forEach(btn => btn.addEventListener('click', () => {
     if(btn.dataset.meal === selectedMeal) return;
@@ -743,7 +877,7 @@ function renderMenu(){
       ${menu.filter(m=>(m.category||'Miscellaneous')===cat).map(m => `
         <div class="item-row" data-id="${esc(m.id)}">
           <div class="item-info">
-            <div class="item-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}"></span>${esc(m.name)}${m.chefSpecial?' ⭐':''}</div>
+            <div class="item-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}">${m.veg?'V':'N'}</span>${esc(m.name)}${m.chefSpecial?' ⭐':''}</div>
             <div class="item-price">${money(m.price)}</div>
           </div>
           <div class="qty-stepper">
@@ -828,7 +962,7 @@ function renderBill(){
       <div class="due-banner">
         <p>Food bill outstanding: <strong>${money(me.foodBalance)}</strong></p>
         <button type="button" class="pay-btn" id="payFoodBtn">Pay Food Bill Now</button>
-        <p class="pay-msg" id="payFoodMsg"></p>
+        <p class="pay-msg" id="payFoodMsg" role="alert" aria-live="polite"></p>
       </div>`;
     $('#payFoodBtn').addEventListener('click', () => payLink('food', $('#payFoodBtn'), $('#payFoodMsg')));
   } else {
@@ -903,6 +1037,65 @@ function viewReceipt(o){
   $('#receiptOverlay').classList.add('active');
 }
 $('#closeReceiptBtn').addEventListener('click', () => $('#receiptOverlay').classList.remove('active'));
+
+// ── Feedback ─────────────────────────────────────────────────────────────
+// Reuses the existing public /feedback endpoint as-is (guest.html doesn't
+// need a dedicated portal route for this) — unauthenticated, IP rate-
+// limited server-side, same one bookings.html's own review-request flow
+// feeds into. guest/bookingNo come straight from me.stay, already resolved
+// server-side on every /portal/me call.
+function openFeedbackForm(){
+  const b = me.stay;
+  $('#feedbackArea').innerHTML = `
+    <div class="fb-doc">
+      <h1 style="text-align:left">Rate Your Stay</h1>
+      <p class="sub" style="text-align:left">We'd love to hear how things are going, ${esc((b&&b.guest)||'there')}.</p>
+      <div class="fb-stars" id="fbStars" role="radiogroup" aria-label="Rating">
+        ${[1,2,3,4,5].map(n => `
+          <label class="fb-star">
+            <input type="radio" name="fbRating" value="${n}">
+            ${ICON_STAR}
+            <span class="sr-only">${n} star${n===1?'':'s'}</span>
+          </label>`).join('')}
+      </div>
+      <label class="f-label" for="fbComment">Comments (optional)</label>
+      <textarea id="fbComment" rows="4" maxlength="2000" placeholder="Anything we should know?"></textarea>
+      <button type="button" class="pay-btn" id="fbSubmitBtn" style="width:100%;margin-top:14px">Submit Feedback</button>
+      <p class="err" id="fbErr" role="alert" aria-live="polite"></p>
+    </div>`;
+  $('#fbStars').addEventListener('change', e => {
+    const n = Number(e.target.value);
+    $('#fbStars').querySelectorAll('.fb-star').forEach((el,i) => el.classList.toggle('filled', i < n));
+  });
+  $('#fbSubmitBtn').addEventListener('click', submitFeedback);
+  $('#feedbackOverlay').classList.add('active');
+}
+$('#closeFeedbackBtn').addEventListener('click', () => $('#feedbackOverlay').classList.remove('active'));
+
+async function submitFeedback(){
+  const b = me.stay, btn = $('#fbSubmitBtn'), errEl = $('#fbErr');
+  const checked = document.querySelector('input[name="fbRating"]:checked');
+  if(!checked){ errEl.textContent = 'Please choose a rating.'; return; }
+  btn.disabled = true; const orig = btn.textContent; btn.textContent = 'Sending…'; errEl.textContent = '';
+  try{
+    const res = await fetch(PROXY_URL+'/feedback', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        guest: (b && b.guest) || '', bookingNo: (b && b.no) || '',
+        rating: Number(checked.value), comment: $('#fbComment').value, allowFeature: true,
+      }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || (data && data.ok === false)) throw new Error((data && data.error) || 'Could not submit feedback.');
+    if(b && b.no) localStorage.setItem('ryst_feedback_'+b.no, '1');
+    $('#feedbackOverlay').classList.remove('active');
+    renderHome(); // refresh the tile description to the "thanks" state
+  }catch(err){
+    errEl.textContent = err.message || 'Could not submit — please try again.';
+  }finally{
+    btn.disabled = false; btn.textContent = orig;
+  }
+}
 </script>
 </body>
 </html>
