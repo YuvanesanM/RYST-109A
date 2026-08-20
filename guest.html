@@ -212,7 +212,18 @@
   /* ── WI-FI ── */
   .wifi-card{background:linear-gradient(160deg,var(--foam),#e6efeb);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 20px;text-align:center;box-shadow:var(--shadow-sm)}
   .wifi-field{margin:14px 0}
-  .wifi-value{font-family:var(--serif);font-weight:600;font-size:23px;color:var(--sea);word-break:break-word}
+  /* The site's own sans (DM Sans), not the display serif — this is a
+     network name and password a guest has to read character-by-character
+     and type into their phone, and a fancy serif's stylistic figures
+     actively work against that. Bolder weight, tracked-out letter-spacing
+     and tabular digits give it a considered "this is a code" presentation
+     without dropping into a generic system monospace that would look out
+     of place next to the rest of the page (and render differently across
+     guests' devices, unlike this already-loaded self-hosted font). */
+  .wifi-value{
+    font-family:var(--sans);font-weight:700;font-size:25px;letter-spacing:.6px;
+    font-variant-numeric:tabular-nums;color:var(--sea);word-break:break-word;
+  }
   .copy-btn{
     margin-top:8px;background:var(--white);border:1.5px solid var(--line);border-radius:var(--r-sm);
     padding:7px 16px;font-size:12px;font-weight:700;color:var(--sea-mid);cursor:pointer;transition:border-color .15s,box-shadow .15s;
