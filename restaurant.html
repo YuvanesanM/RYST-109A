@@ -494,6 +494,9 @@
         <div class="field"><label>Expiry alert window (days)</label><input id="stExpDays" type="number" min="0" step="1"></div>
         <div class="field"><label>Partner kitchen WhatsApp number</label><input id="stPartnerPhone" placeholder="e.g. 9876543210"></div>
       </div>
+      <div style="margin-top:12px">
+        <label class="chk-toggle"><input type="checkbox" id="stShowPartnerRate"> Show purchase rate in Partner Kitchen WhatsApp message</label>
+      </div>
       <div class="merr" id="stErr"></div>
       <button class="btn primary" id="btnSaveSettings" style="margin-top:12px">Save settings</button>
     </div>
@@ -1351,10 +1354,17 @@ function normalizePhone(p){
 function sendToPartnerKitchen(o){
   const sourced = (o.items||[]).filter(isSourcedItem);
   if(!sourced.length) return;
-  // Partner kitchen gets billed at OUR cost price (what we pay them), never
-  // the guest-facing selling price — those two are deliberately different
-  // (the margin is ours), so this must never show `it.price`.
-  const lines = sourced.map((it,i)=>`${i+1}. ${it.name} ×${it.qty} — ${money(it.cost)} each — ${money(it.cost*it.qty)}`);
+  // Purchase rate/amount (and the subtotal derived from it) are only
+  // included when Settings → "Show purchase rate in Partner Kitchen
+  // WhatsApp message" is on — defaults on, matching this message's
+  // original always-shown behavior. Partner kitchen gets billed at OUR
+  // cost price (what we pay them), never the guest-facing selling price
+  // — those two are deliberately different (the margin is ours), so this
+  // must never show `it.price` regardless of the toggle.
+  const showRate = DOC.settings.showPartnerRate !== false;
+  const lines = sourced.map((it,i)=> showRate
+    ? `${i+1}. ${it.name} ×${it.qty} — ${money(it.cost)} each — ${money(it.cost*it.qty)}`
+    : `${i+1}. ${it.name} ×${it.qty}`);
   const subtotal = sourced.reduce((s,it)=>s+(Number(it.cost)||0)*it.qty,0);
   const when = o.time ? `${fmtDate(o.date)}, ${fmtTime(o.time)}` : fmtDate(o.date);
   const text = [
@@ -1363,7 +1373,7 @@ function sendToPartnerKitchen(o){
     '',
     ...lines,
     '',
-    `Subtotal (these items): ${money(subtotal)}`,
+    ...(showRate ? [`Subtotal (these items): ${money(subtotal)}`] : []),
     `Order ref: ${o.no}`,
   ].join('\n');
   const phone = normalizePhone(DOC.settings.partnerKitchenPhone);
@@ -1583,12 +1593,15 @@ function renderSettingsForm(){
   $('#stPrefix').value = DOC.settings.invoicePrefix || 'CDR';
   $('#stExpDays').value = DOC.settings.expiryAlertDays ?? 5;
   $('#stPartnerPhone').value = DOC.settings.partnerKitchenPhone || '';
+  // Defaults to on — matches the message's original always-shown behavior
+  // for settings docs saved before this toggle existed.
+  $('#stShowPartnerRate').checked = DOC.settings.showPartnerRate !== false;
 }
 $('#btnSaveSettings').addEventListener('click', async ()=>{
   const data = await runCommand({
     action:'update-settings', gstPercent: $('#stGst').value, serviceChargePercent: $('#stSvc').value,
     invoicePrefix: $('#stPrefix').value, expiryAlertDays: $('#stExpDays').value,
-    partnerKitchenPhone: $('#stPartnerPhone').value,
+    partnerKitchenPhone: $('#stPartnerPhone').value, showPartnerRate: $('#stShowPartnerRate').checked,
   });
   if(data) showToast('Settings saved'); else $('#stErr').textContent = 'Could not save settings';
 });
