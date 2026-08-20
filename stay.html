@@ -1179,12 +1179,17 @@ function syncWalletBtn(){
   const b=$("#btnWallet"); if(!b) return;
   const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
   const tok = stay && stay.walletToken;
-  b.disabled = !tok;
-  b.title = tok ? "Share this stay as a wallet pass" : "Save the document first, then share to Wallet";
-  $("#btnWalletApple").disabled = !tok;
-  $("#btnWalletGoogle").disabled = !tok;
-  $("#btnWalletApple").dataset.walletUrl = tok ? `${PROXY_URL}/booking/wallet/apple?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
-  $("#btnWalletGoogle").dataset.walletUrl = tok ? `${PROXY_URL}/booking/wallet/google?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
+  // Settings → Stay tab's Apple/Google Wallet toggles gate each item
+  // independently — a token alone isn't enough once either platform is
+  // turned off site-wide.
+  const appleOk = tok && settings.walletAppleEnabled !== false;
+  const googleOk = tok && settings.walletGoogleEnabled !== false;
+  b.disabled = !(appleOk || googleOk);
+  b.title = (appleOk || googleOk) ? "Share this stay as a wallet pass" : (!tok ? "Save the document first, then share to Wallet" : "Apple and Google Wallet are both turned off in Settings");
+  $("#btnWalletApple").disabled = !appleOk;
+  $("#btnWalletGoogle").disabled = !googleOk;
+  $("#btnWalletApple").dataset.walletUrl = appleOk ? `${PROXY_URL}/booking/wallet/apple?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
+  $("#btnWalletGoogle").dataset.walletUrl = googleOk ? `${PROXY_URL}/booking/wallet/google?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
 }
 const walletDd = $("#walletDd");
 $("#btnWallet").addEventListener("click", e=>{ e.stopPropagation(); if(!$("#btnWallet").disabled) walletDd.classList.toggle("open"); });
