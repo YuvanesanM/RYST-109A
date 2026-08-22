@@ -2144,6 +2144,19 @@
               </div>`;
             }).join('');
             document.getElementById('testimonials').style.display = '';
+            // Un-hiding this section pushes every section below it (Gallery,
+            // Location, Book, the footer) further down the page. If someone
+            // arrived on a direct link straight to one of those — e.g.
+            // stay.ryst.in/#gallery — the browser already did its one-time,
+            // native hash-scroll before this fetch resolved, landing at
+            // #gallery's OLD position, which is now short of the real
+            // section by however tall this testimonials grid turned out to
+            // be. Re-issue that scroll now that the layout has settled so
+            // the link actually lands where it promised.
+            if(location.hash){
+              const target = document.querySelector(location.hash);
+              if(target) target.scrollIntoView();
+            }
           }
         }
 
