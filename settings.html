@@ -78,6 +78,11 @@
   .user-modules{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 2px 2px;padding-top:8px;border-top:1px solid var(--line)}
   .mod-chk{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted)}
   .mod-chk input{width:auto}
+  .user-tg{margin:10px 2px 2px;padding-top:8px;border-top:1px solid var(--line)}
+  .user-tg-id{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .user-tg-id span{font-size:11.5px;color:var(--muted);white-space:nowrap}
+  .user-tg-id input.t{flex:1}
+  .user-tg-alerts{display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
   .user-err{color:var(--danger);font-size:12.5px;min-height:16px;margin-top:2px}
   .chk-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 12px;white-space:nowrap}
   .sync-results{display:flex;flex-direction:column;gap:6px;margin-top:12px;font-size:12.5px}
@@ -302,20 +307,11 @@
     <div class="sync-results" id="waRunResults" style="margin-bottom:18px"></div>
 
     <p class="gh-mini">Telegram notify setup</p>
-    <p class="sd" style="margin-bottom:12px">One-time setup on Render: message <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> on Telegram, send <code>/newbot</code>, and set the token it gives you as <code>TELEGRAM_BOT_TOKEN</code> (a Render environment variable — not set from here). Then send any message (e.g. "hi") to your new bot from the Telegram account that should receive these alerts, and use the button below to find its chat ID.</p>
+    <p class="sd" style="margin-bottom:12px">One-time setup on Render: message <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> on Telegram, send <code>/newbot</code>, and set the token it gives you as <code>TELEGRAM_BOT_TOKEN</code> (a Render environment variable — not set from here). Each person who wants alerts then sends "hi" to the new bot from their own Telegram account, uses the button below to find their chat ID, and an admin enters it against their name in <b>Settings → User Access</b> — along with which of the 12 alert types they want to receive.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:10px">
-      <button class="btn" id="tgChatIdBtn">Find my chat ID</button>
+      <button class="btn" id="tgChatIdBtn">Find a chat ID</button>
     </div>
     <div class="sync-results" id="tgChatIdResults" style="margin-bottom:18px"></div>
-    <label class="f"><span>Chat ID</span><input class="t" id="tgChatId" placeholder="e.g. 123456789"></label>
-    <p class="sd" style="margin:-6px 0 14px">Where alerts get sent. Falls back to the <code>TELEGRAM_CHAT_ID</code> Render variable if left blank here.</p>
-
-    <p class="gh-mini">Which alerts to send</p>
-    <p class="sd" style="margin-bottom:10px">All on by default — untick anything you don't want landing in Telegram.</p>
-    <div id="tgAlertTypes" style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-bottom:10px"></div>
-    <div class="rc-foot" style="margin-top:0;margin-bottom:22px">
-      <button class="btn primary" id="tgSave" disabled>Save Telegram settings</button>
-    </div>
 
     <p class="gh-mini">WhatsApp templates</p>
     <p class="sd" style="margin-bottom:12px">Wording for the WhatsApp messages the site and dashboard pre-fill. Use <code>{{token}}</code> placeholders — a line containing a token with no value for that message is left out automatically, so a field can be made optional just by giving it its own line.</p>
@@ -400,8 +396,6 @@ Account Type: Savings`,
   wifiVoucher:"",
   walletAppleEnabled:true,
   walletGoogleEnabled:true,
-  telegramChatId:"",
-  telegramDisabledTypes:[],
   declaration:`Supplier is not registered under GST as the turnover is below the prescribed threshold limit under the GST Act. Hence, GST has not been charged on this invoice.`,
   terms:[
     "Full payment is due as per booking confirmation.",
@@ -428,8 +422,9 @@ Account Type: Savings`,
   coupons: [],
   icalFeeds: []
 };
-// Mirrors TELEGRAM_ALERT_TYPES in the proxy's server.js — the key each
-// checkbox toggles has to match the `type` string each notify*/check*
+// Mirrors TELEGRAM_ALERT_TYPES in the proxy's server.js — drives the
+// per-alert checkboxes on each user's row in User Access below. The key
+// each checkbox toggles has to match the `type` string each notify*/check*
 // function there passes to sendTelegramMessage exactly, or a disabled
 // checkbox here would silently do nothing server-side.
 const TELEGRAM_ALERT_TYPES = [
@@ -446,10 +441,6 @@ const TELEGRAM_ALERT_TYPES = [
   { key:"otaSync", label:"OTA calendar sync failure/recovery" },
   { key:"userAccess", label:"User access changed" },
 ];
-document.getElementById("tgAlertTypes").innerHTML = TELEGRAM_ALERT_TYPES.map(t=>
-  `<label class="chk-toggle"><input type="checkbox" id="tgAlert_${t.key}" checked> ${t.label}</label>`
-).join("");
-document.getElementById("tgSave").addEventListener("click", saveStay);
 let stay = JSON.parse(JSON.stringify(STAY_DEFAULTS));
 let stayRcDraft = [];
 let stayHolDraft = [];
@@ -492,7 +483,7 @@ function hasModule(mod){
 
   const loader = document.getElementById('loader'), msgEl = document.getElementById('loaderMsg'), retryBtn = document.getElementById('loaderRetry');
   const saveBtn = document.getElementById('staySave');
-  if(hasCache){ loader.classList.add('hide'); saveBtn.disabled = false; document.getElementById('tgSave').disabled = false; }
+  if(hasCache){ loader.classList.add('hide'); saveBtn.disabled = false; }
 
   const ctrl = new AbortController();
   const slowTimer = setTimeout(() => { if(!hasCache) msgEl.textContent = 'Waking up the server… this can take up to a minute.'; }, 4000);
@@ -526,7 +517,6 @@ function hasModule(mod){
     }
     loader.classList.add('hide');
     saveBtn.disabled = false;
-    document.getElementById('tgSave').disabled = false;
   }catch(e){
     if(!hasCache){
       document.getElementById('loaderSpin').style.display = 'none';
@@ -653,12 +643,6 @@ function renderFromStay(){
   document.getElementById("stayWifiVoucher").value=stay.wifiVoucher||"";
   document.getElementById("stayWalletApple").checked=stay.walletAppleEnabled!==false;
   document.getElementById("stayWalletGoogle").checked=stay.walletGoogleEnabled!==false;
-  document.getElementById("tgChatId").value=stay.telegramChatId||"";
-  const tgDisabled=Array.isArray(stay.telegramDisabledTypes)?stay.telegramDisabledTypes:[];
-  TELEGRAM_ALERT_TYPES.forEach(t=>{
-    const el=document.getElementById("tgAlert_"+t.key);
-    if(el) el.checked=!tgDisabled.includes(t.key);
-  });
   document.getElementById("stayDecl").value=stay.declaration||"";
   document.getElementById("stayTerms").value=(stay.terms||[]).join("\n");
   icalFeedsDraft=(stay.icalFeeds||[]).map(f=>({...f}));
@@ -765,12 +749,13 @@ async function loadWhatsAppStatus(){
     if(!data.configured){
       dot.className = 'dot';
       text.textContent = 'Telegram notify — not set up yet (see below)';
-    } else if(data.connected && !data.hasChatId){
+    } else if(data.connected && !data.recipientCount){
       dot.className = 'dot off';
-      text.textContent = 'Telegram notify — bot connected, but no chat ID set yet (see below)';
+      text.textContent = 'Telegram notify — bot connected, but no one has a chat ID set yet (see User Access)';
     } else if(data.connected){
       dot.className = 'dot on';
-      text.textContent = data.botUsername ? `Telegram notify — connected (@${data.botUsername})` : 'Telegram notify — connected';
+      const who = data.recipientCount===1 ? '1 person' : `${data.recipientCount} people`;
+      text.textContent = (data.botUsername ? `Telegram notify — connected (@${data.botUsername})` : 'Telegram notify — connected') + ` — ${who} set up to receive alerts`;
     } else {
       dot.className = 'dot off';
       text.textContent = 'Telegram notify — configured, but not reachable: ' + (data.error || 'unknown error');
@@ -830,13 +815,13 @@ document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
     const data = await res.json().catch(()=>({}));
     if(!res.ok || data.error){ out.innerHTML = `<div class="sync-result err"><span>Chat ID</span><span>${esc(data.error||'Failed')}</span></div>`; return; }
     if(!data.chats || !data.chats.length){ out.innerHTML = '<div class="sync-result"><span>Chat ID</span><span>No messages yet — send "hi" to your bot on Telegram, then try again</span></div>'; return; }
-    out.innerHTML = data.chats.map(c=>`<div class="sync-result"><span>${esc(c.name||'Chat')}</span><span>${esc(c.id)} <button type="button" class="rc-add" data-use-chat-id="${esc(c.id)}" style="margin-left:8px">Use</button></span></div>`).join('');
-    out.querySelectorAll('[data-use-chat-id]').forEach(b=>b.addEventListener('click', ()=>{
-      document.getElementById('tgChatId').value = b.dataset.useChatId;
-      toast('Chat ID filled in below — click "Save Telegram settings" to apply');
+    out.innerHTML = data.chats.map(c=>`<div class="sync-result"><span>${esc(c.name||'Chat')}</span><span>${esc(c.id)} <button type="button" class="rc-add" data-copy-chat-id="${esc(c.id)}" style="margin-left:8px">Copy</button></span></div>`).join('');
+    out.querySelectorAll('[data-copy-chat-id]').forEach(b=>b.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(b.dataset.copyChatId); toast('Chat ID copied — paste it into that person\'s row in User Access below'); }
+      catch(e){ toast('Could not copy — chat ID is ' + b.dataset.copyChatId); }
     }));
   }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
-  finally{ btn.disabled = false; btn.textContent = 'Find my chat ID'; }
+  finally{ btn.disabled = false; btn.textContent = 'Find a chat ID'; }
 });
 
 /* ---------- WHATSAPP TEMPLATES (any owner) ---------- */
@@ -971,6 +956,14 @@ function renderUserRows(){
       <div class="user-modules">
         ${MODULE_DEFS.map(m=>`<label class="mod-chk"><input type="checkbox" data-i="${i}" data-mod="${m.id}" ${mods.includes(m.id)?'checked':''}> ${esc(m.label)}</label>`).join('')}
       </div>`;
+    const tgDisabled = Array.isArray(u.telegramDisabledTypes) ? u.telegramDisabledTypes : [];
+    const tgHtml = `
+      <div class="user-tg">
+        <div class="user-tg-id"><span>Telegram chat ID</span><input class="t" data-i="${i}" data-k="telegramChatId" placeholder="optional — leave blank for no Telegram alerts" value="${esc(u.telegramChatId||'')}"></div>
+        <div class="user-tg-alerts">
+          ${TELEGRAM_ALERT_TYPES.map(t=>`<label class="mod-chk"><input type="checkbox" data-i="${i}" data-tg="${t.key}" ${!tgDisabled.includes(t.key)?'checked':''}> ${esc(t.label)}</label>`).join('')}
+        </div>
+      </div>`;
     return `
     <div class="user-card">
       <div class="user-row">
@@ -982,7 +975,7 @@ function renderUserRows(){
         </select>
         <label class="admin-chk"><input type="checkbox" data-i="${i}" data-k="admin" ${u.admin?'checked':''} ${ownerRow?'':'disabled'}> Admin</label>
         <button type="button" class="rc-del" data-del="${i}" title="Remove">×</button>
-      </div>${modulesHtml}
+      </div>${modulesHtml}${tgHtml}
     </div>`;
   }).join('');
   wrap.querySelectorAll('input[data-k="email"]').forEach(inp=>{
@@ -1019,6 +1012,20 @@ function renderUserRows(){
       u.modules = mods;
     });
   });
+  wrap.querySelectorAll('input[data-k="telegramChatId"]').forEach(inp=>{
+    inp.addEventListener('input', e=>{ usersDraft[+e.target.dataset.i].telegramChatId = e.target.value; });
+  });
+  wrap.querySelectorAll('.user-tg-alerts input[data-tg]').forEach(chk=>{
+    chk.addEventListener('change', e=>{
+      const i = +e.target.dataset.i, key = e.target.dataset.tg;
+      const u = usersDraft[i];
+      const list = (Array.isArray(u.telegramDisabledTypes) ? u.telegramDisabledTypes : []).slice();
+      const idx = list.indexOf(key);
+      if(e.target.checked){ if(idx>=0) list.splice(idx,1); }
+      else if(idx<0) list.push(key);
+      u.telegramDisabledTypes = list;
+    });
+  });
   wrap.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click', e=>{
     usersDraft.splice(+e.target.dataset.del, 1); renderUserRows();
   }));
@@ -1038,7 +1045,12 @@ document.getElementById('userSave').addEventListener('click', async ()=>{
     // `u.modules === undefined`, and the server treats a missing array as
     // "no modules" verbatim, which would silently strip that caretaker's
     // implied petty-cash/inventory/checklist access on an unrelated save.
-    const payloadUsers = usersDraft.map(u => ({ ...u, modules: isOwnerRole(u.role) ? (u.modules||[]) : effectiveModules(u) }));
+    const payloadUsers = usersDraft.map(u => ({
+      ...u,
+      modules: isOwnerRole(u.role) ? (u.modules||[]) : effectiveModules(u),
+      telegramChatId: (u.telegramChatId||'').trim(),
+      telegramDisabledTypes: Array.isArray(u.telegramDisabledTypes) ? u.telegramDisabledTypes : [],
+    }));
     const res = await fetch(PROXY_URL+'/users', {
       method:'PUT', headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
       body: JSON.stringify({ version:1, users: payloadUsers })
@@ -1116,9 +1128,7 @@ document.getElementById("stayCouponAdd").addEventListener("click",()=>{ stayCoup
 /* ---------- SAVE ---------- */
 async function saveStay(){
   const btn=document.getElementById("staySave");
-  const tgBtn=document.getElementById("tgSave");
   btn.disabled=true; btn.textContent="Saving…";
-  tgBtn.disabled=true; tgBtn.textContent="Saving…";
   stay.rates = stayRcDraft
     .filter(r=>(r.desc||"").trim()!=="")
     .map(r=>({desc:r.desc.trim(), rate:(r.rate===""||r.rate==null)?"":parseFloat(r.rate)}));
@@ -1155,10 +1165,6 @@ async function saveStay(){
   stay.wifiVoucher=document.getElementById("stayWifiVoucher").value.trim();
   stay.walletAppleEnabled=document.getElementById("stayWalletApple").checked;
   stay.walletGoogleEnabled=document.getElementById("stayWalletGoogle").checked;
-  stay.telegramChatId=(document.getElementById("tgChatId").value||"").trim();
-  stay.telegramDisabledTypes=TELEGRAM_ALERT_TYPES
-    .filter(t=>{ const el=document.getElementById("tgAlert_"+t.key); return el && !el.checked; })
-    .map(t=>t.key);
   stay.declaration=document.getElementById("stayDecl").value;
   stay.terms=(document.getElementById("stayTerms").value||"").split("\n").map(t=>t.trim()).filter(Boolean);
   if(!stay.terms.length) stay.terms=STAY_DEFAULTS.terms.slice();
@@ -1177,7 +1183,6 @@ async function saveStay(){
     }catch(e){ toast("Saved locally — cloud unreachable"); }
   } else { toast("Saved locally"); }
   btn.disabled=false; btn.textContent="Save stay settings";
-  tgBtn.disabled=false; tgBtn.textContent="Save Telegram settings";
   stayRcDraft=stay.rates.map(r=>({...r}));
   renderStayRates();
   stayHolDraft=stay.holidays.map(h=>({...h}));
