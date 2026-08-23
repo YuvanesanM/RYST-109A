@@ -379,7 +379,7 @@
 const PROXY_URL = 'https://data.ryst.in';
 const K_STAY    = 'ryst_stay_settings';
 
-const esc = s => (s||"").toString().replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 const STAY_DEFAULTS = {
   company:`109A, Pearl Beach Site, Parmankeni,
