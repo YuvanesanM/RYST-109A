@@ -541,7 +541,7 @@ Account Type: Savings`,
 };
 
 const $ = s => document.querySelector(s);
-const esc = s => (s||"").toString().replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]));
 const inr = n => Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
 const money = n => "₹"+inr(n);
 
