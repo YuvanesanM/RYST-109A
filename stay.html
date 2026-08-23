@@ -865,9 +865,17 @@ function renderItems(){
     const isCustom = !inList && it.desc!=="";
     const opts = manualSugg.map(s=>`<option value="${esc(s)}"${s===it.desc?" selected":""}>${esc(s)}</option>`).join("");
     const row=document.createElement("div"); row.className="li-row";
-    const minRate = rateFor(it.desc);
+    // The catalog rate assumes a stay up to maxGuests — once the actual
+    // party is smaller than that, a reduced villa rate is an expected
+    // discount, not a mistake, so don't floor/warn against it on this row.
+    // Every other line (and the villa row itself at full occupancy) keeps
+    // the usual catalog-minimum warning unchanged.
+    const guestsNow = parseInt($("#guests").value) || 0;
+    const maxGNow = parseInt(settings.maxGuests) || 0;
+    const noFloor = it._villaRow && maxGNow>0 && guestsNow>0 && guestsNow < maxGNow;
+    const minRate = noFloor ? "" : rateFor(it.desc);
     const rateWarn = minRate!=="" && parseFloat(it.rate||0) < parseFloat(minRate) && it.rate!=="";
-    const rateTitle = minRate!=="" ? `Min catalog price: ₹${inr(minRate)}` : "";
+    const rateTitle = minRate!=="" ? `Min catalog price: ₹${inr(minRate)}` : (noFloor ? `Reduced rate allowed — fewer than ${maxGNow} guests` : "");
     row.innerHTML=`
       <div class="li-desc-wrap">
         ${isAutoRow
