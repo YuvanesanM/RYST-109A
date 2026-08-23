@@ -1191,7 +1191,13 @@ function renderFilterBar(R){
   $('#periodLabel').textContent = R.label;
   $('#periodNav').style.display = F.gran==='custom' ? 'none' : '';
   $('#customRange').style.display = F.gran==='custom' ? 'flex' : 'none';
-  if(F.gran==='custom'){ $('#fFrom').value = F.fromISO||R.startISO; $('#fTo').value = F.toISO||addDays(R.endISO,-1); }
+  if(F.gran==='custom'){
+    $('#fFrom').value = F.fromISO||R.startISO; $('#fTo').value = F.toISO||addDays(R.endISO,-1);
+    // Same "To can't precede From" guard as the checkin/checkout pickers
+    // elsewhere — a native min, not just a filter that quietly matches
+    // nothing when inverted.
+    $('#fTo').min = $('#fFrom').value || '';
+  }
   $('#genStamp').textContent = 'Generated '+new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   const active = facetsActive(F);
   $('#facetNote').style.display = active ? 'flex' : 'none';
@@ -1371,7 +1377,14 @@ $$('#fGran button').forEach(b=> b.addEventListener('click', ()=> setFilter({gran
 $('#prevBtn').addEventListener('click', ()=> setFilter({anchor: stepAnchor(F,-1)}));
 $('#nextBtn').addEventListener('click', ()=> setFilter({anchor: stepAnchor(F,1)}));
 $('#todayBtn').addEventListener('click', ()=> setFilter({anchor: firstOfMonth(new Date())}));
-$('#fFrom').addEventListener('change', e=> setFilter({fromISO:e.target.value}));
+$('#fFrom').addEventListener('change', e=>{
+  const from = e.target.value;
+  const patch = { fromISO: from };
+  // Bump an already-picked To forward if From just moved past it, rather
+  // than leaving a now-inverted (always-empty) range sitting in the state.
+  if(from && F.toISO && F.toISO < from) patch.toISO = from;
+  setFilter(patch);
+});
 $('#fTo').addEventListener('change', e=> setFilter({toISO:e.target.value}));
 $('#fChannel').addEventListener('change', e=> setFilter({channel:e.target.value}));
 $('#fStatus').addEventListener('change', e=> setFilter({status:e.target.value}));

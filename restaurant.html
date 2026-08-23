@@ -1675,6 +1675,15 @@ function renderPurchases(){
 // inside renderReports, so switching tabs back and forth doesn't keep
 // resetting a date range the owner already changed.
 let repRangeInit = false;
+// Same "second date can't precede the first" guard as the checkin/checkout
+// pickers elsewhere — an inverted range here doesn't corrupt anything (the
+// filter below just quietly matches zero orders), but there's no reason to
+// let the picker offer a To date that can only ever produce an empty report.
+function syncRepToMin(){
+  const to = $('#repTo');
+  to.min = $('#repFrom').value || '';
+  if(to.min && to.value && to.value < to.min) to.value = to.min;
+}
 function repSetPreset(preset){
   const today = todayISO();
   const d = new Date(today+'T00:00:00');
@@ -1684,10 +1693,11 @@ function repSetPreset(preset){
   else if(preset==='all'){ from = ''; to = ''; }
   $('#repFrom').value = from;
   $('#repTo').value = to;
+  syncRepToMin();
   renderReports();
 }
 $$('[data-rep-preset]').forEach(b=>b.addEventListener('click', ()=>repSetPreset(b.dataset.repPreset)));
-$('#repFrom').addEventListener('change', renderReports);
+$('#repFrom').addEventListener('change', ()=>{ syncRepToMin(); renderReports(); });
 $('#repTo').addEventListener('change', renderReports);
 
 // Only status:'settled' orders are real, booked revenue — 'open' tabs
