@@ -178,8 +178,28 @@
     font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--white);outline:none;transition:border-color .15s;
   }
   .date-input:focus{border-color:var(--sea-mid)}
-  .cat-head{font-family:var(--serif);font-weight:600;font-size:16px;color:var(--sea);margin:18px 0 8px}
+  /* ── Search + filter chips (menu browsing, ahead of the meal tabs) ── */
+  .menu-search{
+    display:flex;align-items:center;gap:9px;background:var(--white);border:1.5px solid var(--line);
+    border-radius:999px;padding:10px 14px;margin-bottom:10px;transition:border-color .15s;
+  }
+  .menu-search:focus-within{border-color:var(--sea-mid)}
+  .menu-search svg{flex-shrink:0;color:var(--muted-text)}
+  .menu-search input{
+    flex:1;min-width:0;border:none;background:transparent;outline:none;font-family:var(--sans);
+    font-size:13.5px;color:var(--ink);
+  }
+  .menu-search input::placeholder{color:var(--muted-text)}
+  .filter-chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .filter-chip{
+    display:inline-flex;align-items:center;gap:5px;background:var(--white);border:1.5px solid var(--line);
+    border-radius:999px;padding:7px 13px;font-family:var(--sans);font-size:12px;font-weight:700;
+    color:var(--muted-text);cursor:pointer;transition:background .15s,border-color .15s,color .15s;
+  }
+  .filter-chip.active{background:rgba(26,106,122,.1);border-color:var(--sea-mid);color:var(--sea-mid)}
+  .cat-head{font-family:var(--serif);font-weight:600;font-size:16px;color:var(--sea);margin:18px 0 8px;display:flex;align-items:baseline;gap:6px}
   .cat-head:first-child{margin-top:0}
+  .cat-count{font-family:var(--sans);font-size:12px;font-weight:600;color:var(--muted-text)}
   .item-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
   .item-info{flex:1;min-width:0}
   .item-name{font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px}
@@ -203,20 +223,33 @@
   .qty-btn:active:not(:disabled){transform:scale(.9)}
   .qty-btn:disabled{opacity:.4;cursor:not-allowed}
   .qty-n{min-width:20px;text-align:center;font-weight:700;font-size:14px}
+  /* Default per-item control before anything's in the cart — tapping it
+     adds 1 and swaps this slot for the qty-stepper above; qty back to 0
+     swaps it back. Same 44px height as .qty-btn so the swap doesn't jump. */
+  .add-btn{
+    min-width:78px;height:44px;border-radius:var(--r-sm);border:1.5px solid var(--sea-mid);background:var(--white);
+    color:var(--sea-mid);font-family:var(--sans);font-size:13px;font-weight:800;letter-spacing:.3px;cursor:pointer;
+    flex-shrink:0;transition:background .15s,transform .12s var(--ease);
+  }
+  .add-btn:hover{background:var(--foam)}
+  .add-btn:active{transform:scale(.94)}
   /* Fixed to the viewport, not the card — same pattern as restaurant.html's
      mobile order-builder cart bar (.ob-cartbar), which is where this
      convention comes from. #screen-menu gets matching bottom padding so
-     the item list never sits underneath it. */
+     the item list never sits underneath it. Hidden until the cart actually
+     has something in it (.show) rather than always-visible-but-disabled —
+     nothing to show, nothing to do, so no reason to occupy the space. */
   .cart-bar{
-    position:fixed;left:0;right:0;bottom:0;z-index:40;
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-    background:var(--white);border-top:1px solid var(--line);
-    padding:12px 20px calc(12px + env(safe-area-inset-bottom));
-    box-shadow:0 -8px 20px rgba(11,61,82,.12);
+    position:fixed;left:0;right:0;bottom:0;z-index:40;display:none;
+    align-items:center;justify-content:space-between;gap:12px;
+    background:var(--sea);color:#fff;
+    padding:13px 20px calc(13px + env(safe-area-inset-bottom));
+    box-shadow:0 -8px 20px rgba(11,61,82,.25);
   }
-  #screen-menu{padding-bottom:74px}
-  .cart-total{font-size:13.5px;color:var(--muted-text)}
-  .cart-total strong{color:var(--ink);font-size:15px}
+  .cart-bar.show{display:flex}
+  #screen-menu{padding-bottom:86px}
+  .cart-count{font-size:14px;font-weight:700;line-height:1.3}
+  .cart-count span{display:block;font-size:11.5px;font-weight:500;color:rgba(255,255,255,.75);margin-top:1px}
   .place-order-btn{
     background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;border:none;border-radius:12px;
     padding:12px 22px;font-family:var(--sans);font-size:13.5px;font-weight:700;cursor:pointer;min-height:44px;
@@ -398,16 +431,24 @@
     <section class="screen" id="screen-menu">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
       <h1 style="text-align:left" id="menuTitle">Food Menu</h1>
-      <p class="sub" style="text-align:left;margin-bottom:10px" id="menuSub">Order ahead for any day of your stay — pick a meal and a date, then tap + to add items.</p>
+      <p class="sub" style="text-align:left;margin-bottom:10px" id="menuSub">Order ahead for any day of your stay — pick a meal and a date, then tap ADD.</p>
+      <div class="menu-search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.4" y2="16.4"/></svg>
+        <input type="search" id="menuSearch" placeholder="Search dishes…" autocomplete="off" aria-label="Search the menu">
+      </div>
+      <div class="filter-chips">
+        <button type="button" class="filter-chip" id="chipVeg"><span aria-hidden="true">🟢</span> Pure Veg</button>
+        <button type="button" class="filter-chip" id="chipSpecial"><span aria-hidden="true">⭐</span> Chef's Special</button>
+      </div>
       <div class="meal-picker">
         <div class="meal-chips" id="mealChips"></div>
         <label class="f-label" for="orderDate">Date</label>
         <input type="date" id="orderDate" class="date-input">
       </div>
       <div id="menuList"></div>
-      <div class="cart-bar">
-        <span class="cart-total">Total: <strong id="cartTotal">₹0</strong></span>
-        <button type="button" class="place-order-btn" id="placeOrderBtn" disabled>Place Order</button>
+      <div class="cart-bar" id="cartBar">
+        <span class="cart-count"><strong id="cartCountText">0 items</strong><span id="cartTotalSub">Total ₹0</span></span>
+        <button type="button" class="place-order-btn" id="placeOrderBtn">Place Order</button>
       </div>
       <p class="err" id="menuErr" role="alert" aria-live="polite"></p>
     </section>
@@ -823,6 +864,7 @@ async function payLink(kind, btn, msgEl){
 const MEAL_CATEGORY = { Breakfast: 'Breakfast', Lunch: 'Meals', Dinner: 'Dinner' };
 const MEAL_PERIODS = ['Breakfast', 'Lunch', 'Dinner'];
 let selectedMeal = ''; // set by defaultMeal() on first render, preserved across chip taps/back-navigation after that
+let searchQuery = ''; let vegOnly = false; let specialOnly = false;
 
 // A reasonable starting meal for whenever the guest happens to open the
 // menu — before 11am defaults to Breakfast, before 4pm to Lunch, else
@@ -844,9 +886,31 @@ function renderMealChips(){
     renderMenu();
   }));
 }
+// The per-item control shown in an item-row's action slot: an ADD button
+// while it's not in the cart yet, or the −/qty/+ stepper once it is —
+// same swap Swiggy's own menu uses, so the row only spends space on a
+// stepper for things actually being ordered.
+function itemActionHTML(id){
+  const qty = cart[id] || 0;
+  if(!qty) return `<button type="button" class="add-btn" data-act="add" data-id="${esc(id)}">ADD</button>`;
+  return `<div class="qty-stepper">
+    <button type="button" class="qty-btn" data-act="dec" data-id="${esc(id)}">&minus;</button>
+    <span class="qty-n" data-qty="${esc(id)}">${qty}</span>
+    <button type="button" class="qty-btn" data-act="inc" data-id="${esc(id)}">+</button>
+  </div>`;
+}
+// Full (re)entry into the menu screen — resets the cart and any active
+// search/filters, since switching meals starts a fresh order (an order is
+// for one meal period; see `meal: selectedMeal` on the place-order call
+// below) and a stale search across the old meal's dishes wouldn't make
+// sense against the new one either.
 function renderMenu(){
   cart = {};
   selectedMeal = selectedMeal || defaultMeal();
+  searchQuery = ''; vegOnly = false; specialOnly = false;
+  $('#menuSearch').value = '';
+  $('#chipVeg').classList.remove('active');
+  $('#chipSpecial').classList.remove('active');
 
   // Guests can pre-order for any day of their actual stay, never outside
   // it — the date input is hard-bounded to [checkin, checkout], same
@@ -862,46 +926,78 @@ function renderMenu(){
   }
 
   renderMealChips();
-
+  renderMenuList();
+}
+// Just the item list, driven by the current meal/search/filter state —
+// called on every search keystroke and filter-chip tap too, so those never
+// touch the cart, the date, or which meal tab is selected.
+function renderMenuList(){
   const list = $('#menuList');
   $('#menuErr').textContent = '';
-  const wantedCats = new Set([MEAL_CATEGORY[selectedMeal], 'Beverages']);
-  const menu = (me.menu || []).filter(m => wantedCats.has(m.category));
-  if(!menu.length){ list.innerHTML = `<p class="empty-note">Nothing available for ${esc(selectedMeal)} right now — please WhatsApp us to order.</p>`; }
-  else {
+  const q = searchQuery.trim().toLowerCase();
+  // A search looks across the WHOLE menu, not just the selected meal — more
+  // useful than making the guest guess which meal tab a dish lives under.
+  let menu = q
+    ? (me.menu || []).filter(m => m.name.toLowerCase().includes(q))
+    : (me.menu || []).filter(m => new Set([MEAL_CATEGORY[selectedMeal], 'Beverages']).has(m.category));
+  if(vegOnly) menu = menu.filter(m => m.veg);
+  if(specialOnly) menu = menu.filter(m => m.chefSpecial);
+
+  if(!menu.length){
+    const filtered = q || vegOnly || specialOnly;
+    list.innerHTML = `<p class="empty-note">${filtered
+      ? 'Nothing matches your search/filters — try clearing them.'
+      : `Nothing available for ${esc(selectedMeal)} right now — please WhatsApp us to order.`}</p>`;
+  } else {
     const cats = [...new Set(menu.map(m=>m.category||'Miscellaneous'))];
-    list.innerHTML = cats.map(cat => `
-      <div class="cat-head">${esc(cat)}${menu.find(m=>m.category===cat && m.chefSpecial) ? ' ⭐' : ''}</div>
-      ${menu.filter(m=>(m.category||'Miscellaneous')===cat).map(m => `
+    list.innerHTML = cats.map(cat => {
+      const catItems = menu.filter(m=>(m.category||'Miscellaneous')===cat);
+      return `
+      <div class="cat-head">${esc(cat)}${catItems.some(m=>m.chefSpecial) ? ' ⭐' : ''} <span class="cat-count">(${catItems.length})</span></div>
+      ${catItems.map(m => `
         <div class="item-row" data-id="${esc(m.id)}">
           <div class="item-info">
             <div class="item-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}">${m.veg?'V':'N'}</span>${esc(m.name)}${m.chefSpecial?' ⭐':''}</div>
             <div class="item-price">${money(m.price)}</div>
           </div>
-          <div class="qty-stepper">
-            <button type="button" class="qty-btn" data-act="dec" data-id="${esc(m.id)}">&minus;</button>
-            <span class="qty-n" data-qty="${esc(m.id)}">${cart[m.id]||0}</span>
-            <button type="button" class="qty-btn" data-act="inc" data-id="${esc(m.id)}">+</button>
-          </div>
+          <div class="item-action" data-action-for="${esc(m.id)}">${itemActionHTML(m.id)}</div>
         </div>
-      `).join('')}
-    `).join('');
+      `).join('')}`;
+    }).join('');
   }
-  list.querySelectorAll('.qty-btn').forEach(btn => btn.addEventListener('click', () => {
-    const id = btn.dataset.id;
-    const cur = cart[id] || 0;
-    const next = btn.dataset.act === 'inc' ? cur + 1 : Math.max(0, cur - 1);
-    cart[id] = next;
-    if(!next) delete cart[id];
-    list.querySelector(`[data-qty="${CSS.escape(id)}"]`).textContent = next;
-    renderCartBar();
-  }));
+  // Delegated per-row: the ADD↔stepper swap replaces this slot's innerHTML
+  // on every tap, so listeners are (re)bound to the slot itself rather than
+  // the buttons inside it, which get thrown away each time.
+  list.querySelectorAll('[data-action-for]').forEach(slot => {
+    const id = slot.dataset.actionFor;
+    slot.addEventListener('click', e => {
+      const btn = e.target.closest('[data-act]');
+      if(!btn) return;
+      const cur = cart[id] || 0;
+      const next = btn.dataset.act === 'dec' ? Math.max(0, cur - 1) : cur + 1;
+      cart[id] = next;
+      if(!next) delete cart[id];
+      slot.innerHTML = itemActionHTML(id);
+      renderCartBar();
+    });
+  });
   renderCartBar();
 }
 function renderCartBar(){
-  $('#cartTotal').textContent = money(cartTotal());
-  $('#placeOrderBtn').disabled = Object.keys(cart).length === 0;
+  const bar = $('#cartBar');
+  const n = Object.values(cart).reduce((s,q)=>s+q, 0);
+  if(!n){ bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+  $('#cartCountText').textContent = n===1 ? '1 item added' : `${n} items added`;
+  $('#cartTotalSub').textContent = 'Total ' + money(cartTotal());
 }
+$('#menuSearch').addEventListener('input', e => { searchQuery = e.target.value; renderMenuList(); });
+$('#chipVeg').addEventListener('click', () => {
+  vegOnly = !vegOnly; $('#chipVeg').classList.toggle('active', vegOnly); renderMenuList();
+});
+$('#chipSpecial').addEventListener('click', () => {
+  specialOnly = !specialOnly; $('#chipSpecial').classList.toggle('active', specialOnly); renderMenuList();
+});
 $('#placeOrderBtn').addEventListener('click', async () => {
   const btn = $('#placeOrderBtn'), errEl = $('#menuErr');
   const items = Object.entries(cart).map(([menuItemId,qty]) => ({ menuItemId, qty }));
@@ -925,7 +1021,7 @@ $('#placeOrderBtn').addEventListener('click', async () => {
     showScreen('foodbill');
   }catch(err){
     errEl.textContent = err.message || 'Could not save — please try again.';
-    btn.textContent = 'Place Order';
+    btn.disabled = false; btn.textContent = 'Place Order';
     renderCartBar();
   }
 });
