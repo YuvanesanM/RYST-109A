@@ -178,6 +178,9 @@
     font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--white);outline:none;transition:border-color .15s;
   }
   .date-input:focus{border-color:var(--sea-mid)}
+  .date-time-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .date-time-row label{display:block}
+  .f-optional{font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted-text)}
   /* ── Search + filter chips (menu browsing, ahead of the meal tabs) ── */
   .menu-search{
     display:flex;align-items:center;gap:9px;background:var(--white);border:1.5px solid var(--line);
@@ -442,8 +445,10 @@
       </div>
       <div class="meal-picker">
         <div class="meal-chips" id="mealChips"></div>
-        <label class="f-label" for="orderDate">Date</label>
-        <input type="date" id="orderDate" class="date-input">
+        <div class="date-time-row">
+          <label><span class="f-label">Date</span><input type="date" id="orderDate" class="date-input"></label>
+          <label><span class="f-label">Time <span class="f-optional">(optional)</span></span><input type="time" id="orderTime" class="date-input"></label>
+        </div>
       </div>
       <div id="menuList"></div>
       <div class="cart-bar" id="cartBar">
@@ -1008,7 +1013,8 @@ $('#placeOrderBtn').addEventListener('click', async () => {
   errEl.textContent = '';
   try{
     const stayNo = me.stay && me.stay.no;
-    const body = { items, date, meal: selectedMeal, stayNo };
+    const time = $('#orderTime').value || undefined;
+    const body = { items, date, time, meal: selectedMeal, stayNo };
     const res = await fetch(PROXY_URL+'/portal/food-order', {
       method:'POST', headers:{ 'Content-Type':'application/json', 'X-Token': portalToken },
       body: JSON.stringify(body),
@@ -1035,7 +1041,7 @@ function renderBill(){
   } else {
     list.innerHTML = orders.map(o => `
       <div class="order-card">
-        <div class="order-head"><span class="order-no">${o.meal ? `${esc(o.meal)} · ` : ''}${esc(fmtDateTime(o.date, o.meal ? null : o.time))} · ${esc(o.no)}</span><span class="order-total">${money(o.total)}</span></div>
+        <div class="order-head"><span class="order-no">${o.meal ? `${esc(o.meal)} · ` : ''}${esc(fmtDateTime(o.date, o.time))} · ${esc(o.no)}</span><span class="order-total">${money(o.total)}</span></div>
         <div class="order-items">${(o.items||[]).map(it => `${it.qty}× ${esc(it.name)}`).join(', ')}</div>
         <div class="order-foot">
           <span class="order-status ${o.status==='settled'?'settled':'open'}">${o.status==='settled' ? 'Paid' : 'Unpaid'}</span>
@@ -1096,7 +1102,12 @@ function renderWifi(){
 // (subtotal/discount/GST/service charge/paymentMode) to render it without
 // a second round-trip.
 function viewReceipt(o){
-  const whenLabel = o.meal ? `${fmtDateShort(o.date)} · ${esc(o.meal)}` : (o.time ? `${fmtDateShort(o.date)}, ${esc(o.time)}` : fmtDateShort(o.date));
+  const whenParts = [fmtDateShort(o.date)];
+  if(o.meal) whenParts.push(esc(o.meal));
+  if(o.time) whenParts.push(esc(o.time));
+  const whenLabel = whenParts.join(' · ');
+  const lblParts = ['Date']; if(o.meal) lblParts.push('Meal'); if(o.time) lblParts.push('Time');
+  const whenLbl = lblParts.join(' &amp; ');
   const guestName = (me.stay && me.stay.guest) || 'Guest';
   $('#receiptArea').innerHTML = `
     <div class="r-doc">
@@ -1111,7 +1122,7 @@ function viewReceipt(o){
       <div class="r-meta">
         <div><span class="r-lbl">Order No</span><b>${esc(o.no)}</b></div>
         <div class="r-right"><span class="r-lbl">Guest</span><b>${esc(guestName)}</b></div>
-        <div><span class="r-lbl">Date${o.meal?' &amp; Meal':''}</span><b>${whenLabel}</b></div>
+        <div><span class="r-lbl">${whenLbl}</span><b>${whenLabel}</b></div>
         <div class="r-right"><span class="r-lbl">Status</span><b>${o.status==='settled' ? esc(o.paymentMode||'Paid') : 'Open Tab'}</b></div>
       </div>
       <table class="r-items">
