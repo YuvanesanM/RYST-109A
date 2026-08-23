@@ -785,7 +785,18 @@ function loadFromQuote(qno){
   $("#loadQuoteSel").value = "";
 }
 
+// Keeps the check-out picker from ever offering a date before whatever
+// check-in currently holds — native `min` attribute, not just a post-hoc
+// validation message, so an invalid range can't be selected in the first
+// place. Bumps an already-picked check-out up to match if check-in just
+// moved past it, rather than leaving a now-invalid value sitting there.
+function syncCheckoutMin(){
+  const co = $("#checkout");
+  co.min = $("#checkin").value || "";
+  if(co.min && co.value && co.value < co.min) co.value = co.min;
+}
 function syncNights(){
+  syncCheckoutMin();
   curDateISO = curDateISO || $("#date").value;
   const n = nightsBetween($("#checkin").value, $("#checkout").value);
   $("#nights").value = n ? String(n) : "";
@@ -833,6 +844,7 @@ function newDoc(){
   curNo=nextNo(docType); curDateISO=todayISO();
   $("#no").value=curNo; $("#date").value=curDateISO;
   ["guest","email","phone","guests","ref","checkin","checkout","nights","deposit","advance"].forEach(id=> $("#"+id).value="");
+  syncCheckoutMin();
   $("#discountInp").value="";
   $("#mode").value="";
   $("#channel").value="";
@@ -1083,6 +1095,7 @@ function loadDoc(no){
   $("#channel").value=d.channel||"";
   $("#deposit").value=d.deposit||""; $("#advance").value=d.advance||"";
   $("#discountInp").value=d.discount!=null ? String(d.discount) : "";
+  syncCheckoutMin();
   $("#nights").value = nightsBetween(d.checkin,d.checkout)||"";
   items = (d.items&&d.items.length)? d.items.map(x=>({desc:x.desc||"",qty:(x.qty!=null?x.qty:"1"),rate:x.rate||"",...(x._villaRow&&{_villaRow:true}),...(x._autoLocked&&{_autoLocked:true})})) : [{desc:"",qty:"1",rate:""}];
   syncGuestCharges(); renderItems(); render(); $("#savedModal").hidden=true; toast("Loaded "+d.no);

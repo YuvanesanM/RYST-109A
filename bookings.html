@@ -1304,15 +1304,25 @@ document.addEventListener('keydown', e=>{
 });
 
 /* ---------- BLOCK DATES ---------- */
+// Keeps the End-date picker from ever offering a date before Start —
+// native `min` attribute, not just the end<start check saveBlock() already
+// does on submit, so an invalid range can't be picked in the first place.
+function syncBkEndMin(){
+  const end = $('#bkEnd');
+  end.min = $('#bkStart').value || '';
+  if(end.min && end.value && end.value < end.min) end.value = end.min;
+}
 function openBlockModal(){
   $('#bkStart').value = todayISO();
   $('#bkEnd').value = todayISO();
+  syncBkEndMin();
   $('#bkReason').value = '';
   $('#bkErr').textContent = '';
   $('#bkChips').querySelectorAll('.reason-chip').forEach(c=>c.classList.remove('on'));
   $('#blockOverlay').classList.add('show');
   setTimeout(()=>$('#bkStart').focus(), 50);
 }
+$('#bkStart').addEventListener('input', syncBkEndMin);
 function closeBlockModal(){ $('#blockOverlay').classList.remove('show'); }
 $('#btnBlock').addEventListener('click', openBlockModal);
 $('#bkCancel').addEventListener('click', closeBlockModal);
