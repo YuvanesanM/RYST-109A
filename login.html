@@ -31,6 +31,37 @@
   .login-card p{color:var(--muted);font-size:13px}
   .login-err{color:var(--danger);font-size:12.5px;min-height:16px}
 
+  /* ── Telegram OTP alternative ── */
+  .login-divider{display:flex;align-items:center;gap:12px;color:var(--muted2);font-size:12px;margin:4px 0}
+  .login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--line)}
+  .alt-login-btn{
+    background:transparent;border:1.5px solid var(--line);color:var(--muted);
+    padding:11px 18px;border-radius:10px;font-size:13.5px;font-weight:600;
+    font-family:inherit;cursor:pointer;transition:.18s;
+  }
+  .alt-login-btn:hover{border-color:var(--accent);color:var(--accent-d)}
+  .tg-form{display:flex;flex-direction:column;gap:10px;text-align:left}
+  .tg-form[hidden]{display:none}
+  .tg-hint{color:var(--muted2);font-size:11.5px;text-align:center;margin:0}
+  .tg-field{display:flex;flex-direction:column;gap:4px}
+  .tg-field span{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted2);font-weight:600}
+  .tg-field input{
+    border:1.5px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;
+    color:var(--ink);background:var(--panel2);outline:none;transition:border-color .15s;
+  }
+  .tg-field input:focus{border-color:var(--accent)}
+  .tg-btn{
+    background:var(--accent);color:#fff;border:none;border-radius:10px;padding:12px;
+    font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer;transition:.18s;
+  }
+  .tg-btn:hover{background:var(--accent-d)}
+  .tg-btn:disabled{opacity:.6;cursor:not-allowed}
+  .tg-link-btn{
+    background:transparent;border:none;color:var(--muted2);font-size:12px;font-weight:600;
+    font-family:inherit;cursor:pointer;text-decoration:underline;padding:2px;
+  }
+  .tg-link-btn:hover{color:var(--accent-d)}
+
   /* ── HOME ── */
   #homeView{gap:36px}
   #homeLogo{max-height:72px;max-width:220px;display:block}
@@ -70,6 +101,22 @@
     <p>Sign in with Google to continue</p>
     <div id="googleSignInBtn" style="display:flex;justify-content:center;min-height:44px;"></div>
     <div class="login-err" id="loginErr"></div>
+
+    <div class="login-divider"><span>or</span></div>
+    <button type="button" id="showTgLoginBtn" class="alt-login-btn">Sign in with Telegram instead</button>
+
+    <div id="tgLoginForm" class="tg-form" hidden>
+      <p class="tg-hint">For staff with a Telegram chat ID set in Settings → User Access.</p>
+      <label class="tg-field"><span>Email</span><input type="email" id="tgEmail" autocomplete="username" placeholder="you@example.com"></label>
+      <button type="button" id="tgSendCodeBtn" class="tg-btn">Send code via Telegram</button>
+
+      <div id="tgCodeStep" hidden>
+        <label class="tg-field"><span>Code from Telegram</span><input type="text" id="tgCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="123456"></label>
+        <button type="button" id="tgVerifyBtn" class="tg-btn">Verify &amp; sign in</button>
+        <button type="button" id="tgResendBtn" class="tg-link-btn">Resend code</button>
+      </div>
+      <div class="login-err" id="tgErr"></div>
+    </div>
   </div>
 </div>
 
@@ -169,6 +216,23 @@ function applyRoleView(){
 // same OAuth client and proxy backend as signage.ryst.in)
 const GOOGLE_CLIENT_ID = '717827758789-99ugj40a6j2rr4r7db26shn0hivq0vv0.apps.googleusercontent.com';
 
+// Shared by both sign-in paths (Google and Telegram OTP) — same token/
+// role/admin/modules shape comes back from every /auth* route that issues
+// one, so there's exactly one place that decides what gets cached and when
+// the home screen shows.
+function applyAuthSuccess(data){
+  proxyToken = data.token;
+  localStorage.setItem('ryst_proxy_token', data.token);
+  if (data.email) localStorage.setItem('ryst_user_email', data.email);
+  if (data.role)  localStorage.setItem('ryst_user_role', data.role);
+  // Admin is now assigned via Settings → User Access (data-driven), not
+  // a hardcoded email — cache it the same way as role so pages that
+  // gate admin-only buttons don't have to guess.
+  localStorage.setItem('ryst_user_admin', data.isAdmin ? 'true' : 'false');
+  localStorage.setItem('ryst_user_modules', JSON.stringify(Array.isArray(data.modules) ? data.modules : []));
+  showHome();
+}
+
 async function handleGoogleLogin(credentialResponse) {
   const errEl = document.getElementById('loginErr');
   errEl.textContent = 'Verifying…';
@@ -188,17 +252,8 @@ async function handleGoogleLogin(credentialResponse) {
     });
     const data = await res.json();
     if (data.ok && data.token) {
-      proxyToken = data.token;
-      localStorage.setItem('ryst_proxy_token', data.token);
-      if (data.email) localStorage.setItem('ryst_user_email', data.email);
-      if (data.role)  localStorage.setItem('ryst_user_role', data.role);
-      // Admin is now assigned via Settings → User Access (data-driven), not
-      // a hardcoded email — cache it the same way as role so pages that
-      // gate admin-only buttons don't have to guess.
-      localStorage.setItem('ryst_user_admin', data.isAdmin ? 'true' : 'false');
-      localStorage.setItem('ryst_user_modules', JSON.stringify(Array.isArray(data.modules) ? data.modules : []));
       errEl.textContent = '';
-      showHome();
+      applyAuthSuccess(data);
     } else {
       errEl.textContent = data.error || 'Access denied.';
     }
@@ -259,6 +314,68 @@ setTimeout(() => {
     if (errEl) errEl.textContent = 'Could not load Google Sign-In — check your connection or disable ad blockers, then reload.';
   }
 }, 8000);
+
+// ── Telegram OTP login (alternative to Google) ──────────────────────────
+document.getElementById('showTgLoginBtn').addEventListener('click', () => {
+  document.getElementById('tgLoginForm').hidden = false;
+  document.getElementById('showTgLoginBtn').hidden = true;
+  document.getElementById('tgEmail').focus();
+});
+
+async function requestTelegramCode(){
+  const email = document.getElementById('tgEmail').value.trim();
+  const errEl = document.getElementById('tgErr');
+  const btn = document.getElementById('tgSendCodeBtn');
+  if(!email){ errEl.textContent = 'Please enter your email.'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  errEl.textContent = '';
+  try{
+    const res = await fetch(PROXY_URL + '/auth/telegram/request', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(data.ok){
+      document.getElementById('tgCodeStep').hidden = false;
+      document.getElementById('tgCode').focus();
+    } else {
+      errEl.textContent = data.error || 'Could not send code — please try again.';
+    }
+  }catch(e){
+    errEl.textContent = 'Cannot reach proxy — check connection';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Send code via Telegram';
+  }
+}
+document.getElementById('tgSendCodeBtn').addEventListener('click', requestTelegramCode);
+document.getElementById('tgResendBtn').addEventListener('click', requestTelegramCode);
+
+document.getElementById('tgVerifyBtn').addEventListener('click', async () => {
+  const email = document.getElementById('tgEmail').value.trim();
+  const code = document.getElementById('tgCode').value.trim();
+  const errEl = document.getElementById('tgErr');
+  const btn = document.getElementById('tgVerifyBtn');
+  if(!code){ errEl.textContent = 'Please enter the code.'; return; }
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  errEl.textContent = '';
+  try{
+    const res = await fetch(PROXY_URL + '/auth/telegram/verify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    });
+    const data = await res.json().catch(()=>({}));
+    if(data.ok && data.token){
+      errEl.textContent = '';
+      applyAuthSuccess(data);
+    } else {
+      errEl.textContent = data.error || 'Incorrect code.';
+    }
+  }catch(e){
+    errEl.textContent = 'Cannot reach proxy — check connection';
+  }finally{
+    btn.disabled = false; btn.textContent = 'Verify & sign in';
+  }
+});
 
 function logout(){
   proxyToken='';
