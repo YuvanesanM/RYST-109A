@@ -299,6 +299,13 @@
     padding:7px 16px;font-size:12px;font-weight:700;color:var(--sea-mid);cursor:pointer;transition:border-color .15s,box-shadow .15s;
   }
   .copy-btn:hover{border-color:var(--sea-mid);box-shadow:var(--shadow-sm)}
+  .toys-cta{
+    display:inline-block;margin-top:16px;text-decoration:none;
+    background:linear-gradient(135deg,#f3ddae,#e3c486 55%,#d4ad6a);color:#1a2c33;border-radius:12px;
+    padding:12px 26px;font-family:var(--sans);font-size:13.5px;font-weight:700;
+    box-shadow:0 6px 16px rgba(196,158,90,.4);transition:transform .12s var(--ease);
+  }
+  .toys-cta:active{transform:scale(.97)}
 
   .spinner{width:26px;height:26px;border-radius:50%;border:3px solid rgba(26,106,122,.2);border-top-color:var(--sea-mid);animation:spin .8s linear infinite;margin:24px auto}
   @keyframes spin{to{transform:rotate(360deg)}}
@@ -423,6 +430,11 @@
           <span class="menu-body"><span class="menu-title">Explore Nearby</span><span class="menu-desc">Beaches, cafes and things to do near the villa</span></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
         </a>
+        <button type="button" class="menu-item" data-mode="toys">
+          <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="10" width="7" height="7" rx="1"/><rect x="14" y="10" width="7" height="7" rx="1"/><rect x="8.5" y="3" width="7" height="7" rx="1"/></svg></span>
+          <span class="menu-body"><span class="menu-title">RYST Toys</span><span class="menu-desc">Wooden Montessori toys &amp; puzzles — 10% off during your stay</span></span>
+          <span class="menu-chevron" aria-hidden="true">›</span>
+        </button>
         <button type="button" class="menu-item" data-mode="feedback" id="feedbackTile">
           <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15 9 22 9.5 16.5 14 18.5 21 12 17 5.5 21 7.5 14 2 9.5 9 9"/></svg></span>
           <span class="menu-body"><span class="menu-title">Rate Your Stay</span><span class="menu-desc" id="feedbackDesc">Tell us how everything's going</span></span>
@@ -469,6 +481,20 @@
       <button type="button" class="back-btn" data-back>&larr; Back</button>
       <h1 style="text-align:left">Wi-Fi</h1>
       <div class="wifi-card" id="wifiCard"></div>
+    </section>
+
+    <section class="screen" id="screen-toys">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1 style="text-align:left">RYST Toys</h1>
+      <p class="sub" style="text-align:left;margin-bottom:14px">Handcrafted wooden Montessori toys and puzzles, made for little hands — browse and shop online, with a little something off for guests staying with us.</p>
+      <div class="wifi-card">
+        <div class="wifi-field">
+          <span class="bc-label">Your discount code</span>
+          <div class="wifi-value">STAY10</div>
+          <button type="button" class="copy-btn" id="toysCopyBtn">Copy code</button>
+        </div>
+        <a class="toys-cta" href="https://toys.ryst.in" target="_blank" rel="noopener">Visit toys.ryst.in</a>
+      </div>
     </section>
   </div>
 </div>
@@ -831,6 +857,7 @@ function renderHome(){
       if(mode === 'menu'){ renderMenu(); showScreen(mode); }
       if(mode === 'foodbill'){ renderBill(); showScreen(mode); }
       if(mode === 'wifi'){ renderWifi(); showScreen(mode); }
+      if(mode === 'toys') showScreen(mode);
       if(mode === 'feedback') openFeedbackForm();
     };
   });
@@ -1091,6 +1118,14 @@ function renderWifi(){
     catch(e){ /* clipboard unavailable — the code is already shown on screen */ }
   });
 }
+// RYST Toys — a static promo (unlike Wi-Fi's network/voucher, this isn't
+// per-stay data from /portal/me), so the copy handler is wired once here
+// rather than inside a per-visit render function.
+$('#toysCopyBtn').addEventListener('click', async () => {
+  const btn = $('#toysCopyBtn');
+  try{ await navigator.clipboard.writeText('STAY10'); btn.textContent = 'Copied!'; setTimeout(()=>{ btn.textContent = 'Copy code'; }, 1500); }
+  catch(e){ /* clipboard unavailable — the code is already shown on screen */ }
+});
 
 // ── View Bill ────────────────────────────────────────────────────────────
 // Same customer-receipt design restaurant.html's own printReceipt builds —
