@@ -58,9 +58,12 @@
   .tg-btn:disabled{opacity:.6;cursor:not-allowed}
   .tg-link-btn{
     background:transparent;border:none;color:var(--muted2);font-size:12px;font-weight:600;
-    font-family:inherit;cursor:pointer;text-decoration:underline;padding:2px;
+    font-family:inherit;cursor:pointer;text-decoration:underline;padding:4px;
+    align-self:center;
   }
   .tg-link-btn:hover{color:var(--accent-d)}
+  #tgCodeStep{display:flex;flex-direction:column;gap:10px}
+  #tgCodeStep[hidden]{display:none}
 
   /* ── HOME ── */
   #homeView{gap:36px}
@@ -103,7 +106,7 @@
     <div class="login-err" id="loginErr"></div>
 
     <div class="login-divider"><span>or</span></div>
-    <button type="button" id="showTgLoginBtn" class="alt-login-btn">Sign in with Telegram instead</button>
+    <button type="button" id="showTgLoginBtn" class="alt-login-btn">Sign in with Telegram</button>
 
     <div id="tgLoginForm" class="tg-form" hidden>
       <p class="tg-hint">For staff with a Telegram chat ID set in Settings → User Access.</p>
