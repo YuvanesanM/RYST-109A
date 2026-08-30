@@ -2847,6 +2847,13 @@
     const f = readBookForm();
     const err = validateBookForm(f);
     if(err){ showToast(err); return; }
+    // TODO(terms): the paid/Razorpay path below (bookForm's submit handler)
+    // requires document.getElementById('f-terms').checked before proceeding
+    // — this WhatsApp-enquiry fallback doesn't have the same gate, so a
+    // guest can reach WhatsApp without ever checking that box. terms.html
+    // now states (Bookings & confirmation) that active acknowledgment is
+    // required before any booking is finalised — bring this path in line
+    // with that, the same way bookForm's submit handler already is.
 
     const nights = Math.round((new Date(f.checkout)-new Date(f.checkin))/(1000*60*60*24));
     function openWhatsApp(quoteNo){
