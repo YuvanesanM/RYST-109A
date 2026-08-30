@@ -206,16 +206,26 @@
   .item-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
   .item-info{flex:1;min-width:0}
   .item-name{font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:6px}
-  /* A visible V/N glyph, not color alone — the red/green dot is a familiar
-     convention worth keeping as reinforcement, but color-only status fails
-     WCAG 1.4.1 for colorblind sighted users, not just screen readers. */
-  .veg-dot{
-    width:14px;height:14px;border-radius:3px;border:1.5px solid;flex-shrink:0;
-    display:inline-flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:800;color:#fff;line-height:1;
-  }
-  .veg-dot.veg{border-color:#2e7d32;background:#2e7d32}
-  .veg-dot.nonveg{border-color:var(--coral);background:var(--coral)}
+  /* FSSAI-style marks — a filled circle (veg) vs. a filled triangle
+     (non-veg) inside a coloured square, the same convention used on Indian
+     food packaging and now on the public food-menu.html page too. Shape,
+     not just colour, tells them apart, so this is no worse for WCAG 1.4.1
+     (colorblind sighted users) than the V/N letter it replaces. */
+  .veg-dot{width:14px;height:14px;border:1.5px solid;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center}
+  .veg-dot.veg{border-color:#2e7d32}
+  .veg-dot.veg::before{content:'';width:7px;height:7px;border-radius:50%;background:#2e7d32}
+  .veg-dot.nonveg{border-color:var(--coral)}
+  .veg-dot.nonveg::before{content:'';width:0;height:0;border-left:4.5px solid transparent;border-right:4.5px solid transparent;border-bottom:7.5px solid var(--coral)}
+  .item-star{color:var(--sand);flex-shrink:0}
   .item-price{font-size:12.5px;color:var(--muted-text);margin-top:1px}
+  .item-desc{font-size:11.5px;color:var(--muted-text);margin-top:3px;line-height:1.5}
+  /* Only shown when a category actually mixes veg and non-veg — matches
+     food-menu.html's same restraint (no label when there's nothing to
+     contrast against). */
+  .veg-group-label{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;margin:14px 0 6px}
+  .veg-group-label:first-child{margin-top:0}
+  .veg-group-label.veg{color:#2e7d32}
+  .veg-group-label.nonveg{color:var(--coral)}
   .qty-stepper{display:flex;align-items:center;gap:9px;flex-shrink:0}
   .qty-btn{
     width:44px;height:44px;border-radius:var(--r-sm);border:1.5px solid var(--line);background:var(--white);
@@ -514,6 +524,9 @@ const PROXY_URL = 'https://data.ryst.in';
 const $ = s => document.querySelector(s);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const money = n => '₹' + Math.round(Number(n)||0).toLocaleString('en-IN');
+// Same chef's-special icon as the public food-menu.html page — one shared
+// glyph instead of guest.html's old plain "⭐" emoji.
+const chefStarSvg = '<svg class="item-star" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.4 3 1 5.5 3 7.5S19.5 12 22 12c-3 .5-5.5 1-7.5 3S12 19.5 12 22c-.5-3-1-5.5-3-7.5S4.5 12 2 12c3-.5 5.5-1 7.5-3S12 4.5 12 2Z"/></svg>';
 
 let portalToken = localStorage.getItem('ryst_portal_token') || '';
 let isStaff = localStorage.getItem('ryst_portal_is_staff') === 'true';
@@ -982,19 +995,37 @@ function renderMenuList(){
       : `Nothing available for ${esc(selectedMeal)} right now — please WhatsApp us to order.`}</p>`;
   } else {
     const cats = [...new Set(menu.map(m=>m.category||'Miscellaneous'))];
+    // Same arrangement as the public food-menu.html page, for parity
+    // between browsing and actually ordering: chef's specials float to the
+    // top (a stable sort — everything else keeps its existing order), and
+    // veg is grouped before non-veg — but only as two labelled blocks when
+    // a category actually has both, so an all-veg category doesn't get a
+    // header with nothing to contrast against.
+    const bySpecialFirst = (a,b) => (b.chefSpecial?1:0) - (a.chefSpecial?1:0);
+    const renderItem = m => `
+      <div class="item-row" data-id="${esc(m.id)}">
+        <div class="item-info">
+          <div class="item-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}"></span>${esc(m.name)}${m.chefSpecial?` ${chefStarSvg}`:''}</div>
+          <div class="item-price">${money(m.price)}</div>
+          ${(m.description || m.kcal!=null) ? `<div class="item-desc">${esc(m.description)}${m.description && m.kcal!=null ? ' · ' : ''}${m.kcal!=null ? '~'+esc(m.kcal)+' kcal' : ''}</div>` : ''}
+        </div>
+        <div class="item-action" data-action-for="${esc(m.id)}">${itemActionHTML(m.id)}</div>
+      </div>`;
     list.innerHTML = cats.map(cat => {
       const catItems = menu.filter(m=>(m.category||'Miscellaneous')===cat);
+      const vegItems = catItems.filter(m=>m.veg).sort(bySpecialFirst);
+      const nonVegItems = catItems.filter(m=>!m.veg).sort(bySpecialFirst);
+      const itemsHtml = (vegItems.length && nonVegItems.length)
+        ? `
+          <p class="veg-group-label veg"><span class="veg-dot veg" aria-hidden="true"></span> Vegetarian</p>
+          ${vegItems.map(renderItem).join('')}
+          <p class="veg-group-label nonveg"><span class="veg-dot nonveg" aria-hidden="true"></span> Non-Vegetarian</p>
+          ${nonVegItems.map(renderItem).join('')}
+        `
+        : catItems.slice().sort(bySpecialFirst).map(renderItem).join('');
       return `
-      <div class="cat-head">${esc(cat)}${catItems.some(m=>m.chefSpecial) ? ' ⭐' : ''} <span class="cat-count">(${catItems.length})</span></div>
-      ${catItems.map(m => `
-        <div class="item-row" data-id="${esc(m.id)}">
-          <div class="item-info">
-            <div class="item-name"><span class="veg-dot ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}">${m.veg?'V':'N'}</span>${esc(m.name)}${m.chefSpecial?' ⭐':''}</div>
-            <div class="item-price">${money(m.price)}</div>
-          </div>
-          <div class="item-action" data-action-for="${esc(m.id)}">${itemActionHTML(m.id)}</div>
-        </div>
-      `).join('')}`;
+      <div class="cat-head">${esc(cat)}${catItems.some(m=>m.chefSpecial) ? ` ${chefStarSvg}` : ''} <span class="cat-count">(${catItems.length})</span></div>
+      ${itemsHtml}`;
     }).join('');
   }
   // Delegated per-row: the ADD↔stepper swap replaces this slot's innerHTML
