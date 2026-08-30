@@ -160,6 +160,13 @@
        inside an otherwise partner-kitchen category, or vice versa). */
     .mi-src { font-size: 10px; font-weight: 700; letter-spacing: .2px; color: var(--sea-mid); background: var(--foam); border-radius: 20px; padding: 2px 8px; margin-left: 6px; white-space: nowrap; }
     .mi-src.house { color: var(--coral); background: rgba(201,106,59,.1); }
+    /* Only shown when a category actually mixes veg and non-veg — an
+       all-veg category (Breakfast, Beverages today) skips this entirely
+       rather than labelling a list with nothing to contrast against. */
+    .veg-group-label { display: flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; margin: 18px 0 8px; break-after: avoid-column; break-inside: avoid; }
+    .veg-group-label:first-child { margin-top: 4px; }
+    .veg-group-label.veg { color: #2e7d32; }
+    .veg-group-label.nonveg { color: var(--coral); }
     .menu-cat-items { column-gap: 28px; }
     .menu-row { padding: 11px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
     .menu-row:last-child { border-bottom: none; }
@@ -245,6 +252,9 @@
     @media (min-width: 640px) {
       .menu-cats-grid { grid-template-columns: 1fr 1fr; align-items: start; }
       .menu-cat.wide-span { grid-column: 1 / -1; }
+      /* A category left alone in its row (Beverages today) gets centred and
+         capped instead of sitting next to an empty grid cell. */
+      .menu-cat.solo { grid-column: 1 / -1; max-width: 380px; margin: 0 auto; }
     }
   </style>
 </head>
@@ -474,7 +484,13 @@ const WIDE_CATEGORY_THRESHOLD = 7;
         ${(m.description || m.kcal!=null) ? `<div class="mi-desc">${esc(m.description)}${m.description && m.kcal!=null ? ' · ' : ''}${m.kcal!=null ? '~'+esc(m.kcal)+' kcal' : ''}</div>` : ''}
       </div>`;
 
-    catsEl.innerHTML = cats.map(cat => {
+    // Chef's specials float to the top of whichever list they're in — a
+    // stable sort, so the rest keep the curated order they already come in
+    // (combos → biryanis → starters → curries), just with specials pulled
+    // forward rather than the whole category getting re-sorted.
+    const bySpecialFirst = (a, b) => (b.chefSpecial?1:0) - (a.chefSpecial?1:0);
+
+    const catBlocks = cats.map(cat => {
       const catItems = items.filter(m => (m.category || 'Other') === cat);
       const wide = catItems.length > WIDE_CATEGORY_THRESHOLD;
       const icon = CATEGORY_ICON[cat] || '';
@@ -482,17 +498,43 @@ const WIDE_CATEGORY_THRESHOLD = 7;
       const partnerCount = catItems.filter(m => m.partnerKitchen).length;
       const houseCount = catItems.length - partnerCount;
       const majorityIsPartner = partnerCount >= houseCount;
-
-      const itemsHtml = catItems.map(m => {
+      const kitchenTagFor = m => {
         const isMinority = m.partnerKitchen !== majorityIsPartner && partnerCount > 0 && houseCount > 0;
-        const tag = isMinority
-          ? (m.partnerKitchen ? { label: 'Muthu Virundhu' } : { label: 'Casa de RYST', house: true })
-          : null;
-        return renderRow(m, tag);
-      }).join('');
+        return isMinority ? (m.partnerKitchen ? { label: 'Muthu Virundhu' } : { label: 'Casa de RYST', house: true }) : null;
+      };
 
-      return `
-      <div class="menu-cat${wide ? ' wide-span' : ''}">
+      // Veg is listed before non-veg (the usual convention) — but only as
+      // two labelled blocks when a category actually has both; an all-veg
+      // category (Breakfast, Beverages today) stays a plain single list
+      // rather than showing a "Vegetarian" header nothing is contrasted
+      // against.
+      const vegItems = catItems.filter(m => m.veg).sort(bySpecialFirst);
+      const nonVegItems = catItems.filter(m => !m.veg).sort(bySpecialFirst);
+
+      const itemsHtml = (vegItems.length && nonVegItems.length)
+        ? `
+          <p class="veg-group-label veg"><span class="veg-mark veg" aria-hidden="true"></span> Vegetarian</p>
+          ${vegItems.map(m => renderRow(m, kitchenTagFor(m))).join('')}
+          <p class="veg-group-label nonveg"><span class="veg-mark nonveg" aria-hidden="true"></span> Non-Vegetarian</p>
+          ${nonVegItems.map(m => renderRow(m, kitchenTagFor(m))).join('')}
+        `
+        : catItems.slice().sort(bySpecialFirst).map(m => renderRow(m, kitchenTagFor(m))).join('');
+
+      return { cat, icon, wide, itemsHtml };
+    });
+
+    // A category that ends up alone in its row (an odd number of "narrow"
+    // categories between the wide ones — Beverages today) gets centred and
+    // capped instead of sitting next to an empty grid cell. Computed from
+    // actual run lengths so it keeps working whatever categories exist
+    // later, not just today's four.
+    let run = [];
+    const flushRun = () => { if (run.length % 2 === 1) run[run.length - 1].solo = true; run = []; };
+    catBlocks.forEach(b => { if (b.wide) flushRun(); else run.push(b); });
+    flushRun();
+
+    catsEl.innerHTML = catBlocks.map(({ cat, icon, wide, itemsHtml, solo }) => `
+      <div class="menu-cat${wide ? ' wide-span' : ''}${solo ? ' solo' : ''}">
         <div class="menu-cat-head">
           ${icon}
           <h2>${esc(cat)}</h2>
@@ -500,8 +542,7 @@ const WIDE_CATEGORY_THRESHOLD = 7;
         <div class="menu-cat-items${wide ? ' wide' : ''}">
           ${itemsHtml}
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
 
     stateEl.hidden = true;
     legendEl.hidden = false;
