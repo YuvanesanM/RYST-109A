@@ -125,39 +125,59 @@
     .mob-close { position: absolute; top: 20px; right: 24px; color: var(--muted); font-size: 28px; cursor: pointer; background: none; border: none; }
 
     /* ── DOC HEADER ── */
-    .doc { max-width: 760px; margin: 0 auto; padding: clamp(48px, 8vw, 88px) 5vw 24px; }
-    .doc-tag { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--sea-mid); margin-bottom: 14px; text-align: center; }
-    .doc h1 { font-family: var(--serif); font-size: clamp(38px, 6vw, 60px); font-weight: 400; line-height: 1.1; color: var(--ink); text-align: center; }
-    .doc .intro { font-size: 16px; color: var(--muted-text); margin-top: 18px; text-align: center; max-width: 560px; margin-left: auto; margin-right: auto; }
+    .doc { max-width: 760px; margin: 0 auto; padding: clamp(40px, 8vw, 88px) 5vw 20px; }
+    .doc-tag { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--sea-mid); text-align: center; }
+    .doc h1 { font-family: var(--serif); font-size: clamp(36px, 8vw, 60px); font-weight: 400; line-height: 1.1; color: var(--ink); text-align: center; margin-top: 8px; }
+    .doc-ornament { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0 4px; color: var(--sand); }
+    .doc-ornament .oline { width: clamp(28px,8vw,54px); height: 1px; background: currentColor; opacity: .6; }
+    .doc .intro { font-size: 15.5px; color: var(--muted-text); margin-top: 16px; text-align: center; max-width: 540px; margin-left: auto; margin-right: auto; }
     .tax-note { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 10px; }
 
-    /* ── MENU CARD ── */
-    .menu-wrap { max-width: 760px; margin: 0 auto; padding: 0 5vw 20px; }
+    /* ── NOTE CALLOUT ── */
+    .menu-note {
+      max-width: 620px; margin: 22px auto 0; padding: 14px 18px; border: 1px solid var(--line); border-radius: 14px;
+      background: var(--foam); display: flex; align-items: flex-start; gap: 10px; font-size: 13px; color: var(--ink-mid); line-height: 1.55;
+    }
+    .menu-note svg { flex-shrink: 0; margin-top: 2px; color: var(--sea-mid); }
+
+    /* ── MENU CARD (mobile-first: single column, comfortable tap targets) ── */
+    .menu-wrap { max-width: 900px; margin: 0 auto; padding: 0 5vw 20px; }
     .menu-state { text-align: center; color: var(--muted-text); font-size: 14.5px; padding: 40px 0; }
-    .menu-cat { margin-top: 44px; }
-    .menu-cat:first-child { margin-top: 8px; }
-    .menu-cat h2 { font-family: var(--serif); font-size: 26px; font-weight: 600; color: var(--sea); margin-bottom: 4px; }
-    .menu-cat .cat-count { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 16px; display: block; }
-    .menu-row { display: flex; align-items: baseline; gap: 8px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .menu-cats-grid { display: grid; grid-template-columns: 1fr; gap: 28px; margin-top: 8px; }
+    .menu-cat {
+      border: 1px solid var(--line); border-radius: 18px; padding: 22px 20px 8px;
+      background: var(--white);
+    }
+    .menu-cat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
+    .menu-cat-head svg { flex-shrink: 0; color: var(--coral); }
+    .menu-cat h2 { font-family: var(--serif); font-size: 23px; font-weight: 600; color: var(--sea); }
+    .menu-cat .cat-count { font-size: 11.5px; color: var(--muted); font-weight: 500; margin: 2px 0 14px; display: block; }
+    .menu-cat-items { column-gap: 28px; }
+    .menu-row { padding: 11px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
     .menu-row:last-child { border-bottom: none; }
+    .mi-line { display: flex; align-items: baseline; gap: 8px; }
     .mi-name { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-mid); }
+    .mi-desc { font-size: 12px; color: var(--muted); margin-top: 4px; margin-left: 22px; line-height: 1.5; }
     .mi-leader { flex: 1; border-bottom: 1px dotted var(--line); margin-bottom: 4px; min-width: 16px; }
     .mi-price { font-family: var(--sans); font-weight: 700; font-size: 15px; color: var(--sea); white-space: nowrap; }
-    .mi-star { color: var(--sand); font-size: 13px; }
-    /* A visible V/N glyph, not color alone — same accessibility reasoning as
-       the guest portal's own veg-dot (WCAG 1.4.1: colorblind sighted users
-       need more than a red/green cue). */
-    .veg-dot {
-      width: 14px; height: 14px; border-radius: 3px; border: 1.5px solid; flex-shrink: 0;
-      display: inline-flex; align-items: center; justify-content: center; font-size: 8.5px; font-weight: 800; color: #fff; line-height: 1;
-    }
-    .veg-dot.veg { border-color: #2e7d32; background: #2e7d32; }
-    .veg-dot.nonveg { border-color: var(--coral); background: var(--coral); }
-    .menu-legend { display: flex; justify-content: center; gap: 22px; flex-wrap: wrap; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted-text); }
+    .mi-star { color: var(--sand); flex-shrink: 0; }
+    /* FSSAI-style veg/non-veg marks — a filled circle vs. a filled triangle
+       inside a coloured square, the same shape+colour convention used on
+       Indian food packaging. Shape alone (not just colour) tells them apart,
+       so this reads fine for colourblind guests too (WCAG 1.4.1). */
+    .veg-mark { width: 14px; height: 14px; border: 1.5px solid; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .veg-mark.veg { border-color: #2e7d32; }
+    .veg-mark.veg::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #2e7d32; }
+    .veg-mark.nonveg { border-color: var(--coral); }
+    .veg-mark.nonveg::before { content: ''; width: 0; height: 0; border-left: 4.5px solid transparent; border-right: 4.5px solid transparent; border-bottom: 7.5px solid var(--coral); }
+    .menu-legend { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-top: 36px; padding-top: 22px; border-top: 1px solid var(--line); font-size: 12.5px; color: var(--muted-text); }
     .menu-legend[hidden] { display: none; }
-    .menu-legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .menu-legend span { display: inline-flex; align-items: center; gap: 7px; }
 
-    .menu-cta { max-width: 560px; margin: 44px auto 0; text-align: center; }
+    .menu-tagline { text-align: center; font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--sea-mid); margin-top: 34px; }
+    .menu-tagline[hidden] { display: none; }
+
+    .menu-cta { max-width: 560px; margin: 32px auto 0; text-align: center; }
     .menu-cta p { font-size: 14px; color: var(--muted-text); margin-bottom: 16px; }
     .menu-cta-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .menu-cta-btn {
@@ -203,6 +223,17 @@
     @media (max-width: 600px) {
       .footer-top { flex-direction: column; gap: 28px; }
     }
+    /* Mobile-first base above is already the full experience; from here up
+       we just have the room to add a second column for a long category
+       (Dinner today, whatever grows past ~7 dishes tomorrow) rather than
+       one long scroll — set via .menu-cat-items.wide, not a hardcoded name. */
+    @media (min-width: 640px) {
+      .menu-cat-items.wide { column-count: 2; }
+    }
+    @media (min-width: 640px) {
+      .menu-cats-grid { grid-template-columns: 1fr 1fr; align-items: start; }
+      .menu-cat.wide-span { grid-column: 1 / -1; }
+    }
   </style>
 </head>
 <body>
@@ -235,20 +266,31 @@
 
 <main id="main">
   <div class="doc">
-    <p class="doc-tag">Casa de RYST</p>
+    <p class="doc-tag">Casa de RYST · RYST 109A</p>
     <h1>Food Menu</h1>
+    <div class="doc-ornament" aria-hidden="true">
+      <span class="oline"></span>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3c3 3 3 9-3 9s-6-6-3-9M9 12c0 5 1 7 3 9 2-2 3-4 3-9"/></svg>
+      <span class="oline"></span>
+    </div>
     <p class="intro">Home-style Tamil cooking, made to order in the villa's own kitchen — here's what's on the menu today. We keep adding dishes and adjusting prices, so this page always reflects what's currently on offer, not a printed card from months ago.</p>
     <p class="tax-note" id="taxNote"></p>
   </div>
 
+  <div class="menu-note">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 20A7 7 0 0 1 4 13V8a5 5 0 0 1 5-5c8 0 12 4 12 9 0 6-6 8-10 8Z"/><path d="M4 13c5 0 7-2 7-7"/></svg>
+    <span>Every dish is cooked fresh to order in the villa's kitchen — for the biryanis and larger spreads especially, let our team know a little ahead of when you'd like to eat.</span>
+  </div>
+
   <div class="menu-wrap">
     <div class="menu-state" id="menuState">Loading the menu…</div>
-    <div id="menuCats"></div>
+    <div class="menu-cats-grid" id="menuCats"></div>
     <div class="menu-legend" id="menuLegend" hidden>
-      <span><span class="veg-dot veg">V</span> Vegetarian</span>
-      <span><span class="veg-dot nonveg">N</span> Non-vegetarian</span>
-      <span><span class="mi-star">★</span> Chef's special</span>
+      <span><span class="veg-mark veg" role="img" aria-label="Vegetarian"></span> Vegetarian</span>
+      <span><span class="veg-mark nonveg" role="img" aria-label="Non-vegetarian"></span> Non-vegetarian</span>
+      <span><svg class="mi-star" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.4 3 1 5.5 3 7.5S19.5 12 22 12c-3 .5-5.5 1-7.5 3S12 19.5 12 22c-.5-3-1-5.5-3-7.5S4.5 12 2 12c3-.5 5.5-1 7.5-3S12 4.5 12 2Z"/></svg> Chef's special</span>
     </div>
+    <p class="menu-tagline" id="menuTagline" hidden>— with warmth, from Casa de RYST —</p>
   </div>
 
   <div class="menu-cta">
@@ -347,10 +389,26 @@ const money = n => '₹' + Math.round(Number(n)||0).toLocaleString('en-IN');
 // of its own.
 const CATEGORY_ORDER = ['Breakfast', 'Meals', 'Dinner', 'Beverages'];
 
+// A small decorative icon per known category — purely cosmetic, so an
+// unrecognised category name (something added later in Settings →
+// Restaurant) just renders with no icon rather than breaking anything.
+const CATEGORY_ICON = {
+  Breakfast: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 3v2.2M12 18.8V21M4.2 12H2M22 12h-2.2M6 6l1.5 1.5M18 18l-1.5-1.5M18 6l-1.5 1.5M6 18l1.5-1.5"/></svg>',
+  Meals: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13c0-4 4-7 9-7s9 3 9 7"/><path d="M2 13h20M9 6c0-1.5 1-3 3-3s3 1.5 3 3"/></svg>',
+  Dinner: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 2v8M4 2v5a3 3 0 0 0 3 3v11M7 10a3 3 0 0 0 3-3V2M17 2c-2 0-3 3-3 6s1 4 3 4v10"/></svg>',
+  Beverages: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-1 9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 8Z"/><path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M8 2c-.5 1-1 1.5 0 3M12 2c-.5 1-1 1.5 0 3"/></svg>',
+};
+// Categories with more dishes than this get a second text column (and, on
+// wide viewports, the full grid width) instead of one long single-column
+// scroll — set by count, so it applies to whichever category has grown
+// the longest, not a hardcoded name.
+const WIDE_CATEGORY_THRESHOLD = 7;
+
 (async function loadMenu(){
   const stateEl = document.getElementById('menuState');
   const catsEl = document.getElementById('menuCats');
   const legendEl = document.getElementById('menuLegend');
+  const taglineEl = document.getElementById('menuTagline');
   const taxNoteEl = document.getElementById('taxNote');
   try{
     const res = await fetch(PROXY_URL + '/public-menu', { cache: 'no-store' });
@@ -371,27 +429,40 @@ const CATEGORY_ORDER = ['Breakfast', 'Meals', 'Dinner', 'Beverages'];
         return ia - ib;
       });
 
+    const chefStar = '<svg class="mi-star" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.4 3 1 5.5 3 7.5S19.5 12 22 12c-3 .5-5.5 1-7.5 3S12 19.5 12 22c-.5-3-1-5.5-3-7.5S4.5 12 2 12c3-.5 5.5-1 7.5-3S12 4.5 12 2Z"/></svg>';
+
     catsEl.innerHTML = cats.map(cat => {
       const catItems = items.filter(m => (m.category || 'Other') === cat);
+      const wide = catItems.length > WIDE_CATEGORY_THRESHOLD;
+      const icon = CATEGORY_ICON[cat] || '';
       return `
-      <div class="menu-cat">
-        <h2>${esc(cat)}</h2>
+      <div class="menu-cat${wide ? ' wide-span' : ''}">
+        <div class="menu-cat-head">
+          ${icon}
+          <h2>${esc(cat)}</h2>
+        </div>
         <span class="cat-count">${catItems.length} item${catItems.length===1?'':'s'}</span>
-        ${catItems.map(m => `
-          <div class="menu-row">
-            <span class="mi-name">
-              <span class="veg-dot ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}">${m.veg?'V':'N'}</span>
-              ${esc(m.name)}${m.chefSpecial?' <span class="mi-star" title="Chef’s special">★</span>':''}
-            </span>
-            <span class="mi-leader"></span>
-            <span class="mi-price">${money(m.price)}</span>
-          </div>
-        `).join('')}
+        <div class="menu-cat-items${wide ? ' wide' : ''}">
+          ${catItems.map(m => `
+            <div class="menu-row">
+              <div class="mi-line">
+                <span class="mi-name">
+                  <span class="veg-mark ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}"></span>
+                  ${esc(m.name)}${m.chefSpecial?` ${chefStar}`:''}
+                </span>
+                <span class="mi-leader"></span>
+                <span class="mi-price">${money(m.price)}</span>
+              </div>
+              ${(m.description || m.kcal!=null) ? `<div class="mi-desc">${esc(m.description)}${m.description && m.kcal!=null ? ' · ' : ''}${m.kcal!=null ? '~'+esc(m.kcal)+' kcal' : ''}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
       </div>`;
     }).join('');
 
     stateEl.hidden = true;
     legendEl.hidden = false;
+    taglineEl.hidden = false;
   }catch(e){
     stateEl.textContent = 'Could not load the menu right now — please try again shortly, or ask us on WhatsApp.';
   }
