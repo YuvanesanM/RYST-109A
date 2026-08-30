@@ -128,6 +128,8 @@
     .doc { max-width: 760px; margin: 0 auto; padding: clamp(40px, 8vw, 88px) 5vw 20px; }
     .doc-tag { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: var(--sea-mid); text-align: center; }
     .doc h1 { font-family: var(--serif); font-size: clamp(36px, 8vw, 60px); font-weight: 400; line-height: 1.1; color: var(--ink); text-align: center; margin-top: 8px; }
+    .doc-kitchens { font-size: 13px; color: var(--muted-text); text-align: center; margin-top: 10px; }
+    .doc-kitchens strong { color: var(--sea-mid); font-weight: 700; }
     .doc-ornament { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 0 4px; color: var(--sand); }
     .doc-ornament .oline { width: clamp(28px,8vw,54px); height: 1px; background: currentColor; opacity: .6; }
     .doc .intro { font-size: 15.5px; color: var(--muted-text); margin-top: 16px; text-align: center; max-width: 540px; margin-left: auto; margin-right: auto; }
@@ -151,15 +153,13 @@
     .menu-cat-head { display: flex; align-items: center; gap: 10px; margin-bottom: 2px; }
     .menu-cat-head svg { flex-shrink: 0; color: var(--coral); }
     .menu-cat h2 { font-family: var(--serif); font-size: 23px; font-weight: 600; color: var(--sea); }
-    .menu-cat .cat-count { font-size: 11.5px; color: var(--muted); font-weight: 500; margin: 2px 0 14px; display: block; }
-    /* Who actually cooks this category — most of today's food menu comes
-       from our partner kitchen, Muthu Virundhu; Casa de RYST's own in-house
-       menu (beverages today) is what we're building out over time. */
-    .cat-source { font-size: 11.5px; font-style: italic; color: var(--muted); margin: -8px 0 14px; }
-    .cat-source.house { color: var(--coral); }
-    .src-label { font-size: 10.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--sea-mid); margin: 18px 0 8px; break-after: avoid-column; break-inside: avoid; }
-    .src-label:first-child { margin-top: 4px; }
-    .src-label.house { color: var(--coral); }
+    .menu-cat h2 { margin-bottom: 14px; }
+    /* Which kitchen made a dish is stated once, up top (.doc-kitchens) —
+       the only per-item exception worth flagging here is a dish that
+       breaks from its category's usual kitchen (e.g. an in-house dish
+       inside an otherwise partner-kitchen category, or vice versa). */
+    .mi-src { font-size: 10px; font-weight: 700; letter-spacing: .2px; color: var(--sea-mid); background: var(--foam); border-radius: 20px; padding: 2px 8px; margin-left: 6px; white-space: nowrap; }
+    .mi-src.house { color: var(--coral); background: rgba(201,106,59,.1); }
     .menu-cat-items { column-gap: 28px; }
     .menu-row { padding: 11px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
     .menu-row:last-child { border-bottom: none; }
@@ -274,14 +274,15 @@
 
 <main id="main">
   <div class="doc">
-    <p class="doc-tag">Casa de RYST · RYST 109A</p>
+    <p class="doc-tag">RYST 109A</p>
     <h1>Food Menu</h1>
+    <p class="doc-kitchens">Food by <strong>Muthu Virundhu</strong>, our partner kitchen · Beverages by <strong>Casa de RYST</strong>, in-house</p>
     <div class="doc-ornament" aria-hidden="true">
       <span class="oline"></span>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3c3 3 3 9-3 9s-6-6-3-9M9 12c0 5 1 7 3 9 2-2 3-4 3-9"/></svg>
       <span class="oline"></span>
     </div>
-    <p class="intro">Breakfast, meals and dinner are prepared by Muthu Virundhu, our partner kitchen — beverages are made fresh in-house by Casa de RYST, our own menu, which will keep growing. We keep adding dishes and adjusting prices, so this page always reflects what's currently on offer, not a printed card from months ago.</p>
+    <p class="intro">Here's what's on the menu today — we keep adding dishes and adjusting prices, so this page always reflects what's currently on offer, not a printed card from months ago.</p>
     <p class="tax-note" id="taxNote"></p>
   </div>
 
@@ -439,12 +440,17 @@ const WIDE_CATEGORY_THRESHOLD = 7;
 
     const chefStar = '<svg class="mi-star" width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c.4 3 1 5.5 3 7.5S19.5 12 22 12c-3 .5-5.5 1-7.5 3S12 19.5 12 22c-.5-3-1-5.5-3-7.5S4.5 12 2 12c3-.5 5.5-1 7.5-3S12 4.5 12 2Z"/></svg>';
 
-    const renderRow = m => `
+    // Which kitchen made a dish is stated once, up top (.doc-kitchens) — a
+    // per-item tag only shows when a dish breaks from its own category's
+    // usual kitchen (e.g. Dinner's one in-house dish among the rest, which
+    // are all via the partner kitchen), so it stays a flagged exception
+    // rather than a label repeated on every row.
+    const renderRow = (m, tag) => `
       <div class="menu-row">
         <div class="mi-line">
           <span class="mi-name">
             <span class="veg-mark ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}"></span>
-            ${esc(m.name)}${m.chefSpecial?` ${chefStar}`:''}
+            ${esc(m.name)}${m.chefSpecial?` ${chefStar}`:''}${tag ? ` <span class="mi-src${tag.house?' house':''}">${esc(tag.label)}</span>` : ''}
           </span>
           <span class="mi-leader"></span>
           <span class="mi-price">${money(m.price)}</span>
@@ -457,27 +463,17 @@ const WIDE_CATEGORY_THRESHOLD = 7;
       const wide = catItems.length > WIDE_CATEGORY_THRESHOLD;
       const icon = CATEGORY_ICON[cat] || '';
 
-      // Who cooks this category isn't fixed — today it's a clean split (all
-      // of Breakfast/Meals/Dinner via Muthu Virundhu, Beverages in-house by
-      // Casa de RYST), but a category can end up mixed (Dinner already has
-      // one in-house dish among the partner-kitchen ones), so this checks
-      // the actual items rather than assuming by category name.
-      const partnerItems = catItems.filter(m => m.partnerKitchen);
-      const houseItems = catItems.filter(m => !m.partnerKitchen);
-      let itemsHtml;
-      if (partnerItems.length && houseItems.length) {
-        itemsHtml = `
-          <p class="src-label partner">Muthu Virundhu · Partner Kitchen</p>
-          ${partnerItems.map(renderRow).join('')}
-          <p class="src-label house">Casa de RYST · In-house</p>
-          ${houseItems.map(renderRow).join('')}
-        `;
-      } else {
-        itemsHtml = catItems.map(renderRow).join('');
-      }
-      const sourceNote = !partnerItems.length ? '<p class="cat-source house">Casa de RYST · made fresh in-house</p>'
-        : !houseItems.length ? '<p class="cat-source">via Muthu Virundhu, our partner kitchen</p>'
-        : '';
+      const partnerCount = catItems.filter(m => m.partnerKitchen).length;
+      const houseCount = catItems.length - partnerCount;
+      const majorityIsPartner = partnerCount >= houseCount;
+
+      const itemsHtml = catItems.map(m => {
+        const isMinority = m.partnerKitchen !== majorityIsPartner && partnerCount > 0 && houseCount > 0;
+        const tag = isMinority
+          ? (m.partnerKitchen ? { label: 'Muthu Virundhu' } : { label: 'Casa de RYST', house: true })
+          : null;
+        return renderRow(m, tag);
+      }).join('');
 
       return `
       <div class="menu-cat${wide ? ' wide-span' : ''}">
@@ -485,8 +481,6 @@ const WIDE_CATEGORY_THRESHOLD = 7;
           ${icon}
           <h2>${esc(cat)}</h2>
         </div>
-        <span class="cat-count">${catItems.length} item${catItems.length===1?'':'s'}</span>
-        ${sourceNote}
         <div class="menu-cat-items${wide ? ' wide' : ''}">
           ${itemsHtml}
         </div>
