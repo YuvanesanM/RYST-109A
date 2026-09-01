@@ -62,6 +62,9 @@
   .group > .gh::after{content:"";flex:1;height:1px;background:var(--line)}
   label.f{display:block;margin-bottom:12px}
   label.f span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+  .f-hint{display:block;font-size:11px;color:var(--muted2);margin-top:4px}
+  .f-hint.err{color:var(--danger)}
+  input.t.err{border-color:var(--danger)}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   input.t,textarea.t,select.t{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:10px 12px;font-size:13.5px;font-weight:400}
   textarea.t{resize:vertical;min-height:60px;line-height:1.5}
@@ -297,7 +300,7 @@
         <label class="f"><span>Guest name</span><input class="t" id="guest" placeholder="Mr. / Ms. ..."></label>
         <div class="row2">
           <label class="f"><span>Email ID</span><input class="t" id="email" placeholder="guest@email.com"></label>
-          <label class="f"><span>Phone</span><input class="t" id="phone" inputmode="tel" type="tel" placeholder="+91 ..."></label>
+          <label class="f"><span>Phone</span><input class="t" id="phone" inputmode="tel" type="tel" placeholder="+919876543210"><small class="f-hint" id="phoneHint"></small></label>
         </div>
         <label class="f"><span>No. of guests</span><input class="t" id="guests" type="number" min="1" step="1" inputmode="numeric" placeholder="2"></label>
       </div>
@@ -559,6 +562,44 @@ const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g, c => ({"&":"&amp;","<
 const inr = n => Number(n||0).toLocaleString("en-IN",{maximumFractionDigits:2});
 const money = n => "₹"+inr(n);
 
+/* ---------- PHONE (E.164 — country code, no spaces) ----------
+   WhatsApp sends only ever go through as the right number if the phone on
+   the record is unambiguous: sendWhatsAppTemplate (proxy) splits whatever
+   digits it's given into country code + local number purely by length, so
+   a bare 10-digit local number, a stray leading 0, or spaces/dashes in the
+   middle can all silently produce a wrong split — the message either fails
+   or reaches the wrong person. Every phone here is forced to full E.164
+   (+<countrycode><number>, digits only, no separators) before it's ever
+   saved. PHONE_RE matches a genuine E.164 number: + then 8-15 digits,
+   first digit non-zero. */
+const PHONE_RE = /^\+[1-9]\d{7,14}$/;
+function normalizePhoneStrict(raw){
+  let s = String(raw||"").trim();
+  if(!s) return { ok:true, value:"" }; // phone is optional — nothing to enforce on an empty field
+  const hadPlus = s[0]==="+";
+  let digits = s.replace(/[^\d]/g,"");
+  if(!hadPlus){
+    // No country code typed at all — same default the proxy's own
+    // normalizePhoneWA already assumes for a bare number: this villa's
+    // country. A stray leading 0 (a common typo/paste artifact) is
+    // stripped first so it isn't mistaken for part of the country code.
+    digits = digits.replace(/^0+/,"");
+    if(digits.length===10) digits = "91"+digits;
+  }
+  const value = "+"+digits;
+  return { ok: PHONE_RE.test(value), value: digits ? value : "" };
+}
+function syncPhoneValidity(){
+  const el = $("#phone"), hint = $("#phoneHint");
+  if(!el || !hint) return;
+  const v = el.value.trim();
+  const invalid = v.length > 0 && !PHONE_RE.test(v);
+  el.classList.toggle("err", invalid);
+  hint.classList.toggle("err", invalid);
+  hint.textContent = invalid ? "Needs a country code and no spaces, e.g. +919876543210" : "";
+  return !invalid;
+}
+
 function loadSettings(){
   try{
     const s = Object.assign({}, DEFAULTS, JSON.parse(localStorage.getItem(K_SET)||"{}"));
@@ -716,7 +757,25 @@ function init(){
 }
 
 function bind(){
-  ["guest","email","phone","ref","mode","deposit","advance"].forEach(id=> $("#"+id).addEventListener("input", render));
+  ["guest","email","ref","mode","deposit","advance"].forEach(id=> $("#"+id).addEventListener("input", render));
+  $("#phone").addEventListener("input", e=>{
+    // Strip spaces/dashes/parens/dots AS TYPED — a WhatsApp send (Interakt,
+    // via the proxy) splits this into country code + bare number purely by
+    // digit count, so any stray separator character shifts that split and
+    // silently sends to the wrong number. Only a leading + and digits ever
+    // survive; cursor stays at the end, same as how a card-number field
+    // would behave.
+    const raw = e.target.value;
+    const cleaned = (raw.trim().startsWith("+") ? "+" : "") + raw.replace(/[^\d]/g,"");
+    if(cleaned !== raw) e.target.value = cleaned;
+    syncPhoneValidity();
+    render();
+  });
+  $("#phone").addEventListener("blur", ()=>{
+    const n = normalizePhoneStrict($("#phone").value);
+    if(n.value !== $("#phone").value) $("#phone").value = n.value;
+    syncPhoneValidity();
+  });
   $("#guests").addEventListener("input", ()=>{
     const cap = parseInt(settings.guestCapacity) || 0;
     if(cap > 0 && parseInt($("#guests").value||0) > cap){
@@ -784,6 +843,7 @@ function loadFromQuote(qno){
   $("#guest").value   = d.guest||"";
   $("#email").value   = d.email||"";
   $("#phone").value   = d.phone||"";
+  syncPhoneValidity();
   $("#guests").value  = d.guests||"";
   $("#checkin").value = d.checkin||"";
   $("#checkout").value= d.checkout||"";
@@ -858,6 +918,7 @@ function newDoc(){
   curNo=nextNo(docType); curDateISO=todayISO();
   $("#no").value=curNo; $("#date").value=curDateISO;
   ["guest","email","phone","guests","ref","checkin","checkout","nights","deposit","advance"].forEach(id=> $("#"+id).value="");
+  syncPhoneValidity();
   syncCheckoutMin();
   $("#discountInp").value="";
   $("#mode").value="";
@@ -1081,6 +1142,12 @@ async function saveDoc(){
   // window where collect()'s merge above would be working from a stale
   // copy of the very fields it's trying to protect.
   if(editingKey) await fetchStaysFromProxy();
+  // Normalize + validate the phone before it's ever written — see
+  // normalizePhoneStrict's comment. Blocks the save rather than silently
+  // saving something the WhatsApp send would later choke on.
+  const phoneNorm = normalizePhoneStrict($("#phone").value);
+  $("#phone").value = phoneNorm.value;
+  if(!syncPhoneValidity()){ toast("Phone needs a country code and no spaces, e.g. +919876543210"); $("#phone").focus(); return; }
   const doc=collect(); if(!doc.no){ toast("No document number"); return; }
   if(!doc.guest.trim()){ toast("Add a guest name first"); return; }
   const all=getStays(); const key=editingKey||doc.no; const idx=all.findIndex(x=>x.no===key);
@@ -1113,6 +1180,7 @@ function loadDoc(no){
   curNo=d.no; curDateISO=d.date||todayISO();
   $("#no").value=curNo; $("#date").value=curDateISO;
   $("#guest").value=d.guest||""; $("#email").value=d.email||""; $("#phone").value=d.phone||""; $("#guests").value=d.guests||"";
+  syncPhoneValidity(); // flags an old record's phone if it predates this format check — doesn't block loading it
   $("#ref").value=d.ref||""; $("#checkin").value=d.checkin||""; $("#checkout").value=d.checkout||""; $("#mode").value=d.mode||"";
   $("#channel").value=d.channel||"";
   $("#deposit").value=d.deposit||""; $("#advance").value=d.advance||"";
