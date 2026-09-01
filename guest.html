@@ -453,6 +453,30 @@
       </div>
     </section>
 
+    <!-- Shown instead of screen-home for a not-yet-paid quote's magic
+         link — review the quote and pay online to confirm it. The same
+         link becomes a normal portal link (screen-home) automatically
+         the moment the guest pays, since /portal/me's committed flag
+         flips as soon as the payment webhook lands. -->
+    <section class="screen" id="screen-quotereview">
+      <h1 style="text-align:left;margin:0 0 4px">Review your booking</h1>
+      <p class="sub" style="text-align:left;margin-bottom:16px">Here's your quote from RYST 109A Beach Villa — pay online any time to confirm these dates.</p>
+      <div id="qrBooking"></div>
+      <div class="r-doc" style="margin:18px 0 0">
+        <table class="r-items">
+          <thead><tr><th>Item</th><th class="num">Rate</th><th class="num">Qty</th><th class="num">Amount</th></tr></thead>
+          <tbody id="qrItems"></tbody>
+        </table>
+        <div class="r-totals" id="qrTotals"></div>
+      </div>
+      <div class="due-banner" style="margin-top:20px">
+        <p>Amount to confirm your booking: <strong id="qrAmount"></strong></p>
+        <button type="button" class="pay-btn" id="qrPayBtn">Pay Now to Confirm</button>
+        <p class="pay-msg" id="qrPayMsg" role="alert" aria-live="polite"></p>
+      </div>
+      <p class="sub" style="margin-top:18px">Once paid, this same link becomes your guest portal — manage your invoice, order food, and check Wi-Fi details, right here.</p>
+    </section>
+
     <section class="screen" id="screen-menu">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
       <h1 style="text-align:left" id="menuTitle">Food Menu</h1>
@@ -769,8 +793,15 @@ async function loadMe(stayNo){
     }
     me = data;
     isStaff = !!data.isStaff;
-    renderHome();
-    showScreen('home');
+    // A not-yet-paid quote (magic link only — see stayQualifiesForPortal
+    // OrQuoteReview server-side; a Google-signed-in guest never gets a
+    // committed:false stay at all, that path still excludes unpaid
+    // quotes entirely) gets the review-and-pay screen instead of the
+    // full portal. Same link, no reload needed: the next loadMe() call
+    // (after a successful payment) naturally lands on 'home' instead,
+    // since committed flips server-side the moment the webhook lands.
+    if(me.stay && me.stay.committed === false){ renderQuoteReview(); showScreen('quotereview'); }
+    else { renderHome(); showScreen('home'); }
   }catch(e){
     const errEl = isStaff ? $('#adminPickerErr') : $('#signinErr');
     if(errEl) errEl.textContent = 'Could not reach the server — check your connection.';
@@ -874,6 +905,53 @@ function renderHome(){
       if(mode === 'feedback') openFeedbackForm();
     };
   });
+}
+
+// A not-yet-paid quote's landing screen — booking summary, the full rate
+// breakdown (same {desc,qty,rate} items /portal/me now sends for this
+// case), and a Pay Now button. Reuses payLink('balance', …) as-is: the
+// amount it fetches (/portal/balance-payment-link) is just grandTotal minus
+// advance, which for a fresh quote (advance 0) already comes out to the
+// full total — no separate "advance" concept needed here.
+function renderQuoteReview(){
+  const b = me.stay;
+  if(!b) return;
+  $('#qrBooking').innerHTML = `
+    <div class="booking-card">
+      <div class="bc-name"><span class="bc-label">Guest</span><span class="bc-value">${esc(b.guest||'Guest')}</span></div>
+      <div class="bc-divider"></div>
+      <div class="bc-grid">
+        <div class="bc-cell"><span class="bc-label">Check-in</span><span class="bc-value">${fmtDateShort(b.checkin)}</span></div>
+        <div class="bc-cell"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDateShort(b.checkout)}</span></div>
+        ${b.guests ? `<div class="bc-cell"><span class="bc-label">Guests</span><span class="bc-value">${esc(String(b.guests))}</span></div>` : ''}
+      </div>
+      <div class="bc-pills"><div class="bc-id">🔖 ${esc(b.no)}</div></div>
+    </div>`;
+
+  const items = Array.isArray(b.items) ? b.items : [];
+  $('#qrItems').innerHTML = items.map(it => `
+    <tr><td class="nm">${esc(it.desc)}</td><td class="num">${money(it.rate)}</td><td class="num">${it.qty}</td><td class="num">${money(it.rate*it.qty)}</td></tr>
+  `).join('');
+  const subtotal = items.reduce((s,it)=> s + (Number(it.rate)||0)*(Number(it.qty)||0), 0);
+  $('#qrTotals').innerHTML = `
+    <div class="r-tot"><span>Subtotal</span><span>${money(subtotal)}</span></div>
+    ${b.discount>0 ? `<div class="r-tot"><span>Discount</span><span>− ${money(b.discount)}</span></div>` : ''}
+    <div class="r-tot grand"><span>Total</span><span>${money(b.total)}</span></div>`;
+
+  $('#qrAmount').textContent = money(b.balance);
+  const btn = $('#qrPayBtn'), msg = $('#qrPayMsg');
+  btn.onclick = async () => {
+    await payLink('balance', btn, msg);
+    // A successful payment doesn't redirect anywhere on its own (Razorpay
+    // Checkout opens in a new tab) — re-fetch on return to this tab so a
+    // guest who pays and comes back sees the portal unlock immediately,
+    // without needing to reopen the link themselves.
+    document.addEventListener('visibilitychange', function onVis(){
+      if(document.hidden) return;
+      document.removeEventListener('visibilitychange', onVis);
+      loadMe();
+    });
+  };
 }
 
 async function payLink(kind, btn, msgEl){
