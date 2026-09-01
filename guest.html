@@ -100,6 +100,13 @@
   /* Same green .order-status.settled already uses for "done/paid". */
   .bc-id.checkin-done{background:#e3f0ea;color:#215f3f}
   .bc-id svg{flex-shrink:0}
+  /* Quote-review screen's booking-id pill doubles as a button — opens the
+     full quote as a printable document (see viewQuotePdf/#receiptArea
+     below), so the terms, bank details and full breakdown a staff-
+     generated PDF shows travel with the guest too, not just the on-screen
+     summary. */
+  .bc-id.pdf-link{border:none;font-family:inherit;transition:background .15s,box-shadow .15s}
+  .bc-id.pdf-link:hover{background:var(--foam)}
   /* ── Wallet pass (mirrors checkin.html's wallet-links block) ── */
   .wallet-links{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:2px;flex-wrap:wrap}
   .wallet-links img{height:44px;width:auto;display:block;transition:opacity .2s}
@@ -330,7 +337,7 @@
      an actual file — see the trimmed @media print block below. */
   .receipt-overlay{display:none;position:fixed;inset:0;z-index:100;background:var(--bg);overflow-y:auto;padding:20px 16px calc(20px + env(safe-area-inset-bottom))}
   .receipt-overlay.active{display:block}
-  .receipt-overlay-bar{max-width:480px;margin:0 auto 14px}
+  .receipt-overlay-bar{max-width:480px;margin:0 auto 14px;display:flex;align-items:center;gap:8px}
   .r-doc{max-width:480px;margin:0 auto;background:var(--white);border-radius:var(--r-lg);padding:22px 20px;box-shadow:var(--shadow-lg);border:1px solid var(--line)}
   .r-head{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:3px solid var(--sea-mid)}
   .r-head img{height:40px;object-fit:contain;flex-shrink:0}
@@ -353,6 +360,13 @@
   .r-tot.grand span:last-child{color:var(--sea-mid)}
   .r-foot{text-align:center;font-size:11px;color:var(--muted-text);line-height:1.6;margin-top:32px;padding-top:14px;border-top:1px dashed var(--line)}
   .r-foot .brand{font-weight:700;color:var(--sea-mid);letter-spacing:.3px}
+  /* Quote/invoice PDF's extra sections — payment info, terms, declaration —
+     that a plain food-order receipt (the rest of .r-doc) never needs. */
+  .r-section-h{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--sea-mid);margin:20px 0 8px}
+  .r-pay{font-size:12px;line-height:1.7;color:var(--ink);white-space:pre-line}
+  .r-terms{margin:0;padding-left:16px;font-size:11px;color:var(--muted-text);line-height:1.6}
+  .r-terms li{margin-bottom:3px}
+  .r-decl{font-size:10.5px;line-height:1.5;color:var(--muted-text)}
 
   /* ── FEEDBACK (reuses .receipt-overlay's full-screen shell, own inner
      card — .r-doc's table/invoice layout doesn't fit a rating form) ── */
@@ -534,7 +548,10 @@
 </div>
 
 <div class="receipt-overlay" id="receiptOverlay">
-  <div class="receipt-overlay-bar"><button type="button" class="back-btn" id="closeReceiptBtn">&larr; Back</button></div>
+  <div class="receipt-overlay-bar">
+    <button type="button" class="back-btn" id="closeReceiptBtn">&larr; Back</button>
+    <button type="button" class="back-btn r-print-btn" id="printReceiptBtn">🖨️ Print / Save as PDF</button>
+  </div>
   <div id="receiptArea"></div>
 </div>
 
@@ -841,7 +858,7 @@ function renderHome(){
           ${b.guests ? `<div class="bc-cell"><span class="bc-label">Guests</span><span class="bc-value">${esc(String(b.guests))}</span></div>` : ''}
         </div>
         <div class="bc-pills">
-          <div class="bc-id">🔖 ${esc(b.no)}</div>
+          <button type="button" class="bc-id pdf-link" id="homePdfBtn">🔖 ${esc(b.no)} · View PDF ↓</button>
           <div class="bc-id ${tripStatus.cls}">${esc(tripStatus.label)}</div>
           ${checkinNudgePill(b)}
         </div>
@@ -850,6 +867,7 @@ function renderHome(){
           ${googleWalletUrl(b) ? `<a class="wallet-btn-google" href="${googleWalletUrl(b)}">${GOOGLE_G_ICON} Add to Google Wallet</a>` : ''}
         </div>` : ''}
       </div>`;
+    $('#homePdfBtn').addEventListener('click', () => viewQuotePdf(b));
   } else {
     bookingEl.innerHTML = `<p class="empty-note">We couldn't find a confirmed booking for this account. If you've just booked, please check back shortly, or WhatsApp us.</p>`;
   }
@@ -925,8 +943,9 @@ function renderQuoteReview(){
         <div class="bc-cell"><span class="bc-label">Check-out</span><span class="bc-value">${fmtDateShort(b.checkout)}</span></div>
         ${b.guests ? `<div class="bc-cell"><span class="bc-label">Guests</span><span class="bc-value">${esc(String(b.guests))}</span></div>` : ''}
       </div>
-      <div class="bc-pills"><div class="bc-id">🔖 ${esc(b.no)}</div></div>
+      <div class="bc-pills"><button type="button" class="bc-id pdf-link" id="qrPdfBtn">🔖 ${esc(b.no)} · View PDF ↓</button></div>
     </div>`;
+  $('#qrPdfBtn').addEventListener('click', () => viewQuotePdf(b));
 
   const items = Array.isArray(b.items) ? b.items : [];
   $('#qrItems').innerHTML = items.map(it => `
@@ -1285,6 +1304,62 @@ function viewReceipt(o){
   `;
   $('#receiptOverlay').classList.add('active');
 }
+
+// The quote-review screen's booking-id pill opens this — same
+// #receiptArea/#receiptOverlay shell viewReceipt() above already uses (and
+// the @media print block already targets), just filled with the
+// quote/invoice's own document instead of a food-order receipt. `biz`
+// (me.business) carries the same bank/terms/declaration text a staff-
+// generated PDF from stay.html shows, so nothing here is guest.html's own
+// invention — it's what the owner has actually configured in Settings.
+function viewQuotePdf(b){
+  b = b || (me && me.stay); if(!b) return;
+  const biz = (me && me.business) || {};
+  const items = Array.isArray(b.items) ? b.items : [];
+  const subtotal = items.reduce((s,it)=> s + (Number(it.rate)||0)*(Number(it.qty)||0), 0);
+  const isQuote = (b.type||'invoice') === 'quote';
+  $('#receiptArea').innerHTML = `
+    <div class="r-doc">
+      <div class="r-head">
+        <img src="/assets/stay-logo.png" alt="RYST 109A">
+        <div>
+          <div class="nm">RYST 109A Beach Villa</div>
+          <div class="sub">${esc(String(biz.company||'').replace(/,?\n/g,', '))}</div>
+        </div>
+      </div>
+      <div class="r-title">${isQuote ? 'QUOTATION' : 'INVOICE'}</div>
+      <div class="r-meta">
+        <div><span class="r-lbl">${isQuote?'Quote':'Invoice'} No</span><b>${esc(b.no)}</b></div>
+        <div class="r-right"><span class="r-lbl">${isQuote?'Quote':'Invoice'} Date</span><b>${b.date ? fmtDateShort(b.date) : '—'}</b></div>
+        <div><span class="r-lbl">Guest</span><b>${esc(b.guest||'Guest')}</b></div>
+        <div class="r-right"><span class="r-lbl">Guests</span><b>${esc(b.guests ? String(b.guests) : '—')}</b></div>
+        <div><span class="r-lbl">Check-in</span><b>${fmtDateShort(b.checkin)}</b></div>
+        <div class="r-right"><span class="r-lbl">Check-out</span><b>${fmtDateShort(b.checkout)}</b></div>
+      </div>
+      <table class="r-items">
+        <thead><tr><th>Item</th><th class="num">Rate</th><th class="num">Qty</th><th class="num">Amount</th></tr></thead>
+        <tbody>${items.map(it=>`<tr><td class="nm">${esc(it.desc)}</td><td class="num">${money(it.rate)}</td><td class="num">${it.qty}</td><td class="num">${money(it.rate*it.qty)}</td></tr>`).join('')}</tbody>
+      </table>
+      <div class="r-totals">
+        <div class="r-tot"><span>Subtotal</span><span>${money(subtotal)}</span></div>
+        ${b.discount>0 ? `<div class="r-tot"><span>Discount</span><span>− ${money(b.discount)}</span></div>` : ''}
+        <div class="r-tot grand"><span>Total</span><span>${money(b.total)}</span></div>
+        <div class="r-tot"><span>Advance received</span><span>${money(b.advance)}</span></div>
+        <div class="r-tot"><span>Security deposit <small>(refundable)</small></span><span>${money(b.deposit)}</span></div>
+        <div class="r-tot grand"><span>Balance due</span><span>${money(b.balance)}</span></div>
+      </div>
+      <div class="r-section-h">Payment / Bank Details</div>
+      <div class="r-pay">${esc(biz.bank||'')}${biz.pan?`\nPAN: ${esc(biz.pan)}`:''}</div>
+      <div class="r-section-h">Terms &amp; Conditions</div>
+      <ol class="r-terms">${(biz.terms||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ol>
+      <div class="r-section-h">Declaration</div>
+      <div class="r-decl">${esc(biz.declaration||'')}</div>
+      <div class="r-foot">${isQuote ? 'Please verify the details above — pay online any time to confirm this quote.' : 'Thank you for staying with us — see you at the beach!'}<br><span class="brand">RYST 109A</span> · stay.ryst.in</div>
+    </div>
+  `;
+  $('#receiptOverlay').classList.add('active');
+}
+$('#printReceiptBtn').addEventListener('click', () => window.print());
 $('#closeReceiptBtn').addEventListener('click', () => $('#receiptOverlay').classList.remove('active'));
 
 // ── Feedback ─────────────────────────────────────────────────────────────
