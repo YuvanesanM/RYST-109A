@@ -294,7 +294,7 @@
 
   <div class="tab-panel" data-panel="whatsapp" style="display:none">
     <p class="gh-mini">Automated sending</p>
-    <p class="sd" style="margin-bottom:12px">When configured, the templates below go out automatically on a schedule (check-in requests, stay reminders, feedback requests, and booking confirmations) instead of needing a manual click from Bookings — delivered as a Telegram message with a one-tap link that opens WhatsApp pre-filled, so the actual send is still you, from your own number. There's no bot number and nothing sends WhatsApp messages on its own.</p>
+    <p class="sd" style="margin-bottom:12px">When configured, the templates below go out automatically on a schedule (check-in requests, stay reminders, feedback requests, and booking confirmations) instead of needing a manual click from Bookings. A scenario with an Interakt template name set below (once that template is approved by Meta) sends for real, straight to the guest's WhatsApp — no tap needed. Every other scenario still falls back to a Telegram message with a one-tap link that opens WhatsApp pre-filled, so the actual send is you, from your own number.</p>
     <div class="tg-status" id="tgStatusLive">
       <span class="dot" id="tgStatusDot"></span>
       <span id="tgStatusText">Checking Telegram connectivity…</span>
@@ -337,6 +337,11 @@
       <label class="f" style="margin-bottom:0"><span>Days before check-in</span><input class="t" id="waReminderDays" type="number" min="0" max="60" step="1"></label>
       <label class="f" style="margin-bottom:0"><span>Send at (IST)</span><input class="t" id="waReminderTime" type="time"></label>
     </div>
+    <label class="f" style="margin-bottom:8px">
+      <span>Interakt template name (optional) — once this is set and the template is approved by Meta, this reminder sends for real over WhatsApp instead of just nudging staff on Telegram to send it</span>
+      <input class="t" id="waInteraktReminder" placeholder="e.g. stay_reminder_v1" pattern="[a-z0-9_]*" maxlength="120">
+    </label>
+    <p class="wa-hint">The template's body must use placeholders 1 through 5, in this exact order: guest, check-in date, check-out date, map link, portal link.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="reminder">Reset to default</button></div>
 
     <label class="f"><span>Feedback request — sent by you to a guest after checkout</span></label>
@@ -834,6 +839,11 @@ const WA_DEFAULTS = {
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
 };
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
+// Per-scenario Interakt-approved template name — mirrors
+// INTERAKT_TEMPLATES_DEFAULT in the proxy's server.js. Empty string means
+// "not set up yet", same fallback-to-Telegram-nudge meaning as there.
+const INTERAKT_TEMPLATES_DEFAULT = { checkinRequest: '', reminder: '', feedbackRequest: '' };
+let interaktTemplatesDraft = Object.assign({}, INTERAKT_TEMPLATES_DEFAULT);
 // Mirrors WA_AUTOMATION_DEFAULT/mergeWaAutomation in the proxy's server.js —
 // per-scenario day count (before check-in, or after check-out) + a specific
 // send time in IST. bookingConfirmed has no entry — it's sent as soon as a
@@ -855,7 +865,8 @@ async function loadWaTemplates(){
     const data = await res.json().catch(()=>({}));
     if(data && data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
     if(data && data.automation) waAutomationDraft = mergeWaAutomation(data.automation);
-  }catch(e){ /* keeps the defaults already in waTemplatesDraft/waAutomationDraft */ }
+    if(data && data.interaktTemplates) interaktTemplatesDraft = Object.assign({}, INTERAKT_TEMPLATES_DEFAULT, data.interaktTemplates);
+  }catch(e){ /* keeps the defaults already in waTemplatesDraft/waAutomationDraft/interaktTemplatesDraft */ }
   renderWaTemplates();
   document.getElementById('waSave').disabled = false;
 }
@@ -863,6 +874,7 @@ function renderWaTemplates(){
   document.getElementById('waBookingRequest').value = waTemplatesDraft.bookingRequest || '';
   document.getElementById('waCheckinRequest').value = waTemplatesDraft.checkinRequest || '';
   document.getElementById('waReminder').value = waTemplatesDraft.reminder || '';
+  document.getElementById('waInteraktReminder').value = interaktTemplatesDraft.reminder || '';
   document.getElementById('waFeedbackRequest').value = waTemplatesDraft.feedbackRequest || '';
   document.getElementById('waCheckinRequestDays').value = waAutomationDraft.checkinRequest.daysBefore;
   document.getElementById('waCheckinRequestTime').value = waAutomationDraft.checkinRequest.sendTime;
@@ -892,17 +904,23 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
     reminder: { daysBefore: parseInt(document.getElementById('waReminderDays').value, 10) || 0, sendTime: document.getElementById('waReminderTime').value || WA_AUTOMATION_DEFAULT.reminder.sendTime },
     feedbackRequest: { daysAfter: parseInt(document.getElementById('waFeedbackRequestDays').value, 10) || 0, sendTime: document.getElementById('waFeedbackRequestTime').value || WA_AUTOMATION_DEFAULT.feedbackRequest.sendTime },
   };
+  interaktTemplatesDraft = {
+    checkinRequest: interaktTemplatesDraft.checkinRequest || '',
+    reminder: document.getElementById('waInteraktReminder').value.trim().toLowerCase(),
+    feedbackRequest: interaktTemplatesDraft.feedbackRequest || '',
+  };
   btn.disabled = true; btn.textContent = 'Saving…';
   try{
     const res = await fetch(PROXY_URL+'/whatsapp-templates', {
       method:'PUT', headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
-      body: JSON.stringify({ templates: waTemplatesDraft, automation: waAutomationDraft })
+      body: JSON.stringify({ templates: waTemplatesDraft, automation: waAutomationDraft, interaktTemplates: interaktTemplatesDraft })
     });
     if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
     const data = await res.json().catch(()=>({}));
     if(!res.ok){ toast(data.error || 'Save failed'); return; }
     if(data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
     if(data.automation) waAutomationDraft = mergeWaAutomation(data.automation);
+    if(data.interaktTemplates) interaktTemplatesDraft = Object.assign({}, INTERAKT_TEMPLATES_DEFAULT, data.interaktTemplates);
     renderWaTemplates();
     toast('WhatsApp templates saved');
   }catch(e){ toast('Could not reach the server'); }
