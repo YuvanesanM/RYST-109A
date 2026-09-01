@@ -9,6 +9,11 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+<!-- "Outfit" — used only by the quote/invoice PDF (.doc, below) so it
+     matches stay.html's own printable document exactly; the rest of this
+     page keeps its own DM Sans / Cormorant Garamond fonts. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
@@ -360,13 +365,103 @@
   .r-tot.grand span:last-child{color:var(--sea-mid)}
   .r-foot{text-align:center;font-size:11px;color:var(--muted-text);line-height:1.6;margin-top:32px;padding-top:14px;border-top:1px dashed var(--line)}
   .r-foot .brand{font-weight:700;color:var(--sea-mid);letter-spacing:.3px}
-  /* Quote/invoice PDF's extra sections — payment info, terms, declaration —
-     that a plain food-order receipt (the rest of .r-doc) never needs. */
-  .r-section-h{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--sea-mid);margin:20px 0 8px}
-  .r-pay{font-size:12px;line-height:1.7;color:var(--ink);white-space:pre-line}
-  .r-terms{margin:0;padding-left:16px;font-size:11px;color:var(--muted-text);line-height:1.6}
-  .r-terms li{margin-bottom:3px}
-  .r-decl{font-size:10.5px;line-height:1.5;color:var(--muted-text)}
+
+  /* ── QUOTE/INVOICE PDF — an exact copy of stay.html's own printable
+     ".doc" document (colors, fonts, layout all hardcoded to match, not
+     guest.html's own theme tokens) so what a guest downloads is
+     pixel-for-pixel what staff generates from the dashboard. Any layout
+     change made to stay.html's #stayDoc should be mirrored here too.
+     Sized responsively on screen (this overlay is mobile-first); print
+     switches it to the real A4/210mm layout via @media print below. ── */
+  .doc{width:100%;background:#fff;color:#1c2422;padding:18px 16px;font-family:"Outfit",sans-serif;font-weight:400;display:flex;flex-direction:column;border-radius:var(--r-lg);box-shadow:var(--shadow-lg);border:1px solid var(--line)}
+  .d-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+  .d-brand{display:flex;align-items:center;gap:10px}
+  .d-brand-logo{height:64px;width:auto;display:block;object-fit:contain;align-self:center}
+  .d-brand-text{align-self:center}
+  .bt-name{font-weight:700;font-size:20px;letter-spacing:1px;color:#143b44;line-height:1.05}
+  .bt-name span{color:#c0922f}
+  .bt-villa{font-weight:600;font-size:11px;letter-spacing:4px;color:#0a5b63;margin-top:1px}
+  .bt-tag{font-size:8px;letter-spacing:2px;color:#6a7a76;margin-top:3px}
+  .co-ig{display:flex;align-items:center;justify-content:flex-end;gap:4px;margin-top:4px;font-size:11px;color:#c96a3b;text-decoration:none;letter-spacing:.3px}
+  .d-co{text-align:right;color:#33433f;font-size:11.5px;line-height:1.6;padding-top:2px}
+  .addr-link{color:inherit;text-decoration:none}
+  .d-title{text-align:center;color:#fff;background:#0e7c86;font-weight:700;font-size:16px;letter-spacing:3px;padding:8px;border-radius:6px;margin:14px 0}
+  .d-panels{display:grid;grid-template-columns:1fr;gap:12px;margin-bottom:14px}
+  .panel{border:1px solid #d7e2e0;border-radius:8px;overflow:hidden}
+  .panel-h{background:#e3f1f1;color:#0a5b63;font-weight:700;font-size:11px;letter-spacing:1.2px;padding:7px 12px;border-bottom:1px solid #d7e2e0}
+  .panel .kv{display:flex;justify-content:space-between;gap:12px;padding:4px 12px;font-size:12.5px;line-height:1.4}
+  .panel .kv span{color:#6a7a76}
+  .panel .kv b{color:#1c2a27;font-weight:600;text-align:right}
+  .d-mid{display:flex;flex-direction:column;gap:12px;margin-bottom:14px}
+  table.d-table{width:100%;border-collapse:collapse;font-size:12px}
+  table.d-table th{background:#0e7c86;color:#fff;text-align:left;padding:8px 10px;font-weight:600;font-size:10.5px}
+  table.d-table th.num,table.d-table td.num{text-align:center}
+  table.d-table th.amt,table.d-table td.amt{text-align:right}
+  table.d-table td{padding:7px 10px;color:#2c3633;background:#f4f7f6;vertical-align:middle}
+  table.d-table tr:nth-child(even) td{background:#eef3f2}
+  table.d-table tfoot td{background:#fff;border-top:1px solid #d7e2e0;font-weight:600;color:#1c2a27}
+  table.d-table tfoot tr.grand td{background:#0e7c86;color:#fff;font-weight:700;font-size:13px}
+  .d-side{display:flex;flex-direction:column;gap:10px}
+  .side-box{border:1px solid #d7e2e0;border-radius:8px;padding:9px 12px}
+  .side-box .sb-l{font-size:10px;font-weight:700;letter-spacing:.5px;color:#6a7a76;text-transform:uppercase}
+  .side-box .sb-l small{font-weight:500;text-transform:none;letter-spacing:0}
+  .side-box .sb-v{font-size:15px;font-weight:700;color:#0a5b63;margin-top:3px}
+  .side-box.bal{background:#e3f1f1;border-color:#bfe0e0}
+  .side-box.bal .sb-v{color:#143b44}
+  .d-pay{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:12px}
+  .d-pay-qr{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .d-pay-qr img{width:120px;height:120px;display:block;border:1px solid #d7e2e0;border-radius:6px;padding:3px}
+  .d-pay-qr .qr-label{font-size:9px;letter-spacing:.8px;color:#6a7a76;text-transform:uppercase;text-align:center;margin-top:3px}
+  .pb-h{font-weight:700;font-size:11px;letter-spacing:1px;color:#0a5b63;margin-bottom:6px}
+  .pb-body{font-size:12px;line-height:1.7;color:#2c3633}
+  .decl{font-size:11px;line-height:1.55;color:#52605c}
+  .d-terms{margin-bottom:10px}
+  .d-terms ol{margin:0;padding-left:18px;font-size:11px;color:#42504c;line-height:1.6}
+  .d-terms ol li{margin-bottom:2px}
+  .d-decl{margin-bottom:10px}
+  .d-sign-row{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-top:10px}
+  .d-sign{display:flex;flex-direction:column;align-items:flex-end;text-align:right;margin-left:auto}
+  .d-sign.guest{align-items:flex-start;text-align:left;margin-left:0}
+  .d-sign .sign-for{font-size:11px;color:#52605c;margin-bottom:2px}
+  .d-sign .sign-name{font-size:11.5px;font-weight:700;color:#1c2a27;letter-spacing:.3px}
+  .d-sign .sign-blank{height:32px;border-bottom:1px solid #bbb;width:110px;margin:6px 0 4px}
+  .d-foot{text-align:center;font-size:10.5px;font-weight:600;letter-spacing:1.5px;color:#0a5b63;border-top:1px solid #dde4e3;padding-top:9px;margin-top:14px}
+  @media print{
+    /* Same uniform-zoom trick stay.html's own print CSS uses, for the same
+       reason: guarantees the whole document fits one A4 page regardless of
+       how much terms/bank text the owner has saved, rather than spilling a
+       signature block + footer onto an orphan second page. */
+    .doc{width:210mm;min-height:297mm;padding:12mm 13mm 9mm;box-shadow:none;border:none;border-radius:0;zoom:0.93}
+    .d-brand-logo{height:116px}
+    .bt-name{font-size:30px}
+    .bt-villa{font-size:17px;letter-spacing:6px}
+    .bt-tag{font-size:10.5px;letter-spacing:3px}
+    .d-co{font-size:12.5px;padding-top:24px}
+    .d-title{font-size:22px;letter-spacing:4px;margin:14px 0}
+    .d-panels{grid-template-columns:1fr 1fr;gap:14px}
+    .panel-h{font-size:12px;letter-spacing:1.5px}
+    .panel .kv{padding:3px 12px;font-size:13px}
+    .d-mid{flex-direction:row;align-items:start;gap:14px}
+    .d-mid table.d-table{flex:1}
+    .d-side{width:188px;flex-shrink:0}
+    .side-box .sb-l{font-size:10.5px}
+    .side-box .sb-v{font-size:16px}
+    table.d-table{font-size:13.5px}
+    table.d-table th{padding:9px 12px;font-size:12.5px}
+    table.d-table td{padding:7px 12px}
+    table.d-table tfoot tr.grand td{font-size:14.5px}
+    .d-pay{flex-direction:row;justify-content:space-between;align-items:start}
+    .d-pay-qr img{width:135px;height:135px}
+    .pb-h{font-size:12px;letter-spacing:1.2px}
+    .pb-body{font-size:12.5px}
+    .decl{font-size:11.5px}
+    .d-terms ol,.d-decl .decl{font-size:11.5px}
+    .d-sign-row{margin-top:6px}
+    .d-sign .sign-for{font-size:12px}
+    .d-sign .sign-name{font-size:12.5px}
+    .d-sign .sign-blank{height:38px;width:140px}
+    .d-foot{font-size:11.5px;letter-spacing:2px;margin-top:10px}
+  }
 
   /* ── FEEDBACK (reuses .receipt-overlay's full-screen shell, own inner
      card — .r-doc's table/invoice layout doesn't fit a rating form) ── */
@@ -382,7 +477,7 @@
   }
   .fb-doc textarea:focus{border-color:var(--sea-mid)}
 
-  @page{ size:A4; margin:14mm }
+  @page{ size:A4; margin:7mm 5mm 6mm }
   @media print{
     body *{visibility:hidden}
     #receiptArea, #receiptArea *{visibility:visible}
@@ -1305,56 +1400,130 @@ function viewReceipt(o){
   $('#receiptOverlay').classList.add('active');
 }
 
-// The quote-review screen's booking-id pill opens this — same
-// #receiptArea/#receiptOverlay shell viewReceipt() above already uses (and
-// the @media print block already targets), just filled with the
-// quote/invoice's own document instead of a food-order receipt. `biz`
-// (me.business) carries the same bank/terms/declaration text a staff-
-// generated PDF from stay.html shows, so nothing here is guest.html's own
-// invention — it's what the owner has actually configured in Settings.
+// The quote-review screen's booking-id pill (and the home screen's, for a
+// paid invoice) opens this — same #receiptArea/#receiptOverlay shell
+// viewReceipt() above uses (and the @media print block already targets),
+// filled with an EXACT copy of stay.html's own printable invoice/quote
+// document (".doc" and everything under it — see stay.html's #stayDoc for
+// the source of truth; mirror any layout change made there here too) so
+// what a guest downloads is pixel-for-pixel what staff would generate from
+// the dashboard, not a lighter guest.html-only rendering. `biz`
+// (me.business) carries the same bank/terms/declaration text stay.html
+// pulls from stay-settings.json — nothing here is guest.html's own
+// invention, it's what the owner has actually configured in Settings.
+const numDoc = n => Math.round(Number(n)||0).toLocaleString('en-IN');
+const IG_ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>';
 function viewQuotePdf(b){
   b = b || (me && me.stay); if(!b) return;
   const biz = (me && me.business) || {};
+  const isInv = (b.type||'invoice') !== 'quote';
+  const fmtDateD = iso => { if(!iso) return '—'; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; };
+  const nights = (() => {
+    if(!b.checkin || !b.checkout) return 0;
+    const a = new Date(b.checkin+'T00:00:00'), c = new Date(b.checkout+'T00:00:00');
+    const n = Math.round((c-a)/86400000);
+    return n>0 ? n : 0;
+  })();
   const items = Array.isArray(b.items) ? b.items : [];
   const subtotal = items.reduce((s,it)=> s + (Number(it.rate)||0)*(Number(it.qty)||0), 0);
-  const isQuote = (b.type||'invoice') === 'quote';
+  const grand = Math.max(0, subtotal - (Number(b.discount)||0));
+  const rows = items.length ? items.map(it => `<tr>
+      <td>${esc(it.desc)}</td>
+      <td class="num">${it.qty}</td>
+      <td class="amt">${numDoc(it.rate)}</td>
+      <td class="amt">${numDoc((Number(it.rate)||0)*(Number(it.qty)||0))}</td></tr>`).join('')
+    : `<tr><td colspan="4" style="color:#aaa">—</td></tr>`;
+  const tfoot = `
+    <tr class="sub"><td colspan="3">SUBTOTAL</td><td class="amt">₹${numDoc(subtotal)}</td></tr>
+    ${b.discount>0 ? `<tr><td colspan="3" style="color:#6a7a76;font-weight:500">DISCOUNT</td><td class="amt" style="color:#6a7a76">− ₹${numDoc(b.discount)}</td></tr>` : ''}
+    <tr class="grand"><td colspan="3">GRAND TOTAL</td><td class="amt">₹${numDoc(grand)}</td></tr>`;
   $('#receiptArea').innerHTML = `
-    <div class="r-doc">
-      <div class="r-head">
-        <img src="/assets/stay-logo.png" alt="RYST 109A">
-        <div>
-          <div class="nm">RYST 109A Beach Villa</div>
-          <div class="sub">${esc(String(biz.company||'').replace(/,?\n/g,', '))}</div>
+    <div class="doc">
+      <div class="d-top">
+        <div class="d-brand">
+          <img class="d-brand-logo" src="/assets/stay-logo.png" alt="RYST 109A">
+          <div class="d-brand-text">
+            <div class="bt-name">RYST <span>109A</span></div>
+            <div class="bt-villa">BEACH&nbsp;VILLA</div>
+            <div class="bt-tag">PRIVATE COASTAL RETREAT</div>
+          </div>
+        </div>
+        <div class="d-co">
+          <a href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank" rel="noopener" class="addr-link">${esc(String(biz.company||'')).replace(/\n/g,'<br>')}</a>
+          <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" class="co-ig">${IG_ICON_SVG}@stay.ryst</a>
         </div>
       </div>
-      <div class="r-title">${isQuote ? 'QUOTATION' : 'INVOICE'}</div>
-      <div class="r-meta">
-        <div><span class="r-lbl">${isQuote?'Quote':'Invoice'} No</span><b>${esc(b.no)}</b></div>
-        <div class="r-right"><span class="r-lbl">${isQuote?'Quote':'Invoice'} Date</span><b>${b.date ? fmtDateShort(b.date) : '—'}</b></div>
-        <div><span class="r-lbl">Guest</span><b>${esc(b.guest||'Guest')}</b></div>
-        <div class="r-right"><span class="r-lbl">Guests</span><b>${esc(b.guests ? String(b.guests) : '—')}</b></div>
-        <div><span class="r-lbl">Check-in</span><b>${fmtDateShort(b.checkin)}</b></div>
-        <div class="r-right"><span class="r-lbl">Check-out</span><b>${fmtDateShort(b.checkout)}</b></div>
+
+      <div class="d-title">${isInv ? 'INVOICE' : 'QUOTATION'}</div>
+
+      <div class="d-panels">
+        <div class="panel">
+          <div class="panel-h">BILL TO</div>
+          <div class="kv"><span>Guest Name</span><b>${esc(b.guest||'—')}</b></div>
+          <div class="kv"><span>Email ID</span><b>${esc(b.email||'—')}</b></div>
+          <div class="kv"><span>Phone</span><b>${esc(b.phone||'—')}</b></div>
+          <div class="kv"><span>No. of Guests</span><b>${esc(b.guests ? String(b.guests) : '—')}</b></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h">STAY DETAILS</div>
+          <div class="kv"><span>${isInv?'Invoice':'Quote'} No</span><b>${esc(b.no)}</b></div>
+          <div class="kv"><span>${isInv?'Invoice':'Quote'} Date</span><b>${fmtDateD(b.date)}</b></div>
+          <div class="kv"><span>Booking Ref</span><b>${esc(b.ref||'—')}</b></div>
+          <div class="kv"><span>Check-in</span><b>${fmtDateD(b.checkin)}</b></div>
+          <div class="kv"><span>Check-out</span><b>${fmtDateD(b.checkout)}</b></div>
+          <div class="kv"><span>No. of Nights</span><b>${nights ? nights+' Night'+(nights>1?'s':'') : '—'}</b></div>
+          <div class="kv"><span>Payment Mode</span><b>${esc(b.mode||'—')}</b></div>
+        </div>
       </div>
-      <table class="r-items">
-        <thead><tr><th>Item</th><th class="num">Rate</th><th class="num">Qty</th><th class="num">Amount</th></tr></thead>
-        <tbody>${items.map(it=>`<tr><td class="nm">${esc(it.desc)}</td><td class="num">${money(it.rate)}</td><td class="num">${it.qty}</td><td class="num">${money(it.rate*it.qty)}</td></tr>`).join('')}</tbody>
-      </table>
-      <div class="r-totals">
-        <div class="r-tot"><span>Subtotal</span><span>${money(subtotal)}</span></div>
-        ${b.discount>0 ? `<div class="r-tot"><span>Discount</span><span>− ${money(b.discount)}</span></div>` : ''}
-        <div class="r-tot grand"><span>Total</span><span>${money(b.total)}</span></div>
-        <div class="r-tot"><span>Advance received</span><span>${money(b.advance)}</span></div>
-        <div class="r-tot"><span>Security deposit <small>(refundable)</small></span><span>${money(b.deposit)}</span></div>
-        <div class="r-tot grand"><span>Balance due</span><span>${money(b.balance)}</span></div>
+
+      <div class="d-mid">
+        <table class="d-table">
+          <thead><tr><th>Description</th><th class="num">Qty</th><th class="amt">Rate (₹)</th><th class="amt">Amount (₹)</th></tr></thead>
+          <tbody>${rows}</tbody>
+          <tfoot>${tfoot}</tfoot>
+        </table>
+        <div class="d-side">
+          <div class="side-box"><div class="sb-l">Booking Advance Received</div><div class="sb-v">₹${numDoc(b.advance)}</div></div>
+          <div class="side-box"><div class="sb-l">Security Deposit <small>(refundable, collected separately)</small></div><div class="sb-v">₹${numDoc(b.deposit)}</div></div>
+          <div class="side-box bal"><div class="sb-l">Balance Due <small>(if any)</small></div><div class="sb-v">₹${numDoc(b.balance)}</div></div>
+        </div>
       </div>
-      <div class="r-section-h">Payment / Bank Details</div>
-      <div class="r-pay">${esc(biz.bank||'')}${biz.pan?`\nPAN: ${esc(biz.pan)}`:''}</div>
-      <div class="r-section-h">Terms &amp; Conditions</div>
-      <ol class="r-terms">${(biz.terms||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ol>
-      <div class="r-section-h">Declaration</div>
-      <div class="r-decl">${esc(biz.declaration||'')}</div>
-      <div class="r-foot">${isQuote ? 'Please verify the details above — pay online any time to confirm this quote.' : 'Thank you for staying with us — see you at the beach!'}<br><span class="brand">RYST 109A</span> · stay.ryst.in</div>
+
+      <div class="d-pay">
+        <div>
+          <div class="pb-h">PAYMENT / BANK DETAILS</div>
+          <div class="pb-body">${esc(biz.bank||'').replace(/\n/g,'<br>')}<div style="margin-top:6px;font-weight:600;color:#0a5b63">PAN: ${esc(biz.pan||'')}</div></div>
+        </div>
+        <div class="d-pay-qr">
+          <img src="/assets/stay-payment-qr.png" alt="Scan to pay">
+          <div class="qr-label">Scan to Pay</div>
+        </div>
+      </div>
+
+      <div class="d-terms">
+        <div class="pb-h">TERMS &amp; CONDITIONS</div>
+        <ol>${(biz.terms||[]).map(t=>`<li>${esc(t)}</li>`).join('')}</ol>
+      </div>
+
+      <div class="d-decl">
+        <div class="pb-h">DECLARATION</div>
+        <div class="decl">${esc(biz.declaration||'')}</div>
+      </div>
+
+      <div class="d-sign-row">
+        <div class="d-sign guest">
+          <div class="sign-for">Accepted by (Guest)</div>
+          <div class="sign-blank"></div>
+          <div class="sign-name">${esc(b.guest||'Guest')}${b.date ? '  '+fmtDateD(b.date) : ''}</div>
+        </div>
+        <div class="d-sign">
+          <div class="sign-for">For RYST 109A</div>
+          <div class="sign-blank"></div>
+          <div class="sign-name">YUVANESAN M</div>
+        </div>
+      </div>
+
+      <div class="d-foot">${isInv ? 'Thank you for joining us at RYST 109A Beach Villa!' : 'PLEASE JOIN US FOR A RELAXING, WARM &amp; WONDERFUL STAY'}</div>
     </div>
   `;
   $('#receiptOverlay').classList.add('active');
