@@ -255,7 +255,7 @@
           <button type="button" class="dd-item" id="btnWalletGoogle">Google Wallet</button>
         </div>
       </div>
-      <button class="btn" id="btnPortalLink" disabled title="Save the document first, then copy a guest portal link">🔗 Guest Portal</button>
+      <button class="btn" id="btnPortalLink" disabled title="Save the document first, then copy a guest link">🔗 Guest Portal</button>
     </div>
   </header>
 
@@ -1238,12 +1238,19 @@ function syncPortalBtn(){
   const b=$("#btnPortalLink"); if(!b) return;
   const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
   const tok = stay && stay.portalToken;
+  const isBlock = stay && (stay.type||"invoice")==="block";
   const committed = stay && ((stay.type||"invoice")!=="quote" || Number(stay.advance)>0);
-  const ready = !!(tok && committed);
+  // A quote's link now works too — the guest lands on a review-and-pay
+  // screen instead of the full portal (guest.html branches on
+  // /portal/me's committed flag), and the SAME link just starts working
+  // as a normal portal link the moment they pay, no new link needed.
+  const ready = !!(tok && stay && !isBlock);
   b.disabled = !ready;
-  b.title = ready ? "Copy a guest portal link for this booking (no Google account needed)"
-    : !tok ? "Save the document first, then copy a guest portal link"
-    : "Only available once this is an invoice, or a quote with an advance paid";
+  b.title = ready
+    ? (committed ? "Copy a guest portal link for this booking (no Google account needed)"
+                 : "Copy a link for the guest to review this quote and pay online to confirm it")
+    : !tok ? "Save the document first, then copy a guest link"
+    : "Not available for a blocked date";
   b.dataset.portalUrl = ready ? `${GUEST_PORTAL_URL}?no=${encodeURIComponent(editingKey)}&t=${encodeURIComponent(tok)}` : '';
 }
 $("#btnPortalLink").addEventListener("click", async ()=>{
