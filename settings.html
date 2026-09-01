@@ -306,6 +306,23 @@
     </div>
     <div class="sync-results" id="waRunResults" style="margin-bottom:18px"></div>
 
+    <p class="gh-mini">Send a test message</p>
+    <p class="sd" style="margin-bottom:12px">Sends one real Interakt message with sample data (a made-up guest, dates, and links — never a real stay) to any phone number, using whichever scenario's template name is saved below. Useful to confirm a template + API key actually work without waiting for a real stay to fall into the right date window.</p>
+    <div class="feed-row" style="grid-template-columns:1fr 1fr;margin-bottom:8px">
+      <label class="f" style="margin-bottom:0"><span>Phone number</span><input class="t" id="waTestPhone" type="tel" placeholder="e.g. 9876543210 or 919876543210"></label>
+      <label class="f" style="margin-bottom:0"><span>Scenario</span>
+        <select class="t" id="waTestScenario">
+          <option value="reminder">Stay reminder</option>
+          <option value="checkinRequest">Check-in request</option>
+          <option value="feedbackRequest">Feedback request</option>
+        </select>
+      </label>
+    </div>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:8px">
+      <button class="btn" id="waTestSendBtn">Send test message</button>
+    </div>
+    <div class="sync-results" id="waTestSendResults" style="margin-bottom:22px"></div>
+
     <p class="gh-mini">Telegram notify setup</p>
     <p class="sd" style="margin-bottom:12px">One-time setup on Render: message <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> on Telegram, send <code>/newbot</code>, and set the token it gives you as <code>TELEGRAM_BOT_TOKEN</code> (a Render environment variable — not set from here). Each person who wants alerts then sends "hi" to the new bot from their own Telegram account, uses the button below to find their chat ID, and an admin enters it against their name in <b>Settings → User Access</b> — along with which of the 12 alert types they want to receive.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:10px">
@@ -328,6 +345,11 @@
       <label class="f" style="margin-bottom:0"><span>Days before check-in</span><input class="t" id="waCheckinRequestDays" type="number" min="0" max="60" step="1"></label>
       <label class="f" style="margin-bottom:0"><span>Send at (IST)</span><input class="t" id="waCheckinRequestTime" type="time"></label>
     </div>
+    <label class="f" style="margin-bottom:8px">
+      <span>Interakt template name (optional) — once this is set and the template is approved by Meta, this sends for real over WhatsApp instead of just nudging staff on Telegram to send it</span>
+      <input class="t" id="waInteraktCheckinRequest" placeholder="e.g. checkin_request_v1" pattern="[a-z0-9_]*" maxlength="120">
+    </label>
+    <p class="wa-hint">The template's body must use placeholders 1 through 4, in this exact order: guest, check-in date, check-out date, check-in link.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="checkinRequest">Reset to default</button></div>
 
     <label class="f"><span>Stay reminder — sent by you to a guest a few days before check-in</span></label>
@@ -351,6 +373,11 @@
       <label class="f" style="margin-bottom:0"><span>Days after check-out</span><input class="t" id="waFeedbackRequestDays" type="number" min="0" max="60" step="1"></label>
       <label class="f" style="margin-bottom:0"><span>Send at (IST)</span><input class="t" id="waFeedbackRequestTime" type="time"></label>
     </div>
+    <label class="f" style="margin-bottom:8px">
+      <span>Interakt template name (optional) — once this is set and the template is approved by Meta, this sends for real over WhatsApp instead of just nudging staff on Telegram to send it</span>
+      <input class="t" id="waInteraktFeedbackRequest" placeholder="e.g. feedback_request_v1" pattern="[a-z0-9_]*" maxlength="120">
+    </label>
+    <p class="wa-hint">The template's body must use placeholders 1 and 2, in this exact order: guest, feedback link.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="feedbackRequest">Reset to default</button></div>
 
     <div class="rc-foot">
@@ -808,6 +835,27 @@ document.getElementById('waRunNowBtn').addEventListener('click', async ()=>{
   }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
   finally{ btn.disabled = false; btn.textContent = '▶ Run now'; }
 });
+document.getElementById('waTestSendBtn').addEventListener('click', async ()=>{
+  const btn = document.getElementById('waTestSendBtn');
+  const out = document.getElementById('waTestSendResults');
+  const phone = document.getElementById('waTestPhone').value.trim();
+  const scenario = document.getElementById('waTestScenario').value;
+  if(!proxyToken){ toast('Sign in required'); return; }
+  if(!phone){ out.innerHTML = '<div class="sync-result err"><span>Send test message</span><span>Enter a phone number first</span></div>'; return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  out.innerHTML = '';
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp/test-send', {
+      method:'POST', headers:{ 'X-Token': proxyToken, 'Content-Type':'application/json' },
+      body: JSON.stringify({ phone, scenario }),
+    });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.ok===false){ out.innerHTML = `<div class="sync-result err"><span>Send test message</span><span>${esc(data.error||'Failed')}</span></div>`; }
+    else { out.innerHTML = `<div class="sync-result"><span>Send test message</span><span>Sent via ${esc(data.templateName)} to ${esc(data.phone)}</span></div>`; }
+  }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
+  finally{ btn.disabled = false; btn.textContent = 'Send test message'; }
+});
 
 document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('tgChatIdBtn');
@@ -874,9 +922,11 @@ async function loadWaTemplates(){
 function renderWaTemplates(){
   document.getElementById('waBookingRequest').value = waTemplatesDraft.bookingRequest || '';
   document.getElementById('waCheckinRequest').value = waTemplatesDraft.checkinRequest || '';
+  document.getElementById('waInteraktCheckinRequest').value = interaktTemplatesDraft.checkinRequest || '';
   document.getElementById('waReminder').value = waTemplatesDraft.reminder || '';
   document.getElementById('waInteraktReminder').value = interaktTemplatesDraft.reminder || '';
   document.getElementById('waFeedbackRequest').value = waTemplatesDraft.feedbackRequest || '';
+  document.getElementById('waInteraktFeedbackRequest').value = interaktTemplatesDraft.feedbackRequest || '';
   document.getElementById('waCheckinRequestDays').value = waAutomationDraft.checkinRequest.daysBefore;
   document.getElementById('waCheckinRequestTime').value = waAutomationDraft.checkinRequest.sendTime;
   document.getElementById('waReminderDays').value = waAutomationDraft.reminder.daysBefore;
@@ -906,9 +956,9 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
     feedbackRequest: { daysAfter: parseInt(document.getElementById('waFeedbackRequestDays').value, 10) || 0, sendTime: document.getElementById('waFeedbackRequestTime').value || WA_AUTOMATION_DEFAULT.feedbackRequest.sendTime },
   };
   interaktTemplatesDraft = {
-    checkinRequest: interaktTemplatesDraft.checkinRequest || '',
+    checkinRequest: document.getElementById('waInteraktCheckinRequest').value.trim().toLowerCase(),
     reminder: document.getElementById('waInteraktReminder').value.trim().toLowerCase(),
-    feedbackRequest: interaktTemplatesDraft.feedbackRequest || '',
+    feedbackRequest: document.getElementById('waInteraktFeedbackRequest').value.trim().toLowerCase(),
   };
   btn.disabled = true; btn.textContent = 'Saving…';
   try{
