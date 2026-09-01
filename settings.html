@@ -797,6 +797,7 @@ document.getElementById('waRunNowBtn').addEventListener('click', async ()=>{
     else if(data.skipped){ out.innerHTML = `<div class="sync-result"><span>Run now</span><span>${esc(data.reason||'Not enabled')}</span></div>`; }
     else {
       const parts = [`${data.sent||0} sent`];
+      if(data.sentViaInterakt) parts.push(`${data.sentViaInterakt} via Interakt`);
       if(data.failed) parts.push(`${data.failed} failed`);
       let html = `<div class="sync-result${data.failed?' warn':''}"><span>Run now</span><span>${esc(parts.join(', '))}</span></div>`;
       if(data.warning) html += `<div class="sync-result warn"><span>Note</span><span>${esc(data.warning)}</span></div>`;
