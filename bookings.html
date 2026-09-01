@@ -86,6 +86,14 @@
      color (set inline per-cell, same otaBlockColor() the pill already
      uses) so which platform blocked it is visible without opening it. */
   .cal-cell.blocked{background:var(--block-soft)}
+  /* A date genuinely unavailable for a new booking — an invoice, or a
+     quote with an advance actually paid against it (same isNonBlockingStay
+     rule everywhere else on this page treats as "committed", just
+     inverted) — gets the same soft grey tint as a blocked date, since
+     both mean the same thing to someone scanning for open dates: this
+     day is taken. A quote with no advance yet stays unhighlighted, same
+     "Tentative" standing it has everywhere else on this page. */
+  .cal-cell.unavailable{background:var(--block-soft)}
   .daynum{font-size:12px;font-weight:600;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
   .cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
   .cal-pill.inv{background:var(--inv)}
@@ -1138,6 +1146,10 @@ function renderCalendar(){
     const hasInv = c.dayBookings.some(b=>(b.type||'invoice')==='invoice');
     const hasQt  = c.dayBookings.some(b=>(b.type||'invoice')==='quote');
     const hasBlk = c.dayBookings.some(b=>b.type==='block');
+    // Invoice, or a quote with an advance actually paid — a real
+    // commitment, not just a proposal. Same rule isNonBlockingStay uses
+    // elsewhere on this page, inverted.
+    const hasConfirmed = c.dayBookings.some(b=>!isNonBlockingStay(b));
     const conflict = c.dayBookings.length > 1;
     const cls = ['cal-cell'];
     if(!c.inMonth) cls.push('out');
@@ -1145,6 +1157,7 @@ function renderCalendar(){
     if(conflict) cls.push('conflict');
     if(c.dayBookings.length) cls.push('has-booking');
     if(hasBlk) cls.push('blocked');
+    if(hasConfirmed) cls.push('unavailable');
     // Mobile collapses to a single dot — priority invoice > quote > block.
     if(!hasInv && hasQt) cls.push('has-quote-only');
     else if(!hasInv && !hasQt && hasBlk) cls.push('has-block-only');
