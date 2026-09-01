@@ -315,6 +315,7 @@
           <option value="reminder">Stay reminder</option>
           <option value="checkinRequest">Check-in request</option>
           <option value="feedbackRequest">Feedback request</option>
+          <option value="quoteReady">Quote ready</option>
         </select>
       </label>
     </div>
@@ -379,6 +380,16 @@
     </label>
     <p class="wa-hint">The template's body must use placeholders 1 and 2, in this exact order: guest, feedback link.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="feedbackRequest">Reset to default</button></div>
+
+    <label class="f"><span>Quote ready — sent the moment a priced quote is saved in the Stay Builder, no schedule needed</span></label>
+    <p class="wa-hint">{{quoteLink}}</p>
+    <textarea class="t" id="waQuoteReady" rows="7" style="margin-bottom:8px"></textarea>
+    <label class="f" style="margin-bottom:8px">
+      <span>Interakt template name (optional) — once this is set and the template is approved by Meta, this sends for real over WhatsApp instead of just nudging staff on Telegram to send it</span>
+      <input class="t" id="waInteraktQuoteReady" placeholder="e.g. quote_ready_v1" pattern="[a-z0-9_]*" maxlength="120">
+    </label>
+    <p class="wa-hint">The template's body must use a single placeholder 1: the link to the guest's quote-review page.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="quoteReady">Reset to default</button></div>
 
     <div class="rc-foot">
       <button class="btn primary" id="waSave" disabled>Save WhatsApp templates</button>
@@ -885,13 +896,14 @@ const WA_DEFAULTS = {
   bookingRequest: `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n*Name:* {{name}}\n*Phone:* {{phone}}\n*Email:* {{email}}\n\n*Check-in:* {{checkin}}\n*Check-out:* {{checkout}} ({{nightsLabel}})\n*Guests:* {{guests}}\n*Occasion:* {{occasion}}\n\n*Notes:* {{message}}\n\n*Reference:* {{quoteNo}}`,
   checkinRequest: `Hi {{guest}}! Ahead of your stay at RYST 109A Beach Villa from {{checkin}} to {{checkout}}, please complete a quick digital check-in so we have everything ready for you:\n\n{{checkinLink}}\n\nTakes about 2 minutes — a government ID and your signature on our house rules. See you soon!`,
   reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nManage your stay any time — check your invoice, order food, and pay your balance — here: {{portalLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
-  feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`
+  feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`,
+  quoteReady: `Dear guest, your personalized digital quote is ready for your review.\n\n📄 View Your Quote: {{quoteLink}}\n\nPlease verify the stay details and total amount. Once confirmed, you may proceed with the payment through the quote page to secure your reservation.\n\nWe look forward to welcoming you to RYST 109A. ✨`
 };
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
 // Per-scenario Interakt-approved template name — mirrors
 // INTERAKT_TEMPLATES_DEFAULT in the proxy's server.js. Empty string means
 // "not set up yet", same fallback-to-Telegram-nudge meaning as there.
-const INTERAKT_TEMPLATES_DEFAULT = { checkinRequest: '', reminder: '', feedbackRequest: '' };
+const INTERAKT_TEMPLATES_DEFAULT = { checkinRequest: '', reminder: '', feedbackRequest: '', quoteReady: '' };
 let interaktTemplatesDraft = Object.assign({}, INTERAKT_TEMPLATES_DEFAULT);
 // Mirrors WA_AUTOMATION_DEFAULT/mergeWaAutomation in the proxy's server.js —
 // per-scenario day count (before check-in, or after check-out) + a specific
@@ -927,6 +939,8 @@ function renderWaTemplates(){
   document.getElementById('waInteraktReminder').value = interaktTemplatesDraft.reminder || '';
   document.getElementById('waFeedbackRequest').value = waTemplatesDraft.feedbackRequest || '';
   document.getElementById('waInteraktFeedbackRequest').value = interaktTemplatesDraft.feedbackRequest || '';
+  document.getElementById('waQuoteReady').value = waTemplatesDraft.quoteReady || '';
+  document.getElementById('waInteraktQuoteReady').value = interaktTemplatesDraft.quoteReady || '';
   document.getElementById('waCheckinRequestDays').value = waAutomationDraft.checkinRequest.daysBefore;
   document.getElementById('waCheckinRequestTime').value = waAutomationDraft.checkinRequest.sendTime;
   document.getElementById('waReminderDays').value = waAutomationDraft.reminder.daysBefore;
@@ -948,7 +962,8 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
     bookingRequest: document.getElementById('waBookingRequest').value,
     checkinRequest: document.getElementById('waCheckinRequest').value,
     reminder: document.getElementById('waReminder').value,
-    feedbackRequest: document.getElementById('waFeedbackRequest').value
+    feedbackRequest: document.getElementById('waFeedbackRequest').value,
+    quoteReady: document.getElementById('waQuoteReady').value
   };
   waAutomationDraft = {
     checkinRequest: { daysBefore: parseInt(document.getElementById('waCheckinRequestDays').value, 10) || 0, sendTime: document.getElementById('waCheckinRequestTime').value || WA_AUTOMATION_DEFAULT.checkinRequest.sendTime },
@@ -959,6 +974,7 @@ document.getElementById('waSave').addEventListener('click', async ()=>{
     checkinRequest: document.getElementById('waInteraktCheckinRequest').value.trim().toLowerCase(),
     reminder: document.getElementById('waInteraktReminder').value.trim().toLowerCase(),
     feedbackRequest: document.getElementById('waInteraktFeedbackRequest').value.trim().toLowerCase(),
+    quoteReady: document.getElementById('waInteraktQuoteReady').value.trim().toLowerCase(),
   };
   btn.disabled = true; btn.textContent = 'Saving…';
   try{
