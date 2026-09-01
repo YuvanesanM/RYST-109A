@@ -74,12 +74,18 @@
 
   .cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
   .cal-dow{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--muted2);text-align:center;padding:10px 4px;border-bottom:1px solid var(--line)}
-  .cal-cell{min-height:92px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:background .12s;position:relative}
+  .cal-cell{min-height:92px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);border-left:4px solid transparent;padding:6px;display:flex;flex-direction:column;gap:3px;cursor:pointer;transition:background .12s;position:relative}
   .cal-cell:hover{background:var(--panel2)}
   .cal-cell:nth-child(7n){border-right:none}
   .cal-cell.out{color:var(--muted2);background:#fafaf9}
   .cal-cell.today .daynum{background:var(--accent);color:#fff;border-radius:50%}
   .cal-cell.conflict{box-shadow:inset 0 0 0 2px var(--danger)}
+  /* Blocked date: a soft full-cell tint (not just the small pill inside)
+     so a blocked day reads at a glance across a whole month, not only on
+     close reading — plus a left accent bar in that day's specific OTA
+     color (set inline per-cell, same otaBlockColor() the pill already
+     uses) so which platform blocked it is visible without opening it. */
+  .cal-cell.blocked{background:var(--block-soft)}
   .daynum{font-size:12px;font-weight:600;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
   .cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
   .cal-pill.inv{background:var(--inv)}
@@ -1138,6 +1144,7 @@ function renderCalendar(){
     if(c.iso===today) cls.push('today');
     if(conflict) cls.push('conflict');
     if(c.dayBookings.length) cls.push('has-booking');
+    if(hasBlk) cls.push('blocked');
     // Mobile collapses to a single dot — priority invoice > quote > block.
     if(!hasInv && hasQt) cls.push('has-quote-only');
     else if(!hasInv && !hasQt && hasBlk) cls.push('has-block-only');
@@ -1145,7 +1152,11 @@ function renderCalendar(){
       `<div class="cal-pill ${pillClass(b.type)}"${b.type==='block' ? ` style="background:${otaBlockColor(b.guest)}"` : ''}>${esc(b.type==='block' ? (b.guest||'Blocked') : (b.guest||b.no||''))}</div>`
     ).join('');
     const more = c.dayBookings.length>2 ? `<div class="cal-more">+${c.dayBookings.length-2} more</div>` : '';
-    return `<div class="${cls.join(' ')}" data-iso="${c.iso}">
+    // Left accent bar in that day's specific OTA color (same otaBlockColor()
+    // the pill already uses) — first block of the day sets it, since a
+    // day essentially never has two different-platform blocks at once.
+    const style = hasBlk ? ` style="border-left-color:${otaBlockColor(c.dayBookings.find(b=>b.type==='block').guest)}"` : '';
+    return `<div class="${cls.join(' ')}" data-iso="${c.iso}"${style}>
       <div class="daynum">${c.date.getDate()}</div>
       ${shown}${more}
     </div>`;
