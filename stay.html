@@ -256,6 +256,7 @@
         </div>
       </div>
       <button class="btn" id="btnPortalLink" disabled title="Save the document first, then copy a guest link">🔗 Guest Portal</button>
+      <button class="btn" id="btnSendQuote" disabled title="Save the quote first, then send it to the guest" style="display:none">💬 Send Quote</button>
     </div>
   </header>
 
@@ -460,6 +461,19 @@
     <p class="sd">Confirmed check-in / check-out dates from saved invoices &amp; quotes.</p>
     <div id="bookingsList" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
     <div class="modal-foot"><button class="btn" id="bookingsClose">Close</button></div>
+  </div>
+</div>
+
+<!-- send quote modal -->
+<div class="modal" id="sendQuoteModal" hidden>
+  <div class="modal-card">
+    <h2>Send quote to guest?</h2>
+    <p class="sd" id="sendQuoteBody">This sends the quoteReady WhatsApp message with a link to review and pay.</p>
+    <div id="sendQuoteResult" style="font-size:12.5px;margin:-8px 0 8px"></div>
+    <div class="modal-foot">
+      <button class="btn" id="sendQuoteCancel">Cancel</button>
+      <button class="btn primary" id="sendQuoteConfirm">Send</button>
+    </div>
   </div>
 </div>
 
@@ -840,7 +854,7 @@ function syncGuestCharges(){
 
 /* ---------- NEW DOC ---------- */
 function newDoc(){
-  editingKey=null; syncPdfBtn(); syncWalletBtn(); syncPortalBtn();
+  editingKey=null; syncPdfBtn(); syncWalletBtn(); syncPortalBtn(); syncSendQuoteBtn();
   curNo=nextNo(docType); curDateISO=todayISO();
   $("#no").value=curNo; $("#date").value=curDateISO;
   ["guest","email","phone","guests","ref","checkin","checkout","nights","deposit","advance"].forEach(id=> $("#"+id).value="");
@@ -1077,7 +1091,7 @@ async function saveDoc(){
   // the client can compute) comes back decorated, then the Wallet button
   // can actually be enabled.
   await fetchStaysFromProxy();
-  syncWalletBtn(); syncPortalBtn();
+  syncWalletBtn(); syncPortalBtn(); syncSendQuoteBtn();
   toast((doc.type==="invoice"?"Invoice":"Quote")+" saved");
 }
 function loadDoc(no){
@@ -1090,7 +1104,7 @@ function loadDoc(no){
   // excludes blocks from its list, but a manually-typed/pasted
   // ?open=<no> deep link wouldn't, so the guard belongs here too.
   if((d.type||'invoice')==='block'){ toast("That's an OTA calendar hold, not an editable booking"); return; }
-  editingKey=d.no; syncPdfBtn(); syncWalletBtn(); syncPortalBtn();
+  editingKey=d.no; syncPdfBtn(); syncWalletBtn(); syncPortalBtn(); syncSendQuoteBtn();
   docType = (d.type==="quote") ? "quote" : "invoice";
   $("#typeSeg").querySelectorAll("button").forEach(b=> b.classList.toggle("on", b.dataset.type===docType));
   const isInv = docType==="invoice";
@@ -1258,6 +1272,63 @@ $("#btnPortalLink").addEventListener("click", async ()=>{
   if(!url) return;
   try{ await navigator.clipboard.writeText(url); toast("Guest portal link copied"); }
   catch(e){ toast("Could not copy — long-press to select the link instead"); }
+});
+
+/* ---------- SEND QUOTE (WhatsApp) ----------
+   Manual, staff-clicked send of the quoteReady WhatsApp template — never
+   automatic. Only shown at all for a saved quote (not an invoice — those
+   get their confirmation sent the usual way) with a phone number on file;
+   the actual send only happens after the confirmation dialog below. */
+function syncSendQuoteBtn(){
+  const b=$("#btnSendQuote"); if(!b) return;
+  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const isQuote = stay && (stay.type||"invoice")==="quote";
+  b.style.display = isQuote ? "" : "none";
+  if(!isQuote) return;
+  const hasPhone = !!(stay.phone && stay.phone.trim());
+  b.disabled = !hasPhone;
+  b.title = hasPhone ? "Send this quote to the guest over WhatsApp" : "Add a phone number first, then send this quote to the guest";
+  b.textContent = stay.quoteReadySentAt ? "💬 Resend Quote" : "💬 Send Quote";
+}
+$("#btnSendQuote").addEventListener("click", ()=>{
+  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  if(!stay) return;
+  $("#sendQuoteBody").innerHTML = `Send the quote-ready WhatsApp message to <b>${esc(stay.guest||"this guest")}</b> at <b>${esc(stay.phone||"")}</b>, with a link to review and pay quote <b>${esc(stay.no)}</b>?`
+    + (stay.quoteReadySentAt ? `<br><span style="color:var(--muted2)">Already sent ${new Date(stay.quoteReadySentAt).toLocaleString('en-IN')}.</span>` : '');
+  $("#sendQuoteResult").textContent = "";
+  $("#sendQuoteConfirm").disabled = false; $("#sendQuoteConfirm").textContent = "Send";
+  $("#sendQuoteModal").hidden = false;
+});
+$("#sendQuoteCancel").addEventListener("click", ()=> $("#sendQuoteModal").hidden = true);
+$("#sendQuoteConfirm").addEventListener("click", async ()=>{
+  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  if(!stay) return;
+  const btn = $("#sendQuoteConfirm"), out = $("#sendQuoteResult");
+  btn.disabled = true; btn.textContent = "Sending…"; out.textContent = "";
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp/send-quote', {
+      method:'POST', headers:{'X-Token':proxyToken,'Content-Type':'application/json'},
+      body: JSON.stringify({ no: stay.no })
+    });
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || data.error){
+      out.style.color = 'var(--danger,#c0584b)';
+      out.textContent = data.error || "Could not send — please try again";
+      btn.disabled = false; btn.textContent = "Send";
+      return;
+    }
+    out.style.color = 'var(--good,#3a8a5e)';
+    out.textContent = data.via === 'interakt' ? "Sent — the guest's WhatsApp got the message directly." : "Could not send directly — a Telegram nudge was sent so a staff member can tap through instead.";
+    btn.textContent = "Sent ✓";
+    await fetchStaysFromProxy();
+    syncSendQuoteBtn();
+    toast("Quote sent");
+    setTimeout(()=>{ $("#sendQuoteModal").hidden = true; }, 1400);
+  }catch(e){
+    out.style.color = 'var(--danger,#c0584b)';
+    out.textContent = "Could not reach the server — please try again";
+    btn.disabled = false; btn.textContent = "Send";
+  }
 });
 async function downloadPdf(){
   try{ await document.fonts.ready; }catch(e){}
