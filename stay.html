@@ -177,16 +177,19 @@
   .modal-card h2{font-weight:600;margin:0 0 4px;font-size:20px}
   .modal-card .sd{color:var(--muted);font-size:12.5px;margin:0 0 20px}
   .modal-foot{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
-  .saved-list{display:flex;flex-direction:column;gap:8px;margin-top:6px}
-  .saved-item{display:flex;align-items:center;gap:10px;padding:11px 13px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);font-size:13px}
-  .saved-item .si-main{flex:1;min-width:0}
-  .saved-item .si-no{color:var(--accent-d);font-weight:600}
-  .saved-item .si-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:1px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
-  .saved-item .si-tag.inv{background:#e3f1f1;color:var(--sea-d)}
-  .saved-item .si-tag.qt{background:#fbf0d8;color:var(--sand)}
-  .saved-item .si-sub{color:var(--muted);font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .saved-item button{padding:6px 10px;font-size:12px;border-radius:7px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}
-  .saved-item button:hover{border-color:var(--accent)}
+  /* Search-to-open dropdown under the quote/invoice no. field — replaces
+     the old Saved modal's list, same si-no/si-tag/si-sub row shape, now a
+     single clickable row instead of a row + separate Open button. */
+  .no-dd{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:30;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(20,40,40,.15);max-height:280px;overflow-y:auto}
+  .no-dd[hidden]{display:none}
+  .no-dd-item{display:block;width:100%;text-align:left;padding:9px 12px;border:none;border-bottom:1px solid var(--line);background:var(--panel);font-size:13px;font-family:inherit;cursor:pointer}
+  .no-dd-item:last-child{border-bottom:none}
+  .no-dd-item:hover{background:var(--panel2)}
+  .no-dd-item .si-no{color:var(--accent-d);font-weight:600}
+  .no-dd-item .si-tag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;padding:1px 7px;border-radius:20px;margin-left:6px;vertical-align:middle}
+  .no-dd-item .si-tag.inv{background:#e3f1f1;color:var(--sea-d)}
+  .no-dd-item .si-tag.qt{background:#fbf0d8;color:var(--sand)}
+  .no-dd-item .si-sub{display:block;color:var(--muted);font-size:11.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .empty{color:var(--muted2);font-size:13px;text-align:center;padding:18px}
 
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#15201f;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;transition:.25s;z-index:60}
@@ -242,9 +245,6 @@
       <button class="btn icon-btn" id="btnHome" title="Home">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7.25 7.5 2l5.5 5.25"/><path d="M3.25 6.5V13h8.5V6.5"/><path d="M6 13V9h3v4"/></svg>
       </button>
-      <button class="btn icon-btn" id="btnSaved" title="Saved">
-        <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 1.75h11a1 1 0 011 1V13l-6.5-2.5L1 13V2.75a1 1 0 011-1z"/></svg>
-      </button>
       <button class="btn icon-btn" id="btnBookings" title="Booking calendar">
         <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.5" y="2.5" width="12" height="11" rx="1.5"/><path d="M1.5 6.5h12M5 1v3M10 1v3"/></svg>
       </button>
@@ -269,12 +269,12 @@
       <div class="group">
         <p class="gh">Document</p>
         <div class="seg" id="typeSeg">
-          <button data-type="quote">Quotation</button>
-          <button data-type="invoice" class="on">Invoice</button>
+          <button data-type="quote" class="on">Quotation</button>
+          <button data-type="invoice">Invoice</button>
         </div>
         <div class="row2" style="margin-top:12px">
-          <label class="f"><span id="noLbl">Invoice no. (auto)</span><input class="t locked" id="no" readonly tabindex="-1"></label>
-          <label class="f"><span id="dateLbl">Invoice date</span><input class="t" id="date" type="date"></label>
+          <label class="f" style="position:relative"><span id="noLbl">Quote no. (auto)</span><input class="t" id="no" autocomplete="off" placeholder="Auto-generated — or type to search"><div class="no-dd" id="noDropdown" hidden></div></label>
+          <label class="f"><span id="dateLbl">Quote date</span><input class="t" id="date" type="date"></label>
         </div>
         <label class="f" id="loadQuoteRow" style="display:none"><span>Load from quote</span>
           <select class="t" id="loadQuoteSel"><option value="">— pick a quote —</option></select>
@@ -448,16 +448,6 @@
   </main>
 </div>
 
-<!-- saved modal -->
-<div class="modal" id="savedModal" hidden>
-  <div class="modal-card">
-    <h2>Saved invoices &amp; quotes</h2>
-    <p class="sd">Stored securely in the cloud.</p>
-    <div class="saved-list" id="savedList"></div>
-    <div class="modal-foot"><button class="btn" id="savedClose">Close</button></div>
-  </div>
-</div>
-
 <!-- bookings modal -->
 <div class="modal" id="bookingsModal" hidden>
   <div class="modal-card" style="width:min(620px,100%)">
@@ -501,10 +491,6 @@ const GUEST_PORTAL_URL = 'https://stay.ryst.in/guest.html';
 const todayISO = () => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
 let proxyToken = localStorage.getItem('ryst_proxy_token') || '';
 const MYEMAIL = localStorage.getItem('ryst_user_email') || '';
-// Admin is assigned via Settings → User Access (data-driven, cached at
-// login), not a hardcoded email. Server-enforced in the proxy's /stays PUT
-// validator regardless — this only controls whether the button renders.
-const IS_ADMIN = localStorage.getItem('ryst_user_admin') === 'true';
 
 // Owner always has full access. Coordinator/caretaker need the 'bookings'
 // module granted in Settings → User Access — server-enforced on /stays
@@ -639,7 +625,7 @@ function rateFor(desc){
 let settings = loadSettings();
 
 /* ---------- STATE ---------- */
-let docType = "invoice";          // "invoice" | "quote"
+let docType = "quote";             // "invoice" | "quote"
 let items = [];                   // {desc, qty, rate}
 let staysCache = [];              // loaded from proxy
 let editingKey = null;
@@ -800,11 +786,16 @@ function bind(){
   $("#btnNew").addEventListener("click", ()=>{ if(confirm("Start a new blank document?")) newDoc(); });
   $("#btnSave").addEventListener("click", saveDoc);
   $("#btnPdf").addEventListener("click", downloadPdf);
-  $("#btnSaved").addEventListener("click", openSaved);
-  $("#savedClose").addEventListener("click", ()=> $("#savedModal").hidden=true);
   $("#btnBookings").addEventListener("click", openBookings);
   $("#bookingsClose").addEventListener("click", ()=> $("#bookingsModal").hidden=true);
   $("#loadQuoteSel").addEventListener("change", e=>{ if(e.target.value) loadFromQuote(e.target.value); });
+  // The no. field doubles as a search-to-open combobox — see
+  // renderNoDropdown/closeNoDropdown below for the shared open/close logic
+  // every one of these funnels through.
+  $("#no").addEventListener("focus", e=>{ e.target.select(); renderNoDropdown(""); });
+  $("#no").addEventListener("input", e=> renderNoDropdown(e.target.value));
+  $("#no").addEventListener("blur", closeNoDropdown);
+  $("#no").addEventListener("keydown", e=>{ if(e.key==="Escape") e.target.blur(); });
 }
 
 function setType(t){
@@ -1193,42 +1184,51 @@ function loadDoc(no){
   syncCheckoutMin();
   $("#nights").value = nightsBetween(d.checkin,d.checkout)||"";
   items = (d.items&&d.items.length)? d.items.map(x=>({desc:x.desc||"",qty:(x.qty!=null?x.qty:"1"),rate:x.rate||"",...(x._villaRow&&{_villaRow:true}),...(x._autoLocked&&{_autoLocked:true})})) : [{desc:"",qty:"1",rate:""}];
-  syncGuestCharges(); renderItems(); render(); $("#savedModal").hidden=true; toast("Loaded "+d.no);
-}
-async function openSaved(){
-  const list=$("#savedList");
-  list.innerHTML = `<div class="empty">Loading…</div>`;
-  $("#savedModal").hidden=false;
-  await fetchStaysFromProxy();
-  // Same reasoning as openBookings' filter — blocks aren't real documents,
-  // shouldn't be openable or deletable from here.
-  const all=getStays().filter(d=>(d.type||'invoice')!=='block').slice().sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
-  list.innerHTML = !all.length ? `<div class="empty">No saved documents yet.</div>`
-    : all.map(d=>{
-        const t=(d.type==="quote")?"qt":"inv"; const tl=(d.type==="quote")?"QUOTE":"INVOICE";
-        const sub=[esc(d.guest||"—"), d.checkin?fmtDate(d.checkin):"", d.date?("· "+fmtDate(d.date)):""].filter(Boolean).join(" ");
-        // Only the admin account can delete anything — quote or invoice.
-        const delBtn = IS_ADMIN ? `<button data-del="${esc(d.no)}" title="Delete ${d.type==='quote'?'quote':'invoice'}" style="color:var(--danger,#c0584b)">Delete</button>` : "";
-        return `<div class="saved-item"><div class="si-main">
-          <div class="si-no">${esc(d.no)}<span class="si-tag ${t}">${tl}</span></div>
-          <div class="si-sub">${sub}</div></div>
-          <button data-load="${esc(d.no)}">Open</button>${delBtn}</div>`;
-      }).join("");
-  list.querySelectorAll("[data-load]").forEach(b=> b.addEventListener("click", ()=> loadDoc(b.dataset.load)));
-  list.querySelectorAll("[data-del]").forEach(b=> b.addEventListener("click", ()=> deleteStay(b.dataset.del)));
+  syncGuestCharges(); renderItems(); render(); toast("Loaded "+d.no);
 }
 
-async function deleteStay(no){
-  const d = getStays().find(s=>s.no===no);
-  if(!d) return;
-  if(!IS_ADMIN) return; // server would reject this anyway; button shouldn't even be visible
-  const label = d.type==="quote" ? "quote" : "invoice";
-  if(!confirm(`Delete ${label} ${no}${d.guest?" ("+d.guest+")":""}? This can't be undone.`)) return;
-  const prevCache = staysCache;
-  staysCache = staysCache.filter(s=>s.no!==no);
-  const ok = await pushStays();
-  if(ok){ toast(label.charAt(0).toUpperCase()+label.slice(1)+" deleted"); openSaved(); }
-  else { staysCache = prevCache; toast(lastPushError || "Could not delete — please try again"); }
+/* ---------- QUOTE/INVOICE SEARCH ----------
+   The no. field doubles as a search-to-open combobox — replaces the old
+   Saved modal. Matches by number, guest name, or check-in/out date; blocks
+   are excluded, same reasoning openBookings' own filter already uses (an
+   OTA calendar hold isn't a real, openable document). Deleting a stay
+   still lives in bookings.html (admin-only there already) — nothing here
+   needs to duplicate that. */
+function matchingStays(q){
+  const all = getStays().filter(d=>(d.type||'invoice')!=='block').slice().sort((a,b)=>(b.savedAt||0)-(a.savedAt||0));
+  const needle = q.trim().toLowerCase();
+  if(!needle) return all.slice(0,30);
+  return all.filter(d=>{
+    const hay = [d.no, d.guest, fmtDate(d.checkin), fmtDate(d.checkout)].filter(Boolean).join(" ").toLowerCase();
+    return hay.includes(needle);
+  }).slice(0,30);
+}
+function renderNoDropdown(q){
+  const dd = $("#noDropdown"); if(!dd) return;
+  const matches = matchingStays(q);
+  dd.innerHTML = matches.length ? matches.map(d=>{
+      const t=(d.type==="quote")?"qt":"inv", tl=(d.type==="quote")?"QUOTE":"INVOICE";
+      const sub=[esc(d.guest||"—"), d.checkin?fmtDate(d.checkin):"", d.checkout?("→ "+fmtDate(d.checkout)):""].filter(Boolean).join(" ");
+      return `<button type="button" class="no-dd-item" data-load="${esc(d.no)}">
+        <span class="si-no">${esc(d.no)}<span class="si-tag ${t}">${tl}</span></span>
+        <span class="si-sub">${sub}</span></button>`;
+    }).join("")
+    : `<div class="empty">${q.trim() ? "No matches" : "No saved documents yet"}</div>`;
+  // mousedown (not click) + preventDefault — fires before the input's own
+  // blur would otherwise close this dropdown out from under the click.
+  dd.querySelectorAll("[data-load]").forEach(b=> b.addEventListener("mousedown", e=>{
+    e.preventDefault();
+    loadDoc(b.dataset.load);
+    $("#no").blur(); // closeNoDropdown (below) finishes the cleanup
+  }));
+  dd.hidden = false;
+}
+// Whatever was typed while searching was never a real edit to this
+// document's own number — always revert to the actual current value
+// (loadDoc already updated curNo/#no itself when a result was picked).
+function closeNoDropdown(){
+  const dd = $("#noDropdown"); if(dd) dd.hidden = true;
+  $("#no").value = curNo;
 }
 
 /* ---------- BOOKING VIEWER ---------- */
