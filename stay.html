@@ -315,12 +315,10 @@
           <label class="f"><span>No. of nights (auto)</span><input class="t locked" id="nights" readonly tabindex="-1"></label>
           <label class="f"><span>Payment mode</span>
             <select class="t" id="mode">
-              <option value="">—</option>
-              <option>UPI</option>
+              <option>Razorpay</option>
+              <option selected>UPI</option>
               <option>Bank Transfer</option>
               <option>Cash</option>
-              <option>Card</option>
-              <option>Other</option>
             </select>
           </label>
         </div>
@@ -920,7 +918,7 @@ function newDoc(){
   syncPhoneValidity();
   syncCheckoutMin();
   $("#discountInp").value="";
-  $("#mode").value="";
+  $("#mode").value="UPI"; // matches the <select>'s own default-selected option
   $("#channel").value="";
   items=[{desc:"Villa Rental Charges",qty:"1",rate:rateFor("Villa Rental Charges"),_villaRow:true}];
   if(docType==="invoice"){ populateLoadQuoteSel(); $("#loadQuoteRow").style.display=""; }
