@@ -393,13 +393,13 @@
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="quoteReady">Reset to default</button></div>
 
     <label class="f"><span>Booking confirmed — sent automatically the instant a balance payment clears online (a direct booking's own payment, the quote-review link's pay-to-confirm, or a later remaining-balance payment), no schedule needed</span></label>
-    <p class="wa-hint">{{guest}} {{checkin}} {{checkout}} {{no}} {{amount}} {{balanceLine}}</p>
-    <textarea class="t" id="waBookingConfirmed" rows="9" style="margin-bottom:8px"></textarea>
+    <p class="wa-hint">{{guest}} {{checkin}} {{checkout}} {{guests}} {{walletLink}}</p>
+    <textarea class="t" id="waBookingConfirmed" rows="12" style="margin-bottom:8px"></textarea>
     <label class="f" style="margin-bottom:8px">
       <span>Interakt template name (optional) — once this is set and the template is approved by Meta, this sends for real over WhatsApp instead of just nudging staff on Telegram to send it</span>
-      <input class="t" id="waInteraktBookingConfirmed" placeholder="e.g. booking_confirmed_v1" pattern="[a-z0-9_]*" maxlength="120">
+      <input class="t" id="waInteraktBookingConfirmed" placeholder="e.g. booking_confirmation" pattern="[a-z0-9_]*" maxlength="120">
     </label>
-    <p class="wa-hint">The template's body must use placeholders 1 through 6, in this exact order: guest, check-in date, check-out date, reference no., advance amount, balance line.</p>
+    <p class="wa-hint">The template's body must use placeholders 1 through 5, in this exact order: guest, check-in date, check-out date, guest count, Apple Wallet link.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button type="button" class="rc-add" data-reset="bookingConfirmed">Reset to default</button></div>
 
     <div class="rc-foot">
@@ -909,7 +909,7 @@ const WA_DEFAULTS = {
   reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nManage your stay any time — check your invoice, order food, and pay your balance — here: {{portalLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
   feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`,
   quoteReady: `Dear guest, your personalized digital quote is ready for your review.\n\n📄 View Your Quote: {{quoteLink}}\n\nPlease verify the stay details and total amount. Once confirmed, you may proceed with the payment through the quote page to secure your reservation.\n\nWe look forward to welcoming you to RYST 109A. ✨`,
-  bookingConfirmed: `Hi {{guest}}! Your booking at RYST 109A Beach Villa is confirmed for {{checkin}} to {{checkout}}.\n\n*Reference:* {{no}}\n*Advance received:* ₹{{amount}}\n\n{{balanceLine}}\n\nWe'll be in touch closer to your stay — see you soon!`
+  bookingConfirmed: `🌴 Your RYST 109A Booking is Confirmed!\nDear {{guest}} 👋\n\nThank you for choosing RYST 109A. Your reservation is confirmed, and we look forward to welcoming you. 🏡✨\n\n*📅 Check-in: {{checkin}}\n📅 Check-out: {{checkout}}\n👥 Guests: {{guests}}*\n\n📲 Add to Apple Wallet:\n{{walletLink}}\n\nWe look forward to hosting you at RYST 109A. 🌊`
 };
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
 // Per-scenario Interakt-approved template name — mirrors
