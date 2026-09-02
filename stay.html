@@ -15,7 +15,7 @@
   :root{
     --bg:#eef2f2; --panel:#ffffff; --panel2:#f5f8f8;
     --line:#dde4e3; --accent:#0e7c86; --accent-d:#0a5b63; --accent-soft:#e3f1f1;
-    --ink:#15201f; --muted:#566461; --muted2:#93a09d; --danger:#c0584b;
+    --ink:#15201f; --muted:#566461; --muted2:#93a09d; --danger:#c0584b; --good:#3a8a5e;
     --sea:#0e7c86; --sea-d:#0a5b63; --sand:#c0922f; --navy:#143b44;
   }
   *{box-sizing:border-box}
@@ -62,8 +62,6 @@
   .group > .gh::after{content:"";flex:1;height:1px;background:var(--line)}
   label.f{display:block;margin-bottom:12px}
   label.f span{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
-  .f-hint{display:block;font-size:11px;color:var(--muted2);margin-top:4px}
-  .f-hint.err{color:var(--danger)}
   input.t.err{border-color:var(--danger)}
   .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   input.t,textarea.t,select.t{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--ink);padding:10px 12px;font-size:13.5px;font-weight:400}
@@ -92,7 +90,10 @@
   .totals-mini{margin-top:14px;padding:14px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;font-size:13px}
   .totals-mini div{display:flex;justify-content:space-between;align-items:center;padding:3px 0;color:var(--muted)}
   .totals-mini div.grand{color:var(--ink);font-weight:700;border-top:1px solid var(--line);margin-top:6px;padding-top:9px}
-  .hint{font-size:11.5px;color:var(--muted2);line-height:1.5;margin-top:6px}
+  .hint{display:block;font-size:11.5px;color:var(--muted2);line-height:1.5;margin-top:6px}
+  .hint.err{color:var(--danger)}
+  .send-result.err{color:var(--danger)}
+  .send-result.ok{color:var(--good)}
 
   .preview{overflow:auto;background:#d9e0df;padding:30px;display:flex;justify-content:center;align-items:flex-start}
 
@@ -300,7 +301,7 @@
         <label class="f"><span>Guest name</span><input class="t" id="guest" placeholder="Mr. / Ms. ..."></label>
         <div class="row2">
           <label class="f"><span>Email ID</span><input class="t" id="email" placeholder="guest@email.com"></label>
-          <label class="f"><span>Phone</span><input class="t" id="phone" inputmode="tel" type="tel" placeholder="+919876543210"><small class="f-hint" id="phoneHint"></small></label>
+          <label class="f"><span>Phone</span><input class="t" id="phone" inputmode="tel" type="tel" placeholder="+919876543210"><small class="hint" id="phoneHint"></small></label>
         </div>
         <label class="f"><span>No. of guests</span><input class="t" id="guests" type="number" min="1" step="1" inputmode="numeric" placeholder="2"></label>
       </div>
@@ -472,7 +473,7 @@
   <div class="modal-card">
     <h2>Send quote to guest?</h2>
     <p class="sd" id="sendQuoteBody">This sends the quoteReady WhatsApp message with a link to review and pay.</p>
-    <div id="sendQuoteResult" style="font-size:12.5px;margin:-8px 0 8px"></div>
+    <div class="send-result" id="sendQuoteResult" style="font-size:12.5px;margin:-8px 0 8px"></div>
     <div class="modal-foot">
       <button class="btn" id="sendQuoteCancel">Cancel</button>
       <button class="btn primary" id="sendQuoteConfirm">Send</button>
@@ -678,6 +679,10 @@ async function pushStays(){
 function setConnected(ok){ const d=$("#connDot"); if(d){ d.classList.toggle("ok",ok); d.classList.toggle("err",!ok); d.title=ok?"Connected to cloud storage":"Disconnected"; } }
 function handleExpired(){ proxyToken=''; localStorage.removeItem('ryst_proxy_token'); setConnected(false); window.location.href='login.html'; }
 function getStays(){ return staysCache; }
+// The record currently open in the builder, or null on a blank/new
+// document — the same "find by editingKey" lookup every syncXBtn()/save/
+// send handler below needs, named once instead of repeated inline.
+function currentStay(){ return editingKey ? getStays().find(s=>s.no===editingKey) : null; }
 
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2200); }
 function fmtDate(iso){ if(!iso) return ""; const [y,m,d]=iso.split("-"); return `${d}/${m}/${y}`; }
@@ -1122,7 +1127,7 @@ function render(){
 // submitted check-in, a payment link's paid status, or an automation
 // dedup flag that then lets a reminder/request go out a second time.
 function collect(){
-  const existing = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const existing = currentStay();
   return {
     ...(existing||{}),
     type: docType, no: curNo, date: curDateISO,
@@ -1280,7 +1285,7 @@ function syncPdfBtn(){
    rather than just editingKey. Works for quotes and invoices alike. */
 function syncWalletBtn(){
   const b=$("#btnWallet"); if(!b) return;
-  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const stay = currentStay();
   const tok = stay && stay.walletToken;
   // Settings → Stay tab's Apple/Google Wallet toggles gate each item
   // independently — a token alone isn't enough once either platform is
@@ -1318,7 +1323,7 @@ document.addEventListener("click", ()=> walletDd.classList.remove("open"));
    moment the guest taps it. */
 function syncPortalBtn(){
   const b=$("#btnPortalLink"); if(!b) return;
-  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const stay = currentStay();
   const tok = stay && stay.portalToken;
   const isBlock = stay && (stay.type||"invoice")==="block";
   const committed = stay && ((stay.type||"invoice")!=="quote" || Number(stay.advance)>0);
@@ -1349,7 +1354,7 @@ $("#btnPortalLink").addEventListener("click", async ()=>{
    the actual send only happens after the confirmation dialog below. */
 function syncSendQuoteBtn(){
   const b=$("#btnSendQuote"); if(!b) return;
-  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const stay = currentStay();
   const isQuote = stay && (stay.type||"invoice")==="quote";
   b.style.display = isQuote ? "" : "none";
   if(!isQuote) return;
@@ -1359,17 +1364,17 @@ function syncSendQuoteBtn(){
   b.textContent = stay.quoteReadySentAt ? "💬 Resend Quote" : "💬 Send Quote";
 }
 $("#btnSendQuote").addEventListener("click", ()=>{
-  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const stay = currentStay();
   if(!stay) return;
   $("#sendQuoteBody").innerHTML = `Send the quote-ready WhatsApp message to <b>${esc(stay.guest||"this guest")}</b> at <b>${esc(stay.phone||"")}</b>, with a link to review and pay quote <b>${esc(stay.no)}</b>?`
     + (stay.quoteReadySentAt ? `<br><span style="color:var(--muted2)">Already sent ${new Date(stay.quoteReadySentAt).toLocaleString('en-IN')}.</span>` : '');
-  $("#sendQuoteResult").textContent = "";
+  $("#sendQuoteResult").textContent = ""; $("#sendQuoteResult").classList.remove("ok","err");
   $("#sendQuoteConfirm").disabled = false; $("#sendQuoteConfirm").textContent = "Send";
   $("#sendQuoteModal").hidden = false;
 });
 $("#sendQuoteCancel").addEventListener("click", ()=> $("#sendQuoteModal").hidden = true);
 $("#sendQuoteConfirm").addEventListener("click", async ()=>{
-  const stay = editingKey ? getStays().find(s=>s.no===editingKey) : null;
+  const stay = currentStay();
   if(!stay) return;
   const btn = $("#sendQuoteConfirm"), out = $("#sendQuoteResult");
   btn.disabled = true; btn.textContent = "Sending…"; out.textContent = "";
@@ -1380,12 +1385,12 @@ $("#sendQuoteConfirm").addEventListener("click", async ()=>{
     });
     const data = await res.json().catch(()=>({}));
     if(!res.ok || data.error){
-      out.style.color = 'var(--danger,#c0584b)';
+      out.classList.add('err');
       out.textContent = data.error || "Could not send — please try again";
       btn.disabled = false; btn.textContent = "Send";
       return;
     }
-    out.style.color = 'var(--good,#3a8a5e)';
+    out.classList.add('ok');
     out.textContent = data.via === 'interakt' ? "Sent — the guest's WhatsApp got the message directly." : "Could not send directly — a Telegram nudge was sent so a staff member can tap through instead.";
     btn.textContent = "Sent ✓";
     await fetchStaysFromProxy();
@@ -1393,7 +1398,7 @@ $("#sendQuoteConfirm").addEventListener("click", async ()=>{
     toast("Quote sent");
     setTimeout(()=>{ $("#sendQuoteModal").hidden = true; }, 1400);
   }catch(e){
-    out.style.color = 'var(--danger,#c0584b)';
+    out.classList.add('err');
     out.textContent = "Could not reach the server — please try again";
     btn.disabled = false; btn.textContent = "Send";
   }
