@@ -364,7 +364,7 @@
       </div>
       <div class="panel">
         <h2>Weekend vs Weekday pricing</h2>
-        <p class="phint">Friday &amp; Saturday nights counted as weekend</p>
+        <p class="phint">Friday, Saturday &amp; Sunday nights counted as weekend</p>
         <div class="chart-host" id="chWkd" data-desc="Weekend vs weekday ADR"></div>
         <div class="mini-row" id="pricingTiles"></div>
       </div>
@@ -439,7 +439,7 @@ const dateOnly = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0
 const toNum = v => { const n = parseFloat(String(v==null?'':v).replace(/[^0-9.-]/g,'')); return isFinite(n) ? n : 0; };
 const addDays = (iso,n) => { const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return dateOnly(d); };
 const dowOf = iso => new Date(iso+'T00:00:00').getDay(); // 0=Sun..6=Sat
-const isWeekendNight = dow => dow===5 || dow===6; // Fri+Sat — a villa, not a hotel: Friday night is the weekend premium night
+const isWeekendNight = dow => dow===5 || dow===6 || dow===0; // Fri+Sat+Sun — matches the weekend tariff hike in settings/server
 const firstOfMonth = d => { const x=new Date(d); x.setDate(1); x.setHours(0,0,0,0); return x; };
 const todayISO = () => dateOnly(new Date());
 
