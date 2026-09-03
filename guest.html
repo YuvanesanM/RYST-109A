@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Modern browsers already default to this, but this page's URL can carry
+     a one-time portal token as a query param (?no=&t=) before
+     tryMagicLinkLogin strips it — belt-and-suspenders against an older/
+     in-app-browser default leaking it via Referer to a third-party
+     subresource. -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>My Stay | RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
