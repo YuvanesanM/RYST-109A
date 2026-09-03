@@ -2284,7 +2284,7 @@
     const isHoliday = Array.isArray(PRICING.holidays) && PRICING.holidays.includes(iso);
     let rate = PRICING.villaRate;
     if(isHoliday) rate *= (1 + (PRICING.holidayHikePercent||0)/100);
-    else if(dow===5 || dow===6) rate *= (1 + (PRICING.weekendHikePercent||0)/100);
+    else if(dow===5 || dow===6 || dow===0) rate *= (1 + (PRICING.weekendHikePercent||0)/100);
     return Math.round(rate);
   }
   const fmtRateShort = rate => rate>=1000 ? Math.round(rate/1000)+'k' : String(rate);
