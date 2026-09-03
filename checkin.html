@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Modern browsers already default to this, but this page's URL can carry
+     a one-time check-in token as a query param (?no=&t=) before it's
+     stripped below — belt-and-suspenders against an older/in-app-browser
+     default leaking it via Referer to a third-party subresource. -->
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>Guest Check-in | RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
@@ -409,6 +414,13 @@ function qp(name){ return new URLSearchParams(location.search).get(name) || ''; 
 // them set from the link's query params.
 let bookingNo = qp('no');
 let checkinTok = qp('t');
+// Stripped from the address bar the moment it's read — same reasoning as
+// guest.html's tryMagicLinkLogin: nothing on this page needs it to stay in
+// the URL/history any longer than it takes to load, and leaving it there
+// means a bookmark, a screenshot, a pasted-into-chat link, or synced
+// browser history keeps a live, unauthenticated bearer credential for this
+// booking around indefinitely.
+if(bookingNo && checkinTok) history.replaceState(null, '', location.pathname);
 // Everything else about the booking (guest name, dates, guest count, due
 // balance, phone, email, wallet token) is fetched fresh from
 // /checkin/lookup below rather than read off the URL — the link itself is
