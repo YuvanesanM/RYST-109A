@@ -54,15 +54,25 @@
   .g-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 6px 18px rgba(40,50,40,.04)}
   .g-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
   .g-name{font-weight:700;font-size:15.5px}
-  .g-no{font-size:11px;color:var(--muted2);font-weight:500}
+  .g-no{font-size:11px;color:var(--muted2);font-weight:500;margin-left:auto}
   .g-tag{font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:20px;text-transform:uppercase}
   .g-tag.invoice{background:var(--accent-soft);color:var(--accent-d)}
   .g-tag.quote{background:var(--qt-soft);color:var(--qt)}
-  .g-dates{font-size:13px;color:var(--ink);margin-top:5px}
+  /* Wide two-column body — a card's actual text (dates, a couple of
+     badges) rarely fills the panel's full width on anything wider than a
+     phone, so the right column (call pill + arrival countdown) sits
+     beside it instead of leaving that space empty. Wraps to a row below
+     .g-main on a narrow viewport (media query further down). */
+  .g-body{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-top:5px}
+  .g-main{flex:1;min-width:220px}
+  .g-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;padding-top:1px}
+  .g-dates{font-size:13px;color:var(--ink)}
   .g-dates .arrow{color:var(--muted2);margin:0 4px}
   .g-sub{font-size:12px;color:var(--muted);margin-top:2px}
-  .g-phone{font-size:12.5px;margin-top:6px}
-  .g-phone a{color:var(--accent-d);text-decoration:none;font-weight:600}
+  .g-phone-pill{background:var(--accent);color:#fff;padding:8px 15px;border-radius:20px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+  .g-phone-pill:hover{background:var(--accent-d)}
+  .g-countdown{font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;background:var(--panel2);color:var(--muted)}
+  .g-countdown.today{background:var(--warn-soft);color:var(--warn)}
   .g-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
   .g-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
   .g-badge.paid{background:var(--accent-soft);color:var(--accent-d)}
@@ -89,6 +99,7 @@
     .stats{grid-template-columns:repeat(3,1fr);gap:8px}
     .stat{padding:10px 8px}
     .stat .val{font-size:18px}
+    .g-side{flex-direction:row;align-items:center;width:100%;justify-content:flex-start;margin-top:8px}
   }
 </style>
 </head>
@@ -225,6 +236,27 @@ function foodStatusLabel(s){
   if(s.foodStatus==='partial') return 'Food: ' + money(s.foodDue) + ' due';
   return 'Food: ' + money(s.foodDue) + ' due';
 }
+// Arrival countdown while the guest hasn't checked in yet, departure
+// countdown once they're in-house — both answer "how soon does this need
+// my attention", which the plain dates row doesn't at a glance. `days`
+// math mirrors the server's own nights calc (date-only ISO strings, so no
+// time-of-day/timezone skew between the two ends of the subtraction).
+function countdownInfo(s){
+  // Once actually checked in, always show a departure countdown — an
+  // "Arriving today" badge next to "✓ Checked in" would read as
+  // contradictory even if the checkin DATE is technically today.
+  if(!s.checkedIn && s.checkin === TODAY) return { text:'Arriving today', cls:'today' };
+  if(!s.checkedIn && TODAY < s.checkin){
+    const days = Math.round((new Date(s.checkin) - new Date(TODAY)) / 86400000);
+    return { text: days===1 ? 'Arrives tomorrow' : `In ${days} days`, cls:'' };
+  }
+  if(TODAY <= s.checkout){
+    const days = Math.round((new Date(s.checkout) - new Date(TODAY)) / 86400000);
+    if(days<=0) return { text:'Departs today', cls:'today' };
+    return { text: days===1 ? 'Departs tomorrow' : `Departs in ${days}d`, cls:'' };
+  }
+  return null; // shouldn't happen — the list is already scoped to checkout >= today
+}
 
 function matchesFilter(s){
   if(FILTER==='arriving') return s.checkin === TODAY;
@@ -272,20 +304,28 @@ function render(){
       ? `<div class="g-checkin done">✓ Checked in${s.arrivalTime ? ' · arrived '+esc(s.arrivalTime) : ''}${s.vehicleNumber ? ' · '+esc(s.vehicleNumber) : ''}${s.checkinGuestsCount!=null ? ' · '+s.checkinGuestsCount+' guest'+(s.checkinGuestsCount===1?'':'s')+' on arrival' : ''}${s.checkinNote ? '<div class="note">"'+esc(s.checkinNote)+'"</div>' : ''}</div>`
       : `<div class="g-checkin">Not checked in yet</div>`;
     const metaTags = [s.channel, s.mode].filter(Boolean).map(t=>`<span>${esc(t)}</span>`).join('');
+    const cd = countdownInfo(s);
     return `<div class="g-card">
       <div class="g-top">
         <span class="g-name">${esc(s.guest||'Guest')}</span>
         <span class="g-tag ${s.type}">${s.type==='quote'?'Quote':'Invoice'}</span>
         <span class="g-no">${esc(s.no)}</span>
       </div>
-      <div class="g-dates">${esc(fmtDate(s.checkin))}<span class="arrow">→</span>${esc(fmtDate(s.checkout))}</div>
-      <div class="g-sub">${esc(nightsStr)}${guestsStr}</div>
-      ${s.phone ? `<div class="g-phone"><a href="tel:${esc(fmtPhone(s.phone))}">📞 ${esc(s.phone)}</a></div>` : ''}
-      <div class="g-badges">
-        <span class="g-badge ${s.stayStatus}">${esc(stayStatusLabel(s))}</span>
-        <span class="g-badge ${s.foodStatus}">${esc(foodStatusLabel(s))}</span>
+      <div class="g-body">
+        <div class="g-main">
+          <div class="g-dates">${esc(fmtDate(s.checkin))}<span class="arrow">→</span>${esc(fmtDate(s.checkout))}</div>
+          <div class="g-sub">${esc(nightsStr)}${guestsStr}</div>
+          <div class="g-badges">
+            <span class="g-badge ${s.stayStatus}">${esc(stayStatusLabel(s))}</span>
+            <span class="g-badge ${s.foodStatus}">${esc(foodStatusLabel(s))}</span>
+          </div>
+          ${metaTags ? `<div class="g-meta">${metaTags}</div>` : ''}
+        </div>
+        <div class="g-side">
+          ${s.phone ? `<a class="g-phone-pill" href="tel:${esc(fmtPhone(s.phone))}">📞 ${esc(s.phone)}</a>` : ''}
+          ${cd ? `<span class="g-countdown ${cd.cls}">${esc(cd.text)}</span>` : ''}
+        </div>
       </div>
-      ${metaTags ? `<div class="g-meta">${metaTags}</div>` : ''}
       ${checkinBlock}
     </div>`;
   }).join('');
