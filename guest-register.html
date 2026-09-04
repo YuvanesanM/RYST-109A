@@ -308,25 +308,22 @@ function render(){
   // is always 0 or 1 and tells a caretaker nothing useful. These three
   // instead answer "how busy are we".
   //
-  // "This month" counts only actual confirmed bookings (type 'invoice'),
-  // never a quote — a quote is a proposal, even one with a partial advance
-  // recorded against it, and isn't a real booking until staff convert it
-  // to an invoice.
-  //
-  // "Upcoming" is a wider scope (not limited to this month) but still only
-  // CONFIRMED bookings — every invoice, plus any quote that's actually had
-  // an advance paid against it (stayStatus other than 'unconfirmed' — the
-  // same "does this actually reserve the villa" test stayBlocksDates uses
-  // server-side). A bare draft quote with nothing paid isn't a booking at
-  // all yet, so it shouldn't count here either.
-  const invoices = ENTRIES.filter(s => s.type === 'invoice');
+  // "Confirmed" = every invoice, plus any quote that's actually had an
+  // advance paid against it (stayStatus other than 'unconfirmed' — the
+  // same "does this actually reserve the villa" test stayBlocksDates and
+  // the proxy's checklist-missing alert both use server-side). A bare
+  // draft quote with nothing paid isn't a booking yet; a quote WITH a
+  // real advance on it is, even before staff formally convert it to an
+  // invoice. Same rule for all three tiles below — "This month" just
+  // narrows it to bookings starting in the current calendar month.
+  const confirmed = ENTRIES.filter(s => s.stayStatus !== 'unconfirmed');
   const monthPrefix = TODAY.slice(0, 7);
-  $('#statMonth').textContent = invoices.filter(s => s.checkin && s.checkin.slice(0, 7) === monthPrefix).length;
-  $('#statUpcoming').textContent = ENTRIES.filter(s => s.checkout >= TODAY && s.stayStatus !== 'unconfirmed').length;
+  $('#statMonth').textContent = confirmed.filter(s => s.checkin && s.checkin.slice(0, 7) === monthPrefix).length;
+  $('#statUpcoming').textContent = confirmed.filter(s => s.checkout >= TODAY).length;
 
   const [monthStart, monthEnd] = monthRange(monthPrefix);
   const daysInMonth = Math.round((monthEnd - monthStart) / 86400000);
-  const occupiedNights = invoices.reduce((sum, s) => sum + nightsOverlap(s.checkin, s.checkout, monthStart, monthEnd), 0);
+  const occupiedNights = confirmed.reduce((sum, s) => sum + nightsOverlap(s.checkin, s.checkout, monthStart, monthEnd), 0);
   $('#statFillRate').textContent = daysInMonth ? Math.round(occupiedNights / daysInMonth * 100) + '%' : '—';
 
   $('#empty').style.display = visible.length ? 'none' : 'block';
