@@ -51,11 +51,11 @@
   .chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 
   .list{display:flex;flex-direction:column;gap:10px}
-  .g-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:0 6px 18px rgba(40,50,40,.04)}
-  .g-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-  .g-name{font-weight:700;font-size:15.5px}
-  .g-no{font-size:11px;color:var(--muted2);font-weight:500;margin-left:auto}
-  .g-tag{font-size:9.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:20px;text-transform:uppercase}
+  .g-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;box-shadow:0 6px 18px rgba(40,50,40,.04);line-height:1.45}
+  .g-top{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
+  .g-name{font-weight:700;font-size:17.5px}
+  .g-no{font-size:12px;color:var(--muted2);font-weight:500;margin-left:auto}
+  .g-tag{font-size:10px;font-weight:700;letter-spacing:.4px;padding:3px 9px;border-radius:20px;text-transform:uppercase}
   .g-tag.invoice{background:var(--accent-soft);color:var(--accent-d)}
   .g-tag.quote{background:var(--qt-soft);color:var(--qt)}
   /* Wide two-column body — a card's actual text (dates, a couple of
@@ -63,28 +63,28 @@
      phone, so the right column (call pill + arrival countdown) sits
      beside it instead of leaving that space empty. Wraps to a row below
      .g-main on a narrow viewport (media query further down). */
-  .g-body{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-top:5px}
+  .g-body{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-top:8px}
   .g-main{flex:1;min-width:220px}
-  .g-side{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;padding-top:1px}
-  .g-dates{font-size:13px;color:var(--ink)}
-  .g-dates .arrow{color:var(--muted2);margin:0 4px}
-  .g-sub{font-size:12px;color:var(--muted);margin-top:2px}
-  .g-phone-pill{background:var(--accent);color:#fff;padding:8px 15px;border-radius:20px;font-weight:700;font-size:13px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
+  .g-side{display:flex;flex-direction:column;align-items:flex-end;gap:9px;flex-shrink:0;padding-top:1px}
+  .g-dates{font-size:16px;font-weight:600;color:var(--ink)}
+  .g-dates .arrow{color:var(--muted2);margin:0 5px}
+  .g-sub{font-size:14.5px;font-weight:500;color:var(--ink);margin-top:3px}
+  .g-phone-pill{background:var(--accent);color:#fff;padding:9px 16px;border-radius:20px;font-weight:700;font-size:14.5px;display:inline-flex;align-items:center;gap:6px;text-decoration:none;white-space:nowrap}
   .g-phone-pill:hover{background:var(--accent-d)}
-  .g-countdown{font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;white-space:nowrap;background:var(--panel2);color:var(--muted)}
+  .g-countdown{font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:20px;white-space:nowrap;background:var(--panel2);color:var(--muted)}
   .g-countdown.today{background:var(--warn-soft);color:var(--warn)}
-  .g-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-  .g-badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;white-space:nowrap}
+  .g-badges{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+  .g-badge{font-size:12.5px;font-weight:600;padding:5px 12px;border-radius:20px;white-space:nowrap}
   .g-badge.paid{background:var(--accent-soft);color:var(--accent-d)}
   .g-badge.partial{background:var(--warn-soft);color:var(--warn)}
   .g-badge.unpaid{background:var(--danger-soft);color:var(--danger)}
   .g-badge.unconfirmed{background:var(--panel2);color:var(--muted)}
   .g-badge.none{background:var(--panel2);color:var(--muted2)}
-  .g-checkin{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);font-size:12.5px;color:var(--muted)}
+  .g-checkin{margin-top:11px;padding-top:11px;border-top:1px dashed var(--line);font-size:14px;color:var(--muted)}
   .g-checkin.done{color:var(--accent-d)}
-  .g-checkin .note{color:var(--ink);margin-top:3px;font-style:italic}
-  .g-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-  .g-meta span{font-size:10.5px;color:var(--muted2);background:var(--panel2);padding:3px 8px;border-radius:20px}
+  .g-checkin .note{color:var(--ink);margin-top:4px;font-style:italic}
+  .g-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
+  .g-meta span{font-size:12px;color:var(--muted2);background:var(--panel2);padding:4px 9px;border-radius:20px}
 
   .empty{color:var(--muted2);font-size:13px;text-align:center;padding:40px 20px}
 
@@ -306,15 +306,23 @@ function render(){
 
   // Single villa, one stay at a time — "arriving/in-house/departing today"
   // is always 0 or 1 and tells a caretaker nothing useful. These three
-  // instead answer "how busy are we" — counting only actual confirmed
-  // bookings (type 'invoice'), never a quote. A quote is a proposal, even
-  // one with a partial advance recorded against it — it isn't a real
-  // booking until staff convert it to an invoice, so it shouldn't inflate
-  // "how many bookings" any more than a fully-unconfirmed one would.
+  // instead answer "how busy are we".
+  //
+  // "This month" counts only actual confirmed bookings (type 'invoice'),
+  // never a quote — a quote is a proposal, even one with a partial advance
+  // recorded against it, and isn't a real booking until staff convert it
+  // to an invoice.
+  //
+  // "Upcoming" is deliberately the OPPOSITE scope: the entire pipeline —
+  // every quote and invoice still ahead of today, confirmed or not. This
+  // one is meant to answer "how much is queued up in total", so narrowing
+  // it to invoices-only would make it read as ~0 for most of this app's
+  // life (quotes routinely sit un-invoiced for a while after the guest
+  // pays), which defeats its point.
   const invoices = ENTRIES.filter(s => s.type === 'invoice');
   const monthPrefix = TODAY.slice(0, 7);
   $('#statMonth').textContent = invoices.filter(s => s.checkin && s.checkin.slice(0, 7) === monthPrefix).length;
-  $('#statUpcoming').textContent = invoices.filter(s => s.checkout >= TODAY).length;
+  $('#statUpcoming').textContent = ENTRIES.filter(s => s.checkout >= TODAY).length;
 
   const [monthStart, monthEnd] = monthRange(monthPrefix);
   const daysInMonth = Math.round((monthEnd - monthStart) / 86400000);
