@@ -117,7 +117,7 @@
   <div class="stats">
     <div class="stat"><div class="val" id="statMonth">—</div><div class="lbl">This month</div></div>
     <div class="stat"><div class="val" id="statUpcoming">—</div><div class="lbl">Upcoming</div></div>
-    <div class="stat"><div class="val" id="statBalance">—</div><div class="lbl">Balance due</div></div>
+    <div class="stat"><div class="val" id="statFillRate">—</div><div class="lbl">Fill rate</div></div>
   </div>
 
   <div class="toolbar">
@@ -272,6 +272,26 @@ function matchesSearch(s){
   return hay.includes(Q);
 }
 
+// [monthStart, nextMonthStart) as real Date objects, for the fill-rate
+// night-overlap math below. 'YYYY-MM' in, exclusive end so a night that
+// starts on the last day of the month is still counted once, correctly.
+function monthRange(monthPrefix){
+  const [y, m] = monthPrefix.split('-').map(Number);
+  return [new Date(y, m-1, 1), new Date(y, m, 1)];
+}
+// How many of a stay's nights fall inside [rangeStart, rangeEnd) — a stay
+// spanning a month boundary (e.g. checked in in August, checking out in
+// September) must only contribute the nights that actually land in the
+// month being measured, not its full length.
+function nightsOverlap(checkinISO, checkoutISO, rangeStart, rangeEnd){
+  if(!checkinISO || !checkoutISO) return 0;
+  const ci = new Date(checkinISO+'T00:00:00');
+  const co = new Date(checkoutISO+'T00:00:00');
+  const start = ci > rangeStart ? ci : rangeStart;
+  const end = co < rangeEnd ? co : rangeEnd;
+  return Math.max(0, Math.round((end-start)/86400000));
+}
+
 function render(){
   const list = $('#list');
   // The register's own list only ever shows stays still checkout>=today —
@@ -286,15 +306,20 @@ function render(){
 
   // Single villa, one stay at a time — "arriving/in-house/departing today"
   // is always 0 or 1 and tells a caretaker nothing useful. These three
-  // instead answer "how busy are we" and "who still owes money", counting
-  // only confirmed bookings (a quote nobody's paid a rupee toward isn't a
-  // booking yet).
-  const confirmed = ENTRIES.filter(s => s.stayStatus !== 'unconfirmed');
+  // instead answer "how busy are we" — counting only actual confirmed
+  // bookings (type 'invoice'), never a quote. A quote is a proposal, even
+  // one with a partial advance recorded against it — it isn't a real
+  // booking until staff convert it to an invoice, so it shouldn't inflate
+  // "how many bookings" any more than a fully-unconfirmed one would.
+  const invoices = ENTRIES.filter(s => s.type === 'invoice');
   const monthPrefix = TODAY.slice(0, 7);
-  $('#statMonth').textContent = confirmed.filter(s => s.checkin && s.checkin.slice(0, 7) === monthPrefix).length;
-  const upcoming = confirmed.filter(s => s.checkout >= TODAY);
-  $('#statUpcoming').textContent = upcoming.length;
-  $('#statBalance').textContent = money(upcoming.reduce((sum, s) => sum + (s.stayDue || 0), 0));
+  $('#statMonth').textContent = invoices.filter(s => s.checkin && s.checkin.slice(0, 7) === monthPrefix).length;
+  $('#statUpcoming').textContent = invoices.filter(s => s.checkout >= TODAY).length;
+
+  const [monthStart, monthEnd] = monthRange(monthPrefix);
+  const daysInMonth = Math.round((monthEnd - monthStart) / 86400000);
+  const occupiedNights = invoices.reduce((sum, s) => sum + nightsOverlap(s.checkin, s.checkout, monthStart, monthEnd), 0);
+  $('#statFillRate').textContent = daysInMonth ? Math.round(occupiedNights / daysInMonth * 100) + '%' : '—';
 
   $('#empty').style.display = visible.length ? 'none' : 'block';
   list.innerHTML = visible.map(s => {
