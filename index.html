@@ -987,6 +987,11 @@
     .avail-card {
       position: relative; background: var(--foam); border-radius: 20px; padding: clamp(18px,4vw,28px);
       border: 1px solid var(--line); overflow: hidden;
+      /* #calendar (this element's own id) is a deep link straight to the
+         availability widget — nav#nav is position:fixed, so without this
+         a hash-navigation landing here scrolls the widget's own heading
+         right underneath the nav bar instead of just below it. */
+      scroll-margin-top: 108px;
     }
     .avail-selected {
       display: flex; align-items: center; gap: 10px; margin-top: 14px;
@@ -1698,7 +1703,7 @@
         <div class="form-row full">
           <div class="f-group">
             <label>Select your dates *</label>
-            <div class="avail-card">
+            <div class="avail-card" id="calendar">
               <div class="avail-head">
                 <h3>Check availability</h3>
                 <div class="avail-nav">
