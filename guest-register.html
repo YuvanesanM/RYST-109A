@@ -313,16 +313,16 @@ function render(){
   // recorded against it, and isn't a real booking until staff convert it
   // to an invoice.
   //
-  // "Upcoming" is deliberately the OPPOSITE scope: the entire pipeline —
-  // every quote and invoice still ahead of today, confirmed or not. This
-  // one is meant to answer "how much is queued up in total", so narrowing
-  // it to invoices-only would make it read as ~0 for most of this app's
-  // life (quotes routinely sit un-invoiced for a while after the guest
-  // pays), which defeats its point.
+  // "Upcoming" is a wider scope (not limited to this month) but still only
+  // CONFIRMED bookings — every invoice, plus any quote that's actually had
+  // an advance paid against it (stayStatus other than 'unconfirmed' — the
+  // same "does this actually reserve the villa" test stayBlocksDates uses
+  // server-side). A bare draft quote with nothing paid isn't a booking at
+  // all yet, so it shouldn't count here either.
   const invoices = ENTRIES.filter(s => s.type === 'invoice');
   const monthPrefix = TODAY.slice(0, 7);
   $('#statMonth').textContent = invoices.filter(s => s.checkin && s.checkin.slice(0, 7) === monthPrefix).length;
-  $('#statUpcoming').textContent = ENTRIES.filter(s => s.checkout >= TODAY).length;
+  $('#statUpcoming').textContent = ENTRIES.filter(s => s.checkout >= TODAY && s.stayStatus !== 'unconfirmed').length;
 
   const [monthStart, monthEnd] = monthRange(monthPrefix);
   const daysInMonth = Math.round((monthEnd - monthStart) / 86400000);
