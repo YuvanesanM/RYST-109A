@@ -104,15 +104,15 @@
   </header>
 
   <div class="stats">
-    <div class="stat"><div class="val" id="statArriving">—</div><div class="lbl">Arriving today</div></div>
-    <div class="stat"><div class="val" id="statInHouse">—</div><div class="lbl">In-house</div></div>
-    <div class="stat"><div class="val" id="statDeparting">—</div><div class="lbl">Departing today</div></div>
+    <div class="stat"><div class="val" id="statMonth">—</div><div class="lbl">This month</div></div>
+    <div class="stat"><div class="val" id="statUpcoming">—</div><div class="lbl">Upcoming</div></div>
+    <div class="stat"><div class="val" id="statBalance">—</div><div class="lbl">Balance due</div></div>
   </div>
 
   <div class="toolbar">
     <input id="q" type="text" placeholder="Search name, phone or booking no…">
   </div>
-  <div class="chips" id="chips" style="margin-bottom:14px">
+  <div class="chips" id="chips" style="margin-bottom:10px">
     <button class="chip on" data-f="all">All</button>
     <button class="chip" data-f="arriving">Arriving</button>
     <button class="chip" data-f="inhouse">In-house</button>
@@ -120,6 +120,10 @@
     <button class="chip" data-f="foodDue">Food due</button>
     <button class="chip" data-f="notCheckedIn">Not checked in</button>
   </div>
+  <label style="display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-bottom:14px">
+    <input type="checkbox" id="showUnconfirmed" style="width:auto">
+    Show unconfirmed quotes (drafts with no advance paid)
+  </label>
 
   <div class="list" id="list"></div>
   <div class="empty" id="empty" style="display:none">Nothing matches — try a different search or filter.</div>
@@ -175,6 +179,7 @@ let ENTRIES = [];
 let TODAY = '';
 let FILTER = 'all';
 let Q = '';
+let SHOW_UNCONFIRMED = false; // unconfirmed quotes (draft, no advance paid) hidden by default
 
 async function load(){
   const loader = $('#loader'), msgEl = $('#loaderMsg'), retryBtn = $('#loaderRetry');
@@ -237,11 +242,27 @@ function matchesSearch(s){
 
 function render(){
   const list = $('#list');
-  const visible = ENTRIES.filter(s => matchesFilter(s) && matchesSearch(s));
+  // The register's own list only ever shows stays still checkout>=today —
+  // /guest-register also returns anything that already departed earlier
+  // this month (for the "this month" KPI below), but that's never meant
+  // to show up here, just to be counted. Unconfirmed quotes (a draft with
+  // no advance paid, per stayStatus) are hidden unless the checkbox is on.
+  const visible = ENTRIES.filter(s =>
+    s.checkout >= TODAY &&
+    (SHOW_UNCONFIRMED || s.stayStatus !== 'unconfirmed') &&
+    matchesFilter(s) && matchesSearch(s));
 
-  $('#statArriving').textContent = ENTRIES.filter(s=>s.checkin===TODAY).length;
-  $('#statInHouse').textContent = ENTRIES.filter(s=>s.checkin<=TODAY && TODAY<=s.checkout).length;
-  $('#statDeparting').textContent = ENTRIES.filter(s=>s.checkout===TODAY).length;
+  // Single villa, one stay at a time — "arriving/in-house/departing today"
+  // is always 0 or 1 and tells a caretaker nothing useful. These three
+  // instead answer "how busy are we" and "who still owes money", counting
+  // only confirmed bookings (a quote nobody's paid a rupee toward isn't a
+  // booking yet).
+  const confirmed = ENTRIES.filter(s => s.stayStatus !== 'unconfirmed');
+  const monthPrefix = TODAY.slice(0, 7);
+  $('#statMonth').textContent = confirmed.filter(s => s.checkin && s.checkin.slice(0, 7) === monthPrefix).length;
+  const upcoming = confirmed.filter(s => s.checkout >= TODAY);
+  $('#statUpcoming').textContent = upcoming.length;
+  $('#statBalance').textContent = money(upcoming.reduce((sum, s) => sum + (s.stayDue || 0), 0));
 
   $('#empty').style.display = visible.length ? 'none' : 'block';
   list.innerHTML = visible.map(s => {
@@ -271,6 +292,7 @@ function render(){
 }
 
 $('#q').addEventListener('input', e => { Q = e.target.value.trim().toLowerCase(); render(); });
+$('#showUnconfirmed').addEventListener('change', e => { SHOW_UNCONFIRMED = e.target.checked; render(); });
 $('#chips').addEventListener('click', e => {
   const btn = e.target.closest('.chip');
   if(!btn) return;
