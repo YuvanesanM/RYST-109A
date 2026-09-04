@@ -1022,8 +1022,9 @@ const MODULE_DEFS = [
   { id:'reports',    label:'Reports' },
   { id:'settings',   label:'Settings' },
   { id:'restaurant', label:'Restaurant' },
+  { id:'guestRegister', label:'Guest Register' },
 ];
-const LEGACY_CARETAKER_MODULES = ['petty-cash','inventory','checklist'];
+const LEGACY_CARETAKER_MODULES = ['petty-cash','inventory','checklist','guestRegister'];
 const isOwnerRole = r => r !== 'caretaker' && r !== 'coordinator';
 let usersDraft = [];
 async function loadUserAccess(){
