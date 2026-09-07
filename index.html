@@ -1299,6 +1299,26 @@
     .t-author strong { display: block; font-size: 13.5px; font-weight: 600; color: var(--sea); }
     .t-author span { font-size: 12px; color: var(--muted); }
 
+    /* ── TRUST / GOOGLE MAP ── */
+    #trust { background: var(--white); }
+    .trust-head { text-align: center; max-width: 560px; margin: 0 auto 36px; }
+    .trust-wrap { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 26px; }
+    .g-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--white); border: 1px solid var(--line); border-radius: 999px;
+      padding: 12px 22px; text-decoration: none; color: var(--ink);
+      box-shadow: 0 6px 18px rgba(14,36,32,.06); transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+    }
+    .g-badge:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(14,36,32,.1); }
+    .g-stars { color: #f5a623; font-size: 15px; letter-spacing: 1px; }
+    .g-badge-text { font-size: 13.5px; font-weight: 600; color: var(--ink-mid); }
+    .trust-map { width: 100%; border-radius: 20px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(14,36,32,.08); aspect-ratio: 16/9; }
+    .trust-map iframe { width: 100%; height: 100%; display: block; }
+    @media (max-width: 680px) {
+      .trust-map { aspect-ratio: 4/3; }
+      .g-badge { padding: 10px 16px; }
+    }
+
     /* ── PRICING NOTE ── */
     .pricing-note { background: rgba(255,255,255,.7); border: 1px solid var(--line); backdrop-filter: blur(10px); border-radius: 14px; padding: 14px 22px; margin-bottom: 36px; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.6; }
     .pricing-note strong { color: var(--ink); }
@@ -1550,6 +1570,25 @@
     <h2 class="section-title">Heard from <em>those who stayed</em></h2>
   </div>
   <div class="t-grid" id="testimonialsGrid"></div>
+</section>
+
+<!-- ── TRUST / GOOGLE MAP ── -->
+<section id="trust">
+  <div class="trust-head">
+    <p class="section-tag">Find Us, Trust Us</p>
+    <h2 class="section-title">See us on <em>Google</em></h2>
+    <p class="section-lead" style="margin: 14px auto 0; text-align:center;">Right where we say we are — and rated by the guests who've actually stayed.</p>
+  </div>
+  <div class="trust-wrap">
+    <a class="g-badge" href="https://www.google.com/maps?cid=2719689191603187138" target="_blank" rel="noopener">
+      <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      <span class="g-stars" id="gStars" aria-hidden="true">☆☆☆☆☆</span>
+      <span class="g-badge-text" id="gBadgeText">Read our reviews on Google</span>
+    </a>
+    <div class="trust-map">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3897.1954379853883!2d80.07564387595929!3d12.369837287892961!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a5309e6eb7e90a1%3A0x25be46e904fa2dc2!2sRYST%20109A%20%7C%20Pearl%20Beach%20Villa%2C%20ECR!5e0!3m2!1sen!2sin!4v1788608632734!5m2!1sen!2sin" width="600" height="450" style="border:0" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin" title="RYST 109A location on Google Maps"></iframe>
+    </div>
+  </div>
 </section>
 
 <!-- ── GALLERY ── -->
@@ -2251,6 +2290,29 @@
         }
       })
       .catch(()=>{}); // silent — a marketing nicety, not critical path
+  })();
+
+  // ── GOOGLE RATING BADGE ── the #trust section's badge already reads a
+  // safe generic "Read our reviews on Google" default in the static HTML;
+  // this only upgrades it to a real number once /google-rating actually
+  // has one (i.e. once GOOGLE_PLACES_API_KEY is configured server-side).
+  // Silent failure on purpose, same as the testimonials fetch above — a
+  // guest must never see a broken badge over this being unreachable.
+  (function(){
+    const PROXY_URL = 'https://data.ryst.in';
+    fetch(PROXY_URL + '/google-rating')
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if(!data || !data.ok) return;
+        const rating = Number(data.rating) || 0;
+        const count = Number(data.ratingCount) || 0;
+        const full = Math.max(0, Math.min(5, Math.round(rating)));
+        const starsEl = document.getElementById('gStars');
+        const textEl = document.getElementById('gBadgeText');
+        if(starsEl) starsEl.textContent = '★★★★★'.slice(0, full) + '☆☆☆☆☆'.slice(0, 5 - full);
+        if(textEl) textEl.textContent = `${rating.toFixed(1)} · ${count} Google review${count === 1 ? '' : 's'}`;
+      })
+      .catch(()=>{}); // silent — badge already shows a safe default
   })();
 
   // ── WHATSAPP TEMPLATES ── owner-editable wording (Settings → WhatsApp
