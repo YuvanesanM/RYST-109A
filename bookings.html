@@ -85,16 +85,21 @@
      so a blocked day reads at a glance across a whole month, not only on
      close reading — plus a left accent bar in that day's specific OTA
      color (set inline per-cell, same otaBlockColor() the pill already
-     uses) so which platform blocked it is visible without opening it. */
-  .cal-cell.blocked{background:var(--block-soft)}
+     uses) so which platform blocked it is visible without opening it.
+     Uses --danger-soft (a light red tint), not --block-soft — a plain
+     grey read as just "muted/disabled" rather than "taken", and red is
+     the more intuitive "this date is unavailable" signal at a glance.
+     --block-soft stays as-is for the unrelated Blocked badge/chip
+     elsewhere on this page, where a neutral tag reads better. */
+  .cal-cell.blocked{background:var(--danger-soft)}
   /* A date genuinely unavailable for a new booking — an invoice, or a
      quote with an advance actually paid against it (same isNonBlockingStay
      rule everywhere else on this page treats as "committed", just
-     inverted) — gets the same soft grey tint as a blocked date, since
+     inverted) — gets the same light red tint as a blocked date, since
      both mean the same thing to someone scanning for open dates: this
      day is taken. A quote with no advance yet stays unhighlighted, same
      "Tentative" standing it has everywhere else on this page. */
-  .cal-cell.unavailable{background:var(--block-soft)}
+  .cal-cell.unavailable{background:var(--danger-soft)}
   .daynum{font-size:12px;font-weight:600;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
   .cal-pill{font-size:10px;font-weight:600;padding:2px 6px;border-radius:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff}
   .cal-pill.inv{background:var(--inv)}
