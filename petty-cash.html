@@ -542,8 +542,20 @@ function render(){
   $('#cFloat').textContent = money(DOC.float);
   $('#cPending').textContent = money(t.pending);
   $('#cMonth').textContent = money(t.monthSpend);
+  // A shortfall below float is almost never ALL pending reimbursement — the
+  // rest is simply net cash movement (manual top-ups vs. withdrawals) that
+  // hasn't kept pace with the float target, which is entirely normal (e.g.
+  // topping up extra for a big spend, then withdrawing the leftover after).
+  // Collapsing both into one "below float" number reads as "that much is
+  // unreimbursed spend", which it isn't — spell out the split instead.
   const shortfall = DOC.float - t.cash;
-  $('#cCashSub').textContent = DOC.float>0 ? (shortfall>0 ? money(shortfall)+' below float' : 'at / above float') : 'what the caretaker holds now';
+  const otherGap = shortfall - t.pending; // whatever the gap isn't pending reimbursement
+  $('#cCashSub').textContent = DOC.float<=0 ? 'what the caretaker holds now'
+    : shortfall<=0 ? 'at / above float'
+    : t.pending<=0 ? `${money(shortfall)} below float — nothing pending, just net cash withdrawn`
+    : otherGap>0.5 ? `${money(shortfall)} below float (${money(t.pending)} pending + ${money(otherGap)} net withdrawn)`
+    : otherGap<-0.5 ? `${money(shortfall)} below float (${money(t.pending)} pending, offset by ${money(-otherGap)} topped up above float)`
+    : `${money(shortfall)} below float — all of it pending reimbursement`;
   $('#cPendingSub').textContent = t.pending>0 ? 'owed back to caretaker' : 'all settled';
   $('#cMonthSub').textContent = monthLabel(monthOf(todayISO()));
 
