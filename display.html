@@ -49,8 +49,8 @@
   header{display:flex;align-items:center;justify-content:space-between;gap:2vw;padding:2vh 2.6vw 1.6vh;flex-shrink:0}
   .tb-brand{display:flex;align-items:center;gap:1.1vw;min-width:0}
   .tb-brand img{height:5vh;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 3px 10px rgba(0,0,0,.4))}
-  .tb-brand .name{font-family:var(--serif);font-weight:600;font-size:clamp(16px,2.2vw,32px);color:var(--sand);letter-spacing:.02em;white-space:nowrap}
-  .tb-info{display:flex;align-items:center;gap:1.1vw;font-size:clamp(11px,1.25vw,20px);color:var(--mist);font-weight:600;white-space:nowrap}
+  .tb-brand .name{font-family:var(--serif);font-weight:600;font-size:2.2vw;font-size:clamp(16px,2.2vw,32px);color:var(--sand);letter-spacing:.02em;white-space:nowrap}
+  .tb-info{display:flex;align-items:center;gap:1.1vw;font-size:1.25vw;font-size:clamp(11px,1.25vw,20px);color:var(--mist);font-weight:600;white-space:nowrap}
   .tb-info .tb-sep{opacity:.4}
   .tb-info .tb-weather{display:flex;align-items:center;gap:.4vw}
   .tb-info .tb-weather .icon{font-size:1.3em;line-height:1}
@@ -59,7 +59,7 @@
   /* ── SCREENS ── */
   main{flex:1;display:flex;align-items:center;justify-content:center;padding:1vh 3.5vw 2vh;position:relative;overflow:hidden}
   .screen{
-    position:absolute;inset:1vh 3.5vw 2vh;display:none;align-items:center;justify-content:center;
+    position:absolute;top:1vh;right:3.5vw;bottom:2vh;left:3.5vw;inset:1vh 3.5vw 2vh;display:none;align-items:center;justify-content:center;
     opacity:0;transition:opacity .8s var(--ease);
   }
   .screen.active{display:flex;opacity:1}
@@ -77,39 +77,39 @@
     background-size:cover;background-position:center;display:flex;align-items:center;
   }
   .home2-hero::before{
-    content:'';position:absolute;inset:0;
+    content:'';position:absolute;top:0;right:0;bottom:0;left:0;inset:0;
     background:linear-gradient(100deg,rgba(4,15,21,.94) 0%,rgba(4,15,21,.8) 32%,rgba(4,15,21,.35) 58%,transparent 78%);
   }
   .home2-hero-text{position:relative;z-index:1;max-width:50%;padding:0 4vw}
   .home2-hero-text .eyebrow{
     font-family:var(--serif);font-style:italic;font-weight:600;color:var(--sand);
-    font-size:clamp(16px,2vw,32px);margin-bottom:.4vh;
+    font-size:2vw;font-size:clamp(16px,2vw,32px);margin-bottom:.4vh;
   }
   .home2-hero-text h1{
     font-family:var(--sans);font-weight:800;color:var(--white);text-transform:uppercase;letter-spacing:.01em;
-    font-size:clamp(28px,4.4vw,68px);line-height:1.05;text-shadow:0 4px 24px rgba(0,0,0,.65),0 2px 6px rgba(0,0,0,.5);
+    font-size:4.4vw;font-size:clamp(28px,4.4vw,68px);line-height:1.05;text-shadow:0 4px 24px rgba(0,0,0,.65),0 2px 6px rgba(0,0,0,.5);
   }
   .home2-hero-text .sub{
     font-family:var(--sans);font-weight:700;color:var(--sand);letter-spacing:.3em;text-transform:uppercase;
-    font-size:clamp(11px,1.3vw,20px);margin:.8vh 0 1.8vh;display:flex;align-items:center;gap:.8vw;
+    font-size:1.3vw;font-size:clamp(11px,1.3vw,20px);margin:.8vh 0 1.8vh;display:flex;align-items:center;gap:.8vw;
   }
   .home2-hero-text .sub::before,.home2-hero-text .sub::after{content:'';flex:1;height:1px;background:rgba(232,193,126,.5)}
-  .home2-hero-text .guest{color:var(--white);font-weight:800;font-size:clamp(15px,1.7vw,26px);margin-bottom:1.6vh;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+  .home2-hero-text .guest{color:var(--white);font-weight:800;font-size:1.7vw;font-size:clamp(15px,1.7vw,26px);margin-bottom:1.6vh;text-shadow:0 2px 10px rgba(0,0,0,.5)}
   .home2-hero-text .dates{
     display:inline-flex;align-items:center;gap:.6vw;color:var(--sand);font-weight:700;
-    font-size:clamp(10px,1.1vw,17px);margin-bottom:1.6vh;
+    font-size:1.1vw;font-size:clamp(10px,1.1vw,17px);margin-bottom:1.6vh;
   }
   .home2-hero-text hr{border:none;border-top:1px solid rgba(255,255,255,.3);margin-bottom:1.6vh;width:80%}
-  .home2-hero-text p{color:rgba(255,255,255,.92);font-weight:500;font-size:clamp(11px,1.15vw,18px);line-height:1.6;margin-bottom:.5vh;text-shadow:0 2px 8px rgba(0,0,0,.4)}
+  .home2-hero-text p{color:rgba(255,255,255,.92);font-weight:500;font-size:1.15vw;font-size:clamp(11px,1.15vw,18px);line-height:1.6;margin-bottom:.5vh;text-shadow:0 2px 8px rgba(0,0,0,.4)}
   .home2-hero-text p.tag{color:var(--sand);font-weight:800}
 
   .home2-glance{flex:1.15 1 0;min-height:0;display:flex;flex-direction:column}
   .h2-glance-head{
     display:flex;align-items:center;gap:1.2vw;font-family:var(--sans);font-weight:800;color:var(--sand);
-    letter-spacing:.25em;text-transform:uppercase;font-size:clamp(12px,1.4vw,22px);margin-bottom:1.2vh;flex-shrink:0;
+    letter-spacing:.25em;text-transform:uppercase;font-size:1.4vw;font-size:clamp(12px,1.4vw,22px);margin-bottom:1.2vh;flex-shrink:0;
   }
   .h2-glance-head::before,.h2-glance-head::after{content:'';flex:1;height:1px;background:rgba(232,193,126,.4)}
-  .h2-cards{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);gap:1.1vw}
+  .h2-cards{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-gap:1.1vw;gap:1.1vw}
   .h2-card{
     position:relative;border-radius:1vw;overflow:hidden;background:rgba(255,255,255,.06);
     /* A plain translucent border reads fine over the dark solid cards but
@@ -121,12 +121,12 @@
     background-size:cover;background-position:center;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:.5vh;padding:1vh 1vw;text-align:center;
   }
-  .h2-card.has-photo::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(4,15,21,.25),rgba(4,15,21,.86) 75%)}
+  .h2-card.has-photo::before{content:'';position:absolute;top:0;right:0;bottom:0;left:0;inset:0;background:linear-gradient(180deg,rgba(4,15,21,.25),rgba(4,15,21,.86) 75%)}
   .h2-card > *{position:relative;z-index:1}
-  .h2-card .icon{width:clamp(20px,2.4vw,36px);height:clamp(20px,2.4vw,36px);color:var(--sand)}
-  .h2-card h3{font-family:var(--sans);font-weight:800;font-size:clamp(12px,1.35vw,21px);color:var(--white);letter-spacing:.06em;text-transform:uppercase}
+  .h2-card .icon{width:2.4vw;width:clamp(20px,2.4vw,36px);height:2.4vw;height:clamp(20px,2.4vw,36px);color:var(--sand)}
+  .h2-card h3{font-family:var(--sans);font-weight:800;font-size:1.35vw;font-size:clamp(12px,1.35vw,21px);color:var(--white);letter-spacing:.06em;text-transform:uppercase}
   .h2-card .rule{width:2.2vw;height:1px;background:rgba(232,193,126,.6)}
-  .h2-card p{color:rgba(251,250,248,.88);font-size:clamp(9px,.9vw,14px);line-height:1.4}
+  .h2-card p{color:rgba(251,250,248,.88);font-size:.9vw;font-size:clamp(9px,.9vw,14px);line-height:1.4}
 
   .home2-infobar{
     flex:0 0 auto;display:flex;background:rgba(255,255,255,.05);border:1px solid var(--line);
@@ -136,94 +136,94 @@
   .h2-info-col + .h2-info-col{border-left:1px solid var(--line);padding-left:1.6vw}
   .h2-info-col h4{
     font-family:var(--sans);font-weight:800;color:var(--sand);letter-spacing:.12em;text-transform:uppercase;
-    font-size:clamp(10px,1.05vw,16px);margin-bottom:.4vh;
+    font-size:1.05vw;font-size:clamp(10px,1.05vw,16px);margin-bottom:.4vh;
   }
-  .h2-info-col p{color:rgba(251,250,248,.9);font-size:clamp(9px,.92vw,14px);line-height:1.45}
+  .h2-info-col p{color:rgba(251,250,248,.9);font-size:.92vw;font-size:clamp(9px,.92vw,14px);line-height:1.45}
   .h2-info-col .script{font-family:var(--serif);font-style:italic;color:var(--sand);text-decoration:underline;text-underline-offset:3px}
   .h2-qr-box{background:var(--white);border-radius:.6vw;padding:.4vw;flex-shrink:0}
-  .h2-qr-box img{display:block;width:clamp(46px,4.6vw,72px);height:clamp(46px,4.6vw,72px)}
+  .h2-qr-box img{display:block;width:4.6vw;width:clamp(46px,4.6vw,72px);height:4.6vw;height:clamp(46px,4.6vw,72px)}
   .h2-avatar{
-    width:clamp(38px,3.6vw,58px);height:clamp(38px,3.6vw,58px);border-radius:50%;flex-shrink:0;
+    width:3.6vw;width:clamp(38px,3.6vw,58px);height:3.6vw;height:clamp(38px,3.6vw,58px);border-radius:50%;flex-shrink:0;
     background:rgba(232,193,126,.14);border:1.5px solid rgba(232,193,126,.5);
     display:flex;align-items:center;justify-content:center;color:var(--sand);
   }
   .h2-avatar svg{width:56%;height:56%}
   .h2-wa-btn{
     display:inline-flex;align-items:center;gap:.5vw;margin-top:.7vh;background:#1c8a5a;color:#fff;
-    font-weight:700;font-size:clamp(9px,.95vw,14px);letter-spacing:.08em;text-transform:uppercase;
+    font-weight:700;font-size:.95vw;font-size:clamp(9px,.95vw,14px);letter-spacing:.08em;text-transform:uppercase;
     padding:.7vh 1.1vw;border-radius:100px;text-decoration:none;
   }
   .h2-wa-btn svg{width:1.1em;height:1.1em}
-  .h2-wifi-icon{width:clamp(24px,2.6vw,40px);height:clamp(24px,2.6vw,40px);color:var(--sand);flex-shrink:0}
+  .h2-wifi-icon{width:2.6vw;width:clamp(24px,2.6vw,40px);height:2.6vw;height:clamp(24px,2.6vw,40px);color:var(--sand);flex-shrink:0}
   .h2-wifi-vals strong{color:var(--white);font-weight:700}
 
   .home2-footer{
     flex:0 0 auto;text-align:center;font-family:var(--serif);font-style:italic;font-weight:600;
-    color:var(--sand);opacity:.9;font-size:clamp(12px,1.3vw,20px);
+    color:var(--sand);opacity:.9;font-size:1.3vw;font-size:clamp(12px,1.3vw,20px);
   }
 
   /* ── LIVE GAME SCREEN ── */
   #screen-game h2{
-    font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:2vh;text-align:center;
+    font-family:var(--serif);font-weight:600;font-size:4.6vw;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:2vh;text-align:center;
   }
   .game-layout{display:flex;align-items:center;gap:5vw}
-  .ttt-board{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1vw;width:min(46vh,32vw)}
+  .ttt-board{display:grid;grid-template-columns:repeat(3,1fr);grid-gap:1.1vw;gap:1.1vw;width:46vh;width:min(46vh,32vw)}
   .ttt-cell{
     aspect-ratio:1;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:1vw;
-    font-family:var(--serif);font-weight:600;color:var(--sea-mid);font-size:clamp(28px,5vw,90px);
+    font-family:var(--serif);font-weight:600;color:var(--sea-mid);font-size:5vw;font-size:clamp(28px,5vw,90px);
     display:flex;align-items:center;justify-content:center;
   }
   .ttt-cell.o{color:var(--coral)}
   .game-side{display:flex;flex-direction:column;align-items:center;gap:2vh}
   .game-scoreboard{display:flex;gap:1.4vw}
   .game-score{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:1vw;padding:1.4vh 1.6vw;text-align:center;min-width:6vw}
-  .game-score .mark{font-family:var(--serif);font-weight:600;font-size:clamp(14px,1.6vw,26px)}
+  .game-score .mark{font-family:var(--serif);font-weight:600;font-size:1.6vw;font-size:clamp(14px,1.6vw,26px)}
   .game-score.x .mark{color:var(--sea-mid)}
   .game-score.o .mark{color:var(--coral)}
-  .game-score .n{font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,54px);color:var(--white)}
-  .game-turn{color:var(--mist);font-size:clamp(13px,1.5vw,26px);font-weight:600;min-height:1.5em}
+  .game-score .n{font-family:var(--serif);font-weight:600;font-size:3.4vw;font-size:clamp(24px,3.4vw,54px);color:var(--white)}
+  .game-turn{color:var(--mist);font-size:1.5vw;font-size:clamp(13px,1.5vw,26px);font-weight:600;min-height:1.5em}
   .game-turn .mark.x{color:var(--sea-mid)}
   .game-turn .mark.o{color:var(--coral)}
   #screen-game .qr{background:var(--white);border-radius:1vw;padding:.9vw;display:inline-block}
-  #screen-game .qr img{display:block;width:clamp(80px,9vw,150px);height:clamp(80px,9vw,150px)}
-  #screen-game .qr-label{color:var(--mist);font-size:clamp(10px,1.05vw,17px);opacity:.85}
+  #screen-game .qr img{display:block;width:9vw;width:clamp(80px,9vw,150px);height:9vw;height:clamp(80px,9vw,150px)}
+  #screen-game .qr-label{color:var(--mist);font-size:1.05vw;font-size:clamp(10px,1.05vw,17px);opacity:.85}
 
   /* ── SCOREBOARD SCREEN ── */
   #screen-scoreboard h2{
-    font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:4vh;text-align:center;
+    font-family:var(--serif);font-weight:600;font-size:4.6vw;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:4vh;text-align:center;
   }
   .scoreboard-layout{display:flex;gap:1.8vw;justify-content:center;flex-wrap:wrap;max-width:80vw}
   .scoreboard-col{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:1.2vw;padding:2.6vh 2.2vw;text-align:center;min-width:11vw}
-  .scoreboard-col .p-name{font-family:var(--serif);font-weight:600;font-size:clamp(15px,1.9vw,30px);color:var(--sand);margin-bottom:1.4vh;word-break:break-word;max-width:16vw}
-  .scoreboard-col .p-score{font-family:var(--serif);font-weight:600;font-size:clamp(36px,5.6vw,100px);color:var(--white)}
+  .scoreboard-col .p-name{font-family:var(--serif);font-weight:600;font-size:1.9vw;font-size:clamp(15px,1.9vw,30px);color:var(--sand);margin-bottom:1.4vh;word-break:break-word;max-width:16vw}
+  .scoreboard-col .p-score{font-family:var(--serif);font-weight:600;font-size:5.6vw;font-size:clamp(36px,5.6vw,100px);color:var(--white)}
 
   /* ── MEMORY MATCH SCREEN ── */
   #screen-memory h2{
-    font-family:var(--serif);font-weight:600;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:2vh;text-align:center;
+    font-family:var(--serif);font-weight:600;font-size:4.6vw;font-size:clamp(30px,4.6vw,80px);color:var(--white);margin-bottom:2vh;text-align:center;
   }
   .mem-layout{display:flex;align-items:center;gap:4vw}
-  .mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:1vw;width:min(56vh,40vw)}
+  .mem-board{display:grid;grid-template-columns:repeat(4,1fr);grid-gap:1vw;gap:1vw;width:56vh;width:min(56vh,40vw)}
   .mem-card{
     aspect-ratio:1;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:.9vw;
-    display:flex;align-items:center;justify-content:center;font-size:clamp(20px,3.4vw,54px);
+    display:flex;align-items:center;justify-content:center;font-size:3.4vw;font-size:clamp(20px,3.4vw,54px);
   }
   .mem-card.matched{background:rgba(255,255,255,.14);opacity:.6}
   .mem-side{display:flex;flex-direction:column;align-items:center;gap:2vh}
   .mem-scoreboard{display:flex;gap:1.4vw}
   .mem-score{background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:1vw;padding:1.4vh 1.6vw;text-align:center;min-width:6vw}
-  .mem-score .mark{font-family:var(--serif);font-weight:600;font-size:clamp(14px,1.6vw,26px);color:var(--sand)}
-  .mem-score .n{font-family:var(--serif);font-weight:600;font-size:clamp(24px,3.4vw,54px);color:var(--white)}
-  .mem-turn{color:var(--mist);font-size:clamp(13px,1.5vw,26px);font-weight:600;min-height:1.5em}
+  .mem-score .mark{font-family:var(--serif);font-weight:600;font-size:1.6vw;font-size:clamp(14px,1.6vw,26px);color:var(--sand)}
+  .mem-score .n{font-family:var(--serif);font-weight:600;font-size:3.4vw;font-size:clamp(24px,3.4vw,54px);color:var(--white)}
+  .mem-turn{color:var(--mist);font-size:1.5vw;font-size:clamp(13px,1.5vw,26px);font-weight:600;min-height:1.5em}
   #screen-memory .qr{background:var(--white);border-radius:1vw;padding:.9vw;display:inline-block}
-  #screen-memory .qr img{display:block;width:clamp(80px,9vw,150px);height:clamp(80px,9vw,150px)}
-  #screen-memory .qr-label{color:var(--mist);font-size:clamp(10px,1.05vw,17px);opacity:.85}
+  #screen-memory .qr img{display:block;width:9vw;width:clamp(80px,9vw,150px);height:9vw;height:clamp(80px,9vw,150px)}
+  #screen-memory .qr-label{color:var(--mist);font-size:1.05vw;font-size:clamp(10px,1.05vw,17px);opacity:.85}
 
   /* ── PARTY BACKDROP SCREEN ── */
   .backdrop-wrap{position:relative;width:100%;height:100%;border-radius:1.4vw;overflow:hidden;display:flex;align-items:center;justify-content:center}
-  .backdrop-bg{position:absolute;inset:0}
+  .backdrop-bg{position:absolute;top:0;right:0;bottom:0;left:0;inset:0}
   .backdrop-text{
     position:relative;z-index:1;text-align:center;font-family:var(--serif);font-weight:600;color:var(--white);
-    font-size:clamp(28px,7vw,140px);line-height:1.15;text-shadow:0 6px 40px rgba(0,0,0,.55);padding:0 4vw;word-break:break-word;
+    font-size:7vw;font-size:clamp(28px,7vw,140px);line-height:1.15;text-shadow:0 6px 40px rgba(0,0,0,.55);padding:0 4vw;word-break:break-word;
   }
   /* Party Lights — several independently drifting, blurred colour blobs that
      overlap and sweep like stage lighting (screen-blended so they mix), rather
@@ -246,7 +246,7 @@
      sideways sway and 3D tumble, so it flutters naturally instead of a rigid
      grid of dots sliding in perfect lockstep. */
   .backdrop-bg.confetti{background:radial-gradient(120% 130% at 50% 15%, #0b2f3f 0%, #061a24 60%, #04121a 100%)}
-  #confettiField{position:absolute;inset:0;overflow:hidden;perspective:700px}
+  #confettiField{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;overflow:hidden;perspective:700px}
   .backdrop-bg:not(.confetti) #confettiField{display:none}
   .cf-fall{position:absolute;top:-9vh;animation:bd-cf-fall linear infinite;will-change:transform}
   @keyframes bd-cf-fall{to{transform:translateY(122vh)}}
@@ -258,34 +258,73 @@
   @keyframes bd-glow-pulse{0%,100%{opacity:.65;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
   .backdrop-bg.glow{background:radial-gradient(circle at 50% 45%, #f3ddae, #d4ad6a 45%, #0b3d52 85%, #040f15 100%)}
   .backdrop-bg.glow::before{
-    content:'';position:absolute;inset:0;
+    content:'';position:absolute;top:0;right:0;bottom:0;left:0;inset:0;
     background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.35), transparent 60%);
     animation:bd-glow-pulse 4s ease-in-out infinite;
   }
 
   /* ── DJ VISUALIZER SCREEN ── */
-  #screen-visualizer{padding:0;inset:0}
+  #screen-visualizer{padding:0;top:0;right:0;bottom:0;left:0;inset:0}
   .viz-wrap{position:relative;width:100%;height:100%;overflow:hidden}
-  #vizCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #vizCanvas{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;width:100%;height:100%;display:block}
 
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
-    display:none;position:fixed;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
+    display:none;position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
     background:radial-gradient(120% 140% at 50% 0%,var(--sea) 0%,var(--sea-deep) 55%,#040f15 100%);
   }
   #checkoutScreen.active{display:flex}
   .thanks-wrap{text-align:center;max-width:64vw}
   .thanks-wrap img.logo{height:6vh;margin-bottom:2.6vh;filter:drop-shadow(0 3px 12px rgba(0,0,0,.4))}
-  .thanks-wrap h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,6vw,110px);color:var(--white);margin-bottom:2vh;text-shadow:0 4px 40px rgba(0,0,0,.35)}
-  .thanks-wrap p{color:var(--mist);font-size:clamp(14px,1.8vw,30px);line-height:1.65;margin-bottom:3.6vh;max-width:52vw;margin-left:auto;margin-right:auto}
+  .thanks-wrap h1{font-family:var(--serif);font-weight:600;font-size:6vw;font-size:clamp(34px,6vw,110px);color:var(--white);margin-bottom:2vh;text-shadow:0 4px 40px rgba(0,0,0,.35)}
+  .thanks-wrap p{color:var(--mist);font-size:1.8vw;font-size:clamp(14px,1.8vw,30px);line-height:1.65;margin-bottom:3.6vh;max-width:52vw;margin-left:auto;margin-right:auto}
   .thanks-wrap .qr{background:var(--white);border-radius:1.4vw;padding:1.6vw;display:inline-block;margin-bottom:2.2vh}
-  .thanks-wrap .qr img{display:block;width:clamp(140px,15vw,260px);height:clamp(140px,15vw,260px)}
+  .thanks-wrap .qr img{display:block;width:15vw;width:clamp(140px,15vw,260px);height:15vw;height:clamp(140px,15vw,260px)}
   /* The checkout takeover covers the whole screen, including the persistent
      header above — so it gets its own small "RYST 109A" mark in the corner
      rather than going unbranded while it's up. */
   #checkoutScreen .watermark{position:absolute;top:2.4vh;right:2.6vw;font-family:var(--serif);font-weight:600;
-    font-size:clamp(11px,1.15vw,19px);letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);
+    font-size:1.15vw;font-size:clamp(11px,1.15vw,19px);letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.4);
     pointer-events:none;user-select:none}
+
+  /* ── LEGACY-BROWSER FALLBACKS ──────────────────────────────────────────
+     The media player driving the poolside LED wall runs an older Chromium
+     that predates inset (Chrome 87), flexbox gap (84) and aspect-ratio (88)
+     — and clamp()/min() (79), which get plain fallback values inline above.
+     Without these, #screen-home had no height (hero collapsed to nothing),
+     icons/QRs rendered at their intrinsic sizes and the cards overlapped.
+     @supports-gated, so modern browsers never see any of this. */
+  @supports not (inset:0){
+    header > * + *{margin-left:2vw}
+    .tb-brand > * + *{margin-left:1.1vw}
+    .tb-info > * + *{margin-left:1.1vw}
+    .tb-info .tb-weather > * + *{margin-left:.4vw}
+    .home2 > * + *{margin-top:1.6vh}
+    .home2-hero-text .sub::before{margin-right:.8vw}
+    .home2-hero-text .sub::after{margin-left:.8vw}
+    .home2-hero-text .dates > * + *{margin-left:.6vw}
+    .h2-glance-head::before{margin-right:1.2vw}
+    .h2-glance-head::after{margin-left:1.2vw}
+    .h2-card > * + *{margin-top:.5vh}
+    .home2-infobar > * + *{margin-left:1.6vw}
+    .h2-info-col > * + *{margin-left:1vw}
+    .h2-wa-btn > * + *{margin-left:.5vw}
+    .game-layout > * + *{margin-left:5vw}
+    .game-side > * + *{margin-top:2vh}
+    .game-scoreboard > * + *{margin-left:1.4vw}
+    .scoreboard-layout > *{margin:0 .9vw 1.8vw}
+    .mem-layout > * + *{margin-left:4vw}
+    .mem-side > * + *{margin-top:2vh}
+    .mem-scoreboard > * + *{margin-left:1.4vw}
+  }
+  @supports not (aspect-ratio:1/1){
+    /* min() is also unavailable there; on a 16:9-or-shorter screen the
+       height-based size is the one min() would pick, so use it directly. */
+    .ttt-board{width:46vh}
+    .ttt-cell{height:calc((46vh - 2.2vw) / 3)}
+    .mem-board{width:56vh}
+    .mem-card{height:calc((56vh - 3vw) / 4)}
+  }
 </style>
 </head>
 <body>
@@ -990,6 +1029,33 @@ async function checkForUpdate(){
 }
 checkForUpdate();
 setInterval(checkForUpdate, SELF_UPDATE_CHECK_MS);
+</script>
+<script>
+/* Hero-text auto-fit. The hero text is sized off the screen's WIDTH (vw)
+   while the hero box is sized off its HEIGHT (flex share of 100vh), so on
+   anything wider/shorter than the layout was tuned for — e.g. the LED
+   wall's player with its browser toolbar still showing — the text ran
+   taller than the box and "Welcome to" / the last line got clipped.
+   Scales the block down just enough to fit (never up). Deliberately plain
+   ES5 + optional ResizeObserver so it also runs on the player's older
+   Chromium. offsetHeight ignores transforms, so re-measuring never loops. */
+(function(){
+  var hero=document.querySelector('.home2-hero'), txt=document.querySelector('.home2-hero-text');
+  if(!hero||!txt) return;
+  function fit(){
+    var avail=hero.clientHeight*0.94, need=txt.offsetHeight;
+    if(need>avail&&avail>0){
+      txt.style.transformOrigin='left center';
+      txt.style.transform='scale('+(avail/need).toFixed(3)+')';
+    } else { txt.style.transform=''; }
+  }
+  fit();
+  window.addEventListener('resize',fit);
+  window.addEventListener('load',fit);
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fit);
+  if(window.ResizeObserver){ var ro=new ResizeObserver(fit); ro.observe(txt); ro.observe(hero); }
+  else { setInterval(fit,2000); }
+})();
 </script>
 </body>
 </html>
