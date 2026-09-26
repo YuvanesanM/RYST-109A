@@ -721,6 +721,50 @@ async function sendTelegramNudge({ d, field, label, text, btn, onDone }){
   }
 }
 
+// Direct WhatsApp Business API send (Interakt, via the proxy's
+// /whatsapp/send-booking) for the four Send buttons below — confirm first,
+// then the approved template goes straight to the guest's phone; the proxy
+// stamps the *SentAt field itself. When the API can't send (template needs
+// a link this stay doesn't have, Interakt error), that button falls back to
+// opening WhatsApp here for the rest of the session — `${field}:${no}` keys.
+const waManual = new Set();
+function waSendLabel(d, field, firstLabel){
+  if(!waTemplatesLoaded) return 'Loading template…';
+  if(waManual.has(field+':'+d.no)) return 'Open WhatsApp';
+  return d[field] ? 'Resend' : firstLabel;
+}
+async function sendWaApi({ d, scenario, field, label, btn, onDone }){
+  const phone = normalizePhone(d.phone);
+  if(!phone) return;
+  const again = d[field] ? `\n\nAlready sent on ${fmtDate(dateOnly(new Date(d[field])))} — this sends it again.` : '';
+  if(!confirm(`Send the ${label} to ${d.guest||'the guest'} on WhatsApp (+${phone})?\n\nIt goes out immediately from the RYST WhatsApp Business number.${again}`)) return;
+  const originalLabel = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp/send-booking', {
+      method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
+      body: JSON.stringify({ no: d.no, scenario })
+    });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || !data.ok){
+      if(data.fallback){
+        waManual.add(field+':'+d.no);
+        alert(`Couldn't send through the WhatsApp API:\n${data.error || 'Unknown error'}\n\nThe button now says "Open WhatsApp" — tap it to send this one yourself.`);
+      } else {
+        alert(data.error || ('Send failed ('+res.status+')'));
+      }
+      return;
+    }
+    d[field] = data.sentAt || new Date().toISOString();
+  }catch(e){
+    alert('Could not reach the server: ' + e.message);
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+    onDone();
+  }
+}
+
 function render(){
   renderStats();
   renderCalendar();
@@ -751,7 +795,7 @@ function renderDirectBookings(){
     const statusNote = d.confirmationSentAt
       ? `<span class="rem-sent">Sent ${fmtDate(dateOnly(new Date(d.confirmationSentAt)))} · <a onclick="markBookingConfirmationUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
-    const actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendBookingConfirmation('${esc(d.no)}')">${waTemplatesLoaded?(d.confirmationSentAt?'Resend':'Send Confirmation'):'Loading template…'}</button>`;
+    const actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendBookingConfirmation('${esc(d.no)}', this)">${waSendLabel(d,'confirmationSentAt','Send Confirmation')}</button>`;
     const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendBookingConfirmationTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">₹${toNum(d.advance).toLocaleString('en-IN')} paid</span></div>
@@ -768,12 +812,13 @@ async function sendBookingConfirmationTg(no, btn){
   await sendTelegramNudge({ d, field:'confirmationSentAt', label:'📩 Booking confirmation', text: bookingConfirmedMessage(d), btn, onDone: renderDirectBookings });
 }
 
-async function sendBookingConfirmation(no){
+async function sendBookingConfirmation(no, btn){
   if(!waTemplatesLoaded) return;
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
   const phone = normalizePhone(d.phone);
   if(!phone) return;
+  if(!waManual.has('confirmationSentAt:'+no)) return sendWaApi({ d, scenario:'bookingConfirmed', field:'confirmationSentAt', label:'booking confirmation', btn, onDone: renderDirectBookings });
   window.open(`https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(bookingConfirmedMessage(d))}`, '_blank');
   d.confirmationSentAt = new Date().toISOString();
   try{
@@ -835,7 +880,7 @@ function renderCheckins(){
       statusNote = d.checkinRequestedAt
         ? `<span class="rem-sent">Link sent ${fmtDate(dateOnly(new Date(d.checkinRequestedAt)))} · <a onclick="markCheckinUnsent('${esc(d.no)}')">undo</a></span>`
         : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
-      actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequest('${esc(d.no)}')">${waTemplatesLoaded?(d.checkinRequestedAt?'Resend':'Send Check-in Link'):'Loading template…'}</button>`;
+      actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequest('${esc(d.no)}', this)">${waSendLabel(d,'checkinRequestedAt','Send Check-in Link')}</button>`;
       tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     }
     return `<div class="rem-item">
@@ -853,12 +898,13 @@ async function sendCheckinRequestTg(no, btn){
   await sendTelegramNudge({ d, field:'checkinRequestedAt', label:'🔑 Check-in request', text: checkinRequestMessage(d), btn, onDone: renderCheckins });
 }
 
-async function sendCheckinRequest(no){
+async function sendCheckinRequest(no, btn){
   if(!waTemplatesLoaded) return;
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
   const phone = normalizePhone(d.phone);
   if(!phone) return;
+  if(!waManual.has('checkinRequestedAt:'+no)) return sendWaApi({ d, scenario:'checkinRequest', field:'checkinRequestedAt', label:'check-in link', btn, onDone: renderCheckins });
   window.open(`https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(checkinRequestMessage(d))}`, '_blank');
   d.checkinRequestedAt = new Date().toISOString();
   try{
@@ -939,7 +985,7 @@ function renderReminders(){
     const sentNote = d.reminderSentAt
       ? `<span class="rem-sent">✓ Reminded ${fmtDate(dateOnly(new Date(d.reminderSentAt)))} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
-    const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminder('${esc(d.no)}')">${waTemplatesLoaded?(d.reminderSentAt?'Resend':'Send WhatsApp'):'Loading template…'}</button>`;
+    const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminder('${esc(d.no)}', this)">${waSendLabel(d,'reminderSentAt','Send WhatsApp')}</button>`;
     const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminderTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
@@ -956,12 +1002,13 @@ async function sendReminderTg(no, btn){
   await sendTelegramNudge({ d, field:'reminderSentAt', label:'📅 Stay reminder', text: reminderMessage(d), btn, onDone: renderReminders });
 }
 
-async function sendReminder(no){
+async function sendReminder(no, btn){
   if(!waTemplatesLoaded) return; // belt-and-suspenders — the button is disabled until this is true
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
   const phone = normalizePhone(d.phone);
   if(!phone) return;
+  if(!waManual.has('reminderSentAt:'+no)) return sendWaApi({ d, scenario:'reminder', field:'reminderSentAt', label:'stay reminder', btn, onDone: renderReminders });
   // api.whatsapp.com/send directly — NOT wa.me. wa.me's own redirect
   // service corrupts non-ASCII characters (emoji, mainly) in the `text`
   // param before it ever reaches api.whatsapp.com, verified by hitting
@@ -1023,7 +1070,7 @@ function renderFeedbackRequests(){
     const sentNote = d.feedbackRequestedAt
       ? `<span class="rem-sent">✓ Requested ${fmtDate(dateOnly(new Date(d.feedbackRequestedAt)))} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
-    const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}')">${waTemplatesLoaded?(d.feedbackRequestedAt?'Resend':'Send WhatsApp'):'Loading template…'}</button>`;
+    const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}', this)">${waSendLabel(d,'feedbackRequestedAt','Send WhatsApp')}</button>`;
     const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
     return `<div class="rem-item">
       <div class="rem-top"><span class="rem-guest">${esc(d.guest||'—')}</span><span class="rem-when">${when}</span></div>
@@ -1040,12 +1087,13 @@ async function sendFeedbackRequestTg(no, btn){
   await sendTelegramNudge({ d, field:'feedbackRequestedAt', label:'⭐ Feedback request', text: feedbackRequestMessage(d), btn, onDone: renderFeedbackRequests });
 }
 
-async function sendFeedbackRequest(no){
+async function sendFeedbackRequest(no, btn){
   if(!waTemplatesLoaded) return; // belt-and-suspenders — the button is disabled until this is true
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
   const phone = normalizePhone(d.phone);
   if(!phone) return;
+  if(!waManual.has('feedbackRequestedAt:'+no)) return sendWaApi({ d, scenario:'feedbackRequest', field:'feedbackRequestedAt', label:'feedback request', btn, onDone: renderFeedbackRequests });
   // api.whatsapp.com/send directly — see the matching comment in sendReminder.
   window.open(`https://api.whatsapp.com/send/?phone=${phone}&text=${encodeURIComponent(feedbackRequestMessage(d))}`, '_blank');
   d.feedbackRequestedAt = new Date().toISOString();
