@@ -472,6 +472,7 @@
     }
 
     html { scroll-behavior: smooth; }
+    section[id] { scroll-margin-top: 64px; }
     body { font-family: var(--sans); background: var(--white); color: var(--ink); overflow-x: hidden; }
 
     /* ── NAV ── */
@@ -544,7 +545,7 @@
     .hero-layer { position: absolute; inset: 0; pointer-events: none; }
     .hero-sky {
       z-index: 1;
-      background: linear-gradient(180deg, rgba(6,22,34,.72) 0%, rgba(8,30,44,.6) 24%, rgba(10,40,55,.56) 48%, rgba(24,52,58,.52) 66%, rgba(150,148,128,.3) 82%, rgba(241,231,210,.66) 93%, #fbfaf8 100%);
+      background: linear-gradient(180deg, rgba(6,22,34,.72) 0%, rgba(8,30,44,.6) 24%, rgba(10,40,55,.56) 48%, rgba(24,52,58,.5) 66%, rgba(30,56,62,.46) 86%, rgba(241,231,210,.6) 96%, #fbfaf8 100%);
       animation: heroSky 1.7s var(--ease-out) both;
     }
     @keyframes heroSky { from { opacity: 0; } to { opacity: 1; } }
@@ -560,7 +561,7 @@
          identity — scaled up slightly so blurred edges never peek past
          the container (already has extra bleed via .hero-photo's -8%
          inset for the parallax scroll effect). */
-      filter: blur(3px); transform: scale(1.05);
+      filter: blur(1.5px) saturate(1.15) brightness(1.06); transform: scale(1.05);
     }
     @keyframes heroPhoto { from { transform: scale(1.08); } to { transform: none; } }
     .hero-sun {
@@ -616,7 +617,7 @@
     }
     .hero-eyebrow {
       font-family: var(--sans); font-size: clamp(10px,1.1vw,12.5px); font-weight: 600; letter-spacing: 5px;
-      text-transform: uppercase; color: rgba(246,241,230,.78); margin-bottom: clamp(20px,4vh,40px);
+      text-transform: uppercase; color: rgba(246,241,230,.94); margin-bottom: clamp(20px,4vh,40px);
       text-shadow: 0 1px 8px rgba(0,0,0,.6), 0 1px 2px rgba(0,0,0,.45);
     }
     .hero-title { display: flex; flex-direction: column; align-items: center; line-height: .9; }
@@ -634,7 +635,7 @@
     }
     .ht-keyword {
       font-family: var(--sans); font-weight: 600; letter-spacing: 3px; text-transform: uppercase;
-      font-size: clamp(11px,1.2vw,14px); color: rgba(246,241,230,.7); margin-top: clamp(14px,2.5vh,24px);
+      font-size: clamp(11px,1.2vw,14px); color: rgba(246,241,230,.92); margin-top: clamp(14px,2.5vh,24px);
       text-shadow: 0 1px 8px rgba(0,0,0,.6), 0 1px 2px rgba(0,0,0,.45);
     }
     .hero-divider {
@@ -645,7 +646,7 @@
     .hero-divider i { width: 5px; height: 5px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px rgba(230,205,151,.85); }
     .hero-tagline {
       font-family: var(--serif); font-style: italic; font-weight: 400; font-size: clamp(17px,2.2vw,23px);
-      color: rgba(246,241,230,.85); line-height: 1.55; max-width: 600px;
+      color: #f6f1e6; line-height: 1.55; max-width: 600px;
       text-shadow: 0 1px 10px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4);
     }
     .hero-actions {
@@ -678,7 +679,7 @@
     .btn-stay:hover::after, .btn-explore:hover::after { left: 140%; }
     .btn-stay svg, .btn-explore svg { width: 16px; height: 16px; flex-shrink: 0; }
     .hero-concierge {
-      margin-top: clamp(20px,3vh,30px); font-size: 13px; color: rgba(246,241,230,.62);
+      margin-top: clamp(20px,3vh,30px); font-size: 13px; color: rgba(246,241,230,.88);
       text-shadow: 0 1px 6px rgba(0,0,0,.6);
     }
     .hero-concierge a { color: var(--gold); text-decoration: none; border-bottom: 1px solid rgba(230,205,151,.4); padding-bottom: 1px; transition: color .2s, border-color .2s; }
@@ -3405,8 +3406,8 @@
     // its children, to avoid double-moving).
     const reveal = (sel, vars) => gsap.utils.toArray(sel).forEach(el =>
       gsap.from(el, Object.assign({
-        opacity: 0, y: 30, duration: .85, ease: 'power3.out',
-        scrollTrigger: { trigger: el, start: 'top 86%' }
+        opacity: .15, y: 24, duration: .6, ease: 'power3.out',
+        scrollTrigger: { trigger: el, start: 'top 96%' }
       }, vars || {}))
     );
 
@@ -3429,6 +3430,7 @@
     // seconds on a throttled mobile connection, even though a zero-latency
     // local sandbox couldn't reproduce it. Everything else in the hero
     // still gets the cinematic entrance.
+    gsap.set('.hero-feature-bar', { x: 0 });
     gsap.timeline()
       .from('.hero-eyebrow',     { opacity: 0, y: 14, duration: .7,  ease: 'power3.out' }, 0)
       .from('.ht-keyword',       { opacity: 0, y: 12, duration: .7,  ease: 'power3.out' }, .75)
@@ -3442,23 +3444,23 @@
     // Section blocks
     reveal('.highlights-head');
     reveal('.gallery-head');
-    reveal('.about-visual',  { x: -40, y: 0, duration: .95 });
-    reveal('.about-text',    { x:  40, y: 0, duration: .95 });
-    reveal('.location-map',  { x: -30, y: 0, duration: .9 });
-    reveal('.location-text', { x:  30, y: 0, duration: .9 });
+    reveal('.about-visual',  { x: -40, y: 0, duration: .7 });
+    reveal('.about-text',    { x:  40, y: 0, duration: .7 });
+    reveal('.location-map',  { x: -30, y: 0, duration: .7 });
+    reveal('.location-text', { x:  30, y: 0, duration: .7 });
     reveal('.book-head');
     reveal('.pricing-note',  { y: 22 });
     reveal('.booking-steps', { y: 22 });
-    reveal('.book-form',     { y: 40, duration: .95 });
+    reveal('.book-form',     { y: 40, duration: .7 });
 
     // Staggered batches
     ScrollTrigger.batch('.hl-card', {
-      start: 'top 88%',
-      onEnter: b => gsap.from(b, { opacity:0, y:34, duration:.7, ease:'power3.out', stagger:.12, overwrite:true })
+      start: 'top 96%',
+      onEnter: b => gsap.from(b, { opacity:.15, y:24, duration:.55, ease:'power3.out', stagger:.08, overwrite:true })
     });
     ScrollTrigger.batch('.gallery-cell', {
-      start: 'top 90%',
-      onEnter: b => gsap.from(b, { opacity:0, y:30, scale:.97, duration:.7, ease:'power3.out', stagger:.1, overwrite:true })
+      start: 'top 96%',
+      onEnter: b => gsap.from(b, { opacity:.15, y:24, scale:.97, duration:.55, ease:'power3.out', stagger:.08, overwrite:true })
     });
 
     // ── ANIMATED COUNTERS (count up when scrolled into view) ──
@@ -3485,8 +3487,7 @@
     // ── PARALLAX (hero orbs drift at different rates) ──
     const heroScrub = { trigger:'#hero', start:'top top', end:'bottom top', scrub:true };
     gsap.to('.hero-photo',  { yPercent: 10, scale: 1.12, ease:'none', scrollTrigger: heroScrub });
-    gsap.to('.hero-content',{ yPercent: 16, opacity: .25, ease:'none', scrollTrigger: heroScrub });
-    gsap.fromTo('.hero-feature-bar', { opacity: 1, yPercent: 0 }, { yPercent: 40, opacity: 0, ease:'none', scrollTrigger: heroScrub });
+    gsap.to('.hero-content',{ yPercent: 8, ease:'none', scrollTrigger: heroScrub });
     // Golden-hour lighting shift driven by scroll progress through the hero
     const heroEl = document.getElementById('hero');
     if (heroEl) ScrollTrigger.create({ trigger:'#hero', start:'top top', end:'bottom top', scrub:true,
