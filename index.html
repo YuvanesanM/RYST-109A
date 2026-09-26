@@ -124,6 +124,11 @@
             { "@type": "LocationFeatureSpecification", "name": "Private Beach Access", "value": true },
             { "@type": "LocationFeatureSpecification", "name": "Private Swimming Pool", "value": true },
             { "@type": "LocationFeatureSpecification", "name": "Jacuzzi", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Pool size", "value": "22 × 12 ft" },
+            { "@type": "LocationFeatureSpecification", "name": "Pool depth", "value": "1 ft 3 in (shallow end) to 4.5 ft" },
+            { "@type": "LocationFeatureSpecification", "name": "Jacuzzi jets with seating on three sides", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Pool open 24 hours, lit at night", "value": true },
+            { "@type": "LocationFeatureSpecification", "name": "Toddler-friendly shallow end", "value": true },
             { "@type": "LocationFeatureSpecification", "name": "150-Inch Outdoor LED Cinema Screen", "value": true },
             { "@type": "LocationFeatureSpecification", "name": "Fully-equipped Kitchen", "value": true },
             { "@type": "LocationFeatureSpecification", "name": "In-Villa Food Ordering Service (Casa de RYST)", "value": true },
@@ -186,6 +191,11 @@
           { "@type": "LocationFeatureSpecification", "name": "Private Beach Access", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "Private Swimming Pool", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "Jacuzzi", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "Pool size", "value": "22 × 12 ft" },
+          { "@type": "LocationFeatureSpecification", "name": "Pool depth", "value": "1 ft 3 in (shallow end) to 4.5 ft" },
+          { "@type": "LocationFeatureSpecification", "name": "Jacuzzi jets with seating on three sides", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "Pool open 24 hours, lit at night", "value": true },
+          { "@type": "LocationFeatureSpecification", "name": "Toddler-friendly shallow end", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "150-Inch Outdoor LED Cinema Screen", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "Fully-equipped Kitchen", "value": true },
           { "@type": "LocationFeatureSpecification", "name": "In-Villa Food Ordering Service (Casa de RYST)", "value": true },
@@ -804,6 +814,21 @@
     .hl-card:hover .hl-icon { transform: scale(1.08) rotate(-4deg); box-shadow: var(--sh-glow); }
     .hl-card h3 { font-family: var(--serif); font-size: 23px; font-weight: 500; color: var(--ink); margin-bottom: 10px; }
     .hl-card p { font-size: 14.5px; color: var(--muted-text); line-height: 1.7; }
+
+    /* ── THE POOL ── */
+    #pool { background: var(--white); }
+    .pool-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: 64px; align-items: center; max-width: 1100px; margin: 0 auto; }
+    .pool-visual { position: relative; border-radius: 26px; overflow: hidden; box-shadow: 0 24px 60px rgba(14,36,32,.14); }
+    .pool-visual img { display: block; width: 100%; height: auto; aspect-ratio: 4/5; object-fit: cover; }
+    .pool-text > p { font-size: 15.5px; color: var(--muted-text); line-height: 1.8; margin-top: 16px; }
+    .pool-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 26px 0 6px; }
+    .pool-specs > div { background: var(--foam); border-radius: 16px; padding: 16px 18px; }
+    .pool-specs dt { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--sea-mid); margin-bottom: 4px; }
+    .pool-specs dd { margin: 0; font-family: var(--serif); font-size: 21px; color: var(--ink); line-height: 1.25; }
+    .pool-specs dd small { display: block; font-family: var(--sans); font-size: 12.5px; color: var(--muted-text); margin-top: 3px; line-height: 1.45; }
+    .pool-text > p.pool-note { margin-top: 20px; padding: 14px 16px; border-left: 3px solid var(--sand); background: var(--sand-light); border-radius: 0 12px 12px 0; font-size: 13.5px; line-height: 1.65; color: var(--ink-mid); }
+    @media (max-width: 900px) { .pool-grid { grid-template-columns: 1fr; gap: 36px; } .pool-visual img { aspect-ratio: 4/3; } }
+    @media (max-width: 420px) { .pool-specs { grid-template-columns: 1fr; } }
 
     /* ── GALLERY ── */
     #gallery { background: var(--white); }
@@ -1554,7 +1579,7 @@
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1a6a7a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c2-4 4-6 6-6s4 4 6 4 4-2 6-2"/><path d="M2 18c2-4 4-6 6-6s4 4 6 4 4-2 6-2"/><circle cx="12" cy="5" r="1.5" fill="#1a6a7a"/></svg>
       </div>
       <h3>Jacuzzi &amp; Pool</h3>
-      <p>As a private pool villa on the ECR, RYST 109A gives you a jacuzzi and pool that are entirely yours — day or night. Whether it's a sunrise soak or a moonlit float, nobody else is ever in the water with you.</p>
+      <p>As a private pool villa on the ECR, RYST 109A gives you a jacuzzi and pool that are entirely yours — day or night. Whether it's a sunrise soak or a moonlit float, nobody else is ever in the water with you. <a href="#pool" class="text-link">Pool size, depth &amp; details</a></p>
     </div>
     <div class="hl-card">
       <div class="hl-icon">
@@ -1576,6 +1601,29 @@
       </div>
       <h3>Easy Weekend Getaway</h3>
       <p>RYST 109A is the luxury weekend getaway near Chennai for when a resort won't do — a private weekend villa near Chennai, just 85 km south via the ECR or GST Road, where the whole group can properly unwind. It's a pleasant drive that puts you in a completely different world in around two hours. No airports, no long journeys. When you want to venture out, the coast gives you <a href="/nearby.html" class="text-link">beaches, forts and heritage sites</a> all within a day trip.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── THE POOL ── -->
+<section id="pool" aria-labelledby="pool-title">
+  <div class="pool-grid">
+    <div class="pool-visual">
+      <img src="/assets/gallery-3.jpg" alt="Private swimming pool at RYST 109A, a private pool villa on the ECR at Pearl Beach, Cheyyur" loading="lazy" width="1200" height="900">
+    </div>
+    <div class="pool-text">
+      <p class="section-tag">The Private Pool</p>
+      <h2 class="section-title" id="pool-title">Your private pool <em>on the ECR</em></h2>
+      <p>The pool at RYST 109A is yours alone for your whole stay — no other guests, no shared deck. At 22 ft long and about 12 ft wide, it sits somewhere between a plunge pool and a full-size pool: room for laps, floats and pool games, while still feeling like your own.</p>
+      <dl class="pool-specs">
+        <div><dt>Size</dt><dd>22 × 12 ft<small>Between a plunge pool and a full-size pool</small></dd></div>
+        <div><dt>Depth</dt><dd>1′3″ to 4′6″<small>A shallow end toddlers can splash in</small></dd></div>
+        <div><dt>Jacuzzi</dt><dd>Jet corner<small>Seating on three sides for a long soak</small></dd></div>
+        <div><dt>Hours</dt><dd>Open 24 hours<small>Well lit after dark — no closing time</small></dd></div>
+      </dl>
+      <p>In one corner, jacuzzi jets with seating on three sides make the best seat in the house — right beside the 150-inch poolside screen for a match or a movie. After dark the pool is well lit, and there are no pool hours: swim at sunrise or float at midnight.</p>
+      <p>The water is looked after properly: the pool is vacuumed and cleaned, and its pH and chlorine are tested and kept at gentle levels, so it stays comfortable on eyes and skin even after hours in the water — for kids and adults alike.</p>
+      <p class="pool-note">Good to know: there's no lifeguard, so please keep children supervised by an adult in and around the pool at all times. At 4.5 ft deep, the pool isn't suitable for diving.</p>
     </div>
   </div>
 </section>
