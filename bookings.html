@@ -128,6 +128,11 @@
   .rem-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
   .rem-sent{color:var(--muted2);font-size:11.5px}
   .rem-sent a{color:var(--muted2);text-decoration:underline;cursor:pointer}
+  .wa-st{font-weight:600;white-space:nowrap}
+  .wa-accepted,.wa-sent{color:var(--muted2)}
+  .wa-delivered{color:#2f855a}
+  .wa-read{color:#2b6cb0}
+  .wa-failed{color:#c53030;cursor:pointer;text-decoration:underline dotted}
   .rem-send{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:600}
   .rem-send:hover{background:var(--accent-d)}
   .rem-send:disabled{background:var(--line);color:var(--muted2);cursor:not-allowed}
@@ -693,6 +698,42 @@ async function pushStays(){
 // a link this stay doesn't have, Interakt error), that button falls back to
 // opening WhatsApp here for the rest of the session — `${field}:${no}` keys.
 const waManual = new Set();
+// Delivery status from Interakt's webhook (proxy stores it per field in
+// d.waDelivery) — only present for sends that went through the API, and
+// only when it belongs to the current send (same timestamp or later).
+const WA_ST = {
+  accepted: ['Queued', 'Accepted by WhatsApp, waiting for delivery'],
+  sent: ['Sent ✓', 'Sent — not yet delivered to the phone'],
+  delivered: ['Delivered ✓✓', 'Delivered to the guest\'s phone'],
+  read: ['Read ✓✓', 'The guest has opened it'],
+  failed: ['Not delivered', 'WhatsApp could not deliver this message'],
+};
+function waDeliveryFor(d, field){
+  const w = d.waDelivery && d.waDelivery[field];
+  if(!w || !d[field] || !w.at) return null;
+  return (new Date(w.at) >= new Date(d[field]) - 5*60000) ? w : null;
+}
+function waStatusBadge(d, field){
+  const w = waDeliveryFor(d, field);
+  if(!w || !WA_ST[w.status]) return '';
+  const [label, tip] = WA_ST[w.status];
+  const title = w.status==='failed' && w.reason ? `${tip}: ${w.reason}` : tip;
+  return ` · <span class="wa-st wa-${esc(w.status)}" title="${esc(title)}"${w.status==='failed' ? ` onclick="alert(this.title)"` : ''}>${esc(label)}</span>`;
+}
+// Statuses land on the proxy via webhook seconds-to-minutes after a send —
+// quietly re-read /stays a few times so the badge updates without a reload.
+let waRefreshTimers = [];
+function scheduleWaRefresh(){
+  waRefreshTimers.forEach(clearTimeout);
+  waRefreshTimers = [15000, 45000, 120000].map(ms => setTimeout(async ()=>{
+    try{
+      const res = await fetch(PROXY_URL+'/stays', { headers:{'X-Token':TOKEN}, cache:'no-store' });
+      if(!res.ok) return;
+      const data = await res.json().catch(()=>null);
+      if(data && Array.isArray(data.stays)){ STAYS = data.stays.filter(d=>d.checkin && d.checkout); render(); }
+    }catch(e){}
+  }, ms));
+}
 function waSendLabel(d, field, firstLabel){
   if(!waTemplatesLoaded) return 'Loading template…';
   if(waManual.has(field+':'+d.no)) return 'Open WhatsApp';
@@ -722,8 +763,10 @@ async function sendWaApi({ d, scenario, field, label, btn, onDone }){
       return;
     }
     d[field] = data.sentAt || new Date().toISOString();
+    if(data.delivery) d.waDelivery = Object.assign({}, d.waDelivery, { [field]: data.delivery });
     onDone();
-    alert(`✓ Sent — the ${label} went to ${d.guest||'the guest'} on WhatsApp.`);
+    scheduleWaRefresh();
+    alert(`WhatsApp accepted the ${label} for ${(d.guest||'').trim()||'the guest'}.\n\nThat isn't delivery yet — the status next to it will change to Delivered ✓✓, Read ✓✓ or Not delivered once WhatsApp reports back.`);
   }catch(e){
     alert('Could not reach the server: ' + e.message);
   }finally{
@@ -785,7 +828,7 @@ function renderDirectBookings(){
   list.innerHTML = due.map(d=>{
     const phone = normalizePhone(d.phone);
     const statusNote = d.confirmationSentAt
-      ? `<span class="rem-sent">Sent ${fmtDate(dateOnly(new Date(d.confirmationSentAt)))} · <a onclick="markBookingConfirmationUnsent('${esc(d.no)}')">undo</a></span>`
+      ? `<span class="rem-sent">Sent ${fmtDate(dateOnly(new Date(d.confirmationSentAt)))}${waStatusBadge(d,'confirmationSentAt')} · <a onclick="markBookingConfirmationUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendBookingConfirmation('${esc(d.no)}', this)">${waSendLabel(d,'confirmationSentAt','Send Confirmation')}</button>`;
     const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendBookingConfirmationTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
@@ -869,7 +912,7 @@ function renderCheckins(){
       actionBtn = ''; tgBtn = '';
     } else {
       statusNote = d.checkinRequestedAt
-        ? `<span class="rem-sent">Link sent ${fmtDate(dateOnly(new Date(d.checkinRequestedAt)))} · <a onclick="markCheckinUnsent('${esc(d.no)}')">undo</a></span>`
+        ? `<span class="rem-sent">Link sent ${fmtDate(dateOnly(new Date(d.checkinRequestedAt)))}${waStatusBadge(d,'checkinRequestedAt')} · <a onclick="markCheckinUnsent('${esc(d.no)}')">undo</a></span>`
         : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
       actionBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequest('${esc(d.no)}', this)">${waSendLabel(d,'checkinRequestedAt','Send Check-in Link')}</button>`;
       tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendCheckinRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
@@ -973,7 +1016,7 @@ function renderReminders(){
     const when = days<=0 ? 'Today' : days===1 ? 'Tomorrow' : `In ${days} days`;
     const phone = normalizePhone(d.phone);
     const sentNote = d.reminderSentAt
-      ? `<span class="rem-sent">✓ Reminded ${fmtDate(dateOnly(new Date(d.reminderSentAt)))} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
+      ? `<span class="rem-sent">✓ Reminded ${fmtDate(dateOnly(new Date(d.reminderSentAt)))}${waStatusBadge(d,'reminderSentAt')} · <a onclick="markReminderUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminder('${esc(d.no)}', this)">${waSendLabel(d,'reminderSentAt','Send WhatsApp')}</button>`;
     const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendReminderTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
@@ -1057,7 +1100,7 @@ function renderFeedbackRequests(){
     const when = days<=0 ? 'Checked out today' : days===1 ? 'Checked out yesterday' : `Checked out ${days} days ago`;
     const phone = normalizePhone(d.phone);
     const sentNote = d.feedbackRequestedAt
-      ? `<span class="rem-sent">✓ Requested ${fmtDate(dateOnly(new Date(d.feedbackRequestedAt)))} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
+      ? `<span class="rem-sent">✓ Requested ${fmtDate(dateOnly(new Date(d.feedbackRequestedAt)))}${waStatusBadge(d,'feedbackRequestedAt')} · <a onclick="markFeedbackRequestUnsent('${esc(d.no)}')">undo</a></span>`
       : (phone ? '' : '<span class="rem-sent">No phone on file — add one in the invoice</span>');
     const sendBtn = `<button class="rem-send" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequest('${esc(d.no)}', this)">${waSendLabel(d,'feedbackRequestedAt','Send WhatsApp')}</button>`;
     const tgBtn = `<button class="rem-tg" ${(phone&&waTemplatesLoaded)?'':'disabled'} onclick="sendFeedbackRequestTg('${esc(d.no)}', this)" title="Push a tap-to-send link to Telegram instead of opening WhatsApp here">✈ Telegram</button>`;
