@@ -329,6 +329,13 @@
     </div>
     <div class="sync-results" id="waTestSendResults" style="margin-bottom:22px"></div>
 
+    <p class="gh-mini">Delivery status webhook</p>
+    <p class="sd" style="margin-bottom:12px">Interakt only says a message was <em>accepted</em>; whether it was actually delivered, read or failed comes later through this webhook. Paste the URL into Interakt → Settings → Developer Settings → Webhook, and tick the message API events (sent, delivered, read, failed). Bookings then shows Delivered ✓✓ / Read ✓✓ / Not delivered next to each send, and a failed send alerts Telegram with WhatsApp's reason. Keep this URL private — the key in it is what lets Interakt post here.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:8px">
+      <button class="btn" id="waWebhookBtn">Show webhook URL</button>
+    </div>
+    <div class="sync-results" id="waWebhookResults" style="margin-bottom:22px"></div>
+
     <p class="gh-mini">Telegram notify setup</p>
     <p class="sd" style="margin-bottom:12px">One-time setup on Render: message <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a> on Telegram, send <code>/newbot</code>, and set the token it gives you as <code>TELEGRAM_BOT_TOKEN</code> (a Render environment variable — not set from here). Each person who wants alerts then sends "hi" to the new bot from their own Telegram account, uses the button below to find their chat ID, and an admin enters it against their name in <b>Settings → User Access</b> — along with which of the 12 alert types they want to receive.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:10px">
@@ -909,6 +916,23 @@ document.getElementById('waTestSendBtn').addEventListener('click', async ()=>{
     else { out.innerHTML = `<div class="sync-result"><span>Send test message</span><span>Sent via ${esc(data.templateName)} to ${esc(data.phone)}</span></div>`; }
   }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
   finally{ btn.disabled = false; btn.textContent = 'Send test message'; }
+});
+
+document.getElementById('waWebhookBtn').addEventListener('click', async ()=>{
+  const out = document.getElementById('waWebhookResults');
+  if(!proxyToken){ toast('Sign in required'); return; }
+  out.innerHTML = '';
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp/webhook-info', { headers: { 'X-Token': proxyToken }, cache: 'no-store' });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || !data.url){ out.innerHTML = `<div class="sync-result err"><span>Webhook URL</span><span>${esc(data.error||'Failed')}</span></div>`; return; }
+    out.innerHTML = `<div class="sync-result"><span style="word-break:break-all">${esc(data.url)}</span><span><button type="button" class="rc-add" id="waWebhookCopy">Copy</button></span></div>`;
+    document.getElementById('waWebhookCopy').addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(data.url); toast('Webhook URL copied — paste it into Interakt'); }
+      catch(e){ toast('Could not copy — select the URL and copy it manually'); }
+    });
+  }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
 });
 
 document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
