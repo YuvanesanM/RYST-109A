@@ -332,7 +332,7 @@
     <p class="gh-mini">Delivery status webhook</p>
     <p class="sd" style="margin-bottom:12px">Interakt only says a message was <em>accepted</em>; whether it was actually delivered, read or failed comes later through this webhook. Paste the URL into Interakt → Settings → Developer Settings → Webhook, and tick the message API events (sent, delivered, read, failed). Bookings then shows Delivered ✓✓ / Read ✓✓ / Not delivered next to each send, and a failed send alerts Telegram with WhatsApp's reason. Keep this URL private — the key in it is what lets Interakt post here.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:8px">
-      <button class="btn" id="waWebhookBtn">Show webhook URL</button>
+      <button class="btn" id="waWebhookBtn">Show webhook URL &amp; recent events</button>
     </div>
     <div class="sync-results" id="waWebhookResults" style="margin-bottom:22px"></div>
 
@@ -928,6 +928,10 @@ document.getElementById('waWebhookBtn').addEventListener('click', async ()=>{
     const data = await res.json().catch(()=>({}));
     if(!res.ok || !data.url){ out.innerHTML = `<div class="sync-result err"><span>Webhook URL</span><span>${esc(data.error||'Failed')}</span></div>`; return; }
     out.innerHTML = `<div class="sync-result"><span style="word-break:break-all">${esc(data.url)}</span><span><button type="button" class="rc-add" id="waWebhookCopy">Copy</button></span></div>`;
+    const recent = Array.isArray(data.recent) ? data.recent : [];
+    out.innerHTML += recent.length
+      ? recent.map(r=>`<div class="sync-result"><span>${esc(new Date(r.at).toLocaleString('en-IN'))}</span><span>${esc(r.type)}${r.status?' · '+esc(r.status):''}${r.signatureHeaders&&r.signatureHeaders.length?' · signed ('+esc(r.signatureHeaders.join(', '))+')':''}</span></div>`).join('')
+      : '<div class="sync-result"><span>Last received</span><span>Nothing since the server last restarted — send a WhatsApp from Bookings, then check again</span></div>';
     document.getElementById('waWebhookCopy').addEventListener('click', async ()=>{
       try{ await navigator.clipboard.writeText(data.url); toast('Webhook URL copied — paste it into Interakt'); }
       catch(e){ toast('Could not copy — select the URL and copy it manually'); }
