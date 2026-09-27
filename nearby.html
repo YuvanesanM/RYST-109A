@@ -1236,7 +1236,7 @@
           <div class="at-head">
             <div>
               <h3 class="at-title">${name}</h3>
-              <p class="at-dist">${dist} &nbsp;·&nbsp; ${time} by car</p>
+              <p class="at-dist">${dist} &nbsp;·&nbsp; ${/\bby\b/.test(time) ? time : time + ' by car'}</p>
             </div>
             <a class="at-map-btn" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' near RYST 109A ECR Tamil Nadu')}" target="_blank" rel="noopener" aria-label="Open ${name} in Google Maps">${mapIcon}</a>
           </div>
