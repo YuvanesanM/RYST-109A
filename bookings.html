@@ -451,10 +451,13 @@ fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' })
 // entirely, so a template can mark a field optional just by giving it its
 // own line — no separate conditional syntax needed.
 function renderWaTemplate(tpl, vars){
-  const lines = String(tpl||'').split('\n').filter(line=>{
+  const src = String(tpl||'').split('\n');
+  const dropped = src.map(line=>{
     const tokens = line.match(/\{\{(\w+)\}\}/g) || [];
-    return !tokens.some(t => { const v = vars[t.slice(2,-2)]; return v==null || v===''; });
+    return tokens.some(t => { const v = vars[t.slice(2,-2)]; return v==null || v===''; });
   });
+  // …and a token-free "Heading:" line right above a dropped one goes too.
+  const lines = src.filter((line,i)=> !dropped[i] && !(dropped[i+1] && /:\s*$/.test(line) && !/\{\{\w+\}\}/.test(line)));
   return lines.join('\n')
     .replace(/\{\{(\w+)\}\}/g, (_,k)=> vars[k]!=null ? vars[k] : '')
     .replace(/\n{3,}/g, '\n\n')
@@ -482,16 +485,16 @@ function portalLink(d){
 }
 function reminderMessage(d){
   return renderWaTemplate(waTemplates.reminder, {
-    guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), mapLink: VILLA_MAP_LINK,
+    guest: (d.guest||'').trim() || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), mapLink: VILLA_MAP_LINK,
     portalLink: d.portalToken ? portalLink(d) : '',
   });
 }
 function feedbackLink(d){
-  return `${FEEDBACK_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent(d.guest||'')}`;
+  return `${FEEDBACK_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent((d.guest||'').trim())}`;
 }
 function feedbackRequestMessage(d){
   return renderWaTemplate(waTemplates.feedbackRequest, {
-    guest: d.guest || 'there', feedbackLink: feedbackLink(d)
+    guest: (d.guest||'').trim() || 'there', feedbackLink: feedbackLink(d)
   });
 }
 // Just no+t — checkin.html fetches everything else (guest, dates, guests,
@@ -505,7 +508,7 @@ function checkinLink(d){
 }
 function checkinRequestMessage(d){
   return renderWaTemplate(waTemplates.checkinRequest, {
-    guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), checkinLink: checkinLink(d)
+    guest: (d.guest||'').trim() || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout), checkinLink: checkinLink(d)
   });
 }
 function bookingConfirmedMessage(d){
@@ -514,7 +517,7 @@ function bookingConfirmedMessage(d){
     ? `The balance of ₹${Math.round(balance).toLocaleString('en-IN')} is due 72 hours before check-in.`
     : `You're all paid up for this stay — no balance due.`;
   return renderWaTemplate(waTemplates.bookingConfirmed, {
-    guest: d.guest || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout),
+    guest: (d.guest||'').trim() || 'there', checkin: fmtDate(d.checkin), checkout: fmtDate(d.checkout),
     no: d.no, amount: toNum(d.advance).toLocaleString('en-IN'), balanceLine
   });
 }
@@ -683,44 +686,6 @@ async function pushStays(){
   return true;
 }
 
-// Shared by all four "Send via Telegram" buttons below — pushes the exact
-// same message text the matching "Send WhatsApp"/"Send Confirmation" button
-// would open, but as a Telegram nudge (a one-tap api.whatsapp.com/send link
-// delivered to the owner's phone) instead of opening WhatsApp directly in
-// this browser tab. Marks the same *SentAt/*RequestedAt field as the
-// WhatsApp button on success — same "sent = the human was prompted"
-// semantics used everywhere else on this page, since there's no way to
-// confirm the owner actually tapped through from Telegram either.
-async function sendTelegramNudge({ d, field, label, text, btn, onDone }){
-  const phone = normalizePhone(d.phone);
-  if(!phone) return;
-  const originalLabel = btn ? btn.textContent : '';
-  if(btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
-  try{
-    const res = await fetch(PROXY_URL+'/telegram/notify', {
-      method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
-      body: JSON.stringify({ phone, text, field, label, guest: d.guest||'', no: d.no||'' })
-    });
-    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
-    const data = await res.json().catch(()=>({}));
-    if(!res.ok || data.ok===false){ alert(data.error || 'Could not send Telegram notification'); return; }
-    d[field] = new Date().toISOString();
-    try{
-      const ok = await pushStays();
-      if(ok===false) return;
-      onDone();
-    }catch(e){
-      delete d[field];
-      alert('Telegram nudge sent, but could not save status: ' + e.message);
-      onDone();
-    }
-  }catch(e){
-    alert('Could not reach the server: ' + e.message);
-  }finally{
-    if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
-  }
-}
-
 // Direct WhatsApp Business API send (Interakt, via the proxy's
 // /whatsapp/send-booking) for the four Send buttons below — confirm first,
 // then the approved template goes straight to the guest's phone; the proxy
@@ -759,6 +724,31 @@ async function sendWaApi({ d, scenario, field, label, btn, onDone }){
     d[field] = data.sentAt || new Date().toISOString();
     onDone();
     alert(`✓ Sent — the ${label} went to ${d.guest||'the guest'} on WhatsApp.`);
+  }catch(e){
+    alert('Could not reach the server: ' + e.message);
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = originalLabel; }
+    onDone();
+  }
+}
+
+// The four Telegram buttons: the proxy builds the message itself (same
+// template + links as the automatic sends, incl. guest-portal eligibility
+// and the wallet link) and pushes a tap-to-send nudge, stamping the field.
+async function sendWaTelegram({ d, scenario, field, btn, onDone }){
+  if(!normalizePhone(d.phone)) return;
+  const originalLabel = btn ? btn.textContent : '';
+  if(btn){ btn.disabled = true; btn.textContent = 'Sending…'; }
+  try{
+    const res = await fetch(PROXY_URL+'/whatsapp/send-booking', {
+      method:'POST', headers:{'X-Token':TOKEN,'Content-Type':'application/json'},
+      body: JSON.stringify({ no: d.no, scenario, via: 'telegram' })
+    });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok || !data.ok){ alert(data.error || 'Could not send Telegram notification'); return; }
+    d[field] = data.sentAt || new Date().toISOString();
+    showToast('✓ Sent to Telegram — tap the link there to send it on WhatsApp');
   }catch(e){
     alert('Could not reach the server: ' + e.message);
   }finally{
@@ -808,10 +798,9 @@ function renderDirectBookings(){
 }
 
 async function sendBookingConfirmationTg(no, btn){
-  if(!waTemplatesLoaded) return;
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
-  await sendTelegramNudge({ d, field:'confirmationSentAt', label:'📩 Booking confirmation', text: bookingConfirmedMessage(d), btn, onDone: renderDirectBookings });
+  await sendWaTelegram({ d, scenario:'bookingConfirmed', field:'confirmationSentAt', btn, onDone: renderDirectBookings });
 }
 
 async function sendBookingConfirmation(no, btn){
@@ -894,10 +883,9 @@ function renderCheckins(){
 }
 
 async function sendCheckinRequestTg(no, btn){
-  if(!waTemplatesLoaded) return;
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
-  await sendTelegramNudge({ d, field:'checkinRequestedAt', label:'🔑 Check-in request', text: checkinRequestMessage(d), btn, onDone: renderCheckins });
+  await sendWaTelegram({ d, scenario:'checkinRequest', field:'checkinRequestedAt', btn, onDone: renderCheckins });
 }
 
 async function sendCheckinRequest(no, btn){
@@ -998,10 +986,9 @@ function renderReminders(){
 }
 
 async function sendReminderTg(no, btn){
-  if(!waTemplatesLoaded) return;
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
-  await sendTelegramNudge({ d, field:'reminderSentAt', label:'📅 Stay reminder', text: reminderMessage(d), btn, onDone: renderReminders });
+  await sendWaTelegram({ d, scenario:'reminder', field:'reminderSentAt', btn, onDone: renderReminders });
 }
 
 async function sendReminder(no, btn){
@@ -1083,10 +1070,9 @@ function renderFeedbackRequests(){
 }
 
 async function sendFeedbackRequestTg(no, btn){
-  if(!waTemplatesLoaded) return;
   const d = STAYS.find(s=>s.no===no);
   if(!d) return;
-  await sendTelegramNudge({ d, field:'feedbackRequestedAt', label:'⭐ Feedback request', text: feedbackRequestMessage(d), btn, onDone: renderFeedbackRequests });
+  await sendWaTelegram({ d, scenario:'feedbackRequest', field:'feedbackRequestedAt', btn, onDone: renderFeedbackRequests });
 }
 
 async function sendFeedbackRequest(no, btn){
