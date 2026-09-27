@@ -757,6 +757,8 @@ async function sendWaApi({ d, scenario, field, label, btn, onDone }){
       return;
     }
     d[field] = data.sentAt || new Date().toISOString();
+    onDone();
+    alert(`✓ Sent — the ${label} went to ${d.guest||'the guest'} on WhatsApp.`);
   }catch(e){
     alert('Could not reach the server: ' + e.message);
   }finally{
