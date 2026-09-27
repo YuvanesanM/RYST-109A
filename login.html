@@ -81,6 +81,8 @@
   .home-card.primary:hover{box-shadow:0 8px 28px rgba(60,100,60,.2)}
   .home-card.primary .hc-icon{background:var(--accent);color:#fff}
   .logout-btn{margin-top:8px;background:transparent;border:1.5px solid var(--line);color:var(--muted2);padding:10px 24px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.3px;transition:.18s}
+  .install-app-btn{margin-top:14px;background:#0e2420;color:#f6f1e6;border:0;padding:11px 22px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.3px;display:inline-flex;align-items:center;gap:8px}
+  .install-app-btn[hidden]{display:none}
   .logout-btn:hover{border-color:var(--danger,#c0584b);color:var(--danger,#c0584b)}
   @media(max-width:600px){
     #homeView{overflow-y:auto;justify-content:flex-start;padding-top:32px;padding-bottom:32px}
@@ -93,6 +95,10 @@
   }
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<link rel="manifest" href="/staff.webmanifest">
+<link rel="apple-touch-icon" href="/assets/staff-apple-touch-icon.png">
+<script>if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('/staff-sw.js').catch(()=>{}));</script>
+<meta name="theme-color" content="#0e2420">
 </head>
 <body>
 
@@ -120,6 +126,7 @@
       </div>
       <div class="login-err" id="tgErr"></div>
     </div>
+    <button type="button" class="install-app-btn" hidden>📲 Install RYST Staff app</button>
   </div>
 </div>
 
@@ -183,10 +190,31 @@
       <span class="hc-sub">Pricing, bank details &amp; business info</span>
     </button>
   </div>
+  <button type="button" class="install-app-btn" hidden>📲 Install RYST Staff app</button>
   <button id="logoutBtn" class="logout-btn" type="button">⎋ Log out</button>
 </div>
 
 <script>
+// "Install RYST Staff app" — Chrome on Android offers installing this
+// page's staff.webmanifest as a real app (home-screen/app-drawer icon,
+// full screen). Shown only when Chrome says it's installable and we're not
+// already running as the installed app.
+(function(){
+  let deferred = null;
+  const btns = () => document.querySelectorAll('.install-app-btn');
+  const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferred = e;
+    if(!standalone) btns().forEach(b => b.hidden = false);
+  });
+  window.addEventListener('appinstalled', () => { deferred = null; btns().forEach(b => b.hidden = true); });
+  document.addEventListener('click', async e => {
+    if(!e.target.closest('.install-app-btn') || !deferred) return;
+    deferred.prompt();
+    await deferred.userChoice.catch(()=>{});
+    deferred = null; btns().forEach(b => b.hidden = true);
+  });
+})();
 const PROXY_URL = 'https://data.ryst.in';
 let proxyToken = localStorage.getItem('ryst_proxy_token') || '';
 
