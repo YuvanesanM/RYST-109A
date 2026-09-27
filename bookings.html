@@ -202,8 +202,14 @@
     .layout{grid-template-columns:1fr}
     .cards{grid-template-columns:1fr 1fr}
   }
+  .layout > *{min-width:0}
   @media(max-width:680px){
     .wrap{padding:14px 12px 60px}
+    /* Nav + month + legend in one unwrappable row forced the page to ~420px
+       on phones — let the legend drop to its own line. */
+    .cal-head{flex-wrap:wrap}
+    .cal-head .mon{min-width:0}
+    .cal-legend{flex-basis:100%}
     .cal-cell{min-height:64px;padding:4px}
     .cal-pill{display:none}
     .cal-cell.has-booking::after{content:"";position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--inv)}

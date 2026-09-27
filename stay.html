@@ -205,6 +205,9 @@
   @keyframes sp{to{transform:rotate(360deg)}}
 
   @media (max-width:900px){
+    /* The toolbar's buttons in one no-wrap row pushed the page past a
+       phone's width — let them wrap under the title instead. */
+    .bar-actions{flex-wrap:wrap;margin-left:0;justify-content:flex-start}
     main.work{grid-template-columns:1fr;height:auto}
     .preview{padding:14px}
     .doc{width:100%;min-height:auto;padding:18px 16px}
