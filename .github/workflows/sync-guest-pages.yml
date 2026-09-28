@@ -24,7 +24,7 @@ jobs:
         run: |
           set -euo pipefail
           git clone --depth 1 https://github.com/YuvanesanM/ryst-harbour.git /tmp/harbour
-          FILES="checkin.html guest.html feedback.html wa.html villa.js property.js"
+          FILES="checkin.html guest.html feedback.html wa.html villa.js property.js i18n.js"
           for f in $FILES; do cp "/tmp/harbour/$f" "$f"; done
           git add $FILES
           if git diff --cached --quiet; then echo "Already in sync"; exit 0; fi
