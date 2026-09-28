@@ -690,7 +690,10 @@ function typePrefix(t){ return t==="quote" ? settings.qtPrefix : settings.invPre
 function nextNo(t){
   const yr=new Date().getFullYear(), pre=typePrefix(t);
   const re=new RegExp("^"+pre.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\/"+yr+"\\/(\\d+)$");
-  let max=0; getStays().forEach(s=>{ if((s.type||"invoice")!==t) return; const m=(s.no||"").match(re); if(m) max=Math.max(max,parseInt(m[1],10)); });
+  // Every record's number counts, whatever its type now: a quote switched to
+  // invoice keeps its QT number, and counting only quotes handed that number
+  // out again (27 Sep: a new quote overwrote Prachi's QT/2026/034).
+  let max=0; getStays().forEach(s=>{ const m=(s.no||"").match(re); if(m) max=Math.max(max,parseInt(m[1],10)); });
   return `${pre}/${yr}/${String(max+1).padStart(3,"0")}`;
 }
 
@@ -1143,7 +1146,9 @@ async function saveDoc(){
   // a save could still race a write landing in the same instant) the
   // window where collect()'s merge above would be working from a stale
   // copy of the very fields it's trying to protect.
-  if(editingKey) await fetchStaysFromProxy();
+  // A new document needs the latest list too, so its number isn't one that
+  // was taken since this page opened.
+  await fetchStaysFromProxy();
   // Normalize + validate the phone before it's ever written — see
   // normalizePhoneStrict's comment. Blocks the save rather than silently
   // saving something the WhatsApp send would later choke on.
@@ -1152,10 +1157,19 @@ async function saveDoc(){
   if(!syncPhoneValidity()){ toast("Phone needs a country code and no spaces, e.g. +919876543210"); $("#phone").focus(); return; }
   const doc=collect(); if(!doc.no){ toast("No document number"); return; }
   if(!doc.guest.trim()){ toast("Add a guest name first"); return; }
+  if(!editingKey && getStays().some(x=>x.no===doc.no)){
+    doc.no=curNo=nextNo(docType); $("#no").value=curNo; // number taken meanwhile → next free one
+  }
   const all=getStays(); const key=editingKey||doc.no; const idx=all.findIndex(x=>x.no===key);
   if(idx>=0) all[idx]=doc; else all.push(doc);
+  const wasEditing=editingKey;
   staysCache=all; editingKey=doc.no; syncPdfBtn();
-  await pushStays();
+  if(!(await pushStays())){
+    editingKey=wasEditing; syncPdfBtn();
+    await fetchStaysFromProxy(); // drop the unsaved copy from this page's list
+    alert("Not saved — "+(lastPushError||"check your connection and try again"));
+    return;
+  }
   // Re-fetch so this doc's walletToken (a server-side HMAC, not something
   // the client can compute) comes back decorated, then the Wallet button
   // can actually be enabled.
