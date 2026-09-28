@@ -150,6 +150,15 @@
     .cfg-body{padding:20px 14px 60px}
     .rc-table-wrap{border-radius:8px}
   }
+  .onb{background:var(--panel);border:1.5px solid var(--accent, #3d9b69);border-radius:14px;padding:14px 16px;margin:0 0 18px}
+  .onb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;font-size:15px}
+  .onb-x{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;cursor:pointer;text-decoration:underline}
+  .onb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .onb-list li{display:flex;align-items:center;gap:10px;font-size:13.5px}
+  .onb-list .ck{flex:0 0 20px;height:20px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px}
+  .onb-list li.done .ck{background:var(--accent, #3d9b69);border-color:var(--accent, #3d9b69);color:#fff}
+  .onb-list li.done span{color:var(--muted)}
+  .onb-list button{margin-left:auto;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--ink);white-space:nowrap}
 </style>
 <link rel="manifest" href="/staff.webmanifest">
 <link rel="apple-touch-icon" href="/assets/staff-apple-touch-icon.png">
@@ -186,6 +195,11 @@
 
 <div class="cfg-body">
   <p class="sd">Settings for the <b data-prop="fullName">RYST 109A Beach Villa</b> invoice / quote builder. Pricing, bank details and business info sync to the cloud and load automatically in the Stay builder.</p>
+
+  <div class="onb" id="onboard" hidden>
+    <div class="onb-head"><b>Get your villa ready</b><button type="button" class="onb-x" id="onbHide" aria-label="Hide">Hide</button></div>
+    <ol class="onb-list" id="onbList"></ol>
+  </div>
 
   <div class="tabs" id="cfgTabs">
     <button type="button" class="tab-btn active" data-tab="villa">Villa &amp; Business</button>
@@ -486,6 +500,12 @@
     </div>
     <p class="wa-hint" style="margin:6px 0 10px">The villa ID can't be changed later: lowercase letters, numbers and dashes. The admin email must not already be a user here.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button class="btn primary" id="villaCreateBtn">Add villa</button></div>
+
+    <p class="sd" style="margin-bottom:10px"><b>Invite a villa owner</b> — they open the link, sign in with Google and set up their own villa (name, ID) themselves. The link works only for the Google account below.</p>
+    <label class="f" style="margin-bottom:8px"><span>Their Google account email</span><input class="t" id="invEmail" type="email" maxlength="200" placeholder="owner@gmail.com" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+    <label class="f" style="margin-bottom:8px"><span>Link valid for (days)</span><input class="t" id="invDays" type="number" min="1" max="60" value="14" inputmode="numeric"></label>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:8px"><button class="btn primary" id="invCreateBtn">Create invite link</button></div>
+    <div class="sync-results" id="invResult" style="margin-bottom:22px"></div>
     </div>
   </div>
 </div>
@@ -500,7 +520,7 @@
 
 <script>
 const PROXY_URL = 'https://data.ryst.in';
-const K_STAY    = 'ryst_stay_settings';
+const K_STAY    = 'ryst_stay_settings' + ((window.RYST_VILLA && window.RYST_VILLA !== 'ryst-109a') ? ':' + window.RYST_VILLA : ''); // per villa, so one villa's cached settings never show (or save) in another's
 
 const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
@@ -600,7 +620,8 @@ function hasModule(mod){
   // PAN and rate card on the server.
   const hasCache = !!localStorage.getItem(K_STAY);
   loadStayPanel();
-  initPinGate();
+  // The keypad PIN is RYST 109A's; other villas rely on their sign-in alone.
+  if(!window.RYST_VILLA || window.RYST_VILLA==='ryst-109a') initPinGate();
 
   const loader = document.getElementById('loader'), msgEl = document.getElementById('loaderMsg'), retryBtn = document.getElementById('loaderRetry');
   const saveBtn = document.getElementById('staySave');
@@ -615,7 +636,8 @@ function hasModule(mod){
     if(!res.ok){ if(!hasCache) throw new Error('Server error ('+res.status+')'); return; }
     const d = await res.json().catch(()=>null);
     if(d && typeof d==='object'){
-      if(d.bank||d.rates||d.company) applyStay(d);
+      if(d.bank||d.rates||d.company||d.property||d.invPrefix) applyStay(d); // a new villa has only its profile + prefixes so far
+      renderOnboarding(d);
       // icalExportKey is never cached/guessed client-side — always the value
       // the server just computed, shown regardless of whether other fields
       // are populated yet (a brand-new install still needs to see this).
@@ -660,6 +682,40 @@ function hasModule(mod){
   loadWhatsAppStatus();
 })();
 document.getElementById('loaderRetry').addEventListener('click', ()=>location.reload());
+
+/* ---------- GETTING STARTED (new villas) ----------
+   Shown to another villa's staff until hidden, or to anyone arriving from
+   signup (?welcome=1). Each step opens the tab where it's done. */
+async function renderOnboarding(d){
+  const villa = window.RYST_VILLA || '';
+  const isNewVilla = villa && villa !== 'ryst-109a';
+  const welcome = new URLSearchParams(location.search).has('welcome');
+  const HIDE_KEY = 'ryst_onboarding_hidden:' + (villa || 'ryst-109a');
+  let hidden = false; try{ hidden = localStorage.getItem(HIDE_KEY) === '1'; }catch(e){}
+  if(!(welcome || (isNewVilla && !hidden))) return;
+  const p = (d && d.property) || {};
+  let team = null;
+  if(localStorage.getItem('ryst_user_admin') === 'true'){
+    try{ const r = await fetch(PROXY_URL+'/users',{headers:{'X-Token':proxyToken}}); const u = await r.json(); team = Array.isArray(u.users) ? u.users.length : null; }catch(e){}
+  }
+  const rates = Array.isArray(d && d.rates) && d.rates.some(r => Number(r.rate) > 0);
+  const steps = [
+    { done: !!(p.address && p.whatsapp), text: 'Add your villa details — address, WhatsApp number, logo', tab: 'villa', anchor: 'propName' },
+    { done: rates && !!(d && d.bank), text: 'Set your rates and bank details for quotes and invoices', tab: 'villa' },
+    { done: team != null && team > 1, text: 'Add your caretaker and managers', tab: 'users' },
+    { done: Array.isArray(d && d.icalFeeds) && d.icalFeeds.length > 0, text: 'Connect your Airbnb / Booking.com calendars', tab: 'ota' },
+    { done: false, text: 'Give your OTAs your calendar export link (so they block your bookings)', tab: 'ota' },
+  ];
+  const list = document.getElementById('onbList');
+  list.innerHTML = steps.map((s,i)=>`<li class="${s.done?'done':''}"><span class="ck">${s.done?'✓':i+1}</span><span>${esc(s.text)}</span><button type="button" data-go="${s.tab}">${s.done?'Review':'Open'}</button></li>`).join('');
+  list.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    const tabBtn = document.querySelector('.tab-btn[data-tab="'+b.dataset.go+'"]');
+    if(tabBtn && tabBtn.style.display === 'none'){ toast('Only an admin can open that section'); return; }
+    switchTab(b.dataset.go); document.getElementById('cfgTabs').scrollIntoView({ behavior:'smooth', block:'start' });
+  }));
+  document.getElementById('onbHide').onclick = () => { try{ localStorage.setItem(HIDE_KEY,'1'); }catch(e){} document.getElementById('onboard').hidden = true; };
+  document.getElementById('onboard').hidden = false;
+}
 
 /* ---------- TABS ---------- */
 function switchTab(tab){
@@ -1143,6 +1199,28 @@ document.getElementById('villaCreateBtn').addEventListener('click', async e=>{
     villaList();
   }catch(err){ toast(err.message); }
   finally{ b.disabled=false; b.textContent='Add villa'; }
+});
+
+document.getElementById('invCreateBtn').addEventListener('click', async e=>{
+  const email=document.getElementById('invEmail').value.trim().toLowerCase();
+  const days=Number(document.getElementById('invDays').value)||14;
+  const out=document.getElementById('invResult');
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ toast('Enter their Google account email'); return; }
+  const b=e.currentTarget; b.disabled=true; b.textContent='Creating…';
+  try{
+    const res=await fetch(PROXY_URL+'/platform/invites',{ method:'POST', headers:{'X-Token':proxyToken,'Content-Type':'application/json'}, body:JSON.stringify({email,days}) });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const d=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(d.error||('Error '+res.status));
+    out.innerHTML=`<div class="sync-result"><span>Invite for ${esc(d.email)}</span><span>valid until ${esc(new Date(d.expires).toLocaleDateString())}</span></div>
+      <input class="t" readonly id="invLink" value="${esc(d.link)}" style="margin-top:8px">
+      <div class="rc-foot" style="margin-top:8px"><button type="button" class="btn" id="invCopy">Copy link</button></div>`;
+    document.getElementById('invCopy').addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(d.link); toast('Invite link copied — send it to them on WhatsApp or email'); }
+      catch(err){ document.getElementById('invLink').select(); toast('Select the link and copy it'); }
+    });
+  }catch(err){ out.innerHTML=`<div class="sync-result err"><span>Invite</span><span>${esc(err.message)}</span></div>`; }
+  finally{ b.disabled=false; b.textContent='Create invite link'; }
 });
 
 document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{

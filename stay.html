@@ -514,7 +514,7 @@ function hasModule(mod){
   return role === 'owner' || modules.includes(mod);
 }
 
-const K_SET = "ryst_stay_settings";   // local cache; master copy synced via proxy /stay-settings
+const K_SET = "ryst_stay_settings" + ((window.RYST_VILLA && window.RYST_VILLA !== 'ryst-109a') ? ':' + window.RYST_VILLA : '');   // local cache (per villa); master copy synced via proxy /stay-settings
 
 // Villa business info, bank & pricing. These are the built-in defaults — the
 // live values are configured in settings.html (Stay tab) and synced through the
