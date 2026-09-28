@@ -10,13 +10,20 @@
 //   data-prop-tpl="Welcome to {name}" → textContent with {key} filled in
 //   data-prop-alt="name"        → alt attribute
 //   data-prop-href="mapLink"    → href
-//   data-prop-src="logoUrl"     → src (only when it differs from the default,
+//   data-prop-src="logoUrl"     → src (only when it differs from RYST 109A's,
 //                                 so RYST 109A keeps its local optimised logo)
 //   data-prop-if="instagram"      → hidden while that field is empty
 //   <title data-title="Petty Cash · {name}">
 // Scripts read window.PROPERTY at the moment they build text (receipts,
 // messages), and can listen for the 'property-updated' event.
+//
+// Staff pages load it as <script src="/property.js" data-staff>: they send
+// the signed-in token, so each villa's staff see their own villa's profile
+// (the proxy picks the villa from the token). Guest pages never send it and
+// always get the villa the site belongs to.
 (function(){
+  var me = document.currentScript;
+  var staff = !!(me && me.hasAttribute('data-staff'));
   var DEFAULTS = {
     name: 'RYST 109A', fullName: 'RYST 109A Beach Villa', restaurantName: 'Casa de RYST',
     address: '109A, Pearl Beach Site, Parmankeni, Cheyyur - 603305, Tamil Nadu',
@@ -29,9 +36,24 @@
     latitude: 12.3698373, longitude: 80.0782188,
     googlePlaceQuery: 'RYST 109A Pearl Beach Villa, ECR, Cheyyur'
   };
-  var demo = false;
+  var demo = false, token = '', villa = '';
   try { demo = localStorage.getItem('ryst_demo') === '1'; } catch (e) {}
-  var KEY = demo ? 'ryst_property_demo' : 'ryst_property';
+  if (staff && !demo) {
+    try {
+      token = localStorage.getItem('ryst_proxy_token') || '';
+      var b = token.split('.')[0].replace(/-/g, '+').replace(/_/g, '/');
+      villa = String(JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4))))).tenant || '');
+    } catch (e) { villa = ''; }
+    if (!/^[a-z0-9-]{2,40}$/.test(villa)) villa = '';
+  }
+  // Another villa's staff: never start from RYST 109A's own details.
+  var RYST_DEFAULTS = DEFAULTS;
+  if (villa && villa !== 'ryst-109a') {
+    DEFAULTS = { name: 'Villa', fullName: 'Villa', restaurantName: '', address: '', mapLink: '', website: '', whatsapp: '', instagram: '',
+      signatory: '', typeLabel: 'Villa', tagline: '', receiptNote: '', logoUrl: 'https://stay.ryst.in/assets/staff-icon-512.png', coverUrl: '', latitude: null, longitude: null, googlePlaceQuery: '' };
+  }
+  var KEY = demo ? 'ryst_property_demo' : (villa && villa !== 'ryst-109a' ? 'ryst_property_' + villa : 'ryst_property');
+  window.PROPERTY_CACHE_KEY = KEY;
   var cached = null;
   try { cached = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
 
@@ -58,7 +80,7 @@
     each(root, '[data-prop-tpl]', function(el){ el.textContent = fill(el.getAttribute('data-prop-tpl')); });
     each(root, '[data-prop-alt]', function(el){ el.setAttribute('alt', P[el.getAttribute('data-prop-alt')] || ''); });
     each(root, '[data-prop-href]', function(el){ var v = P[el.getAttribute('data-prop-href')]; if (v) el.setAttribute('href', v); else el.removeAttribute('href'); });
-    each(root, '[data-prop-src]', function(el){ var k = el.getAttribute('data-prop-src'); if (P[k] && P[k] !== DEFAULTS[k]) el.setAttribute('src', P[k]); });
+    each(root, '[data-prop-src]', function(el){ var k = el.getAttribute('data-prop-src'); if (P[k] && P[k] !== RYST_DEFAULTS[k]) el.setAttribute('src', P[k]); });
     each(root, '[data-prop-if]', function(el){ el.hidden = !P[el.getAttribute('data-prop-if')]; });
     var t = document.querySelector('title[data-title]');
     if (t) document.title = fill(t.getAttribute('data-title'));
@@ -67,7 +89,7 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ apply(document); });
   else apply(document);
 
-  fetch('https://data.ryst.in/property', { cache: 'no-cache' })
+  fetch('https://data.ryst.in/property', token ? { cache: 'no-cache', headers: { 'X-Token': token } } : { cache: 'no-cache' })
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if (!d || typeof d !== 'object' || !d.name) return;

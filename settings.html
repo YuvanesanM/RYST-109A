@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://data.ryst.in; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
-<script src="/property.js"></script>
+<script src="/property.js" data-staff></script>
 <title data-title="Rate Card &amp; Settings — {name}">Rate Card &amp; Settings — RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -459,6 +459,7 @@
       <button class="btn primary" id="userSave" disabled>Save user access</button>
     </div>
 
+    <div id="platformOnly">
     <p class="gh-mini" style="margin-top:28px">Data storage</p>
     <p class="sd" style="margin-bottom:12px">Where bookings, cash, inventory and settings are kept — moving from GitHub to the Supabase database. <b>Copy to Supabase</b> copies every data file across and checks each one arrived identical; <b>Compare</b> only checks. Neither changes where the app reads and saves — that's the <code>STORAGE_BACKEND</code> setting on Render.</p>
     <div class="rc-foot" style="margin-top:0;margin-bottom:8px">
@@ -473,6 +474,19 @@
       <button class="btn primary" id="photoMoveBtn">Move photos to private storage</button>
     </div>
     <div class="sync-results" id="photoResults" style="margin-bottom:22px"></div>
+
+    <p class="gh-mini" style="margin-top:28px">Villas</p>
+    <p class="sd" style="margin-bottom:12px">Other villas on RYST Harbour. Each villa has its own bookings, cash, inventory, settings and staff — its admin signs in with the email below (Google or Telegram) and sees only that villa. WhatsApp, online payments and calendar sync stay connected to this villa only for now.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:8px"><button class="btn" id="villaListBtn">Show villas</button></div>
+    <div class="sync-results" id="villaResults" style="margin-bottom:14px"></div>
+    <div>
+      <label class="f" style="margin-bottom:8px"><span>Villa name</span><input class="t" id="villaName" maxlength="120" placeholder="e.g. Sea Breeze Villa" autocomplete="off"></label>
+      <label class="f" style="margin-bottom:8px"><span>Villa ID</span><input class="t" id="villaSlug" maxlength="40" placeholder="e.g. sea-breeze" pattern="[a-z0-9-]{2,40}" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+      <label class="f" style="margin-bottom:8px"><span>Admin email</span><input class="t" id="villaAdmin" type="email" maxlength="200" placeholder="owner@example.com" autocomplete="off" autocapitalize="none" spellcheck="false"></label>
+    </div>
+    <p class="wa-hint" style="margin:6px 0 10px">The villa ID can't be changed later: lowercase letters, numbers and dashes. The admin email must not already be a user here.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:22px"><button class="btn primary" id="villaCreateBtn">Add villa</button></div>
+    </div>
   </div>
 </div>
 
@@ -1085,6 +1099,52 @@ document.getElementById('storCopyBtn').addEventListener('click', e => {
   storRun(e.currentTarget, 'Copying…', async ()=> storFileRows(await storCall('POST','/admin/storage/copy')));
 });
 
+// ── Villas (platform owner = an admin of the original villa) ──
+function tokenVilla(){
+  try{ const b=proxyToken.split('.')[0].replace(/-/g,'+').replace(/_/g,'/'); return JSON.parse(atob(b+'==='.slice((b.length+3)%4))).tenant||'ryst-109a'; }
+  catch(e){ return 'ryst-109a'; }
+}
+if(tokenVilla()!=='ryst-109a') document.getElementById('platformOnly').style.display='none';
+function villaRows(list){
+  if(!list.length) return '<div class="sync-result"><span>Villas</span><span>None yet</span></div>';
+  return list.map(v=>`<div class="sync-result"><span>${esc(v.name)}${v.isDefault?' (this villa)':''}</span><span>${esc(v.slug)} · ${v.bookings} booking${v.bookings===1?'':'s'} · ${v.users} user${v.users===1?'':'s'} · ${esc(v.status)}</span></div>`).join('');
+}
+async function villaList(){
+  const out=document.getElementById('villaResults');
+  try{ const d=await storCall('GET','/platform/villas'); out.innerHTML=villaRows(d.villas||[]); }
+  catch(e){ out.innerHTML=`<div class="sync-result err"><span>Villas</span><span>${esc(e.message)}</span></div>`; }
+}
+document.getElementById('villaListBtn').addEventListener('click', async e=>{
+  const b=e.currentTarget, t=b.textContent; b.disabled=true; b.textContent='Loading…';
+  await villaList(); b.disabled=false; b.textContent=t;
+});
+document.getElementById('villaName').addEventListener('input', e=>{
+  const slug=document.getElementById('villaSlug');
+  if(slug.dataset.edited) return;
+  slug.value=e.target.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
+});
+document.getElementById('villaSlug').addEventListener('input', e=>{ e.target.dataset.edited='1'; });
+document.getElementById('villaCreateBtn').addEventListener('click', async e=>{
+  const name=document.getElementById('villaName').value.trim();
+  const slug=document.getElementById('villaSlug').value.trim().toLowerCase();
+  const adminEmail=document.getElementById('villaAdmin').value.trim().toLowerCase();
+  if(!name){ toast('Enter the villa name'); return; }
+  if(!/^[a-z0-9-]{2,40}$/.test(slug)){ toast('Villa ID: 2–40 lowercase letters, numbers or dashes'); return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(adminEmail)){ toast('Enter a valid admin email'); return; }
+  if(!confirm(`Add "${name}" (${slug})?\n\n${adminEmail} will be its admin and can sign in right away. The villa ID can't be changed later.`)) return;
+  const b=e.currentTarget; b.disabled=true; b.textContent='Adding…';
+  try{
+    const res=await fetch(PROXY_URL+'/platform/villas',{ method:'POST', headers:{'X-Token':proxyToken,'Content-Type':'application/json'}, body:JSON.stringify({slug,name,adminEmail}) });
+    if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
+    const d=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(d.error||('Error '+res.status));
+    toast(`${name} added — ${adminEmail} can sign in now`);
+    ['villaName','villaSlug','villaAdmin'].forEach(id=>{ const el=document.getElementById(id); el.value=''; delete el.dataset.edited; });
+    villaList();
+  }catch(err){ toast(err.message); }
+  finally{ b.disabled=false; b.textContent='Add villa'; }
+});
+
 document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('tgChatIdBtn');
   const out = document.getElementById('tgChatIdResults');
@@ -1140,7 +1200,7 @@ function mergeWaAutomation(saved){
 let waAutomationDraft = mergeWaAutomation({});
 async function loadWaTemplates(){
   try{
-    const res = await fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' });
+    const res = await fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store', headers:{'X-Token':proxyToken} });
     const data = await res.json().catch(()=>({}));
     if(data && data.templates) waTemplatesDraft = Object.assign({}, WA_DEFAULTS, data.templates);
     if(data && data.automation) waAutomationDraft = mergeWaAutomation(data.automation);
@@ -1494,7 +1554,7 @@ async function saveStay(){
         toast("Stay settings saved");
         // Pages brand themselves from this cache first — update it now so the
         // new profile shows everywhere without waiting for the next refresh.
-        try { localStorage.setItem('ryst_property', JSON.stringify(Object.assign({}, window.PROPERTY_DEFAULTS, prop))); } catch(e) {}
+        try { localStorage.setItem(window.PROPERTY_CACHE_KEY || 'ryst_property', JSON.stringify(Object.assign({}, window.PROPERTY_DEFAULTS, prop))); } catch(e) {}
       }
     }catch(e){ toast("Saved locally — cloud unreachable"); }
   } else { toast("Saved locally"); }

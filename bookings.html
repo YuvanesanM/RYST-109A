@@ -6,7 +6,7 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://data.ryst.in; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
-<script src="/property.js"></script>
+<script src="/property.js" data-staff></script>
 <title data-title="Booking Calendar · {name}">Booking Calendar · RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -451,7 +451,7 @@ let waTemplatesLoaded = false;
 // no-store: the proxy sends no Cache-Control on this response, so without
 // this a browser is free to cache the JSON on disk and keep replaying an
 // old (possibly since-fixed) copy indefinitely instead of refetching.
-fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store' })
+fetch(PROXY_URL+'/whatsapp-templates', { cache: 'no-store', headers:{'X-Token':TOKEN} })
   .then(r => r.ok ? r.json() : null)
   .then(data => {
     if(!data || !data.templates) return;
