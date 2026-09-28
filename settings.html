@@ -997,7 +997,7 @@ function storStatusRows(d){
   const mode = d.mirroringToSupabase ? 'dual' : d.active;
   const keysMissing = d.backend !== 'github' && !d.supabaseConfigured;
   return `<div class="sync-result${keysMissing?' err':''}"><span>Reading &amp; saving</span><span>${esc(STOR_MODE[mode] || mode)}${keysMissing?' — STORAGE_BACKEND='+esc(d.backend)+' is set but the Supabase keys are missing':''}</span></div>`
-    + `<div class="sync-result${d.supabaseConfigured && d.supabaseKeyKind!=='publishable'?'':' err'}"><span>Supabase keys on Render</span><span>${!d.supabaseConfigured ? 'Not set — add SUPABASE_URL and SUPABASE_SERVICE_KEY' : d.supabaseKeyKind==='publishable' ? 'Wrong key — this is the publishable key; use the secret key (starts sb_secret_)' : 'Set (secret key)'}</span></div>`
+    + `<div class="sync-result${d.supabaseConfigured && d.supabaseKeyKind==='secret'?'':' err'}"><span>Supabase keys on Render</span><span>${!d.supabaseConfigured ? 'Not set — add SUPABASE_URL and SUPABASE_SERVICE_KEY' : d.supabaseKeyKind==='publishable' ? 'Wrong key — this is the publishable key; use the secret key (starts sb_secret_)' : d.supabaseKeyKind==='damaged' ? 'Key is damaged — ' + esc(d.supabaseKeyProblem||'') : d.supabaseKeyKind==='secret' ? 'Set (secret key)' : 'Set, but not recognised as a Supabase secret key'}</span></div>`
     + (d.mirroringToSupabase ? `<div class="sync-result${m.failed?' err':''}"><span>Mirror since last restart</span><span>${m.ok||0} saved · ${m.failed||0} failed${m.lastError?' — '+esc(m.lastError):''}</span></div>` : '');
 }
 async function storCall(method, path){
