@@ -456,6 +456,15 @@
     <div class="rc-foot">
       <button class="btn primary" id="userSave" disabled>Save user access</button>
     </div>
+
+    <p class="gh-mini" style="margin-top:28px">Data storage</p>
+    <p class="sd" style="margin-bottom:12px">Where bookings, cash, inventory and settings are kept — moving from GitHub to the Supabase database. <b>Copy to Supabase</b> copies every data file across and checks each one arrived identical; <b>Compare</b> only checks. Neither changes where the app reads and saves — that's the <code>STORAGE_BACKEND</code> setting on Render.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:8px">
+      <button class="btn" id="storStatusBtn">Check status</button>
+      <button class="btn" id="storCompareBtn">Compare</button>
+      <button class="btn primary" id="storCopyBtn">Copy to Supabase</button>
+    </div>
+    <div class="sync-results" id="storResults" style="margin-bottom:22px"></div>
   </div>
 </div>
 
@@ -979,6 +988,43 @@ document.getElementById('waWebhookBtn').addEventListener('click', async ()=>{
       catch(e){ toast('Could not copy — select the URL and copy it manually'); }
     });
   }catch(e){ out.innerHTML = '<div class="sync-result err">Could not reach the server</div>'; }
+});
+
+// ── Data storage (admin) ──
+const STOR_MODE = { github:'GitHub (current)', dual:'GitHub, mirrored to Supabase', supabase:'Supabase' };
+function storStatusRows(d){
+  const m = d.mirror || {};
+  const mode = d.mirroringToSupabase ? 'dual' : d.active;
+  const keysMissing = d.backend !== 'github' && !d.supabaseConfigured;
+  return `<div class="sync-result${keysMissing?' err':''}"><span>Reading &amp; saving</span><span>${esc(STOR_MODE[mode] || mode)}${keysMissing?' — STORAGE_BACKEND='+esc(d.backend)+' is set but the Supabase keys are missing':''}</span></div>`
+    + `<div class="sync-result${d.supabaseConfigured?'':' err'}"><span>Supabase keys on Render</span><span>${d.supabaseConfigured?'Set':'Not set — add SUPABASE_URL and SUPABASE_SERVICE_KEY'}</span></div>`
+    + (d.mirroringToSupabase ? `<div class="sync-result${m.failed?' err':''}"><span>Mirror since last restart</span><span>${m.ok||0} saved · ${m.failed||0} failed${m.lastError?' — '+esc(m.lastError):''}</span></div>` : '');
+}
+async function storCall(method, path){
+  const res = await fetch(PROXY_URL+path, { method, headers:{ 'X-Token': proxyToken }, cache:'no-store' });
+  if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; throw new Error('Session expired'); }
+  const data = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(data.error || ('Error '+res.status));
+  return data;
+}
+async function storRun(btn, label, fn){
+  const out = document.getElementById('storResults');
+  const all = ['storStatusBtn','storCompareBtn','storCopyBtn'].map(id=>document.getElementById(id));
+  const orig = btn.textContent; all.forEach(b=>b.disabled=true); btn.textContent = label;
+  try { out.innerHTML = await fn(); }
+  catch(e){ out.innerHTML = `<div class="sync-result err"><span>Data storage</span><span>${esc(e.message)}</span></div>`; }
+  finally { all.forEach(b=>b.disabled=false); btn.textContent = orig; }
+}
+function storFileRows(d){
+  const rows = (d.results||[]).map(r=>`<div class="sync-result${r.match?'':' err'}"><span>${esc(r.name)}</span><span>${r.match?'✓ identical':'✗ '+esc(r.error||'differs')}${r.bytes!=null?' · '+(r.bytes/1024).toFixed(1)+' KB':''}</span></div>`).join('');
+  const head = `<div class="sync-result${d.ok?'':' err'}"><span>${d.compareOnly?'Compare':'Copy'}</span><span>${d.ok?'All '+(d.results||[]).length+' files match':'Some files need attention'}</span></div>`;
+  return head + rows;
+}
+document.getElementById('storStatusBtn').addEventListener('click', e => storRun(e.currentTarget, 'Checking…', async ()=> storStatusRows(await storCall('GET','/admin/storage/status'))));
+document.getElementById('storCompareBtn').addEventListener('click', e => storRun(e.currentTarget, 'Comparing…', async ()=> storFileRows(await storCall('POST','/admin/storage/copy?compare=1'))));
+document.getElementById('storCopyBtn').addEventListener('click', e => {
+  if(!confirm('Copy every data file from GitHub to Supabase?\n\nThis overwrites what is in Supabase with the current GitHub copy. The app keeps reading and saving where it does now.')) return;
+  storRun(e.currentTarget, 'Copying…', async ()=> storFileRows(await storCall('POST','/admin/storage/copy')));
 });
 
 document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
