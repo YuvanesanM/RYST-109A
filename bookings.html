@@ -498,7 +498,7 @@ function normalizePhone(p){
 // means the link is live — same "committed" gate the portal itself checks
 // server-side on every request regardless.
 function portalLink(d){
-  return `${GUEST_PORTAL_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.portalToken||'')}`;
+  return `${GUEST_PORTAL_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.portalToken||'')}${villaLinkParam()}`;
 }
 function reminderMessage(d){
   return renderWaTemplate(waTemplates.reminder, {
@@ -507,7 +507,7 @@ function reminderMessage(d){
   });
 }
 function feedbackLink(d){
-  return `${FEEDBACK_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent((d.guest||'').trim())}`;
+  return `${FEEDBACK_FORM_URL}?no=${encodeURIComponent(d.no)}&guest=${encodeURIComponent((d.guest||'').trim())}${villaLinkParam()}`;
 }
 function feedbackRequestMessage(d){
   return renderWaTemplate(waTemplates.feedbackRequest, {
@@ -521,7 +521,7 @@ function feedbackRequestMessage(d){
 // after a Pay Balance Now payment), not whatever it was when this link was
 // generated.
 function checkinLink(d){
-  return `${CHECKIN_FORM_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.checkinToken||'')}`;
+  return `${CHECKIN_FORM_URL}?no=${encodeURIComponent(d.no)}&t=${encodeURIComponent(d.checkinToken||'')}${villaLinkParam()}`;
 }
 function checkinRequestMessage(d){
   return renderWaTemplate(waTemplates.checkinRequest, {
