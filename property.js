@@ -45,6 +45,8 @@
       villa = String(JSON.parse(decodeURIComponent(escape(atob(b + '==='.slice((b.length + 3) % 4))))).tenant || '');
     } catch (e) { villa = ''; }
     if (!/^[a-z0-9-]{2,40}$/.test(villa)) villa = '';
+  } else if (!staff && !demo && window.RYST_VILLA) {
+    villa = window.RYST_VILLA; // guest page opened from another villa's link (villa.js sends it as X-Villa)
   }
   // Another villa's staff: never start from RYST 109A's own details.
   var RYST_DEFAULTS = DEFAULTS;
@@ -54,6 +56,9 @@
   }
   var KEY = demo ? 'ryst_property_demo' : (villa && villa !== 'ryst-109a' ? 'ryst_property_' + villa : 'ryst_property');
   window.PROPERTY_CACHE_KEY = KEY;
+  window.RYST_VILLA = window.RYST_VILLA || villa;
+  // "&v=<villa>" for guest links built on a staff page of another villa.
+  if (!window.villaLinkParam) window.villaLinkParam = function(){ return villa && villa !== 'ryst-109a' ? '&v=' + encodeURIComponent(villa) : ''; };
   var cached = null;
   try { cached = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
 
