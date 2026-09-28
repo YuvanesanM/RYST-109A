@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
-<title>Inventory &amp; Restock · RYST 109A</title>
+<script src="/property.js"></script>
+<title data-title="Inventory &amp; Restock · {name}">Inventory &amp; Restock · RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -159,7 +160,7 @@
 <div class="wrap">
   <header class="top">
     <img id="logo" alt="RYST" src="/assets/stay-logo.webp" />
-    <div class="ttl">Inventory &amp; Restock<small>RYST 109A · Consumables tracker</small></div>
+    <div class="ttl">Inventory &amp; Restock<small><span data-prop="name">RYST 109A</span> · Consumables tracker</small></div>
     <div class="spacer"></div>
     <span id="roleBadge" class="badge owner">Owner</span>
     <span id="whoami" class="who"></span>
@@ -544,7 +545,7 @@ $('#fLowOnly').addEventListener('change', e=>{ FILTERS.lowOnly=e.target.checked;
 
 $('#btnCopyList').addEventListener('click', async () => {
   const shop = DOC.items.filter(i=>statusOf(i)!=='ok');
-  const text = 'RYST 109A — Shopping list\n' + shop.map(i=>`• ${i.name} (${fmtQty(i.quantity)} ${i.unit||''} left, need ${fmtQty(Math.max(0,(Number(i.threshold)||0)-(Number(i.quantity)||0))||i.threshold)} more)`).join('\n');
+  const text = PROPERTY.name + ' — Shopping list\n' + shop.map(i=>`• ${i.name} (${fmtQty(i.quantity)} ${i.unit||''} left, need ${fmtQty(Math.max(0,(Number(i.threshold)||0)-(Number(i.quantity)||0))||i.threshold)} more)`).join('\n');
   try{ await navigator.clipboard.writeText(text); showToast('Shopping list copied'); }
   catch(e){ showToast('Could not copy — select and copy manually', true); }
 });

@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
-<title>Casa de RYST · Restaurant · RYST 109A</title>
+<script src="/property.js"></script>
+<title data-title="{restaurantName} · Restaurant · {name}">Casa de RYST · Restaurant · RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -268,7 +269,7 @@
 <div class="wrap">
   <header class="top">
     <img id="logo" alt="RYST" src="/assets/stay-logo.webp" />
-    <div class="ttl">Casa de RYST<small>RYST 109A · Restaurant</small></div>
+    <div class="ttl"><span data-prop="restaurantName">Casa de RYST</span><small><span data-prop="name">RYST 109A</span> · Restaurant</small></div>
     <div class="spacer"></div>
     <span id="roleBadge" class="badge owner">Owner</span>
     <span id="whoami" class="who"></span>
@@ -399,7 +400,7 @@
     <div class="panel">
       <h2>New purchase entry</h2>
       <div class="three" style="margin-bottom:12px">
-        <div class="field"><label>Vendor</label><input id="puVendor" placeholder="e.g. Cheyyur Fresh Mart"></div>
+        <div class="field"><label>Vendor</label><input id="puVendor" placeholder="e.g. Local supermarket"></div>
         <div class="field"><label>Bill / invoice no.</label><input id="puBillNo" placeholder="Optional"></div>
         <div class="field"><label>Date</label><input id="puDate" type="date"></div>
       </div>
@@ -1534,7 +1535,7 @@ function sendToPartnerKitchen(o){
   const subtotal = sourced.reduce((s,it)=>s+(Number(it.cost)||0)*it.qty,0);
   const when = o.time ? `${fmtDate(o.date)}, ${fmtTime(o.time)}` : fmtDate(o.date);
   const text = [
-    `RYST 109A — Casa de RYST order`,
+    `${PROPERTY.name} — ${PROPERTY.restaurantName || 'Restaurant'} order`,
     `Requested: ${when}`,
     '',
     ...lines,
@@ -1557,10 +1558,10 @@ function printReceipt(o){
   $('#receiptArea').innerHTML = `
     <div class="r-doc">
       <div class="r-head">
-        <img src="/assets/stay-logo.png" alt="RYST 109A">
+        <img src="${esc(PROPERTY.logoUrl)}" alt="${esc(PROPERTY.name)}">
         <div>
-          <div class="nm">Casa de RYST</div>
-          <div class="sub">RYST 109A, Pearl Beach, Paramankeni, Cheyyur — 603305</div>
+          <div class="nm">${esc(PROPERTY.restaurantName || PROPERTY.name)}</div>
+          <div class="sub">${esc(PROPERTY.addressLine)}</div>
         </div>
       </div>
       <div class="r-title">CUSTOMER RECEIPT</div>
@@ -1581,7 +1582,7 @@ function printReceipt(o){
         ${o.serviceChargeAmount>0?`<div class="r-tot"><span>Service charge (${o.serviceChargePercent}%)</span><span>${money(o.serviceChargeAmount)}</span></div>`:''}
         <div class="r-tot grand"><span>Total</span><span>${money(o.total)}</span></div>
       </div>
-      <div class="r-foot">Thank you for dining with us — a table beside the pool.<br><span class="brand">RYST 109A</span> · stay.ryst.in</div>
+      <div class="r-foot">${esc(PROPERTY.receiptNote)}${PROPERTY.receiptNote ? '<br>' : ''}<span class="brand">${esc(PROPERTY.name)}</span>${PROPERTY.websiteHost ? ' · ' + esc(PROPERTY.websiteHost) : ''}</div>
     </div>
   `;
   setTimeout(()=>window.print(), 50);

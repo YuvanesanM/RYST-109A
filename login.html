@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
+<script src="/property.js"></script>
 <title>RYST Harbour — Sign in</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -106,8 +107,8 @@
 <!-- ── LOGIN ── -->
 <div id="loginView" class="view">
   <div class="login-card">
-    <img id="loginLogo" alt="RYST 109A" src="/assets/stay-logo.webp">
-    <h1>RYST 109A</h1>
+    <img id="loginLogo" alt="RYST 109A" data-prop-alt="name" data-prop-src="logoUrl" src="/assets/stay-logo.webp">
+    <h1 data-prop="name">RYST 109A</h1>
     <p>Sign in with Google to continue</p>
     <div id="googleSignInBtn" style="display:flex;justify-content:center;min-height:44px;"></div>
     <div class="login-err" id="loginErr"></div>
@@ -141,7 +142,7 @@
 
 <!-- ── HOME ── -->
 <div id="homeView" class="view" hidden>
-  <img id="homeLogo" alt="RYST 109A" src="/assets/stay-logo.webp">
+  <img id="homeLogo" alt="RYST 109A" data-prop-alt="name" data-prop-src="logoUrl" src="/assets/stay-logo.webp">
   <div class="home-cards">
     <!-- Ordered guest-lifecycle first (Booking Calendar → Stay Quote →
          Check-in/out → Feedback — the sequence a single stay actually moves
@@ -175,7 +176,7 @@
     </button>
     <button class="home-card" data-module="restaurant" onclick="window.location.href='restaurant.html'">
       <div class="hc-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 002-2V2M7 2v20M11 2v7a2 2 0 002 2h0a2 2 0 002-2V2"/><path d="M18 2c-1.1 1.5-1.5 3.4-1.5 5.5 0 2.2.5 4 1.5 5.5v9"/></svg></div>
-      <span class="hc-title">Casa de RYST</span>
+      <span class="hc-title" data-prop="restaurantName">Casa de RYST</span>
       <span class="hc-sub">Restaurant billing, menu &amp; inventory</span>
     </button>
     <button class="home-card" data-module="petty-cash" onclick="window.location.href='petty-cash.html'">

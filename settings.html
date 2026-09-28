@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
-<title>Rate Card &amp; Settings — RYST 109A</title>
+<script src="/property.js"></script>
+<title data-title="Rate Card &amp; Settings — {name}">Rate Card &amp; Settings — RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -178,13 +179,13 @@
 </div>
 
 <header class="bar">
-  <img class="hdr-logo" src="/assets/stay-logo.webp" alt="RYST 109A">
+  <img class="hdr-logo" src="/assets/stay-logo.webp" data-prop-src="logoUrl" alt="RYST 109A" data-prop-alt="name">
   <span class="bar-title">Rate Card &amp; Settings</span>
   <a class="btn" href="login.html">← Home</a>
 </header>
 
 <div class="cfg-body">
-  <p class="sd">Settings for the <b>RYST 109A Beach Villa</b> invoice / quote builder. Pricing, bank details and business info sync to the cloud and load automatically in the Stay builder.</p>
+  <p class="sd">Settings for the <b data-prop="fullName">RYST 109A Beach Villa</b> invoice / quote builder. Pricing, bank details and business info sync to the cloud and load automatically in the Stay builder.</p>
 
   <div class="tabs" id="cfgTabs">
     <button type="button" class="tab-btn active" data-tab="villa">Villa &amp; Business</button>
@@ -241,19 +242,40 @@
     </div>
     <button class="rc-add" id="stayCouponAdd">+ Add coupon code</button>
 
+    <p class="gh-mini">Property profile</p>
+    <p class="sd" style="margin-bottom:12px">Everything that names or locates this property — used across the staff app, guest pages, messages, receipts, invoices and wallet passes.</p>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+      <label class="f"><span>Property name <small style="color:var(--muted2);font-weight:400">— Short name — page titles, receipts, alerts</small></span><input class="t" id="prop_name" type="text" maxlength="500" required></label>
+      <label class="f"><span>Full name <small style="color:var(--muted2);font-weight:400">— Used in guest messages: "your stay at …"</small></span><input class="t" id="prop_fullName" type="text" maxlength="500"></label>
+      <label class="f"><span>Restaurant / kitchen name <small style="color:var(--muted2);font-weight:400">— Leave blank if you don't run one</small></span><input class="t" id="prop_restaurantName" type="text" maxlength="500"></label>
+      <label class="f"><span>Property type <small style="color:var(--muted2);font-weight:400">— Shown under the name on invoices, e.g. Beach Villa</small></span><input class="t" id="prop_typeLabel" type="text" maxlength="500"></label>
+      <label class="f"><span>Tagline <small style="color:var(--muted2);font-weight:400">— Invoice wordmark line, e.g. Private coastal retreat</small></span><input class="t" id="prop_tagline" type="text" maxlength="500"></label>
+      <label class="f"><span>Invoice signatory <small style="color:var(--muted2);font-weight:400">— Name printed under "For &lt;property&gt;"</small></span><input class="t" id="prop_signatory" type="text" maxlength="500"></label>
+      <label class="f"><span>Address (one line) <small style="color:var(--muted2);font-weight:400">— Receipts and wallet passes</small></span><input class="t" id="prop_address" type="text" maxlength="500"></label>
+      <label class="f"><span>Google Maps link <small style="color:var(--muted2);font-weight:400">— Directions buttons</small></span><input class="t" id="prop_mapLink" type="url" maxlength="500"></label>
+      <label class="f"><span>Website <small style="color:var(--muted2);font-weight:400">— e.g. https://yourvilla.com</small></span><input class="t" id="prop_website" type="url" maxlength="500"></label>
+      <label class="f"><span>Guest WhatsApp number <small style="color:var(--muted2);font-weight:400">— With country code, e.g. 919876543210</small></span><input class="t" id="prop_whatsapp" type="tel" maxlength="500"></label>
+      <label class="f"><span>Instagram handle <small style="color:var(--muted2);font-weight:400">— Without @ — leave blank to hide</small></span><input class="t" id="prop_instagram" type="text" maxlength="500"></label>
+      <label class="f"><span>Food receipt footer <small style="color:var(--muted2);font-weight:400">— e.g. Thank you for dining with us.</small></span><input class="t" id="prop_receiptNote" type="text" maxlength="500"></label>
+      <label class="f"><span>Logo image URL <small style="color:var(--muted2);font-weight:400">— Square PNG, shown on documents and passes</small></span><input class="t" id="prop_logoUrl" type="url" maxlength="500"></label>
+      <label class="f"><span>Cover photo URL <small style="color:var(--muted2);font-weight:400">— Wallet pass banner</small></span><input class="t" id="prop_coverUrl" type="url" maxlength="500"></label>
+      <label class="f"><span>Latitude <small style="color:var(--muted2);font-weight:400">— For wallet-pass arrival alerts</small></span><input class="t" id="prop_latitude" type="text" maxlength="500"></label>
+      <label class="f"><span>Longitude</span><input class="t" id="prop_longitude" type="text" maxlength="500"></label>
+      <label class="f"><span>Google Maps listing name <small style="color:var(--muted2);font-weight:400">— How the listing appears on Google, for the rating widget</small></span><input class="t" id="prop_googlePlaceQuery" type="text" maxlength="500"></label>
+    </div>
     <p class="gh-mini">Business &amp; payment</p>
     <label class="f"><span>Property address block (under the wordmark)</span><textarea class="t" id="stayCompany" rows="3"></textarea></label>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
-      <label class="f"><span>PAN</span><input class="t" id="stayPan" placeholder="ADVPJ1491D"></label>
-      <label class="f"><span>Invoice no. prefix</span><input class="t" id="stayInvPrefix" placeholder="RYST109A/INV"></label>
-      <label class="f"><span>Quote no. prefix</span><input class="t" id="stayQtPrefix" placeholder="RYST109A/QT"></label>
+      <label class="f"><span>PAN</span><input class="t" id="stayPan" placeholder="e.g. ABCDE1234F"></label>
+      <label class="f"><span>Invoice no. prefix</span><input class="t" id="stayInvPrefix" placeholder="e.g. VILLA/INV"></label>
+      <label class="f"><span>Quote no. prefix</span><input class="t" id="stayQtPrefix" placeholder="e.g. VILLA/QT"></label>
       <label class="f"><span>Max guests (incl.)</span><input class="t" id="stayMaxGuests" type="number" min="0" step="1" placeholder="4"></label>
       <label class="f"><span>Guest capacity (hard cap)</span><input class="t" id="stayGuestCapacity" type="number" min="0" step="1" placeholder="10"></label>
       <label class="f"><span>Online booking advance (%)</span><input class="t" id="stayAdvancePercent" type="number" min="1" max="100" step="1" placeholder="30"></label>
     </div>
     <label class="f"><span>Bank / payment details block</span><textarea class="t" id="stayBank" rows="6"></textarea></label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <label class="f"><span>Wi-Fi network</span><input class="t" id="stayWifiNetwork" placeholder="RYST 109A"></label>
+      <label class="f"><span>Wi-Fi network</span><input class="t" id="stayWifiNetwork" placeholder="e.g. Villa-Guest"></label>
       <label class="f"><span>Wi-Fi voucher code</span><input class="t" id="stayWifiVoucher" placeholder="Welcome109"></label>
     </div>
     <p class="sd" style="margin:-6px 0 14px">Shown to signed-in guests on the Manage My Stay portal (guest.html).</p>
@@ -451,18 +473,14 @@ const K_STAY    = 'ryst_stay_settings';
 
 const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
+const PROPERTY_CODE = (PROPERTY.name || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() || 'DOC';
 const STAY_DEFAULTS = {
-  company:`109A, Pearl Beach Site, Parmankeni,
-Cheyyur - 603305`,
-  pan:"ADVPJ1491D",
-  invPrefix:"RYST109A/INV",
-  qtPrefix:"RYST109A/QT",
-  bank:`Account Holder: Yuvanesan Muthukumaresan
-Account Number: 50100XXXXXXXXX
-IFSC: HDFCXXXXXXX
-Bank Name: HDFC Bank
-Account Type: Savings`,
-  wifiNetwork:"RYST 109A",
+  company:"",
+  pan:"",
+  invPrefix:PROPERTY_CODE+"/INV",
+  qtPrefix:PROPERTY_CODE+"/QT",
+  bank:"",
+  wifiNetwork:"",
   wifiVoucher:"",
   walletAppleEnabled:true,
   walletGoogleEnabled:true,
@@ -692,7 +710,26 @@ function applyStay(d){
   localStorage.setItem(K_STAY,JSON.stringify(stay));
   renderFromStay();
 }
+// Property profile — prefilled from the saved profile, else from the
+// effective one the pages already use (property.js), so the first save just
+// records today's values.
+// A function, not a const: renderFromStay() first runs (from the cached copy)
+// before this point in the script executes.
+function propKeys(){ return ["name", "fullName", "restaurantName", "typeLabel", "tagline", "signatory", "address", "mapLink", "website", "whatsapp", "instagram", "receiptNote", "logoUrl", "coverUrl", "latitude", "longitude", "googlePlaceQuery"]; }
+function renderPropertyProfile(){
+  const src = (stay.property && typeof stay.property === 'object' && stay.property.name) ? stay.property : (window.PROPERTY || {});
+  propKeys().forEach(k => { const el = document.getElementById('prop_'+k); if(el) el.value = src[k] != null ? src[k] : ''; });
+}
+function collectPropertyProfile(){
+  const p = {};
+  propKeys().forEach(k => { const el = document.getElementById('prop_'+k); p[k] = el ? el.value.trim() : ''; });
+  p.whatsapp = p.whatsapp.replace(/\D/g, '');
+  p.instagram = p.instagram.replace(/^@/, '');
+  ['latitude','longitude'].forEach(k => { p[k] = p[k] === '' ? null : (isFinite(Number(p[k])) ? Number(p[k]) : null); });
+  return p;
+}
 function renderFromStay(){
+  renderPropertyProfile();
   stayRcDraft=stay.rates.map(r=>({...r}));
   renderStayRates();
   document.getElementById("stayCompany").value=stay.company||"";
@@ -970,11 +1007,11 @@ document.getElementById('tgChatIdBtn').addEventListener('click', async ()=>{
 // default" and as the fallback if the fetch hasn't resolved yet.
 const WA_DEFAULTS = {
   bookingRequest: `Hi! I'd like to request a stay at RYST 109A Beach Villa.\n\n*Name:* {{name}}\n*Phone:* {{phone}}\n*Email:* {{email}}\n\n*Check-in:* {{checkin}}\n*Check-out:* {{checkout}} ({{nightsLabel}})\n*Guests:* {{guests}}\n*Occasion:* {{occasion}}\n\n*Notes:* {{message}}\n\n*Reference:* {{quoteNo}}`,
-  checkinRequest: `Hi {{guest}}! Ahead of your stay at RYST 109A Beach Villa from {{checkin}} to {{checkout}}, please complete a quick digital check-in so we have everything ready for you:\n\n{{checkinLink}}\n\nTakes about 2 minutes — a government ID and your signature on our house rules. See you soon!`,
-  reminder: `Hi {{guest}}! This is RYST 109A Beach Villa confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nManage your stay any time — check your invoice, order food, and pay your balance — here: {{portalLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
-  feedbackRequest: `Hi {{guest}}! Thank you for staying at RYST 109A Beach Villa. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`,
-  quoteReady: `Dear guest, your personalized digital quote is ready for your review.\n\n📄 View Your Quote: {{quoteLink}}\n\nPlease verify the stay details and total amount. Once confirmed, you may proceed with the payment through the quote page to secure your reservation.\n\nWe look forward to welcoming you to RYST 109A. ✨`,
-  bookingConfirmed: `🌴 Your RYST 109A Booking is Confirmed!\nDear {{guest}} 👋\n\nThank you for choosing RYST 109A. Your reservation is confirmed, and we look forward to welcoming you. 🏡✨\n\n*📅 Check-in: {{checkin}}\n📅 Check-out: {{checkout}}\n👥 Guests: {{guests}}*\n\n📲 Add to Apple Wallet:\n{{walletLink}}\n\nWe look forward to hosting you at RYST 109A. 🌊`
+  checkinRequest: `Hi {{guest}}! Ahead of your stay at {{property}} from {{checkin}} to {{checkout}}, please complete a quick digital check-in so we have everything ready for you:\n\n{{checkinLink}}\n\nTakes about 2 minutes — a government ID and your signature on our house rules. See you soon!`,
+  reminder: `Hi {{guest}}! This is {{property}} confirming your upcoming stay from {{checkin}} to {{checkout}}. We're looking forward to hosting you.\n\nManage your stay any time — check your invoice, order food, and pay your balance — here: {{portalLink}}\n\nLet us know your expected arrival time, or reply here if you need directions or have any questions before you arrive. See you soon!`,
+  feedbackRequest: `Hi {{guest}}! Thank you for staying at {{property}}. We'd love to hear how your stay was — it only takes a minute:\n\n{{feedbackLink}}\n\nThanks so much, and hope to host you again soon!`,
+  quoteReady: `Dear guest, your personalized digital quote is ready for your review.\n\n📄 View Your Quote: {{quoteLink}}\n\nPlease verify the stay details and total amount. Once confirmed, you may proceed with the payment through the quote page to secure your reservation.\n\nWe look forward to welcoming you to {{propertyName}}. ✨`,
+  bookingConfirmed: `🌴 Your {{propertyName}} Booking is Confirmed!\nDear {{guest}} 👋\n\nThank you for choosing {{propertyName}}. Your reservation is confirmed, and we look forward to welcoming you. 🏡✨\n\n*📅 Check-in: {{checkin}}\n📅 Check-out: {{checkout}}\n👥 Guests: {{guests}}*\n\n📲 Add to Apple Wallet:\n{{walletLink}}\n\nWe look forward to hosting you at {{propertyName}}. 🌊`
 };
 let waTemplatesDraft = Object.assign({}, WA_DEFAULTS);
 // Per-scenario Interakt-approved template name — mirrors
@@ -1295,6 +1332,9 @@ document.getElementById("stayCouponAdd").addEventListener("click",()=>{ stayCoup
 /* ---------- SAVE ---------- */
 async function saveStay(){
   const btn=document.getElementById("staySave");
+  const prop = collectPropertyProfile();
+  if(!prop.name){ toast("Property name is required"); document.getElementById('prop_name').focus(); return; }
+  stay.property = prop;
   btn.disabled=true; btn.textContent="Saving…";
   stay.rates = stayRcDraft
     .filter(r=>(r.desc||"").trim()!=="")
@@ -1346,7 +1386,12 @@ async function saveStay(){
         body:JSON.stringify(Object.assign({version:1},stay))});
       if(res.status===401){ localStorage.removeItem('ryst_proxy_token'); window.location.href='login.html'; return; }
       if(!res.ok) toast("Saved locally — cloud sync failed ("+res.status+")");
-      else toast("Stay settings saved");
+      else {
+        toast("Stay settings saved");
+        // Pages brand themselves from this cache first — update it now so the
+        // new profile shows everywhere without waiting for the next refresh.
+        try { localStorage.setItem('ryst_property', JSON.stringify(Object.assign({}, window.PROPERTY_DEFAULTS, prop))); } catch(e) {}
+      }
     }catch(e){ toast("Saved locally — cloud unreachable"); }
   } else { toast("Saved locally"); }
   btn.disabled=false; btn.textContent="Save stay settings";

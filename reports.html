@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
-<title>Reports · RYST 109A</title>
+<script src="/property.js"></script>
+<title data-title="Reports · {name}">Reports · RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -243,7 +244,7 @@
 <div class="wrap">
   <header class="top">
     <img id="logo" alt="RYST" src="/assets/stay-logo.webp" />
-    <div class="ttl">Reports<small>RYST 109A · Executive dashboard</small></div>
+    <div class="ttl">Reports<small><span data-prop="name">RYST 109A</span> · Executive dashboard</small></div>
     <div class="spacer"></div>
     <button class="tbtn" onclick="window.location.href='login.html'">⌂ Home</button>
     <div class="dd" id="exportDd">
@@ -1206,7 +1207,7 @@ function renderFilterBar(R){
   $('#genStamp').textContent = 'Generated '+new Date().toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
   const active = facetsActive(F);
   $('#facetNote').style.display = active ? 'flex' : 'none';
-  $('#printTitle').textContent = 'RYST 109A · Reports · '+R.label;
+  $('#printTitle').textContent = PROPERTY.name + ' · Reports · '+R.label;
 }
 
 function renderKpis(cur, prev, S, R){
@@ -1233,7 +1234,7 @@ function renderKpis(cur, prev, S, R){
     { label:'Total Guests', value:cur.totalGuests, prev:prev.totalGuests, fmt:'int', prevLabel:R.prev.label },
     { label:'Avg Guests / Booking', value:cur.avgPartySize, prev:prev.avgPartySize, fmt:'int', na: cur.nightsBooked===0, prevLabel:R.prev.label },
     { label:'Pending Quotations', value:cur.pendingQuotes, prev:prev.pendingQuotes, fmt:'money', sub: cur.pendingQuoteCount+' quote'+(cur.pendingQuoteCount===1?'':'s')+' — not yet confirmed', prevLabel:R.prev.label },
-    { label:'Food Sales', value:cur.foodRevenue, prev:prev.foodRevenue, fmt:'money', sub:'Casa de RYST, all orders except cancelled', prevLabel:R.prev.label },
+    { label:'Food Sales', value:cur.foodRevenue, prev:prev.foodRevenue, fmt:'money', sub:(PROPERTY.restaurantName||'Restaurant')+', all orders except cancelled', prevLabel:R.prev.label },
   ];
   $('#kpiFinance').innerHTML = financeCards.map(kpiCard).join('');
   $('#kpiBookings').innerHTML = bookingCards.map(kpiCard).join('');
@@ -1318,7 +1319,7 @@ function renderFootnotes(cur){
     Booking lead time only includes online/website bookings — staff-entered bookings don't have a reliable creation
     timestamp (it updates on every edit). Cancellation rate isn't shown: this system has no record of cancelled
     bookings (deleting one leaves no trace).
-    Revenue includes Casa de RYST food sales (every order except a cancelled one, counted on its order date) alongside
+    Revenue includes ${esc(PROPERTY.restaurantName || 'restaurant')} food sales (every order except a cancelled one, counted on its order date) alongside
     stay invoices — Net Profit and Margin subtract petty-cash expenses only, not food's own ingredient cost, so
     they run a little rich wherever food sales are a meaningful share of the period.
   `;
