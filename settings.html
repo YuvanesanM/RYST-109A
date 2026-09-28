@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://data.ryst.in; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
 <script src="/property.js"></script>
 <title data-title="Rate Card &amp; Settings — {name}">Rate Card &amp; Settings — RYST 109A</title>
@@ -466,7 +466,13 @@
       <button class="btn" id="storCompareBtn">Compare</button>
       <button class="btn primary" id="storCopyBtn">Copy to Supabase</button>
     </div>
-    <div class="sync-results" id="storResults" style="margin-bottom:22px"></div>
+    <div class="sync-results" id="storResults" style="margin-bottom:14px"></div>
+    <p class="sd" style="margin-bottom:10px"><b>Photos</b> — receipts, guest ID photos, signatures and checklist photos move from the public website repository into Supabase's private storage. Links in the data are updated; pages keep showing them. <b>Preview</b> counts what would move and tests the private storage without changing anything.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:8px">
+      <button class="btn" id="photoPreviewBtn">Preview photo move</button>
+      <button class="btn primary" id="photoMoveBtn">Move photos to private storage</button>
+    </div>
+    <div class="sync-results" id="photoResults" style="margin-bottom:22px"></div>
   </div>
 </div>
 
@@ -1053,6 +1059,25 @@ function storFileRows(d){
   const head = `<div class="sync-result${d.ok?'':' err'}"><span>${d.compareOnly?'Compare':'Copy'}</span><span>${d.ok?'All '+(d.results||[]).length+' files match':'Some files need attention'}</span></div>`;
   return head + rows;
 }
+async function photoRun(btn, dry){
+  const out=document.getElementById('photoResults');
+  const all=['photoPreviewBtn','photoMoveBtn'].map(id=>document.getElementById(id));
+  const orig=btn.textContent; all.forEach(b=>b.disabled=true); btn.textContent=dry?'Checking…':'Moving…';
+  try{
+    const d=await storCall('POST','/admin/photos/migrate'+(dry?'?dry=1':''));
+    const docs=(d.docs||[]).filter(x=>x.found||x.moved||(x.failed&&x.failed.length));
+    const total=(d.docs||[]).reduce((a,x)=>a+(dry?x.found:x.moved),0);
+    out.innerHTML=`<div class="sync-result${d.selfTestError?' err':''}"><span>Private storage test</span><span>${d.selfTestError?'✗ '+esc(d.selfTestError):'✓ upload, read and delete work'}</span></div>`
+      + `<div class="sync-result${d.ok===false?' err':''}"><span>${dry?'Would move':'Moved'}</span><span>${total} photo${total===1?'':'s'}${!docs.length?' — nothing left in the public repository':''}</span></div>`
+      + docs.map(x=>`<div class="sync-result${x.failed&&x.failed.length?' err':''}"><span>${esc(x.name)}</span><span>${dry?x.found+' to move':x.moved+' of '+x.found+' moved'}${x.failed&&x.failed.length?' — '+esc(x.failed.join('; ')):''}</span></div>`).join('');
+  }catch(e){ out.innerHTML=`<div class="sync-result err"><span>Photos</span><span>${esc(e.message)}</span></div>`; }
+  finally{ all.forEach(b=>b.disabled=false); btn.textContent=orig; }
+}
+document.getElementById('photoPreviewBtn').addEventListener('click', e=>photoRun(e.currentTarget, true));
+document.getElementById('photoMoveBtn').addEventListener('click', e=>{
+  if(!confirm('Move every photo into Supabase private storage and update the links in the data?\n\nRun "Preview photo move" first to check the count.')) return;
+  photoRun(e.currentTarget, false);
+});
 document.getElementById('storStatusBtn').addEventListener('click', e => storRun(e.currentTarget, 'Checking…', async ()=> storStatusRows(await storCall('GET','/admin/storage/status'))));
 document.getElementById('storCompareBtn').addEventListener('click', e => storRun(e.currentTarget, 'Comparing…', async ()=> storFileRows(await storCall('POST','/admin/storage/copy?compare=1'))));
 document.getElementById('storCopyBtn').addEventListener('click', e => {
