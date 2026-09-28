@@ -1,0 +1,37 @@
+# Keeps the guest pages RYST 109A's guests use on stay.ryst.in (check-in,
+# guest portal, feedback, WhatsApp hand-off) identical to RYST Harbour's
+# (harbour.ryst.in, repository ryst-harbour), where they are edited.
+# Don't edit these files in this repository — change them in ryst-harbour.
+name: Sync guest pages from RYST Harbour
+on:
+  schedule:
+    - cron: '23 * * * *'   # hourly
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: sync-guest-pages
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy guest pages from ryst-harbour
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          git clone --depth 1 https://github.com/YuvanesanM/ryst-harbour.git /tmp/harbour
+          FILES="checkin.html guest.html feedback.html wa.html villa.js property.js"
+          for f in $FILES; do cp "/tmp/harbour/$f" "$f"; done
+          git add $FILES
+          if git diff --cached --quiet; then echo "Already in sync"; exit 0; fi
+          git config user.name "RYST Harbour sync"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Sync guest pages from ryst-harbour@$(git -C /tmp/harbour rev-parse --short HEAD)"
+          git push
+          # Ask Pages to publish now (a push from this workflow may not trigger it).
+          curl -fsS -X POST -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pages/builds" || echo "Pages build request not accepted; it will publish on the next push"
