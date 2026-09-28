@@ -4,6 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<script src="/staff-demo.js"></script>
 <title>RYST 109A — Owner Login</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -125,6 +126,14 @@
         <button type="button" id="tgResendBtn" class="tg-link-btn">Resend code</button>
       </div>
       <div class="login-err" id="tgErr"></div>
+    </div>
+    <button type="button" id="showDemoLoginBtn" class="tg-link-btn" style="margin-top:14px">Demo / reviewer sign-in</button>
+    <div id="demoLoginForm" class="tg-form" hidden>
+      <p class="tg-hint">Opens the app with sample data for app-store review. Staff: use Google or Telegram above.</p>
+      <label class="tg-field"><span>Username</span><input type="text" id="demoUser" autocomplete="username" autocapitalize="none"></label>
+      <label class="tg-field"><span>Password</span><input type="password" id="demoPass" autocomplete="current-password"></label>
+      <button type="button" id="demoLoginBtn" class="tg-btn">Sign in to demo</button>
+      <div class="login-err" id="demoErr"></div>
     </div>
     <button type="button" class="install-app-btn" hidden>📲 Install RYST Staff app</button>
   </div>
@@ -413,7 +422,32 @@ document.getElementById('tgVerifyBtn').addEventListener('click', async () => {
   }
 });
 
+// Demo / reviewer sign-in (Play Console → App access). Unlocks sample data
+// only — staff-demo.js serves every data request from built-in fixtures and
+// refuses writes, so these credentials never touch a real account.
+const DEMO_USER = 'user', DEMO_PASS = 'password';
+document.getElementById('showDemoLoginBtn').addEventListener('click', ()=>{
+  const f = document.getElementById('demoLoginForm');
+  f.hidden = !f.hidden;
+  if(!f.hidden) document.getElementById('demoUser').focus();
+});
+function demoSignIn(){
+  const u = document.getElementById('demoUser').value.trim().toLowerCase();
+  const p = document.getElementById('demoPass').value;
+  if(u !== DEMO_USER || p !== DEMO_PASS){ document.getElementById('demoErr').textContent = 'Incorrect username or password.'; return; }
+  localStorage.setItem('ryst_demo', '1');
+  localStorage.setItem('ryst_proxy_token', 'demo');
+  localStorage.setItem('ryst_user_email', 'reviewer@example.com');
+  localStorage.setItem('ryst_user_role', 'owner');
+  localStorage.setItem('ryst_user_admin', 'true');
+  localStorage.setItem('ryst_user_modules', '[]');
+  location.reload(); // reload so staff-demo.js is active from the first request
+}
+document.getElementById('demoLoginBtn').addEventListener('click', demoSignIn);
+document.getElementById('demoPass').addEventListener('keydown', e=>{ if(e.key==='Enter') demoSignIn(); });
+
 function logout(){
+  if(localStorage.getItem('ryst_demo') === '1'){ window.rystExitDemo(); return; }
   proxyToken='';
   localStorage.removeItem('ryst_proxy_token');
   localStorage.removeItem('ryst_user_email');
