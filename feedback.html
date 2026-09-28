@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
-<title>Share your feedback | RYST 109A</title>
+<script src="/property.js"></script>
+<title data-title="Share your feedback | {name}">Share your feedback | RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -89,10 +90,10 @@
 <body>
 <div class="wrap">
   <div class="card">
-    <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
+    <img class="logo" alt="RYST 109A" data-prop-alt="name" data-prop-src="logoUrl" src="/assets/stay-logo.webp">
     <div id="formView">
       <h1>How was your stay?</h1>
-      <p class="lead">We'd love to hear about your time at RYST 109A — it helps us keep improving.</p>
+      <p class="lead">We'd love to hear about your time at <span data-prop="name">RYST 109A</span> — it helps us keep improving.</p>
 
       <form id="fbForm">
         <div style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
@@ -120,7 +121,7 @@
 
         <label class="chk-row">
           <input type="checkbox" id="fb-feature">
-          <span>You're welcome to feature this as a guest review on the RYST 109A website.</span>
+          <span>You're welcome to feature this as a guest review on the <span data-prop="name">RYST 109A</span> website.</span>
         </label>
 
         <button type="submit" class="submit" id="fbSubmitBtn">Submit feedback</button>
@@ -131,10 +132,10 @@
     <div class="thanks" id="thanksView">
       <div class="tick"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
       <h2>Thank you!</h2>
-      <p>We really appreciate you taking the time to share this. Hope to host you again soon at RYST 109A.</p>
+      <p>We really appreciate you taking the time to share this. Hope to host you again soon at <span data-prop="name">RYST 109A</span>.</p>
 
       <div class="greview" id="greviewBlock">
-        <p>Hearing this genuinely means so much to us. If you have a spare minute, sharing a few words on Google would help other travellers find RYST 109A — and it would mean the world to our small team.</p>
+        <p>Hearing this genuinely means so much to us. If you have a spare minute, sharing a few words on Google would help other travellers find <span data-prop="name">RYST 109A</span> — and it would mean the world to our small team.</p>
         <div class="copy-row" id="copyRow" style="display:none">
           <button type="button" class="copy-btn" id="copyFeedbackBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>

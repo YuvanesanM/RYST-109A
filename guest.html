@@ -10,7 +10,8 @@
      subresource. -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
-<title>My Stay | RYST 109A</title>
+<script src="/property.js"></script>
+<title data-title="My Stay | {name}">My Stay | RYST 109A</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -497,7 +498,7 @@
 <body>
 <div class="wrap">
   <div class="card">
-    <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
+    <img class="logo" alt="RYST 109A" data-prop-alt="name" data-prop-src="logoUrl" src="/assets/stay-logo.webp">
 
     <section class="screen active" id="screen-signin">
       <h1>Manage Your Stay</h1>
@@ -531,7 +532,7 @@
       <div class="menu">
         <button type="button" class="menu-item" data-mode="menu">
           <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2v6a2 2 0 0 0 4 0V2"/><path d="M8 2v20"/><path d="M18 2c-2 2-2 5-2 7s0 3 2 3 2-1 2-3 0-5-2-7Z"/><path d="M18 12v10"/></svg></span>
-          <span class="menu-body"><span class="menu-title">Food Menu &amp; Order</span><span class="menu-desc">Browse Casa de RYST and place an order</span></span>
+          <span class="menu-body"><span class="menu-title">Food Menu &amp; Order</span><span class="menu-desc">Browse <span data-prop="restaurantName">Casa de RYST</span> and place an order</span></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
         </button>
         <button type="button" class="menu-item" data-mode="foodbill">
@@ -575,7 +576,7 @@
          flips as soon as the payment webhook lands. -->
     <section class="screen" id="screen-quotereview">
       <h1 style="text-align:left;margin:0 0 4px">Review your booking</h1>
-      <p class="sub" style="text-align:left;margin-bottom:16px">Here's your quote from RYST 109A Beach Villa — pay online any time to confirm these dates.</p>
+      <p class="sub" style="text-align:left;margin-bottom:16px">Here's your quote from <span data-prop="fullName">RYST 109A Beach Villa</span> — pay online any time to confirm these dates.</p>
       <div id="qrBooking"></div>
       <div class="r-doc" style="margin:18px 0 0">
         <table class="r-items">
@@ -882,7 +883,7 @@ async function loadAdminPicker(){
 function renderAdminPicker(){
   const list = $('#adminPickerList');
   if(!adminStays.length){
-    list.innerHTML = `<p class="empty-note">No one is currently staying at RYST 109A.</p>`;
+    list.innerHTML = `<p class="empty-note">No one is currently staying at ${esc(PROPERTY.name)}.</p>`;
     return;
   }
   list.innerHTML = `<div class="admin-guest-list">${adminStays.map(s => `
@@ -1328,7 +1329,7 @@ function renderBill(){
 
 // ── Wi-Fi ────────────────────────────────────────────────────────────────
 function renderWifi(){
-  const network = me.wifiNetwork || 'RYST 109A';
+  const network = me.wifiNetwork || PROPERTY.name;
   const voucher = me.wifiVoucher || '';
   $('#wifiCard').innerHTML = `
     <div class="wifi-field">
@@ -1376,10 +1377,10 @@ function viewReceipt(o){
   $('#receiptArea').innerHTML = `
     <div class="r-doc">
       <div class="r-head">
-        <img src="/assets/stay-logo.png" alt="RYST 109A">
+        <img src="${esc(PROPERTY.logoUrl)}" alt="${esc(PROPERTY.name)}">
         <div>
-          <div class="nm">Casa de RYST</div>
-          <div class="sub">RYST 109A, Pearl Beach, Paramankeni, Cheyyur — 603305</div>
+          <div class="nm">${esc(PROPERTY.restaurantName || PROPERTY.name)}</div>
+          <div class="sub">${esc(PROPERTY.addressLine)}</div>
         </div>
       </div>
       <div class="r-title">CUSTOMER RECEIPT</div>
@@ -1400,7 +1401,7 @@ function viewReceipt(o){
         ${o.serviceChargeAmount>0?`<div class="r-tot"><span>Service charge (${o.serviceChargePercent}%)</span><span>${money(o.serviceChargeAmount)}</span></div>`:''}
         <div class="r-tot grand"><span>Total</span><span>${money(o.total)}</span></div>
       </div>
-      <div class="r-foot">Thank you for dining with us — a table beside the pool.<br><span class="brand">RYST 109A</span> · stay.ryst.in</div>
+      <div class="r-foot">${esc(PROPERTY.receiptNote)}${PROPERTY.receiptNote ? '<br>' : ''}<span class="brand">${esc(PROPERTY.name)}</span>${PROPERTY.websiteHost ? ' · ' + esc(PROPERTY.websiteHost) : ''}</div>
     </div>
   `;
   $('#receiptOverlay').classList.add('active');
@@ -1447,16 +1448,16 @@ function viewQuotePdf(b){
     <div class="doc">
       <div class="d-top">
         <div class="d-brand">
-          <img class="d-brand-logo" src="/assets/stay-logo.png" alt="RYST 109A">
+          <img class="d-brand-logo" src="${esc(PROPERTY.logoUrl)}" alt="${esc(PROPERTY.name)}">
           <div class="d-brand-text">
-            <div class="bt-name">RYST <span>109A</span></div>
-            <div class="bt-villa">BEACH&nbsp;VILLA</div>
-            <div class="bt-tag">PRIVATE COASTAL RETREAT</div>
+            <div class="bt-name">${(n => { const i = n.lastIndexOf(' '); return i > 0 ? esc(n.slice(0, i)) + ' <span>' + esc(n.slice(i + 1)) + '</span>' : esc(n); })(PROPERTY.name)}</div>
+            <div class="bt-villa" style="text-transform:uppercase">${esc(PROPERTY.typeLabel)}</div>
+            <div class="bt-tag" style="text-transform:uppercase">${esc(PROPERTY.tagline)}</div>
           </div>
         </div>
         <div class="d-co">
-          <a href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank" rel="noopener" class="addr-link">${esc(String(biz.company||'')).replace(/\n/g,'<br>')}</a>
-          <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" class="co-ig">${IG_ICON_SVG}@stay.ryst</a>
+          ${PROPERTY.mapLink ? `<a href="${esc(PROPERTY.mapLink)}" target="_blank" rel="noopener" class="addr-link">${esc(String(biz.company||'')).replace(/\n/g,'<br>')}</a>` : `<span class="addr-link">${esc(String(biz.company||'')).replace(/\n/g,'<br>')}</span>`}
+          ${PROPERTY.instagram ? `<a href="${esc(PROPERTY.instagramUrl)}" target="_blank" rel="noopener" class="co-ig">${IG_ICON_SVG}${esc(PROPERTY.instagramHandle)}</a>` : ''}
         </div>
       </div>
 
@@ -1523,13 +1524,13 @@ function viewQuotePdf(b){
           <div class="sign-name">${esc(b.guest||'Guest')}${b.date ? '  '+fmtDateD(b.date) : ''}</div>
         </div>
         <div class="d-sign">
-          <div class="sign-for">For RYST 109A</div>
+          <div class="sign-for">For ${esc(PROPERTY.name)}</div>
           <div class="sign-blank"></div>
-          <div class="sign-name">YUVANESAN M</div>
+          <div class="sign-name">${esc(PROPERTY.signatory)}</div>
         </div>
       </div>
 
-      <div class="d-foot">${isInv ? 'Thank you for joining us at RYST 109A Beach Villa!' : 'PLEASE JOIN US FOR A RELAXING, WARM &amp; WONDERFUL STAY'}</div>
+      <div class="d-foot">${isInv ? `Thank you for joining us at ${esc(PROPERTY.fullName)}!` : 'PLEASE JOIN US FOR A RELAXING, WARM &amp; WONDERFUL STAY'}</div>
     </div>
   `;
   $('#receiptOverlay').classList.add('active');

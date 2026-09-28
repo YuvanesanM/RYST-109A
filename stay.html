@@ -6,7 +6,8 @@
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/staff-demo.js"></script>
-<title>RYST 109A — Stay Invoice / Quote</title>
+<script src="/property.js"></script>
+<title data-title="{name} — Stay Invoice / Quote">RYST 109A — Stay Invoice / Quote</title>
 <meta name="robots" content="noindex, nofollow">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -246,7 +247,7 @@
 <div id="app" hidden>
   <header class="bar">
     <div class="bar-left">
-      <div class="brand-mini" id="hdrBrand" style="cursor:pointer" title="Home">RYST <span>109A</span></div>
+      <div class="brand-mini" id="hdrBrand" style="cursor:pointer" title="Home" data-prop-split="name">RYST <span>109A</span></div>
       <div class="sub" id="viewLabel">Stay invoice / quote</div>
       <span class="conn-dot" id="connDot" title="Cloud sync"></span>
     </div>
@@ -369,11 +370,11 @@
       <div class="doc" id="stayDoc">
         <div class="d-top">
           <div class="d-brand">
-            <img class="d-brand-logo" src="/assets/stay-logo.png" alt="RYST 109A">
+            <img class="d-brand-logo" src="/assets/stay-logo.png" data-prop-src="logoUrl" alt="RYST 109A" data-prop-alt="name">
             <div class="d-brand-text">
-              <div class="bt-name">RYST <span>109A</span></div>
-              <div class="bt-villa">BEACH&nbsp;VILLA</div>
-              <div class="bt-tag">PRIVATE COASTAL RETREAT</div>
+              <div class="bt-name" data-prop-split="name">RYST <span>109A</span></div>
+              <div class="bt-villa" data-prop="typeLabel" style="text-transform:uppercase">BEACH&nbsp;VILLA</div>
+              <div class="bt-tag" data-prop="tagline" style="text-transform:uppercase">PRIVATE COASTAL RETREAT</div>
             </div>
           </div>
           <div class="d-co" id="coBlock"></div>
@@ -446,9 +447,9 @@
             <div class="sign-name" id="pGuestSignName">Guest Signature &amp; Date</div>
           </div>
           <div class="d-sign">
-            <div class="sign-for">For RYST 109A</div>
+            <div class="sign-for" data-prop-tpl="For {name}">For RYST 109A</div>
             <div class="sign-blank"></div>
-            <div class="sign-name">YUVANESAN M</div>
+            <div class="sign-name" data-prop="signatory">YUVANESAN M</div>
           </div>
         </div>
 
@@ -518,19 +519,14 @@ const K_SET = "ryst_stay_settings";   // local cache; master copy synced via pro
 // Villa business info, bank & pricing. These are the built-in defaults — the
 // live values are configured in settings.html (Stay tab) and synced through the
 // proxy /stay-settings endpoint. Keep this object identical to settings.html.
+// Numbering prefix from the property name ("RYST 109A" → "RYST109A/INV").
+const PROPERTY_CODE = (PROPERTY.name || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() || 'DOC';
 const DEFAULTS = {
-  company:
-`109A, Pearl Beach Site, Parmankeni,
-Cheyyur - 603305`,
-  pan: "ADVPJ1491D",
-  invPrefix: "RYST109A/INV",
-  qtPrefix:  "RYST109A/QT",
-  bank:
-`Account Holder: Yuvanesan Muthukumaresan
-Account Number: 50100XXXXXXXXX
-IFSC: HDFCXXXXXXX
-Bank Name: HDFC Bank
-Account Type: Savings`,
+  company: "",
+  pan: "",
+  invPrefix: PROPERTY_CODE + "/INV",
+  qtPrefix:  PROPERTY_CODE + "/QT",
+  bank: "",
   declaration:
 `Supplier is not registered under GST as the turnover is below the prescribed threshold limit under the GST Act. Hence, GST has not been charged on this invoice.`,
   terms: [
@@ -839,7 +835,7 @@ function populateLoadQuoteSel(){
   const sel = $("#loadQuoteSel"); if(!sel) return;
   const stays = getStays();
   const quotes = stays
-    .filter(d=> (d.no||"").startsWith(settings.qtPrefix||"RYST109A/QT") && !isConvertedQuote(d, stays))
+    .filter(d=> (d.no||"").startsWith(settings.qtPrefix||DEFAULTS.qtPrefix) && !isConvertedQuote(d, stays))
     .sort((a,b)=>b.no.localeCompare(a.no));
   sel.innerHTML = `<option value="">— pick a quote —</option>`
     + quotes.map(d=>`<option value="${esc(d.no)}">${esc(d.no)} · ${esc(d.guest||"?")}${d.checkin?" ("+fmtDate(d.checkin)+")":""}</option>`).join("");
@@ -1039,8 +1035,8 @@ function render(){
   $("#pNoLbl").textContent  = isInv ? "Invoice No" : "Quote No";
   $("#pDateLbl").textContent= isInv ? "Invoice Date" : "Quote Date";
 
-  $("#coBlock").innerHTML = `<a href="https://maps.app.goo.gl/taBGtjLgbcMWL6mUA" target="_blank" rel="noopener" class="addr-link">${esc(settings.company).replace(/\n/g,"<br>")}</a>`
-    + `<a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener" class="co-ig"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>@stay.ryst</a>`;
+  $("#coBlock").innerHTML = (PROPERTY.mapLink ? `<a href="${esc(PROPERTY.mapLink)}" target="_blank" rel="noopener" class="addr-link">${esc(settings.company).replace(/\n/g,"<br>")}</a>` : `<span class="addr-link">${esc(settings.company).replace(/\n/g,"<br>")}</span>`)
+    + (PROPERTY.instagram ? `<a href="${esc(PROPERTY.instagramUrl)}" target="_blank" rel="noopener" class="co-ig"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>${esc(PROPERTY.instagramHandle)}</a>` : '');
 
   $("#pGuest").textContent  = $("#guest").value || "—";
   $("#pEmail").textContent  = $("#email").value || "—";
@@ -1106,7 +1102,7 @@ function render(){
   $("#pTerms").innerHTML = settings.terms.map(t=>`<li>${esc(t)}</li>`).join("");
 
   $("#pFoot").textContent = docType==="invoice"
-    ? "Thank you for joining us at RYST 109A Beach Villa!"
+    ? `Thank you for joining us at ${PROPERTY.fullName}!`
     : "PLEASE JOIN US FOR A RELAXING, WARM & WONDERFUL STAY";
 
   // Guest acceptance signature shown on both invoice and quote
