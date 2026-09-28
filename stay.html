@@ -424,7 +424,7 @@
             <div class="pb-h">PAYMENT / BANK DETAILS</div>
             <div class="pb-body" id="pBank"></div>
           </div>
-          <div class="d-pay-qr">
+          <div class="d-pay-qr" id="payQr">
             <img src="/assets/stay-payment-qr.png" alt="Scan to pay">
             <div class="qr-label">Scan to Pay</div>
           </div>
@@ -495,7 +495,7 @@
    CONFIG
    ========================================================================= */
 const PROXY_URL = 'https://data.ryst.in';
-const GUEST_PORTAL_URL = 'https://stay.ryst.in/guest.html';
+const GUEST_PORTAL_URL = guestSiteUrl() + '/guest.html';
 // new Date().toISOString() converts through UTC — for any timezone ahead
 // of UTC (IST included), this reports "yesterday" during the first few
 // hours after local midnight. Read the local calendar fields directly.
@@ -514,6 +514,8 @@ function hasModule(mod){
   return role === 'owner' || modules.includes(mod);
 }
 
+// The UPI QR image is RYST 109A's own — never on another villa's documents.
+if(window.RYST_VILLA && window.RYST_VILLA!=='ryst-109a'){ const q=document.getElementById('payQr'); if(q) q.remove(); }
 const K_SET = "ryst_stay_settings" + ((window.RYST_VILLA && window.RYST_VILLA !== 'ryst-109a') ? ':' + window.RYST_VILLA : '');   // local cache (per villa); master copy synced via proxy /stay-settings
 
 // Villa business info, bank & pricing. These are the built-in defaults — the

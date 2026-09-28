@@ -52,11 +52,14 @@
   var RYST_DEFAULTS = DEFAULTS;
   if (villa && villa !== 'ryst-109a') {
     DEFAULTS = { name: 'Villa', fullName: 'Villa', restaurantName: '', address: '', mapLink: '', website: '', whatsapp: '', instagram: '',
-      signatory: '', typeLabel: 'Villa', tagline: '', receiptNote: '', logoUrl: 'https://stay.ryst.in/assets/staff-icon-512.png', coverUrl: '', latitude: null, longitude: null, googlePlaceQuery: '' };
+      signatory: '', typeLabel: 'Villa', tagline: '', receiptNote: '', logoUrl: 'https://harbour.ryst.in/assets/staff-icon-512.png', coverUrl: '', latitude: null, longitude: null, googlePlaceQuery: '' };
   }
   var KEY = demo ? 'ryst_property_demo' : (villa && villa !== 'ryst-109a' ? 'ryst_property_' + villa : 'ryst_property');
   window.PROPERTY_CACHE_KEY = KEY;
   window.RYST_VILLA = window.RYST_VILLA || villa;
+  // Where this villa's guest pages live: RYST 109A's own site, or the
+  // product's address for every other villa (same pages on both).
+  window.guestSiteUrl = function(){ return villa && villa !== 'ryst-109a' ? 'https://harbour.ryst.in' : 'https://stay.ryst.in'; };
   // "&v=<villa>" for guest links built on a staff page of another villa.
   if (!window.villaLinkParam) window.villaLinkParam = function(){ return villa && villa !== 'ryst-109a' ? '&v=' + encodeURIComponent(villa) : ''; };
   var cached = null;
