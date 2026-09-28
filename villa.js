@@ -30,8 +30,11 @@
     return realFetch.call(this, input, init);
   };
 
-  // Links to the other guest pages keep the villa (e.g. portal → feedback).
+  // Links to the other guest pages keep the villa (e.g. portal → feedback);
+  // links into RYST 109A's own website (data-ryst-only) are hidden.
   function tag(root){
+    var own = (root || document).querySelectorAll('[data-ryst-only]');
+    for (var j = 0; j < own.length; j++) own[j].style.display = 'none';
     var list = (root || document).querySelectorAll('a[href]');
     for (var i = 0; i < list.length; i++) {
       var a = list[i];

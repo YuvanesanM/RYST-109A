@@ -557,7 +557,7 @@
           <span class="menu-body"><span class="menu-title">Wi-Fi</span><span class="menu-desc">Network &amp; voucher code</span></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
         </button>
-        <a class="menu-item" href="/nearby.html">
+        <a class="menu-item" href="/nearby.html" data-ryst-only>
           <span class="menu-icon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s7-7.58 7-12.5A7 7 0 0 0 5 9.5C5 14.42 12 22 12 22z"/><circle cx="12" cy="9.5" r="2.5"/></svg></span>
           <span class="menu-body"><span class="menu-title">Explore Nearby</span><span class="menu-desc">Beaches, cafes and things to do near the villa</span></span>
           <span class="menu-chevron" aria-hidden="true">›</span>
@@ -1502,10 +1502,10 @@ function viewQuotePdf(b){
           <div class="pb-h">PAYMENT / BANK DETAILS</div>
           <div class="pb-body">${esc(biz.bank||'').replace(/\n/g,'<br>')}<div style="margin-top:6px;font-weight:600;color:#0a5b63">PAN: ${esc(biz.pan||'')}</div></div>
         </div>
-        <div class="d-pay-qr">
+        ${window.RYST_VILLA ? '' : `<div class="d-pay-qr">
           <img src="/assets/stay-payment-qr.png" alt="Scan to pay">
           <div class="qr-label">Scan to Pay</div>
-        </div>
+        </div>`}
       </div>
 
       <div class="d-terms">

@@ -423,13 +423,13 @@ let FILTERS = { type:'all', q:'' };
 const REMINDER_WINDOW_DAYS = 3;
 // How far back a check-out still shows up in the feedback-request list.
 const FEEDBACK_WINDOW_DAYS = 7;
-const FEEDBACK_FORM_URL = 'https://stay.ryst.in/feedback.html';
+const FEEDBACK_FORM_URL = guestSiteUrl() + '/feedback.html';
 // Wider than the reminder window on purpose — check-in (ID + signature)
 // should happen well before arrival, not in the last few days alongside
 // the arrival-time reminder.
 const CHECKIN_WINDOW_DAYS = 7;
-const CHECKIN_FORM_URL = 'https://stay.ryst.in/checkin.html';
-const GUEST_PORTAL_URL = 'https://stay.ryst.in/guest.html';
+const CHECKIN_FORM_URL = guestSiteUrl() + '/checkin.html';
+const GUEST_PORTAL_URL = guestSiteUrl() + '/guest.html';
 
 // ── WHATSAPP TEMPLATES ── owner-editable wording (Settings → WhatsApp
 // Templates). These hardcoded strings are only the fallback while the fetch
