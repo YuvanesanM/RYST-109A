@@ -295,7 +295,9 @@
 
     <label class="f"><span>Export — paste each OTA's OWN link into that OTA's "import calendar" field</span></label>
     <div id="icalChannelLinks" style="margin-bottom:6px"><p class="sd">Loading…</p></div>
-    <p class="sd" style="margin-bottom:18px">Each link has every direct booking and block, plus every OTA's reservations <em>except that OTA's own</em>. Giving an OTA its own closures back makes them bounce in and out on every sync (Booking.com especially), so don't use one shared link for all of them.</p>
+    <p class="sd" style="margin-bottom:12px">Each link has every direct booking and block, plus every OTA's reservations <em>except that OTA's own</em>. Giving an OTA its own closures back makes them bounce in and out on every sync (Booking.com especially), so don't use one shared link for all of them.</p>
+    <div class="rc-foot" style="margin-top:0;margin-bottom:8px"><button class="btn" id="icalWhoBtn">Which link is each OTA using?</button></div>
+    <div class="sync-results" id="icalWhoResults" style="margin-bottom:18px"></div>
 
     <label class="f"><span>Master calendar (Google) — for viewing in Google Calendar; not for OTA import</span></label>
     <div class="ical-copy" style="margin-bottom:6px">
@@ -816,6 +818,37 @@ function renderIcalChannelLinks(){
     catch(err){ inp.select(); toast("Could not copy — select and copy manually"); }
   }));
 }
+// Recent fetches of the export links (server keeps the last 60 since its
+// last restart): which link, and which OTA fetched it (from its user agent).
+function icalWhoGuess(agent){
+  const a=String(agent||'');
+  if(/booking\.com|bookingcom/i.test(a)) return 'Booking.com';
+  if(/airbnb/i.test(a)) return 'Airbnb';
+  if(/agoda/i.test(a)) return 'Agoda';
+  if(/goibibo|makemytrip|\bmmt\b|ingo/i.test(a)) return 'MakeMyTrip';
+  if(/google/i.test(a)) return 'Google';
+  return a ? a.slice(0,60) : 'unknown';
+}
+document.getElementById("icalWhoBtn").addEventListener("click", async ()=>{
+  const out=document.getElementById("icalWhoResults");
+  if(!proxyToken){ toast("Sign in required"); return; }
+  out.innerHTML='<div class="sync-result"><span>Checking…</span><span></span></div>';
+  try{
+    const res=await fetch(PROXY_URL+'/ical/export-log',{headers:{'X-Token':proxyToken},cache:'no-store'});
+    const d=await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(d.error||('Error '+res.status));
+    const slug=v=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const label=v=>{ if(v==='full') return null; const f=icalFeedsDraft.find(f=>slug(f.id)===v||slug(f.label)===v); return f?f.label:v; };
+    const rows=(d.fetches||[]).filter(f=>f.method==='GET');
+    if(!rows.length){ out.innerHTML=`<div class="sync-result"><span>No OTA has fetched a calendar link since ${esc(new Date(d.since).toLocaleString('en-IN'))}</span><span>OTAs check every few hours — try again later</span></div>`; return; }
+    out.innerHTML=rows.slice(0,20).map(f=>{
+      const who=icalWhoGuess(f.agent), own=label(f.variant);
+      const bad=!own;
+      return `<div class="sync-result${bad?' err':''}"><span>${esc(new Date(f.at).toLocaleString('en-IN'))} · ${esc(who)}</span><span>${bad?'⚠ FULL link — switch this OTA to its own link':'✓ '+esc(own)+"'s own link"}</span></div>`;
+    }).join('');
+  }catch(e){ out.innerHTML=`<div class="sync-result err"><span>Could not load</span><span>${esc(e.message)}</span></div>`; }
+});
+
 document.getElementById("icalFeedAdd").addEventListener("click",()=>{
   icalFeedsDraft.push({id:'feed_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6), label:'', url:''});
   renderIcalFeeds();
