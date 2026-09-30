@@ -53,6 +53,7 @@
     'Guest Register': 'விருந்தினர் பதிவேடு', 'Upcoming stays, notes & payment status': 'வரவிருக்கும் தங்கல்கள், குறிப்புகள் & கட்டண நிலை',
     'Guest Feedback': 'விருந்தினர் கருத்து', 'Post-stay reviews & ratings': 'தங்கலுக்குப் பிந்தைய மதிப்புரைகள் & மதிப்பீடுகள்',
     'Restaurant billing, menu & inventory': 'உணவக பில், மெனு & இருப்பு',
+    'Caretakers': 'பராமரிப்பாளர்கள்', 'Your team at the villa': 'வில்லாவில் உங்கள் குழு',
     'Petty Cash': 'சில்லறைச் செலவு', 'Caretaker expenses & reimbursements': 'பராமரிப்பாளர் செலவுகள் & திருப்பிச் செலுத்துதல்',
     'Inventory & Restock': 'இருப்பு & மறு நிரப்பல்', 'Consumables & shopping list': 'பயன்பாட்டுப் பொருட்கள் & வாங்க வேண்டிய பட்டியல்',
     'Profit & Loss': 'லாபம் & நஷ்டம்', 'Revenue vs. petty-cash spend': 'வருவாய் vs சில்லறைச் செலவு',
@@ -224,7 +225,24 @@
     'Tap the button, then press Start in Telegram. Come back here when done.': 'பொத்தானைத் தட்டி, Telegram-இல் Start அழுத்தவும். முடிந்ததும் இங்கே திரும்பி வாருங்கள்.',
     'The link expired — tap the button again.': 'இணைப்பு காலாவதியானது — பொத்தானை மீண்டும் தட்டவும்.',
     'Telegram connected — your alerts will come there.': 'Telegram இணைக்கப்பட்டது — உங்கள் அறிவிப்புகள் அங்கே வரும்.',
-    'Could not start —': 'தொடங்க முடியவில்லை —'
+    'Could not start —': 'தொடங்க முடியவில்லை —',
+
+    // ── dashboard (home) ──
+    'Good morning': 'காலை வணக்கம்', 'Good afternoon': 'மதிய வணக்கம்', 'Good evening': 'மாலை வணக்கம்',
+    "Here's what's happening at": 'இன்று', 'today.': '-இல் நடப்பவை.',
+    'Dashboard': 'டாஷ்போர்டு', 'Calendar': 'நாட்காட்டி', 'Bookings': 'முன்பதிவுகள்', 'Guests': 'விருந்தினர்கள்',
+    'Operations': 'செயல்பாடுகள்', 'Finance': 'நிதி', 'Property': 'சொத்து', 'System': 'அமைப்பு',
+    'Issues & Maintenance': 'பிரச்சனைகள் & பராமரிப்பு', 'Inventory': 'இருப்பு', 'Quotes & Invoices': 'விலைப்புள்ளிகள் & இன்வாய்ஸ்கள்',
+    'Payments': 'கட்டணங்கள்', 'Tasks': 'பணிகள்', 'More': 'மேலும்', 'New': 'புதியது', 'Needs attention': 'கவனிக்க வேண்டியவை',
+    "Today's check-in": 'இன்றைய செக்-இன்', "Today's check-out": 'இன்றைய செக்-அவுட்',
+    'No check-in today': 'இன்று செக்-இன் இல்லை', 'No check-out today': 'இன்று செக்-அவுட் இல்லை',
+    'Start check-in checklist': 'செக்-இன் சரிபார்ப்பைத் தொடங்கு', 'Start check-out checklist': 'செக்-அவுட் சரிபார்ப்பைத் தொடங்கு',
+    'Done ✓': 'முடிந்தது ✓', 'Arriving': 'வருகை', 'Checked in online': 'ஆன்லைனில் செக்-இன் செய்தார்', 'Check-in form pending': 'செக்-இன் படிவம் நிலுவையில்',
+    'guests': 'விருந்தினர்கள்', 'guest': 'விருந்தினர்', 'Done today': 'இன்று முடிந்தது', 'In progress': 'நடந்துகொண்டிருக்கிறது',
+    'Nothing in progress': 'எதுவும் நடந்துகொண்டில்லை', 'No open issues': 'திறந்த பிரச்சனைகள் இல்லை', 'Everything is stocked': 'எல்லாம் இருப்பில் உள்ளது',
+    'restock at': 'மறு நிரப்பல் அளவு', 'Report issue': 'பிரச்சனையைத் தெரிவி', 'Add expense': 'செலவைச் சேர்', 'Add inventory': 'இருப்பைச் சேர்',
+    'Ask the owner for Guest Register access to see arrivals here.': 'வருகைகளை இங்கே பார்க்க, விருந்தினர் பதிவேடு அனுமதியை உரிமையாளரிடம் கேளுங்கள்.',
+    'All clear — nothing needs you right now.': 'எல்லாம் சரி — இப்போது கவனிக்க வேண்டியது எதுவும் இல்லை.'
   };
   var VILLA_TYPES = { 'beach villa': 'கடற்கரை வில்லா', 'pool villa': 'நீச்சல் குள வில்லா', 'villa': 'வில்லா', 'farm stay': 'பண்ணை வீடு', 'farmhouse': 'பண்ணை வீடு', 'cottage': 'குடில்', 'homestay': 'ஹோம்ஸ்டே' };
 
