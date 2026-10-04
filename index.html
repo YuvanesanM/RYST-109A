@@ -2123,6 +2123,8 @@
     const cap = (PRICING && PRICING.guestCapacity > 0) ? PRICING.guestCapacity : 16;
     if(parseInt(e.target.value) > cap){ e.target.value = String(cap); showToast('Maximum capacity is ' + cap + ' guests.'); }
     if(typeof updatePricePreview === 'function') updatePricePreview();
+    // Calendar prices follow the guest count when the villa prices by headcount.
+    if(PRICING && Array.isArray(PRICING.tariff) && PRICING.tariff.length && typeof availState !== 'undefined' && availState.render) availState.render();
   });
 
   // ── GUEST COUNTER BUTTONS ── #f-guests is readonly (button-only entry);
@@ -2467,11 +2469,23 @@
   // nightlyVillaRate exactly (holiday takes precedence over weekend, not
   // stacked), same "client previews, server computes the real charge"
   // stance as the rest of this pricing preview.
-  function nightlyRate(iso){
-    if(!PRICING || !PRICING.villaRate) return null;
+  // Price by guest count (Settings → Tariffs, server.js tariffFor): the
+  // weekday price for the smallest row that seats the party. null when the
+  // villa has no tariff (flat villaRate + extra-guest charge instead).
+  function tariffRow(guests){
+    const rows = (PRICING && Array.isArray(PRICING.tariff)) ? PRICING.tariff : [];
+    if(!rows.length) return null;
+    const g = Math.max(1, parseInt(guests, 10) || 1);
+    return rows.find(r => r.guests >= g) || rows[rows.length-1];
+  }
+  function currentGuests(){ return parseInt(document.getElementById('f-guests').value, 10) || 1; }
+  function nightlyRate(iso, guests){
+    const row = tariffRow(guests == null ? currentGuests() : guests);
+    const base = row ? row.rate : (PRICING && PRICING.villaRate);
+    if(!base) return null;
     const dow = new Date(iso+'T00:00:00').getDay();
     const isHoliday = Array.isArray(PRICING.holidays) && PRICING.holidays.includes(iso);
-    let rate = PRICING.villaRate;
+    let rate = base;
     if(isHoliday) rate *= (1 + (PRICING.holidayHikePercent||0)/100);
     else if(dow===5 || dow===6 || dow===0) rate *= (1 + (PRICING.weekendHikePercent||0)/100);
     return Math.round(rate);
@@ -2501,8 +2515,9 @@
   fetch(PROXY+'/pricing', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
     .then(data => {
-      if(!data || !data.villaRate) return;
+      if(!data || !(data.villaRate || (Array.isArray(data.tariff) && data.tariff.length))) return;
       PRICING = data;
+      if(data.guestCapacity > 0){ document.getElementById('f-guests').max = String(data.guestCapacity); updateGuestButtons(); }
       updatePaymentOptionLabels(null);
       updatePricePreview();
       if(typeof availState !== 'undefined' && availState.render) availState.render();
@@ -2566,7 +2581,8 @@
     const { nights, total: villaTotal } = villaTotalForStay(checkin, checkout);
     if(nights <= 0){ el.style.display = 'none'; updatePaymentOptionLabels(null); updateSubmitButtonLabel(null); return; }
     const guests = Math.max(1, parseInt(document.getElementById('f-guests').value, 10) || 0);
-    const extraGuests = PRICING.maxGuests > 0 ? Math.max(0, guests - PRICING.maxGuests) : 0;
+    const tRow = tariffRow(guests);
+    const extraGuests = (!tRow && PRICING.maxGuests > 0) ? Math.max(0, guests - PRICING.maxGuests) : 0;
     const total = villaTotal + extraGuests * nights * PRICING.extraGuestRate;
 
     const couponPercent = couponState.code ? couponState.discountPercent : 0;
@@ -2578,7 +2594,11 @@
       ? `<div class="pp-line">+ ${extraGuests} extra guest${extraGuests!==1?'s':''} × ${nights} night${nights!==1?'s':''} × ₹${PRICING.extraGuestRate.toLocaleString('en-IN')}</div>`
       : '';
     const couponNote = couponPercent > 0 ? ` <span class="pay-mode-save">(${couponPercent}% off)</span>` : '';
+    const roomLine = tRow && tRow.bedrooms
+      ? `<div class="pp-line">${guests} guest${guests!==1?'s':''} · ${tRow.bedrooms} bedroom${tRow.bedrooms!==1?'s':''}</div>`
+      : '';
     el.innerHTML = `
+      ${roomLine}
       <div class="pp-line">${nights} night${nights!==1?'s':''} (avg ₹${Math.round(villaTotal/nights).toLocaleString('en-IN')}/night)</div>
       ${extraLine}
       <div class="pp-total">Total: ₹${amounts.netTotal.toLocaleString('en-IN')}${couponNote}</div>
