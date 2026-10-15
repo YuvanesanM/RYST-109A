@@ -2567,6 +2567,37 @@
     return { nights, total };
   }
 
+  // Minimum party on peak nights (Settings → Peak pricing, server.js
+  // peakMinGuestsError): a stay with any Fri/Sat/Sun or holiday night needs
+  // at least PRICING.peakMinGuests guests. 1 when the stay has no peak night.
+  function peakMinFor(checkin, checkout){
+    const min = PRICING && PRICING.peakMinGuests > 1 ? PRICING.peakMinGuests : 0;
+    if(!min || !checkin || !checkout) return 1;
+    const d = new Date(checkin+'T00:00:00'), end = new Date(checkout+'T00:00:00');
+    for(let i=0; d < end && i < 400; i++){
+      const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+      const dow = d.getDay();
+      if(dow===5 || dow===6 || dow===0 || (Array.isArray(PRICING.holidays) && PRICING.holidays.includes(iso))) return min;
+      d.setDate(d.getDate()+1);
+    }
+    return 1;
+  }
+  // Raises the guest counter's floor for peak stays (and bumps a smaller
+  // party up to it); a weekday stay drops the floor back to 1.
+  function applyPeakMin(checkin, checkout){
+    const inp = document.getElementById('f-guests');
+    const min = peakMinFor(checkin, checkout);
+    inp.min = String(min);
+    let bumped = false;
+    if((parseInt(inp.value, 10) || 0) < min){ inp.value = String(min); bumped = true; }
+    updateGuestButtons();
+    if(bumped){
+      showToast(`Weekend and holiday stays are for ${min} guests or more.`, 4000);
+      if(Array.isArray(PRICING.tariff) && PRICING.tariff.length && typeof availState !== 'undefined' && availState.render) availState.render();
+    }
+    return min;
+  }
+
   // Set only by a successful /coupon/check Apply click — never inferred
   // from the raw input text, so a code that hasn't actually been validated
   // can't silently apply a discount to the live preview.
@@ -2643,6 +2674,7 @@
     if(!el) return;
     const checkin = document.getElementById('f-checkin').value;
     const checkout = document.getElementById('f-checkout').value;
+    if(PRICING) applyPeakMin(checkin, checkout);
     if(!PRICING || !checkin || !checkout){ el.style.display = 'none'; updatePaymentOptionLabels(null); updateSubmitButtonLabel(null); return; }
     const { nights, total: villaTotal } = villaTotalForStay(checkin, checkout);
     if(nights <= 0){ el.style.display = 'none'; updatePaymentOptionLabels(null); updateSubmitButtonLabel(null); return; }
@@ -2663,7 +2695,10 @@
     const roomLine = tRow && tRow.bedrooms
       ? `<div class="pp-line">${guests} guest${guests!==1?'s':''} · ${tRow.bedrooms} bedroom${tRow.bedrooms!==1?'s':''}</div>`
       : '';
+    const peakMin = peakMinFor(checkin, checkout);
+    const peakLine = peakMin > 1 ? `<div class="pp-line">Includes weekend or holiday nights · ${peakMin} guests minimum</div>` : '';
     el.innerHTML = `
+      ${peakLine}
       ${roomLine}
       <div class="pp-line">${nights} night${nights!==1?'s':''} (avg ₹${Math.round(villaTotal/nights).toLocaleString('en-IN')}/night)</div>
       ${extraLine}
@@ -3146,6 +3181,8 @@
     }
     if(new Date(f.checkout) <= new Date(f.checkin)) return 'Check-out must be after check-in.';
     if(availState.hasConflict(f.checkin, f.checkout)) return 'Those dates aren\'t available — please check the calendar above.';
+    const peakMin = peakMinFor(f.checkin, f.checkout);
+    if((parseInt(f.guests, 10) || 0) < peakMin) return `Weekend and holiday stays are for ${peakMin} guests or more.`;
     return null;
   }
 
