@@ -924,7 +924,24 @@
     .book-orb.bo1 { width: 460px; height: 460px; background: radial-gradient(circle, #4da8b8, transparent); top: -130px; right: -90px; }
     .book-orb.bo2 { width: 400px; height: 400px; background: radial-gradient(circle, #c8a97a, transparent); bottom: -130px; left: -110px; }
     .book-wrap { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; }
-    .book-head { text-align: center; margin-bottom: 48px; }
+    .book-head { text-align: center; margin-bottom: 32px; }
+    .book-sub { margin-top: 12px; font-size: 14.5px; color: var(--muted-text); line-height: 1.5; }
+    .book-sub strong { color: var(--ink); font-weight: 600; }
+    .book-from:not(:empty)::before { content: " · "; }
+    .book-more { margin: 4px 0 18px; border: 1.5px solid rgba(14,36,32,.12); border-radius: 12px; }
+    .book-more > summary { list-style: none; cursor: pointer; padding: 13px 16px; font-size: 14px; font-weight: 600; color: var(--sea-mid); display: flex; align-items: center; gap: 8px; }
+    .book-more > summary::-webkit-details-marker { display: none; }
+    .book-more > summary::before { content: "+"; font-size: 18px; line-height: 1; width: 18px; text-align: center; }
+    .book-more[open] > summary::before { content: "−"; }
+    .book-more-body { padding: 4px 16px 4px; }
+    /* #book: land on the calendar, not on the heading above it */
+    #book { scroll-margin-top: 0; }
+    @media (max-width: 600px) {
+      #book { padding-top: 84px; padding-bottom: 56px; }
+      #book .section-title { font-size: 34px; }
+      .book-head { margin-bottom: 18px; }
+      .book-form { padding: 20px 16px; border-radius: 22px; }
+    }
     .book-form {
       position: relative; background: var(--white); border-radius: 28px; padding: clamp(28px,5vw,52px);
       box-shadow: 0 28px 70px rgba(11,61,82,.16);
@@ -1393,25 +1410,18 @@
       .g-badge { padding: 10px 16px; }
     }
 
-    /* ── PRICING NOTE ── */
-    .pricing-note { background: rgba(255,255,255,.7); border: 1px solid var(--line); backdrop-filter: blur(10px); border-radius: 14px; padding: 14px 22px; margin-bottom: 36px; font-size: 14px; color: var(--muted); text-align: center; line-height: 1.6; }
-    .pricing-note strong { color: var(--ink); }
 
     /* ── BOOKING TRUST CHECKLIST ── */
-    .book-trust { display: flex; flex-wrap: wrap; gap: 10px 20px; justify-content: center; margin-bottom: 36px; }
-    .btrust-item { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: var(--ink-mid); }
+    .book-trust { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: center; margin: 22px 0 6px; }
+    .btrust-item { display: flex; align-items: center; gap: 7px; font-size: 13px; font-weight: 500; color: var(--ink-mid); }
     .btrust-check { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg, #27a06e, #1e8a5a); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .btrust-check svg { stroke: #fff; }
     @media (max-width: 600px) {
-      .book-trust { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 12px; justify-items: start; padding: 0 4px; }
+      .book-trust { gap: 8px 14px; }
+      .btrust-item { font-size: 12.5px; white-space: nowrap; }
+      .btrust-check { width: 16px; height: 16px; }
     }
 
-    /* ── BOOKING STEPS ── */
-    .booking-steps { display: flex; align-items: center; justify-content: center; gap: 6px; margin: -20px 0 44px; flex-wrap: wrap; row-gap: 12px; }
-    .bstep { display: flex; align-items: center; gap: 10px; }
-    .bstep-num { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(150deg, var(--sea-light), var(--sea-mid)); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 700; flex-shrink: 0; box-shadow: 0 4px 14px rgba(77,168,184,.4); }
-    .bstep-label { font-size: 13.5px; color: var(--ink-mid); font-weight: 500; }
-    .bstep-arrow { color: var(--muted); font-size: 20px; margin: 0 14px; line-height: 1; }
 
     @media (max-width: 900px) {
       .about-grid, .location-grid { grid-template-columns: 1fr; gap: 40px; }
@@ -1432,9 +1442,6 @@
       .gallery-cell:not(:first-child) { aspect-ratio: 3/2; }
       .form-row, .form-row.three { grid-template-columns: 1fr; }
       .footer-top { flex-direction: column; gap: 28px; }
-      .bstep-arrow { display: none; }
-      .booking-steps { flex-direction: column; align-items: flex-start; gap: 16px; width: fit-content; max-width: 100%; margin: 4px auto 40px; }
-      .bstep-label { font-size: 15px; }
       .rc-wrap { gap: 8px; }
       .rc-arrow { width: 34px; height: 34px; }
       .rc-card { flex: 0 0 100%; scroll-snap-align: start; }
@@ -1500,7 +1507,7 @@
     <div class="hero-actions">
       <a href="#book" class="btn-stay" data-magnetic>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        Request a Stay
+        Book Your Stay
       </a>
       <a href="#about" class="btn-explore" data-magnetic>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z" fill="currentColor" stroke="none"/></svg>
@@ -1863,27 +1870,9 @@
   <div class="book-orb bo2" aria-hidden="true"></div>
   <div class="book-wrap">
     <div class="book-head">
-      <p class="section-tag">Request a Stay</p>
-      <h2 class="section-title">Plan your <em>escape</em></h2>
-    </div>
-    <div class="pricing-note">
-      <strong>Full villa · Up to 16 guests</strong> · Rates on request
-      <br>Weekend dates typically fill 2–3 weeks ahead — enquire early to lock yours in.
-    </div>
-    <div class="booking-steps">
-      <div class="bstep"><div class="bstep-num">1</div><div class="bstep-label">Enquire</div></div>
-      <div class="bstep-arrow">→</div>
-      <div class="bstep"><div class="bstep-num">2</div><div class="bstep-label">We confirm</div></div>
-      <div class="bstep-arrow">→</div>
-      <div class="bstep"><div class="bstep-num">3</div><div class="bstep-label">Lock your dates</div></div>
-    </div>
-    <div class="book-trust">
-      <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Entire villa</span>
-      <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Private parking</span>
-      <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>24×7 caretaker</span>
-      <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Safe neighbourhood</span>
-      <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Family friendly</span>
-      <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>High-speed Wi-Fi</span>
+      <p class="section-tag">Book Direct</p>
+      <h2 class="section-title">Book your <em>stay</em></h2>
+      <p class="book-sub"><strong>Full villa · up to <span id="bookCap">16</span> guests</strong><span class="book-from" id="bookFrom"></span> · Instant confirmation</p>
     </div>
     <div class="book-form">
       <form id="bookForm">
@@ -1966,6 +1955,9 @@
             </div>
           </div>
         </div>
+        <details class="book-more" id="bookMore">
+          <summary>Add an occasion, special requests or a coupon</summary>
+          <div class="book-more-body">
         <div class="form-row full">
           <div class="f-group">
             <label for="f-occasion">Occasion</label>
@@ -1986,7 +1978,6 @@
             <textarea id="f-message" name="message" placeholder="Preferred check-in time or special celebrations"></textarea>
           </div>
         </div>
-        <hr class="form-divider">
         <div class="form-row full">
           <div class="f-group">
             <label for="f-coupon">Coupon code</label>
@@ -1997,6 +1988,8 @@
             <p class="coupon-status" id="couponStatus"></p>
           </div>
         </div>
+          </div>
+        </details>
         <div class="form-row full">
           <div class="f-group">
             <div class="price-preview" id="pricePreview" style="display:none"></div>
@@ -2057,7 +2050,15 @@
             NetBanking
           </span>
         </div>
-        <button type="button" class="form-fallback-link" id="bookWaFallback">Prefer WhatsApp? Send an enquiry instead</button>
+    <div class="book-trust" aria-label="Included with every stay">
+          <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Entire villa</span>
+          <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Private parking</span>
+          <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>24×7 caretaker</span>
+          <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Safe neighbourhood</span>
+          <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>Family friendly</span>
+          <span class="btrust-item"><span class="btrust-check"><svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg></span>High-speed Wi-Fi</span>
+        </div>
+        <button type="button" class="form-fallback-link" id="bookWaFallback">Questions first? Chat with us on WhatsApp</button>
       </form>
       <div class="book-success" id="bookSuccess" style="display:none" aria-live="polite"></div>
     </div>
@@ -2093,7 +2094,7 @@
           <a href="/ecr-road-trip-guide.html">ECR Road Trip Guide</a>
           <a href="/ecr-villa-for-celebrations.html">Celebrations &amp; Group Stays</a>
           <a href="/faq.html">FAQ</a>
-          <a href="#book">Request a Stay</a>
+          <a href="#book">Book Your Stay</a>
           <a href="/privacy.html">Privacy Policy</a>
           <a href="/terms.html">Terms &amp; Conditions</a>
           <a href="/terms.html#cancellations">Cancellation &amp; Refund Policy</a>
@@ -2155,12 +2156,17 @@
   const progress = document.getElementById('scrollProgress');
   const heroSection = document.getElementById('hero');
   const bookFloat = document.getElementById('bookFloat');
+  const bookSection = document.getElementById('book');
   let ticking = false;
   const onScroll = () => {
     nav.classList.toggle('scrolled', window.scrollY > 60);
     const max = document.documentElement.scrollHeight - window.innerHeight;
     if (progress) progress.style.transform = 'scaleX(' + (max > 0 ? window.scrollY / max : 0) + ')';
-    if (bookFloat && heroSection) bookFloat.classList.toggle('show', heroSection.getBoundingClientRect().bottom <= 0);
+    if (bookFloat && heroSection) {
+      const bk = bookSection ? bookSection.getBoundingClientRect() : null;
+      const inBook = bk && bk.top < window.innerHeight * 0.85 && bk.bottom > 0; // already at the booking form
+      bookFloat.classList.toggle('show', heroSection.getBoundingClientRect().bottom <= 0 && !inBook);
+    }
     ticking = false;
   };
   window.addEventListener('scroll', () => {
@@ -2571,6 +2577,12 @@
     .then(data => {
       if(!data || !(data.villaRate || (Array.isArray(data.tariff) && data.tariff.length))) return;
       PRICING = data;
+      // Booking header: "from ₹X/night" (smallest party, weekday) and the real capacity.
+      try {
+        const fromRate = (Array.isArray(data.tariff) && data.tariff.length) ? data.tariff[0].rate : data.villaRate;
+        if(fromRate > 0) document.getElementById('bookFrom').textContent = 'from ₹' + Number(fromRate).toLocaleString('en-IN') + '/night';
+        if(data.guestCapacity > 0) document.getElementById('bookCap').textContent = String(data.guestCapacity);
+      } catch(e){}
       if(data.guestCapacity > 0){ document.getElementById('f-guests').max = String(data.guestCapacity); updateGuestButtons(); }
       updatePaymentOptionLabels(null);
       updatePricePreview();
@@ -3528,8 +3540,6 @@
     reveal('.location-map',  { x: -30, y: 0, duration: .7 });
     reveal('.location-text', { x:  30, y: 0, duration: .7 });
     reveal('.book-head');
-    reveal('.pricing-note',  { y: 22 });
-    reveal('.booking-steps', { y: 22 });
     reveal('.book-form',     { y: 40, duration: .7 });
 
     // Staggered batches
