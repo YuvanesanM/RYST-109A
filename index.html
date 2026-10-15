@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com https://checkout.razorpay.com https://connect.facebook.net https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com https://cdn.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://*.razorpay.com https://www.facebook.com https://*.googletagmanager.com https://*.doubleclick.net https://www.googleadservices.com https://www.google.co.in; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com https://api.razorpay.com https://lumberjack.razorpay.com https://www.facebook.com https://connect.facebook.net https://analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.googleadservices.com; frame-src https://accounts.google.com https://www.google.com https://api.razorpay.com https://*.doubleclick.net https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com https://checkout.razorpay.com https://connect.facebook.net https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com https://cdn.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://*.razorpay.com https://www.facebook.com https://*.googletagmanager.com https://*.doubleclick.net https://www.googleadservices.com https://www.google.co.in; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com https://api.razorpay.com https://lumberjack.razorpay.com https://www.facebook.com https://connect.facebook.net https://analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.googleadservices.com; frame-src https://www.instagram.com https://accounts.google.com https://www.google.com https://api.razorpay.com https://*.doubleclick.net https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 
   <meta name="google-site-verification" content="2CYtu5iJuDf5VZgn5JtCJ6DGW_jwmjAd1gqVz9Qe1vs" />
 
@@ -1346,6 +1346,35 @@
 
     /* ── TRUST / GOOGLE MAP ── */
     #trust { background: var(--white); }
+    /* ── Seen on Instagram: a guest creator's reel. Instagram's player only
+       loads when tapped — no Instagram script or cookies until then. ── */
+    #creators { background: var(--foam); }
+    .cr-wrap { max-width: 980px; margin: 0 auto; display: grid; grid-template-columns: 1fr minmax(260px, 340px); gap: clamp(32px, 6vw, 72px); align-items: center; }
+    .cr-text .section-lead { margin-top: 18px; }
+    .cr-handle { display: inline-flex; align-items: center; gap: 10px; margin-top: 26px; font-size: 15px; font-weight: 600; color: var(--ink); text-decoration: none; }
+    .cr-handle span { font-weight: 400; color: var(--muted-text); }
+    .cr-handle:hover { color: var(--sea-mid); }
+    .cr-tile { position: relative; width: 100%; aspect-ratio: 9 / 16; border-radius: 18px; overflow: hidden; background: var(--sea); box-shadow: 0 24px 60px -24px rgba(11,61,82,.45); }
+    .cr-play { all: unset; position: absolute; inset: 0; cursor: pointer; display: block; }
+    .cr-play img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; display: block; transition: transform .6s var(--ease); }
+    .cr-play:hover img, .cr-play:focus-visible img { transform: scale(1.04); }
+    .cr-play:focus-visible { outline: 3px solid var(--sea-light); outline-offset: -3px; border-radius: 18px; }
+    .cr-play::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.05) 40%, rgba(0,0,0,.6)); }
+    .cr-btn { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 72px; height: 72px; border-radius: 50%; background: rgba(255,255,255,.92); display: grid; place-items: center; z-index: 1; box-shadow: 0 10px 30px rgba(0,0,0,.25); transition: transform .3s var(--ease); }
+    .cr-play:hover .cr-btn { transform: translate(-50%, -50%) scale(1.08); }
+    .cr-cap { position: absolute; left: 18px; right: 18px; bottom: 18px; z-index: 1; color: #fff; font-size: 14px; line-height: 1.4; }
+    .cr-cap b { display: block; font-size: 15px; }
+    .cr-tile iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #fff; }
+    /* Playing: the tile takes the height Instagram's player reports (it
+       includes the header and caption), instead of the 9:16 cover shape. */
+    .cr-tile.is-playing { aspect-ratio: auto; height: 640px; background: #fff; transition: height .25s ease; }
+    .cr-tile.is-playing iframe { position: static; height: 100%; }
+    .cr-note { font-size: 12px; color: var(--muted-text); margin-top: 12px; text-align: center; }
+    @media (max-width: 760px) {
+      .cr-wrap { grid-template-columns: 1fr; text-align: center; }
+      .cr-text .section-lead { margin-left: auto; margin-right: auto; }
+      .cr-media { max-width: 340px; margin: 0 auto; width: 100%; }
+    }
     .trust-head { text-align: center; max-width: 560px; margin: 0 auto 36px; }
     .trust-wrap { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 26px; }
     .g-badge {
@@ -1655,6 +1684,31 @@
     </button>
   </div>
   <div class="rc-dots" id="reviewsDots"></div>
+</section>
+
+<!-- ── SEEN ON INSTAGRAM (guest creator reel, featured with her permission) ── -->
+<section id="creators" aria-labelledby="creatorsTitle">
+  <div class="cr-wrap">
+    <div class="cr-text">
+      <p class="section-tag">Seen on Instagram</p>
+      <h2 class="section-title" id="creatorsTitle">A stay at RYST 109A, <em>through a guest's eyes</em></h2>
+      <p class="section-lead">Travel and food creator Prachi Agarwal spent a weekend with us on Pearl Beach — the pool, the poolside screen and the sea, as she saw it.</p>
+      <a class="cr-handle" href="https://www.instagram.com/wanderlost_prachi/" target="_blank" rel="noopener">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+        @wanderlost_prachi <span>· Travel &amp; Food</span>
+      </a>
+    </div>
+    <div class="cr-media">
+      <div class="cr-tile" id="crTile">
+        <button type="button" class="cr-play" id="crPlay" aria-label="Play Prachi Agarwal's Instagram reel about RYST 109A">
+          <img src="/assets/gallery-22.jpg" alt="" loading="lazy" decoding="async" width="1200" height="900">
+          <span class="cr-btn" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" fill="#0b3d52"/></svg></span>
+          <span class="cr-cap"><b>@wanderlost_prachi</b>Her weekend at RYST 109A</span>
+        </button>
+      </div>
+      <p class="cr-note">Plays from Instagram</p>
+    </div>
+  </div>
 </section>
 
 <!-- ── TRUST / GOOGLE MAP ── -->
@@ -3552,6 +3606,34 @@
       }));
     }
   });
+</script>
+<script>
+  // Seen on Instagram: load Instagram's own player only when tapped, so the
+  // page carries no Instagram script, cookies or weight until then.
+  (function(){
+    var btn = document.getElementById('crPlay'), tile = document.getElementById('crTile');
+    if(!btn || !tile) return;
+    btn.addEventListener('click', function(){
+      var f = document.createElement('iframe');
+      f.src = 'https://www.instagram.com/reel/DedvdB8pSAr/embed/captioned/';
+      f.title = "Prachi Agarwal's Instagram reel about RYST 109A";
+      f.allow = 'autoplay; encrypted-media; picture-in-picture; clipboard-write';
+      f.setAttribute('allowfullscreen', '');
+      f.loading = 'eager';
+      tile.replaceChildren(f);
+      tile.classList.add('is-playing');
+      // Instagram's player posts {"type":"MEASURE","details":{"height":…}} as it lays out.
+      window.addEventListener('message', function(e){
+        if(e.origin !== 'https://www.instagram.com' || e.source !== f.contentWindow) return;
+        try {
+          var d = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+          var hgt = d && d.type === 'MEASURE' && d.details && +d.details.height;
+          if(hgt > 200 && hgt < 3000) tile.style.height = Math.ceil(hgt) + 'px';
+        } catch(err){}
+      });
+      if(typeof gtag === 'function') try { gtag('event', 'creator_reel_play', { creator: 'wanderlost_prachi' }); } catch(e){}
+    });
+  })();
 </script>
 </body>
 </html>
