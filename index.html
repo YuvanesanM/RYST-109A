@@ -2385,6 +2385,11 @@
     const g = parseInt(q.get('guests'), 10), inp = document.getElementById('f-guests');
     if(g > 0 && inp){ inp.value = String(Math.min(g, parseInt(inp.max, 10) || 16)); updateGuestButtons(); inp.dispatchEvent(new Event('input', { bubbles: true })); }
     if(q.get('checkin')) availState.preselect(q.get('checkin'), q.get('checkout') || '');
+    // A WhatsApp "BOOK" link also carries the guest's name and number.
+    const nm = (q.get('name') || '').trim().slice(0, 100), ph = (q.get('phone') || '').replace(/\D/g, '').slice(-10);
+    const fn = document.getElementById('f-name'), fp = document.getElementById('f-phone');
+    if(nm && fn && !fn.value) fn.value = nm;
+    if(ph.length === 10 && fp && !fp.value) fp.value = ph;
   });
 
   // ── GOOGLE RATING + REVIEWS ── one fetch to /google-rating drives both
@@ -3184,6 +3189,8 @@
       website:  document.getElementById('f-website').value, // honeypot
       paymentMode: selectedPaymentMode(),
       couponCode: couponState.code || '',
+      // the WhatsApp enquiry this booking comes from (link from a "BOOK" reply)
+      lead: (new URLSearchParams(location.search).get('lead') || '').slice(0, 40),
     };
   }
   function validateBookForm(f){
