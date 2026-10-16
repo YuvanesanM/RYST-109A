@@ -2367,9 +2367,25 @@
     });
     $('#availNext').addEventListener('click', ()=>{ view.setMonth(view.getMonth()+1); render(); });
 
-    return { load, hasConflict, render, get ranges(){ return ranges; } };
+    // Dates handed over in the link (?checkin=&checkout=, e.g. from a WhatsApp
+    // reply): select them in the calendar if they're still free.
+    function preselect(ci, co){
+      const re = /^\d{4}-\d{2}-\d{2}$/;
+      if(!re.test(ci) || !re.test(co) || co <= ci || ci < todayISO()) return false;
+      view = new Date(ci+'T00:00:00'); view.setDate(1);
+      if(hasConflict(ci, co)){ render(); return false; }
+      selStart = ci; selEnd = null; pick(co);
+      return true;
+    }
+
+    return { load, hasConflict, render, preselect, get ranges(){ return ranges; } };
   })();
-  availState.load();
+  availState.load().then(() => {
+    const q = new URLSearchParams(location.search);
+    const g = parseInt(q.get('guests'), 10), inp = document.getElementById('f-guests');
+    if(g > 0 && inp){ inp.value = String(Math.min(g, parseInt(inp.max, 10) || 16)); updateGuestButtons(); inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    if(q.get('checkin')) availState.preselect(q.get('checkin'), q.get('checkout') || '');
+  });
 
   // ── GOOGLE RATING + REVIEWS ── one fetch to /google-rating drives both
   // the #trust section's star badge and the #reviews carousel below. Real,
