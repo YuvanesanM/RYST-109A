@@ -2613,7 +2613,7 @@
     if((parseInt(inp.value, 10) || 0) < min){ inp.value = String(min); bumped = true; }
     updateGuestButtons();
     if(bumped){
-      showToast(`Weekend and holiday stays are for ${min} guests or more.`, 4000);
+      showToast(`Weekends and holidays have a minimum tariff of ${min} guests — smaller groups pay the ${min}-guest rate.`, 5000);
       if(Array.isArray(PRICING.tariff) && PRICING.tariff.length && typeof availState !== 'undefined' && availState.render) availState.render();
     }
     return min;
@@ -3205,7 +3205,7 @@
     if(new Date(f.checkout) <= new Date(f.checkin)) return 'Check-out must be after check-in.';
     if(availState.hasConflict(f.checkin, f.checkout)) return 'Those dates aren\'t available — please check the calendar above.';
     const peakMin = peakMinFor(f.checkin, f.checkout);
-    if((parseInt(f.guests, 10) || 0) < peakMin) return `Weekend and holiday stays are for ${peakMin} guests or more.`;
+    if((parseInt(f.guests, 10) || 0) < peakMin) return `Weekends and holidays have a minimum tariff of ${peakMin} guests — please choose ${peakMin} guests (smaller groups pay the ${peakMin}-guest rate).`;
     return null;
   }
 
