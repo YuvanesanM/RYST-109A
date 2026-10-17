@@ -1124,7 +1124,7 @@
     }
     .gc-btn:hover { border-color: var(--sea-mid); }
     .gc-btn:disabled { opacity: .35; cursor: not-allowed; }
-    .guest-counter input#f-guests {
+    .guest-counter input#f-guests, .guest-counter input#f-kids {
       flex: 1; min-width: 0; text-align: center; padding: 13px 16px; border-radius: 12px;
       border: 1.5px solid rgba(14,36,32,.12); font-family: var(--sans); font-size: 16px; font-weight: 600;
       color: var(--ink); background: var(--white); cursor: default;
@@ -1945,16 +1945,25 @@
             <input id="f-email" name="email" type="email" placeholder="you@example.com" required>
           </div>
         </div>
-        <div class="form-row full">
+        <div class="form-row">
           <div class="f-group">
-            <label for="f-guests">No. of Guests *</label>
+            <label for="f-guests">Adults (12 years and above) *</label>
             <div class="guest-counter">
-              <button type="button" class="gc-btn" id="guestMinus" aria-label="Decrease guest count">−</button>
+              <button type="button" class="gc-btn" id="guestMinus" aria-label="Fewer adults">−</button>
               <input id="f-guests" name="guests" type="number" min="1" max="12" value="8" readonly required>
-              <button type="button" class="gc-btn" id="guestPlus" aria-label="Increase guest count">+</button>
+              <button type="button" class="gc-btn" id="guestPlus" aria-label="More adults">+</button>
+            </div>
+          </div>
+          <div class="f-group">
+            <label for="f-kids">Children (under 12)</label>
+            <div class="guest-counter">
+              <button type="button" class="gc-btn" id="kidsMinus" aria-label="Fewer children">−</button>
+              <input id="f-kids" name="kids" type="number" min="0" max="12" value="0" readonly>
+              <button type="button" class="gc-btn" id="kidsPlus" aria-label="More children">+</button>
             </div>
           </div>
         </div>
+        <p class="f-hint" id="kidsHint" style="margin:-6px 0 14px;font-size:13px;color:var(--muted, #5b6b68)">One child under 12 stays free with every two adults; additional children are charged as adults.</p>
         <details class="book-more" id="bookMore">
           <summary>Add an occasion, special requests or a coupon</summary>
           <div class="book-more-body">
@@ -2179,36 +2188,46 @@
   // Falls back to the current real capacity if the fetch hasn't resolved
   // yet (rather than an old/guessed number) since a guest could start
   // typing before that async call returns.
-  document.getElementById('f-guests').addEventListener('input', e => {
+  function onPartyInput(e){
     const cap = (PRICING && PRICING.guestCapacity > 0) ? PRICING.guestCapacity : 16;
-    if(parseInt(e.target.value) > cap){ e.target.value = String(cap); showToast('Maximum capacity is ' + cap + ' guests.'); }
+    const other = e.target.id === 'f-guests' ? document.getElementById('f-kids') : document.getElementById('f-guests');
+    const room = cap - (parseInt(other.value, 10) || 0);
+    if(parseInt(e.target.value) > room){ e.target.value = String(Math.max(e.target.id === 'f-guests' ? 1 : 0, room)); showToast('Maximum capacity is ' + cap + ' guests, children included.'); }
+    updateGuestButtons();
     if(typeof updatePricePreview === 'function') updatePricePreview();
     // Calendar prices follow the guest count when the villa prices by headcount.
     if(PRICING && Array.isArray(PRICING.tariff) && PRICING.tariff.length && typeof availState !== 'undefined' && availState.render) availState.render();
-  });
+  }
+  document.getElementById('f-guests').addEventListener('input', onPartyInput);
+  document.getElementById('f-kids').addEventListener('input', onPartyInput);
 
   // ── GUEST COUNTER BUTTONS ── #f-guests is readonly (button-only entry);
   // dispatching a real 'input' event keeps it working with the listener
   // above and with updatePricePreview() without any other code changes.
-  function adjustGuests(delta){
-    const inp = document.getElementById('f-guests');
-    const min = parseInt(inp.min, 10) || 1;
-    const max = parseInt(inp.max, 10) || 12;
+  // Adults and children share the villa's capacity (#f-guests' max).
+  function partyCap(){ return parseInt(document.getElementById('f-guests').max, 10) || 12; }
+  function adjustGuests(delta, id){
+    const inp = document.getElementById(id || 'f-guests');
+    const other = document.getElementById(inp.id === 'f-guests' ? 'f-kids' : 'f-guests');
+    const min = parseInt(inp.min, 10) || 0;
+    const max = partyCap() - (parseInt(other.value, 10) || 0);
     const next = Math.min(max, Math.max(min, (parseInt(inp.value, 10) || min) + delta));
     inp.value = next;
     updateGuestButtons();
     inp.dispatchEvent(new Event('input', { bubbles: true }));
   }
   function updateGuestButtons(){
-    const inp = document.getElementById('f-guests');
-    const min = parseInt(inp.min, 10) || 1;
-    const max = parseInt(inp.max, 10) || 12;
-    const val = parseInt(inp.value, 10) || min;
-    document.getElementById('guestMinus').disabled = val <= min;
-    document.getElementById('guestPlus').disabled = val >= max;
+    const a = document.getElementById('f-guests'), k = document.getElementById('f-kids');
+    const av = parseInt(a.value, 10) || 1, kv = parseInt(k.value, 10) || 0, full = av + kv >= partyCap();
+    document.getElementById('guestMinus').disabled = av <= (parseInt(a.min, 10) || 1);
+    document.getElementById('guestPlus').disabled = full;
+    document.getElementById('kidsMinus').disabled = kv <= 0;
+    document.getElementById('kidsPlus').disabled = full;
   }
   document.getElementById('guestMinus').addEventListener('click', () => adjustGuests(-1));
   document.getElementById('guestPlus').addEventListener('click', () => adjustGuests(1));
+  document.getElementById('kidsMinus').addEventListener('click', () => adjustGuests(-1, 'f-kids'));
+  document.getElementById('kidsPlus').addEventListener('click', () => adjustGuests(1, 'f-kids'));
   updateGuestButtons();
 
   // ── ANALYTICS: WhatsApp CTA clicks ──
@@ -2384,6 +2403,8 @@
     const q = new URLSearchParams(location.search);
     const g = parseInt(q.get('guests'), 10), inp = document.getElementById('f-guests');
     if(g > 0 && inp){ inp.value = String(Math.min(g, parseInt(inp.max, 10) || 16)); updateGuestButtons(); inp.dispatchEvent(new Event('input', { bubbles: true })); }
+    const k = parseInt(q.get('kids'), 10), kin = document.getElementById('f-kids');
+    if(k > 0 && kin){ kin.value = String(Math.min(k, 12)); updateGuestButtons(); kin.dispatchEvent(new Event('input', { bubbles: true })); }
     if(q.get('checkin')) availState.preselect(q.get('checkin'), q.get('checkout') || '');
     // A WhatsApp "BOOK" link also carries the guest's name and number.
     const nm = (q.get('name') || '').trim().slice(0, 100), ph = (q.get('phone') || '').replace(/\D/g, '').slice(-10);
@@ -2559,7 +2580,13 @@
     const g = Math.max(1, parseInt(guests, 10) || 1);
     return rows.find(r => r.guests >= g) || rows[rows.length-1];
   }
-  function currentGuests(){ return parseInt(document.getElementById('f-guests').value, 10) || 1; }
+  // Children under 12: one stays free with every two adults, the rest are
+  // charged as adults (server.js bookingParty). The guests to price for.
+  function chargedGuests(){
+    const a = parseInt(document.getElementById('f-guests').value, 10) || 1, k = parseInt(document.getElementById('f-kids').value, 10) || 0;
+    return a + Math.max(0, k - Math.floor(a / 2));
+  }
+  function currentGuests(){ return chargedGuests(); }
   function nightlyRate(iso, guests){
     const row = tariffRow(guests == null ? currentGuests() : guests);
     const base = row ? row.rate : (PRICING && PRICING.villaRate);
@@ -2576,14 +2603,14 @@
   // Walks each individual night the same way server.js's computeQuoteItems
   // does, rather than nights*villaRate — a stay spanning a weekend/holiday
   // must preview the same blended total the server will actually charge.
-  function villaTotalForStay(checkin, checkout){
+  function villaTotalForStay(checkin, checkout, guests){
     const start = new Date(checkin+'T00:00:00');
     const nights = Math.round((new Date(checkout+'T00:00:00') - start) / 86400000);
     let total = 0;
     for(let i=0;i<nights;i++){
       const d = new Date(start); d.setDate(d.getDate()+i);
       const iso = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-      total += nightlyRate(iso) || 0;
+      total += nightlyRate(iso, guests) || 0;
     }
     return { nights, total };
   }
@@ -2603,21 +2630,10 @@
     }
     return 1;
   }
-  // Raises the guest counter's floor for peak stays (and bumps a smaller
-  // party up to it); a weekday stay drops the floor back to 1.
-  function applyPeakMin(checkin, checkout){
-    const inp = document.getElementById('f-guests');
-    const min = peakMinFor(checkin, checkout);
-    inp.min = String(min);
-    let bumped = false;
-    if((parseInt(inp.value, 10) || 0) < min){ inp.value = String(min); bumped = true; }
-    updateGuestButtons();
-    if(bumped){
-      showToast(`Weekends and holidays have a minimum tariff of ${min} guests — smaller groups pay the ${min}-guest rate.`, 5000);
-      if(Array.isArray(PRICING.tariff) && PRICING.tariff.length && typeof availState !== 'undefined' && availState.render) availState.render();
-    }
-    return min;
-  }
+  // Weekend and holiday stays are charged at least the minimum tariff
+  // (peakMinGuests) — a smaller party books as it is and pays that rate.
+  // The guests a stay is priced for.
+  function pricedGuests(checkin, checkout){ return Math.max(chargedGuests(), peakMinFor(checkin, checkout)); }
 
   // Set only by a successful /coupon/check Apply click — never inferred
   // from the raw input text, so a code that hasn't actually been validated
@@ -2695,11 +2711,10 @@
     if(!el) return;
     const checkin = document.getElementById('f-checkin').value;
     const checkout = document.getElementById('f-checkout').value;
-    if(PRICING) applyPeakMin(checkin, checkout);
     if(!PRICING || !checkin || !checkout){ el.style.display = 'none'; updatePaymentOptionLabels(null); updateSubmitButtonLabel(null); return; }
-    const { nights, total: villaTotal } = villaTotalForStay(checkin, checkout);
+    const guests = pricedGuests(checkin, checkout);
+    const { nights, total: villaTotal } = villaTotalForStay(checkin, checkout, guests);
     if(nights <= 0){ el.style.display = 'none'; updatePaymentOptionLabels(null); updateSubmitButtonLabel(null); return; }
-    const guests = Math.max(1, parseInt(document.getElementById('f-guests').value, 10) || 0);
     const tRow = tariffRow(guests);
     const extraGuests = (!tRow && PRICING.maxGuests > 0) ? Math.max(0, guests - PRICING.maxGuests) : 0;
     const total = villaTotal + extraGuests * nights * PRICING.extraGuestRate;
@@ -2713,11 +2728,12 @@
       ? `<div class="pp-line">+ ${extraGuests} extra guest${extraGuests!==1?'s':''} × ${nights} night${nights!==1?'s':''} × ₹${PRICING.extraGuestRate.toLocaleString('en-IN')}</div>`
       : '';
     const couponNote = couponPercent > 0 ? ` <span class="pay-mode-save">(${couponPercent}% off)</span>` : '';
-    const roomLine = tRow && tRow.bedrooms
-      ? `<div class="pp-line">${guests} guest${guests!==1?'s':''} · ${tRow.bedrooms} bedroom${tRow.bedrooms!==1?'s':''}</div>`
-      : '';
+    const adults = parseInt(document.getElementById('f-guests').value, 10) || 1, kids = parseInt(document.getElementById('f-kids').value, 10) || 0;
+    const partyText = kids ? `${adults} adult${adults!==1?'s':''} + ${kids} ${kids!==1?'children':'child'}` : `${adults} guest${adults!==1?'s':''}`;
+    const freeKids = Math.min(kids, Math.floor(adults / 2));
+    const roomLine = `<div class="pp-line">${partyText}${tRow && tRow.bedrooms ? ` · ${tRow.bedrooms} bedroom${tRow.bedrooms!==1?'s':''}` : ''}${freeKids ? ` · ${freeKids} ${freeKids!==1?'children':'child'} free` : ''}</div>`;
     const peakMin = peakMinFor(checkin, checkout);
-    const peakLine = peakMin > 1 ? `<div class="pp-line">Includes weekend or holiday nights · ${peakMin} guests minimum</div>` : '';
+    const peakLine = peakMin > chargedGuests() ? `<div class="pp-line">Weekend or holiday nights: minimum tariff of ${peakMin} guests applies</div>` : '';
     el.innerHTML = `
       ${peakLine}
       ${roomLine}
@@ -3184,6 +3200,7 @@
       checkin:  document.getElementById('f-checkin').value,
       checkout: document.getElementById('f-checkout').value,
       guests:   document.getElementById('f-guests').value,
+      kids:     document.getElementById('f-kids').value,
       occasion: document.getElementById('f-occasion').value,
       message:  document.getElementById('f-message').value.trim(),
       website:  document.getElementById('f-website').value, // honeypot
@@ -3204,8 +3221,6 @@
     }
     if(new Date(f.checkout) <= new Date(f.checkin)) return 'Check-out must be after check-in.';
     if(availState.hasConflict(f.checkin, f.checkout)) return 'Those dates aren\'t available — please check the calendar above.';
-    const peakMin = peakMinFor(f.checkin, f.checkout);
-    if((parseInt(f.guests, 10) || 0) < peakMin) return `Weekends and holidays have a minimum tariff of ${peakMin} guests — please choose ${peakMin} guests (smaller groups pay the ${peakMin}-guest rate).`;
     return null;
   }
 
@@ -3231,7 +3246,7 @@
         name: f.name, phone: f.phone, email: f.email,
         checkin: fmtDate(f.checkin), checkout: fmtDate(f.checkout),
         nightsLabel: `${nights} night${nights!==1?'s':''}`,
-        guests: f.guests, occasion: f.occasion, message: f.message, quoteNo: quoteNo || ''
+        guests: +f.kids > 0 ? `${f.guests} adults + ${f.kids} children (under 12)` : f.guests, occasion: f.occasion, message: f.message, quoteNo: quoteNo || ''
       };
       const text = renderWaTemplate(waTemplates.bookingRequest, vars);
       if(typeof gtag === 'function') gtag('event', 'generate_lead', { method: 'website_quote_form', nights, guests: Number(f.guests)||undefined });
