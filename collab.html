@@ -420,6 +420,20 @@
     .cb-steps p { font-size: 14.5px; color: var(--muted-text); line-height: 1.7; }
     .cb-steps a { color: var(--sea-mid); }
     .cb-n { display: inline-flex; width: 34px; height: 34px; border-radius: 50%; align-items: center; justify-content: center; background: var(--sea); color: var(--gold); font-weight: 700; font-size: 14px; }
+    .cb-form [hidden], .cb-done[hidden] { display: none !important; }
+    .cb-models { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; align-items: stretch; }
+    .cb-model { position: relative; background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 26px 24px; box-shadow: var(--sh-sm); }
+    .cb-model h3 { font-family: var(--serif); font-size: 26px; font-weight: 500; color: var(--sea); margin-bottom: 10px; }
+    .cb-model p { font-size: 14.5px; color: var(--muted-text); line-height: 1.7; }
+    .cb-model ul { margin-top: 14px; padding-left: 18px; font-size: 14px; color: var(--ink-mid); line-height: 1.8; }
+    .cb-model--best { border: 2px solid var(--sea-mid); box-shadow: var(--sh-md); }
+    .cb-badge { position: absolute; top: -12px; left: 22px; background: var(--sea); color: var(--gold); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 5px 12px; border-radius: 100px; }
+    .cb-choices { display: grid; gap: 10px; }
+    .cb-choice { display: flex; gap: 12px; align-items: flex-start; border: 1px solid rgba(14,36,32,.16); border-radius: 14px; padding: 14px 16px; cursor: pointer; transition: border-color .2s, background .2s; }
+    .cb-choice:has(input:checked) { border-color: var(--sea-mid); background: var(--foam); }
+    .cb-choice input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--sea); flex-shrink: 0; }
+    .cb-choice b { display: block; font-size: 15.5px; color: var(--sea); }
+    .cb-choice small { display: block; font-size: 13.5px; color: var(--muted-text); line-height: 1.5; margin-top: 2px; }
     .cb-form { display: grid; gap: 18px; max-width: 760px; }
     .cb-card { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: clamp(20px,3vw,30px); box-shadow: var(--sh-sm); display: grid; gap: 14px; }
     .cb-card h3 { font-family: var(--serif); font-size: 24px; font-weight: 500; color: var(--sea); }
@@ -453,7 +467,7 @@
     .cb-done p { color: var(--muted-text); line-height: 1.7; }
     .cb-done a { color: var(--sea-mid); }
     .cb-faq .faq-list { max-width: 860px; }
-    @media (max-width: 900px) { .cb-steps { grid-template-columns: repeat(2, minmax(0,1fr)); } .cb-grid { grid-template-columns: 1fr 1fr; } .cb-grid .cb-shot:last-child { display: none; } }
+    @media (max-width: 900px) { .cb-models { grid-template-columns: 1fr; gap: 22px; } .cb-steps { grid-template-columns: repeat(2, minmax(0,1fr)); } .cb-grid { grid-template-columns: 1fr 1fr; } .cb-grid .cb-shot:last-child { display: none; } }
     @media (max-width: 600px) { .cb-steps, .cb-row { grid-template-columns: 1fr; } .cb-grid { grid-template-columns: 1fr; } .cb-grid .cb-shot:last-child { display: block; } .cb-submit { justify-self: stretch; justify-content: center; } }
   </style>
 </head>
@@ -535,11 +549,40 @@
       <h2 class="section-title" id="how-title">Four simple <em>steps</em></h2>
     </div>
     <ol class="cb-steps">
-      <li class="reveal reveal-d1"><span class="cb-n">1</span><b>Apply</b><p>Tell us about your page, your idea and the weekday nights you'd like. It takes about two minutes.</p></li>
-      <li class="reveal reveal-d2"><span class="cb-n">2</span><b>We review</b><p>We look at every request personally and reply on WhatsApp within three working days with what we can offer.</p></li>
+      <li class="reveal reveal-d1"><span class="cb-n">1</span><b>Apply</b><p>Tell us about your page, your idea, what you're looking for and the weekday nights you'd like. It takes about two minutes.</p></li>
+      <li class="reveal reveal-d2"><span class="cb-n">2</span><b>We review</b><p>We look at every request personally and reply on WhatsApp within three working days with what we can offer. Once we agree, we book your dates.</p></li>
       <li class="reveal reveal-d3"><span class="cb-n">3</span><b>Stay and create</b><p>Arrive, settle in and shoot. Tag <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener">@stay.ryst</a> and invite us as a collaborator on your reel.</p></li>
       <li class="reveal reveal-d4"><span class="cb-n">4</span><b>Your follower code</b><p>Approved creators get their own discount code, so your audience saves when they book the villa.</p></li>
     </ol>
+  </div>
+</section>
+
+<!-- ── HOW WE COLLABORATE ── -->
+<section id="terms" aria-labelledby="terms-title" class="cb-terms">
+  <div class="container">
+    <div class="section-head reveal">
+      <p class="section-tag">Before you apply</p>
+      <h2 class="section-title" id="terms-title">How we <em>collaborate</em></h2>
+      <p class="section-lead">We're a single private villa, so we keep things simple and fair. Here is what to expect, so we can agree quickly.</p>
+    </div>
+    <div class="cb-models">
+      <article class="cb-model cb-model--best reveal reveal-d1">
+        <span class="cb-badge">Most collaborations</span>
+        <h3>Discounted stay</h3>
+        <p>You stay at a reduced villa tariff and create the content we agree on. You also get your own follower code, so your audience saves when they book.</p>
+        <ul><li>Works for every audience size</li><li>Quickest to confirm</li><li>Off-peak weekday nights, up to two</li></ul>
+      </article>
+      <article class="cb-model reveal reveal-d2">
+        <h3>Complimentary stay</h3>
+        <p>Offered occasionally, when your audience closely matches our guests and the content plan is strong. We decide this per request after seeing your work.</p>
+        <ul><li>Limited each month</li><li>Clear content commitments</li><li>Food and extras are charged</li></ul>
+      </article>
+      <article class="cb-model reveal reveal-d3">
+        <h3>Paid content</h3>
+        <p>We rarely commission paid content. If you work on paid terms, share your rate below and we'll get back to you only if it fits our plans.</p>
+        <ul><li>Share your rate and what it includes</li><li>The stay is charged separately</li></ul>
+      </article>
+    </div>
   </div>
 </section>
 
@@ -549,7 +592,7 @@
     <div class="section-head reveal">
       <p class="section-tag">Apply</p>
       <h2 class="section-title" id="apply-title">Tell us about <em>you</em></h2>
-      <p class="section-lead">Collaboration stays are on weekday nights (Monday to Thursday), up to two nights, booked at least three days ahead. Fields marked * are required.</p>
+      <p class="section-lead">Collaboration stays are on off-peak weekday nights (Monday to Thursday, away from holidays and the festive season), up to two nights, at least three days ahead. The calendar shows only those nights. Fields marked * are required.</p>
     </div>
 
     <form id="cbForm" class="cb-form" novalidate>
@@ -588,6 +631,20 @@
       </div>
 
       <div class="cb-card">
+        <h3>What you're looking for *</h3>
+        <div class="cb-choices" id="cbExpect" role="radiogroup" aria-label="What you're looking for">
+          <label class="cb-choice"><input type="radio" name="cbExpect" value="discount"><span><b>A discounted stay</b><small>Recommended. Reduced tariff, content we agree on, and your own follower code.</small></span></label>
+          <label class="cb-choice"><input type="radio" name="cbExpect" value="complimentary"><span><b>A complimentary stay</b><small>Considered occasionally, depending on your audience and plan.</small></span></label>
+          <label class="cb-choice"><input type="radio" name="cbExpect" value="paid"><span><b>Paid collaboration</b><small>You charge for content. The stay is charged separately.</small></span></label>
+        </div>
+        <label class="cb-consent" id="cbOpenWrap" hidden><input type="checkbox" id="cbOpen" checked> If a complimentary stay isn't possible, I'm happy to go ahead with a discounted stay.</label>
+        <div class="cb-row" id="cbRateWrap" hidden>
+          <label class="cb-f"><span>Your rate (₹) *</span><input id="cbRate" inputmode="numeric" placeholder="e.g. 15000" maxlength="10"></label>
+          <label class="cb-f"><span>What it includes</span><input id="cbRateNote" maxlength="300" placeholder="e.g. 1 reel + 3 stories"></label>
+        </div>
+      </div>
+
+      <div class="cb-card">
         <h3>What you'll create *</h3>
         <div class="cb-checks" id="cbDeliv">
           <label><input type="checkbox" value="reel"> Instagram reel</label>
@@ -606,7 +663,7 @@
 
     <div class="cb-done" id="cbDone" hidden>
       <h3>Thank you!</h3>
-      <p>Your request is with us. We'll reply on WhatsApp within three working days.</p>
+      <p>Your request is with us. We'll reply on WhatsApp within three working days with what we can offer. Your dates aren't booked until we both confirm.</p>
       <p>In the meantime, say hello on <a href="https://www.instagram.com/stay.ryst" target="_blank" rel="noopener">@stay.ryst</a>.</p>
     </div>
   </div>
@@ -620,9 +677,10 @@
       <h2 class="section-title" id="cbfaq-title">Creator <em>questions</em></h2>
     </div>
     <div class="faq-list">
-      <details class="faq-item"><summary>Is the stay complimentary?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>Every collaboration is different. Depending on your content plan and audience, we offer a complimentary or a discounted stay, and we confirm the terms with you on WhatsApp before you travel.</p></div></details>
+      <details class="faq-item"><summary>Is the stay complimentary?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>Most of our collaborations are a discounted stay. A complimentary stay is offered occasionally, when the audience and the content plan are a strong fit. Either way, we confirm the terms with you on WhatsApp before your dates are booked.</p></div></details>
+      <details class="faq-item"><summary>Are my dates reserved when I apply?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>Not yet. The calendar shows nights that are open today; once we agree on terms, we confirm the dates with you and book them.</p></div></details>
       <details class="faq-item"><summary>Do I need a minimum number of followers?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>No. We care more about the quality of your content and how engaged your audience is than about the follower count.</p></div></details>
-      <details class="faq-item"><summary>Which dates can I ask for?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>Weekday nights from Monday to Thursday that are still open, up to two nights, booked at least three days ahead. Weekends and holidays are kept for regular bookings.</p></div></details>
+      <details class="faq-item"><summary>Which dates can I ask for?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>Off-peak weekday nights from Monday to Thursday that are still open, up to two nights, at least three days ahead. Weekends, holidays and the nights around them, and the festive season (20 December to 5 January) are kept for regular bookings.</p></div></details>
       <details class="faq-item"><summary>Can I bring friends or family?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>Yes. The villa hosts up to 16 guests. Food and extras like the BBQ are charged separately unless we agree otherwise.</p></div></details>
       <details class="faq-item"><summary>What do you expect after the stay?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>The content we agree on, posted within two weeks of your stay, tagging @stay.ryst with us invited as a collaborator on reels. We may reshare your content with credit.</p></div></details>
       <details class="faq-item"><summary>How does the follower code work?<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><p>Once approved, you get your own code for your audience. It works when they book online at <a href="/">stay.ryst.in</a>, and we can see how many bookings it brings.</p></div></details>
@@ -734,7 +792,7 @@
     const addDays = (iso, n) => { const d = new Date(iso + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); };
     const fmt = iso => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
     function render() {
-      if (!free.size) { cal.innerHTML = '<p class="cb-loading">No open weekday nights in the next four months right now. Message us on <a href="https://wa.me/918122209109" target="_blank" rel="noopener">WhatsApp</a> and we\'ll find a date together.</p>'; return; }
+      if (!free.size) { cal.innerHTML = '<p class="cb-loading">No open off-peak nights in the next four months right now. Message us on <a href="https://wa.me/918122209109" target="_blank" rel="noopener">WhatsApp</a> and we\'ll find a date together.</p>'; return; }
       const all = [...free].sort(), months = [...new Set(all.map(d => d.slice(0, 7)))];
       cal.innerHTML = months.map(ym => {
         const [y, m] = ym.split('-').map(Number), first = new Date(Date.UTC(y, m - 1, 1)), days = new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -762,6 +820,10 @@
       render();
     }).catch(() => { cal.innerHTML = '<p class="cb-loading">Could not load the open dates. Please refresh, or message us on WhatsApp.</p>'; });
 
+    $('cbExpect').addEventListener('change', () => {
+      const v = (document.querySelector('input[name=cbExpect]:checked') || {}).value;
+      $('cbOpenWrap').hidden = v !== 'complimentary'; $('cbRateWrap').hidden = v !== 'paid';
+    });
     form.addEventListener('input', e => { if (e.target.classList.contains('bad')) e.target.classList.remove('bad'); err.textContent = ''; });
     const followersOf = v => { const m = /^\s*([\d.,]+)\s*([km])?\s*$/i.exec(String(v)); if (!m) return 0; const n = parseFloat(m[1].replace(/,/g, '')); return Math.round(n * (m[2] ? (m[2].toLowerCase() === 'k' ? 1e3 : 1e6) : 1)); };
     form.addEventListener('submit', async e => {
@@ -772,6 +834,10 @@
       for (const [id, what] of need) if (!$(id).value.trim()) { $(id).classList.add('bad'); $(id).focus(); err.textContent = 'Please add ' + what + '.'; return; }
       if (!followersOf($('cbFollowers').value)) { $('cbFollowers').classList.add('bad'); $('cbFollowers').focus(); err.textContent = 'Please enter your followers as a number, e.g. 25000 or 25k.'; return; }
       if (!sel.length) { err.textContent = 'Please pick the night(s) you would like.'; cal.scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+      const expectation = (document.querySelector('input[name=cbExpect]:checked') || {}).value || '';
+      if (!expectation) { err.textContent = 'Please tell us what you are looking for.'; $('cbExpect').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; }
+      const rate = Math.round(Number(String($('cbRate').value).replace(/[^\d.]/g, '')) || 0);
+      if (expectation === 'paid' && !rate) { $('cbRate').classList.add('bad'); $('cbRate').focus(); err.textContent = 'Please share your rate.'; return; }
       if (!deliverables.length) { err.textContent = 'Please pick what you would create.'; return; }
       if (!$('cbConsent').checked) { err.textContent = 'Please tick the box to confirm your details.'; return; }
       const btn = $('cbSubmit'); btn.disabled = true; btn.textContent = 'Sending…';
@@ -779,7 +845,8 @@
         const r = await fetch(API + '/collab/apply', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({
           name: $('cbName').value, instagram: $('cbIg').value, followers: followersOf($('cbFollowers').value), niche: $('cbNiche').value, phone: $('cbPhone').value,
           email: $('cbEmail').value, city: $('cbCity').value, youtube: $('cbYt').value, links: $('cbLinks').value, checkin: sel[0], checkout: addDays(sel[sel.length - 1], 1),
-          guests: $('cbGuests').value, deliverables, message: $('cbMsg').value, consent: true, website: $('cbWebsite').value }) });
+          guests: $('cbGuests').value, deliverables, message: $('cbMsg').value,
+          expectation, openToDiscount: expectation === 'complimentary' && $('cbOpen').checked, rate, rateNote: $('cbRateNote').value, consent: true, website: $('cbWebsite').value }) });
         const j = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(j.error || 'Could not send your request. Please try again.');
         form.hidden = true; $('cbDone').hidden = false; $('cbDone').scrollIntoView({ behavior: 'smooth', block: 'center' });
