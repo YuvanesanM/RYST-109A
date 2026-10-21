@@ -2841,15 +2841,17 @@
       if(!code){ couponStatusEl.textContent = 'Enter a code first.'; couponStatusEl.className = 'coupon-status err'; return; }
       couponApplyBtn.disabled = true; couponApplyBtn.textContent = 'Checking…';
       try{
-        const res = await fetch(PROXY+'/coupon/check?code='+encodeURIComponent(code), { cache: 'no-store' });
+        const ci = (document.getElementById('f-checkin')||{}).value || '', co = (document.getElementById('f-checkout')||{}).value || '';
+        const res = await fetch(PROXY+'/coupon/check?code='+encodeURIComponent(code)+(ci && co ? '&checkin='+encodeURIComponent(ci)+'&checkout='+encodeURIComponent(co) : ''), { cache: 'no-store' });
         const data = await res.json().catch(()=>({}));
         if(data.ok && data.valid){
           couponState = { code, discountPercent: Number(data.discountPercent)||0 };
-          couponStatusEl.textContent = `Applied — ${couponState.discountPercent}% off`;
+          const until = data.expires ? new Date(data.expires+'T00:00:00Z').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric',timeZone:'UTC'}) : '';
+          couponStatusEl.textContent = `Applied — ${couponState.discountPercent}% off` + (data.offPeak ? ' · weekday stays (Mon–Thu nights)' : '') + (until ? ` · valid till ${until}` : '');
           couponStatusEl.className = 'coupon-status ok';
         } else {
           couponState = { code: null, discountPercent: 0 };
-          couponStatusEl.textContent = 'That code is not valid.';
+          couponStatusEl.textContent = data.error || 'That code is not valid or has expired.';
           couponStatusEl.className = 'coupon-status err';
         }
       }catch(e){
