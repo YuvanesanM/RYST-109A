@@ -216,6 +216,13 @@
     .mi-add:focus-visible, .mi-step button:focus-visible, .plan-toggle:focus-visible { outline: 2px solid var(--sea-mid); outline-offset: 2px; }
     @media print { .plan-bar, .plan-summary, .mi-plan { display: none !important; } }
     .menu-row:last-child { border-bottom: none; }
+    /* Dish photo: a small square beside the row, never a card grid — the page stays a menu. */
+    .menu-row.has-img { display: grid; grid-template-columns: 64px minmax(0, 1fr); column-gap: 14px; align-items: start; }
+    .mi-img { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; background: var(--line); display: block; }
+    .menu-row.has-img .mi-plan { grid-column: 2; }
+    .photo-credits { width: min(760px, 90vw); margin: 22px auto 0; font-size: 12px; line-height: 1.6; color: var(--muted-text); text-align: center; }
+    .photo-credits a { color: inherit; }
+    @media print { .mi-img { display: none; } .menu-row.has-img { display: block; } }
     .mi-line { display: flex; align-items: baseline; gap: 8px; }
     .mi-name { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-mid); }
     .mi-desc { font-size: 12px; color: var(--muted); margin-top: 4px; margin-left: 22px; line-height: 1.5; }
@@ -365,6 +372,7 @@
   <div class="menu-wrap">
     <div class="menu-state" id="menuState">Loading the menu…</div>
     <div class="menu-cats-grid" id="menuCats"></div>
+    <p class="photo-credits" id="photoCredits" hidden></p>
     <div class="menu-legend" id="menuLegend" hidden>
       <span><span class="veg-mark veg" role="img" aria-label="Vegetarian"></span> Vegetarian</span>
       <span><span class="veg-mark nonveg" role="img" aria-label="Non-vegetarian"></span> Non-vegetarian</span>
@@ -580,7 +588,8 @@ try { const g = parseInt(new URLSearchParams(location.search).get('guests'), 10)
     // are all via the partner kitchen), so it stays a flagged exception
     // rather than a label repeated on every row.
     const renderRow = (m, tag) => `
-      <div class="menu-row${!m.veg && !m.noDiet ? ' is-nonveg' : ''}">
+      <div class="menu-row${!m.veg && !m.noDiet ? ' is-nonveg' : ''}${m.image ? ' has-img' : ''}">
+        ${m.image ? `<img class="mi-img" src="${esc(m.image)}" alt="" width="64" height="64" loading="lazy" decoding="async" onerror="this.parentNode.classList.remove('has-img');this.remove()"><div>` : ''}
         <div class="mi-line">
           <span class="mi-name">
             ${m.noDiet ? '' : `<span class="veg-mark ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}"></span>`}
@@ -590,6 +599,7 @@ try { const g = parseInt(new URLSearchParams(location.search).get('guests'), 10)
           <span class="mi-price">${money(m.price)}</span>
         </div>
         ${(m.description || m.kcal!=null) ? `<div class="mi-desc">${esc(m.description)}${m.description && m.kcal!=null ? ' · ' : ''}${m.kcal!=null ? '~'+esc(m.kcal)+' kcal' : ''}</div>` : ''}
+        ${m.image ? '</div>' : ''}
         <div class="mi-plan" data-k="${m._k}"></div>
       </div>`;
 
@@ -655,6 +665,16 @@ try { const g = parseInt(new URLSearchParams(location.search).get('guests'), 10)
           ${itemsHtml}
         </div>
       </div>`).join('');
+
+    // Stock photos show the kind of dish, not our plate — say so, and credit
+    // each photographer (Unsplash licence: credit appreciated, not required).
+    const credits = [...new Set(items.filter(m => m.image && m.imageCredit).map(m => m.imageCredit.replace(/,?\s*Unsplash$/i, '')))];
+    if (items.some(m => m.image)) {
+      const pc = document.getElementById('photoCredits');
+      pc.innerHTML = 'Dish photos are for illustration; your plate is cooked to order and may look different.'
+        + (credits.length ? ` Photos by ${credits.map(esc).join(', ')} on <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>.` : '');
+      pc.hidden = false;
+    }
 
     stateEl.hidden = true;
     document.getElementById('planBar').hidden = false;
