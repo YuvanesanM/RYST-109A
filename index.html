@@ -1520,7 +1520,6 @@
     <a href="/food-menu.html">Food Menu</a>
     <a href="#gallery">Gallery</a>
     <a href="#location">Location</a>
-    <a href="#rates">Rates</a>
     <a href="#book" class="nav-cta">Reserve</a>
   </div>
   <button class="nav-ham" id="navHam" aria-label="Open menu" aria-expanded="false">
@@ -1536,7 +1535,6 @@
   <a href="/food-menu.html">Food Menu</a>
   <a href="#gallery">Gallery</a>
   <a href="#location">Location</a>
-  <a href="#rates">Rates</a>
   <a href="#book" class="m-cta">Reserve</a>
 </div>
 
@@ -3804,7 +3802,8 @@
 // same rules the booking form charges by: Fri/Sat/Sun nights +weekend %, holidays
 // +holiday % (not stacked), and peak nights priced for at least peakMinGuests.
 (function(){
-  const sec = document.getElementById('rates'); if(!sec) return;
+  const SHOW_RATES = false; // hidden for now, at the owner's request; true brings the section back
+  const sec = document.getElementById('rates'); if(!sec || !SHOW_RATES) return;
   const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
   fetch('https://data.ryst.in/pricing', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(P => {
     const rows = P && Array.isArray(P.tariff) ? P.tariff.filter(r => r && r.guests && r.rate) : [];
@@ -3830,7 +3829,7 @@
     notes.push('Children under 12: one stays free with every two adults.');
     if(P.advancePercent) notes.push(`Pay ${P.advancePercent}% online to confirm your dates${P.fullPaymentDiscountPercent ? `, or pay in full and save ${P.fullPaymentDiscountPercent}%` : ''}.`);
     document.getElementById('ratesNotes').innerHTML = notes.map(n => `<li>${n}</li>`).join('');
-    sec.hidden = false;
+    sec.hidden = !SHOW_RATES;
   }).catch(() => {});
 })();
 </script>
