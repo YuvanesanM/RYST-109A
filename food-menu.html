@@ -503,7 +503,7 @@ const WIDE_CATEGORY_THRESHOLD = 7;
       <div class="menu-row">
         <div class="mi-line">
           <span class="mi-name">
-            <span class="veg-mark ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}"></span>
+            ${m.noDiet ? '' : `<span class="veg-mark ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}"></span>`}
             ${esc(m.name)}${m.chefSpecial?` ${chefStar}`:''}${tag ? ` <span class="mi-src${tag.house?' house':''}">${esc(tag.label)}</span>` : ''}
           </span>
           <span class="mi-leader"></span>
@@ -536,8 +536,10 @@ const WIDE_CATEGORY_THRESHOLD = 7;
       // category (Breakfast, Beverages today) stays a plain single list
       // rather than showing a "Vegetarian" header nothing is contrasted
       // against.
-      const vegItems = catItems.filter(m => m.veg).sort(bySpecialFirst);
-      const nonVegItems = catItems.filter(m => !m.veg).sort(bySpecialFirst);
+      // "not food" items (a BBQ stove rental…) carry no veg mark and come last
+      const vegItems = catItems.filter(m => m.veg && !m.noDiet).sort(bySpecialFirst);
+      const nonVegItems = catItems.filter(m => !m.veg && !m.noDiet).sort(bySpecialFirst);
+      const otherItems = catItems.filter(m => m.noDiet).sort(bySpecialFirst);
 
       const itemsHtml = (vegItems.length && nonVegItems.length)
         ? `
@@ -545,8 +547,9 @@ const WIDE_CATEGORY_THRESHOLD = 7;
           ${vegItems.map(m => renderRow(m, kitchenTagFor(m))).join('')}
           <p class="veg-group-label nonveg"><span class="veg-mark nonveg" aria-hidden="true"></span> Non-Vegetarian</p>
           ${nonVegItems.map(m => renderRow(m, kitchenTagFor(m))).join('')}
+          ${otherItems.length ? `<p class="veg-group-label">Also available</p>${otherItems.map(m => renderRow(m, kitchenTagFor(m))).join('')}` : ''}
         `
-        : catItems.slice().sort(bySpecialFirst).map(m => renderRow(m, kitchenTagFor(m))).join('');
+        : vegItems.concat(nonVegItems).sort(bySpecialFirst).concat(otherItems).map(m => renderRow(m, kitchenTagFor(m))).join('');
 
       return { cat, icon, wide, itemsHtml };
     });
