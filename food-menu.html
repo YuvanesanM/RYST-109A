@@ -184,6 +184,9 @@
        rather than labelling a list with nothing to contrast against. */
     .veg-group-label { display: flex; align-items: center; gap: 7px; font-size: 10.5px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; margin: 18px 0 8px; break-after: avoid-column; break-inside: avoid; }
     .veg-group-label:first-child { margin-top: 4px; }
+    .course-label { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--sea); margin: 24px 0 2px; padding-bottom: 6px; border-bottom: 1px solid var(--sea-mid); break-after: avoid-column; break-inside: avoid; }
+    .course-label:first-child { margin-top: 2px; }
+    body.veg-only .course-label.is-nonveg { display: none; }
     .veg-group-label.veg { color: #2e7d32; }
     .veg-group-label.nonveg { color: var(--coral); }
     .menu-cat-items { column-gap: 28px; }
@@ -632,7 +635,19 @@ try { const g = parseInt(new URLSearchParams(location.search).get('guests'), 10)
       const nonVegItems = catItems.filter(m => !m.veg && !m.noDiet).sort(bySpecialFirst);
       const otherItems = catItems.filter(m => m.noDiet).sort(bySpecialFirst);
 
-      const itemsHtml = (vegItems.length && nonVegItems.length)
+      // A long category (Lunch & Dinner) reads in courses — starters, breads,
+      // curries, biryani & rice, sides — veg before non-veg inside each.
+      const courseOrder = Array.isArray(data.courses) ? data.courses : [];
+      const courses = [...new Set(catItems.filter(m => !m.noDiet).map(m => m.course || ''))];
+      const byCourse = courses.some(Boolean) && courses.length > 1;
+      const courseRank = c => { const i = courseOrder.indexOf(c); return !c ? 999 : i < 0 ? 500 : i; };
+      const itemsHtml = byCourse
+        ? courses.sort((a, b) => courseRank(a) - courseRank(b)).map(c => {
+            const inC = catItems.filter(m => !m.noDiet && (m.course || '') === c);
+            const list = inC.filter(m => m.veg).sort(bySpecialFirst).concat(inC.filter(m => !m.veg).sort(bySpecialFirst));
+            return `<p class="course-label${inC.every(m => !m.veg) ? ' is-nonveg' : ''}">${esc(c || 'More dishes')}</p>${list.map(m => renderRow(m, kitchenTagFor(m))).join('')}`;
+          }).join('') + (otherItems.length ? `<p class="course-label">Also available</p>${otherItems.map(m => renderRow(m, kitchenTagFor(m))).join('')}` : '')
+        : (vegItems.length && nonVegItems.length)
         ? `
           <p class="veg-group-label veg"><span class="veg-mark veg" aria-hidden="true"></span> Vegetarian</p>
           ${vegItems.map(m => renderRow(m, kitchenTagFor(m))).join('')}
