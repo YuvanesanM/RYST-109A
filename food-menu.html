@@ -478,9 +478,14 @@ const WIDE_CATEGORY_THRESHOLD = 7;
     if(data.gstPercent > 0) taxNoteEl.textContent = `Prices shown are in ₹ and exclude ${data.gstPercent}% GST.`;
     else taxNoteEl.textContent = 'Prices shown are in ₹.';
 
+    // The owner's own order from Settings → Restaurant when the server sends it
+    // (drinks last, since every meal shares them); the built-in order otherwise.
+    const own = Array.isArray(data.categories) && data.categories.length
+      ? data.categories.filter(c => !/beverage|drink/i.test(c)).concat(data.categories.filter(c => /beverage|drink/i.test(c)))
+      : CATEGORY_ORDER;
     const cats = [...new Set(items.map(m => m.category || 'Other'))]
       .sort((a,b) => {
-        const ia = CATEGORY_ORDER.indexOf(a), ib = CATEGORY_ORDER.indexOf(b);
+        const ia = own.indexOf(a), ib = own.indexOf(b);
         if(ia === -1 && ib === -1) return a.localeCompare(b);
         if(ia === -1) return 1;
         if(ib === -1) return -1;
