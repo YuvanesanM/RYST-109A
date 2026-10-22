@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://www.facebook.com https://*.googletagmanager.com https://*.doubleclick.net https://www.googleadservices.com https://www.google.co.in; connect-src 'self' https://data.ryst.in https://*.google-analytics.com https://*.analytics.google.com https://www.facebook.com https://connect.facebook.net https://analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.googleadservices.com; frame-src 'self' https://*.doubleclick.net https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://www.googleadservices.com https://googleads.g.doubleclick.net https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://data.ryst.in https://www.googletagmanager.com https://www.google.com https://www.facebook.com https://*.googletagmanager.com https://*.doubleclick.net https://www.googleadservices.com https://www.google.co.in; connect-src 'self' https://data.ryst.in https://*.google-analytics.com https://*.analytics.google.com https://www.facebook.com https://connect.facebook.net https://analytics.google.com https://*.googletagmanager.com https://*.doubleclick.net https://www.google.com https://www.googleadservices.com; frame-src 'self' https://*.doubleclick.net https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self';">
   <title>Food Menu — Casa de RYST, RYST 109A Beach Villa</title>
   <meta name="description" content="RYST 109A's current food & drinks menu — Tamil breakfast, meals and dinner from our partner kitchen Muthu Virundhu, plus Casa de RYST's own all-day in-house menu, with prices.">
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -683,11 +683,17 @@ try { const g = parseInt(new URLSearchParams(location.search).get('guests'), 10)
 
     // Stock photos show the kind of dish, not our plate — say so, and credit
     // each photographer (Unsplash licence: credit appreciated, not required).
-    const credits = [...new Set(items.filter(m => m.image && m.imageCredit).map(m => m.imageCredit.replace(/,?\s*Unsplash$/i, '')))];
-    if (items.some(m => m.image)) {
+    // credits read "Name, Unsplash" / "Name, Pexels": grouped by the library they came from
+    const SOURCES = { unsplash: 'https://unsplash.com', pexels: 'https://www.pexels.com' }, bySource = {};
+    items.filter(m => m.image && m.imageCredit).forEach(m => {
+      const [, who, src] = /^(.*?)(?:,\s*(Unsplash|Pexels))?$/i.exec(m.imageCredit.trim());
+      const k = (src || '').toLowerCase(); (bySource[k] = bySource[k] || new Set()).add(who);
+    });
+    // only stock photos need the "for illustration" note; the kitchen's own don't
+    if (Object.keys(bySource).some(k => SOURCES[k])) {
       const pc = document.getElementById('photoCredits');
-      pc.innerHTML = 'Dish photos are for illustration; your plate is cooked to order and may look different.'
-        + (credits.length ? ` Photos by ${credits.map(esc).join(', ')} on <a href="https://unsplash.com" target="_blank" rel="noopener">Unsplash</a>.` : '');
+      pc.innerHTML = 'Stock dish photos are for illustration; your plate is cooked to order and may look different.'
+        + Object.entries(bySource).map(([k, names]) => ` Photos by ${[...names].map(esc).join(', ')}${SOURCES[k] ? ` on <a href="${SOURCES[k]}" target="_blank" rel="noopener">${k[0].toUpperCase() + k.slice(1)}</a>` : ''}.`).join('');
       pc.hidden = false;
     }
 
