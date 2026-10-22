@@ -668,6 +668,18 @@
       color: #f6f1e6; line-height: 1.55; max-width: 600px;
       text-shadow: 0 1px 10px rgba(0,0,0,.55), 0 1px 3px rgba(0,0,0,.4);
     }
+    .hero-facts {
+      margin-top: 16px; font-size: 13.5px; letter-spacing: .3px; color: rgba(246,241,230,.94); line-height: 1.7; max-width: 640px;
+      text-shadow: 0 1px 6px rgba(0,0,0,.6);
+    }
+    .hero-facts b { font-weight: 600; color: #fff; }
+    .hero-rating {
+      display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 6px 14px; border-radius: 100px;
+      font-size: 13px; color: #fff; text-decoration: none; border: 1px solid rgba(246,241,230,.3);
+      background: rgba(13,28,38,.35); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    }
+    .hero-rating .hr-stars { color: #f3c969; letter-spacing: 1px; }
+    .hero-rating:hover { border-color: rgba(246,241,230,.6); }
     .hero-actions {
       display: flex; gap: 16px; margin-top: clamp(30px,5vh,46px); flex-wrap: wrap; justify-content: center;
     }
@@ -1381,6 +1393,33 @@
 
     /* ── TRUST / GOOGLE MAP ── */
     #trust { background: var(--white); }
+    /* ── Stay rates: built from Settings → Tariffs (/pricing), so it never goes stale ── */
+    #rates { background: var(--foam); }
+    .rates-wrap { max-width: 920px; margin: 0 auto; }
+    .rates-head { text-align: center; }
+    .rates-head .section-lead { margin: 14px auto 0; }
+    .rates-table-wrap { margin-top: 34px; overflow-x: auto; border-radius: 18px; border: 1px solid var(--line); background: var(--white); }
+    .rates-table { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px; }
+    .rates-table th, .rates-table td { padding: 14px 18px; text-align: right; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+    .rates-table thead th { font-size: 11.5px; letter-spacing: 1.6px; text-transform: uppercase; color: var(--muted-text); font-weight: 600; background: rgba(232,242,240,.5); }
+    .rates-table th:first-child, .rates-table td:first-child { text-align: left; }
+    .rates-table tbody tr:last-child td { border-bottom: 0; }
+    .rates-table td:first-child b { color: var(--ink); font-weight: 600; }
+    .rates-table td:first-child span { display: block; font-size: 12.5px; color: var(--muted-text); margin-top: 2px; }
+    .rates-table td { color: var(--ink); }
+    .rates-table sup { color: var(--sea-mid); font-size: 11px; margin-left: 2px; }
+    .rates-notes { margin-top: 22px; display: grid; gap: 8px; font-size: 14px; color: var(--muted-text); line-height: 1.6; padding-left: 18px; }
+    .rates-cta { text-align: center; margin-top: 30px; }
+    @media (max-width: 560px) {
+      .rates-table { min-width: 0; font-size: 13.5px; }
+      .rates-table th, .rates-table td { padding: 12px 8px; }
+      .rates-table th:first-child, .rates-table td:first-child { padding-left: 14px; }
+      .rates-table th:last-child, .rates-table td:last-child { padding-right: 14px; }
+      .rates-table thead th { font-size: 10px; letter-spacing: .8px; }
+      .rates-table td:first-child span { font-size: 11.5px; }
+    }
+    .rates-cta a { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 100px; background: var(--sea); color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; letter-spacing: .3px; }
+    .rates-cta a:hover { background: var(--sea-mid); }
     /* ── Seen on Instagram: a guest creator's reel. Instagram's player only
        loads when tapped — no Instagram script or cookies until then. ── */
     #creators { background: var(--foam); }
@@ -1481,6 +1520,7 @@
     <a href="/food-menu.html">Food Menu</a>
     <a href="#gallery">Gallery</a>
     <a href="#location">Location</a>
+    <a href="#rates">Rates</a>
     <a href="#book" class="nav-cta">Reserve</a>
   </div>
   <button class="nav-ham" id="navHam" aria-label="Open menu" aria-expanded="false">
@@ -1496,6 +1536,7 @@
   <a href="/food-menu.html">Food Menu</a>
   <a href="#gallery">Gallery</a>
   <a href="#location">Location</a>
+  <a href="#rates">Rates</a>
   <a href="#book" class="m-cta">Reserve</a>
 </div>
 
@@ -1522,6 +1563,8 @@
     </h1>
     <div class="hero-divider" aria-hidden="true"><span></span><i></i><span></span></div>
     <p class="hero-tagline">Your own beach house on the ECR, where the Bay of Bengal becomes your backyard — and a 150-inch poolside LED screen brings live sports and movie nights, day or night, right to the water's edge.</p>
+    <p class="hero-facts"><b>4 bedrooms</b> · up to <b>16 guests</b> · private pool &amp; jacuzzi · about a <b>5-minute walk</b> to the beach · parking for <b>20+ cars</b></p>
+    <a class="hero-rating" id="heroRating" href="#trust" hidden><span class="hr-stars" aria-hidden="true">★★★★★</span><span id="heroRatingText"></span></a>
     <div class="hero-actions">
       <a href="#book" class="btn-stay" data-magnetic>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -1882,6 +1925,19 @@
 </section>
 
 <!-- ── BOOKING FORM ── -->
+<section id="rates" aria-labelledby="rates-title" hidden>
+  <div class="rates-wrap">
+    <div class="rates-head">
+      <p class="section-tag">Stay Rates</p>
+      <h2 class="section-title" id="rates-title">Clear prices, <em>whole villa</em></h2>
+      <p class="section-lead">Per night for the entire villa, by the size of your group. No platform fees: book online with live availability.</p>
+    </div>
+    <div class="rates-table-wrap"><table class="rates-table" id="ratesTable"></table></div>
+    <ul class="rates-notes" id="ratesNotes"></ul>
+    <p class="rates-cta"><a href="#book">Check your dates &amp; book</a></p>
+  </div>
+</section>
+
 <section id="book">
   <div class="wave-top" aria-hidden="true"><svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"><path d="M0,80 L0,42 C240,78 480,8 720,40 C960,72 1200,12 1440,42 L1440,80 Z" fill="#eaf3f1"/></svg></div>
   <div class="book-orb bo1" aria-hidden="true"></div>
@@ -2463,6 +2519,8 @@
         const textEl = document.getElementById('gBadgeText');
         if(starsEl) starsEl.textContent = '★★★★★'.slice(0, full) + '☆☆☆☆☆'.slice(0, 5 - full);
         if(textEl) textEl.textContent = `${rating.toFixed(1)} · ${count} Google review${count === 1 ? '' : 's'}`;
+        const heroR = document.getElementById('heroRating');
+        if(heroR && count){ document.getElementById('heroRatingText').textContent = `${rating.toFixed(1)} on Google · ${count} review${count === 1 ? '' : 's'}`; heroR.hidden = false; }
 
         // #reviews carousel
         const reviews = Array.isArray(data.reviews) ? data.reviews : [];
@@ -3740,6 +3798,41 @@
       if(typeof gtag === 'function') try { gtag('event', 'creator_reel_play', { creator: 'wanderlost_prachi' }); } catch(e){}
     });
   })();
+</script>
+<script>
+// ── STAY RATES ── the table is built from Settings → Tariffs (/pricing) with the
+// same rules the booking form charges by: Fri/Sat/Sun nights +weekend %, holidays
+// +holiday % (not stacked), and peak nights priced for at least peakMinGuests.
+(function(){
+  const sec = document.getElementById('rates'); if(!sec) return;
+  const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+  fetch('https://data.ryst.in/pricing', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(P => {
+    const rows = P && Array.isArray(P.tariff) ? P.tariff.filter(r => r && r.guests && r.rate) : [];
+    if(!rows.length) return;
+    const cap = P.guestCapacity || rows[rows.length-1].guests;
+    const rowFor = g => rows.find(r => r.guests >= g) || rows[rows.length-1];
+    const peak = P.peakMinGuests > 1 ? P.peakMinGuests : 0;
+    const wk = 1 + (P.weekendHikePercent || 0) / 100, hol = 1 + (P.holidayHikePercent || 0) / 100;
+    const sizes = [2, 4, 6, 8, 10, 12, 14, 16].filter(g => g <= cap && rows.some(r => r.guests >= g));
+    if(!sizes.includes(cap)) sizes.push(cap);
+    let lifted = false;
+    const body = sizes.map((g, i) => {
+      const r = rowFor(g), pk = rowFor(Math.max(g, peak)), up = pk !== r; if(up) lifted = true;
+      const from = i ? sizes[i-1] + 1 : 1;
+      return `<tr><td><b>${from === g ? g : from + '–' + g} guests</b><span>${r.bedrooms ? r.bedrooms + ' bedroom' + (r.bedrooms > 1 ? 's' : '') : ''}</span></td>
+        <td>${inr(r.rate)}</td><td>${inr(pk.rate * wk)}${up ? '<sup>*</sup>' : ''}</td><td>${inr(pk.rate * hol)}${up ? '<sup>*</sup>' : ''}</td></tr>`;
+    }).join('');
+    document.getElementById('ratesTable').innerHTML = `<caption class="sr-only" style="position:absolute;left:-9999px">Per-night rates for the whole villa by group size</caption>
+      <thead><tr><th scope="col">Group</th><th scope="col">Mon–Thu</th><th scope="col">Fri–Sun</th><th scope="col">Festive</th></tr></thead><tbody>${body}</tbody>`;
+    const notes = [];
+    if(P.weekendHikePercent) notes.push(`Friday, Saturday and Sunday nights are ${P.weekendHikePercent}% above weekday rates; festive and holiday dates ${P.holidayHikePercent || 0}% above.`);
+    if(lifted) notes.push(`* Weekends and festive dates are priced for at least ${peak} guests.`);
+    notes.push('Children under 12: one stays free with every two adults.');
+    if(P.advancePercent) notes.push(`Pay ${P.advancePercent}% online to confirm your dates${P.fullPaymentDiscountPercent ? `, or pay in full and save ${P.fullPaymentDiscountPercent}%` : ''}.`);
+    document.getElementById('ratesNotes').innerHTML = notes.map(n => `<li>${n}</li>`).join('');
+    sec.hidden = false;
+  }).catch(() => {});
+})();
 </script>
 </body>
 </html>

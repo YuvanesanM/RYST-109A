@@ -163,7 +163,8 @@
     /* ── MENU CARD (mobile-first: single column, comfortable tap targets) ── */
     .menu-wrap { max-width: 900px; margin: 0 auto; padding: 0 5vw 20px; }
     .menu-state { text-align: center; color: var(--muted-text); font-size: 14.5px; padding: 40px 0; }
-    .menu-cats-grid { display: grid; grid-template-columns: 1fr; gap: 28px; margin-top: 8px; }
+    .menu-cats-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; margin-top: 8px; }
+    .menu-cats-grid > * { min-width: 0; }
     .menu-cat {
       border: 1px solid var(--line); border-radius: 18px; padding: 22px 20px 8px;
       background: var(--white);
@@ -187,6 +188,33 @@
     .veg-group-label.nonveg { color: var(--coral); }
     .menu-cat-items { column-gap: 28px; }
     .menu-row { padding: 11px 0; border-bottom: 1px solid var(--line); break-inside: avoid; }
+    /* ── Group meal planner: off by default (the page stays a menu to browse) ── */
+    .plan-bar { width: min(760px, 90vw); margin: 18px auto 0; padding: 16px 20px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+      background: var(--white); border: 1px solid var(--line); border-radius: 16px; }
+    .plan-bar p { font-size: 14px; color: var(--muted-text); line-height: 1.55; flex: 1 1 320px; }
+    .plan-bar p b { color: var(--ink); }
+    .plan-toggle { font: 600 14px var(--sans); color: #fff; background: var(--sea); border: 0; border-radius: 100px; padding: 11px 20px; cursor: pointer; }
+    .plan-toggle[aria-pressed="true"] { background: var(--white); color: var(--sea); box-shadow: inset 0 0 0 1.5px var(--sea); }
+    .plan-controls { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; width: 100%; font-size: 14px; color: var(--ink); }
+    .plan-controls input[type=number] { width: 72px; margin-left: 8px; padding: 8px 10px; border: 1.5px solid var(--line); border-radius: 10px; font: 600 15px var(--sans); color: var(--ink); background: #fff; }
+    .plan-controls label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+    .mi-plan { display: none; }
+    body.planning .mi-plan { display: flex; justify-content: flex-end; margin-top: 8px; }
+    .mi-add, .mi-step button { font: 700 13px var(--sans); color: var(--sea); background: #fff; border: 1.5px solid var(--sea-mid); border-radius: 9px; padding: 6px 14px; cursor: pointer; }
+    .mi-step { display: inline-flex; align-items: center; gap: 10px; }
+    .mi-step button { padding: 4px 11px; font-size: 15px; }
+    .mi-step span { min-width: 18px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+    body.veg-only .menu-row.is-nonveg { display: none; }
+    .plan-summary { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: none; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+      padding: 12px max(16px, 5vw); background: var(--sea); color: #fff; box-shadow: 0 -8px 24px rgba(11,61,82,.25); }
+    body.planning .plan-summary.has-items { display: flex; }
+    .plan-summary .ps-text b { font-size: 16px; } .plan-summary .ps-text span { display: block; font-size: 12.5px; opacity: .85; }
+    .plan-summary .ps-btns { display: flex; gap: 8px; }
+    .plan-summary a, .plan-summary button { font: 700 14px var(--sans); border-radius: 100px; padding: 10px 18px; text-decoration: none; cursor: pointer; }
+    .plan-summary a { background: #25d366; color: #0b3d2a; } .plan-summary button { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.45); }
+    body.planning .wa-float { bottom: 96px; }
+    .mi-add:focus-visible, .mi-step button:focus-visible, .plan-toggle:focus-visible { outline: 2px solid var(--sea-mid); outline-offset: 2px; }
+    @media print { .plan-bar, .plan-summary, .mi-plan { display: none !important; } }
     .menu-row:last-child { border-bottom: none; }
     .mi-line { display: flex; align-items: baseline; gap: 8px; }
     .mi-name { display: flex; align-items: center; gap: 8px; font-size: 15px; color: var(--ink-mid); }
@@ -325,6 +353,15 @@
     <span>Every dish here is made fresh to order — for the biryanis and larger spreads especially, let our team know a little ahead of when you'd like to eat.</span>
   </div>
 
+  <div class="plan-bar" id="planBar" hidden>
+    <p><b>Planning food for a group?</b> Add dishes for everyone, see the total and the cost per person, and send it to us on WhatsApp to arrange.</p>
+    <button class="plan-toggle" type="button" id="planToggle" aria-pressed="false">Plan a group meal</button>
+    <div class="plan-controls" id="planControls" hidden>
+      <label for="planGuests">Guests<input type="number" id="planGuests" min="1" max="40" value="8" inputmode="numeric"></label>
+      <label><input type="checkbox" id="planVeg"> Veg only</label>
+    </div>
+  </div>
+
   <div class="menu-wrap">
     <div class="menu-state" id="menuState">Loading the menu…</div>
     <div class="menu-cats-grid" id="menuCats"></div>
@@ -358,6 +395,10 @@
 
   <hr class="doc-hr">
 </main>
+<div class="plan-summary" id="planSummary" role="region" aria-label="Your meal plan" aria-live="polite">
+  <div class="ps-text"><b id="psTotal">₹0</b><span id="psSub"></span></div>
+  <div class="ps-btns"><button type="button" id="psClear">Clear</button><a id="psSend" href="#" target="_blank" rel="noopener">Send on WhatsApp</a></div>
+</div>
 
 <footer>
   <div class="footer-inner">
@@ -462,6 +503,44 @@ const CATEGORY_ICON = {
 // the longest, not a hardcoded name.
 const WIDE_CATEGORY_THRESHOLD = 7;
 
+// ── Group meal planner ── a guest adds dishes for their group and sends the
+// list on WhatsApp; nothing is ordered or charged from this page.
+let PLAN_ITEMS = [];
+const plan = {};
+const inrP = n => '₹' + Math.round(n).toLocaleString('en-IN');
+function planGuests(){ return Math.min(40, Math.max(1, parseInt(document.getElementById('planGuests').value, 10) || 1)); }
+function renderPlan(){
+  document.querySelectorAll('.mi-plan').forEach(el => {
+    const q = plan[el.dataset.k] || 0;
+    el.innerHTML = q ? `<span class="mi-step"><button type="button" data-d="-1" aria-label="One less">−</button><span>${q}</span><button type="button" data-d="1" aria-label="One more">+</button></span>`
+      : `<button type="button" class="mi-add" data-d="1">Add</button>`;
+  });
+  const keys = Object.keys(plan).filter(k => plan[k] > 0), g = planGuests();
+  const total = keys.reduce((s, k) => s + plan[k] * (PLAN_ITEMS[k].price || 0), 0), n = keys.reduce((s, k) => s + plan[k], 0);
+  const box = document.getElementById('planSummary');
+  box.classList.toggle('has-items', n > 0);
+  document.getElementById('psTotal').textContent = inrP(total);
+  document.getElementById('psSub').textContent = `${n} item${n === 1 ? '' : 's'} · about ${inrP(total / g)} per person for ${g}`;
+  const lines = keys.map(k => `• ${plan[k]} × ${PLAN_ITEMS[k].name} — ${inrP(plan[k] * PLAN_ITEMS[k].price)}`);
+  const text = `Hi, I'd like to plan food for ${g} guests at RYST 109A:\n${lines.join('\n')}\nTotal ${inrP(total)} (about ${inrP(total / g)} per person). Please confirm availability and timing.`;
+  document.getElementById('psSend').href = 'https://wa.me/918122209109?text=' + encodeURIComponent(text);
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('.mi-plan button'); if (!b) return;
+  const k = b.closest('.mi-plan').dataset.k; plan[k] = Math.max(0, (plan[k] || 0) + Number(b.dataset.d)); renderPlan();
+});
+document.getElementById('planToggle').addEventListener('click', e => {
+  const on = !document.body.classList.contains('planning');
+  document.body.classList.toggle('planning', on); e.currentTarget.setAttribute('aria-pressed', on);
+  e.currentTarget.textContent = on ? 'Done planning' : 'Plan a group meal';
+  document.getElementById('planControls').hidden = !on;
+  if (!on) { document.body.classList.remove('veg-only'); document.getElementById('planVeg').checked = false; }
+});
+document.getElementById('planGuests').addEventListener('input', renderPlan);
+document.getElementById('planVeg').addEventListener('change', e => document.body.classList.toggle('veg-only', e.target.checked));
+document.getElementById('psClear').addEventListener('click', () => { Object.keys(plan).forEach(k => delete plan[k]); renderPlan(); });
+try { const g = parseInt(new URLSearchParams(location.search).get('guests'), 10); if (g > 0) document.getElementById('planGuests').value = Math.min(40, g); } catch (e) {}
+
 (async function loadMenu(){
   const stateEl = document.getElementById('menuState');
   const catsEl = document.getElementById('menuCats');
@@ -473,6 +552,7 @@ const WIDE_CATEGORY_THRESHOLD = 7;
     if(!res.ok) throw new Error('bad response');
     const data = await res.json();
     const items = Array.isArray(data.items) ? data.items : [];
+    items.forEach((m, i) => { m._k = i; }); PLAN_ITEMS = items;
     if(!items.length){ stateEl.textContent = 'The menu isn’t available online right now — please ask us on WhatsApp.'; return; }
 
     if(data.gstPercent > 0) taxNoteEl.textContent = `Prices shown are in ₹ and exclude ${data.gstPercent}% GST.`;
@@ -500,7 +580,7 @@ const WIDE_CATEGORY_THRESHOLD = 7;
     // are all via the partner kitchen), so it stays a flagged exception
     // rather than a label repeated on every row.
     const renderRow = (m, tag) => `
-      <div class="menu-row">
+      <div class="menu-row${!m.veg && !m.noDiet ? ' is-nonveg' : ''}">
         <div class="mi-line">
           <span class="mi-name">
             ${m.noDiet ? '' : `<span class="veg-mark ${m.veg?'veg':'nonveg'}" role="img" aria-label="${m.veg?'Vegetarian':'Non-vegetarian'}"></span>`}
@@ -510,6 +590,7 @@ const WIDE_CATEGORY_THRESHOLD = 7;
           <span class="mi-price">${money(m.price)}</span>
         </div>
         ${(m.description || m.kcal!=null) ? `<div class="mi-desc">${esc(m.description)}${m.description && m.kcal!=null ? ' · ' : ''}${m.kcal!=null ? '~'+esc(m.kcal)+' kcal' : ''}</div>` : ''}
+        <div class="mi-plan" data-k="${m._k}"></div>
       </div>`;
 
     // Chef's specials float to the top of whichever list they're in — a
@@ -576,6 +657,8 @@ const WIDE_CATEGORY_THRESHOLD = 7;
       </div>`).join('');
 
     stateEl.hidden = true;
+    document.getElementById('planBar').hidden = false;
+    renderPlan();
     legendEl.hidden = false;
     taglineEl.hidden = false;
   }catch(e){
