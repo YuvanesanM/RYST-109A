@@ -8,7 +8,7 @@
      stripped below — belt-and-suspenders against an older/in-app-browser
      default leaking it via Referer to a third-party subresource. -->
 <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://data.ryst.in; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://raw.githubusercontent.com https://*.google-analytics.com https://api.qrserver.com https://data.ryst.in; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <script src="/villa.js"></script>
 <script src="/property.js"></script>
 <script src="/i18n.js" data-audience="guest"></script>
@@ -336,7 +336,7 @@
                    buttons (camera / gallery) need real JS-attached listeners
                    either way, so there's no static fallback markup here. -->
               <div class="photo-box" id="photoBox" role="group" aria-labelledby="photoBoxLabel"></div>
-              <p class="trust-note">🔒 Why we ask: Indian law requires every accommodation to keep a guest register with the lead guest's ID, and to report foreign nationals to the FRRO (Form C). Any valid government photo ID works; if you use Aadhaar you may show a masked Aadhaar or Virtual ID. The photo travels over HTTPS to private storage that only the villa's owner and check-in staff can open, and is deleted automatically one year after check-out. It is shared only with the authorities when the law requires. <a href="https://stay.ryst.in/privacy.html#register" target="_blank" rel="noopener">Privacy notice</a></p>
+              <p class="trust-note">🔒 Your information is encrypted and securely stored, and used only for verification during your stay — it's never shared with third parties.</p>
             </div>
           </div>
         </fieldset>
@@ -387,7 +387,7 @@
 
           <label class="chk-row">
             <input type="checkbox" id="ci-agree">
-            <span>I confirm the details above are accurate, I am 18 or older, and I have read and agree to the <a href="https://stay.ryst.in/terms.html" class="hr-open" target="_blank" rel="noopener">House Rules &amp; Terms</a> and the <a href="https://stay.ryst.in/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span>
+            <span>I confirm the details above are accurate and I have read and agree to the <a href="https://stay.ryst.in/terms.html" class="hr-open" target="_blank" rel="noopener">House Rules &amp; Terms</a>.</span>
           </label>
         </fieldset>
 
@@ -926,7 +926,6 @@ $('#ciForm').addEventListener('submit', async e => {
     guestsCount: Number(guestsOnBooking) || null,
     note: $('#ci-note').value.trim(),
     website: $('#ci-website').value, // honeypot
-    agreed: $('#ci-agree').checked, // the house rules, terms and privacy notice (the server keeps when)
   };
 
   try{
