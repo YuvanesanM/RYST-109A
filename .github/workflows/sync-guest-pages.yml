@@ -5,7 +5,7 @@
 name: Sync guest pages from RYST Harbour
 on:
   schedule:
-    - cron: '23 * * * *'   # hourly
+    - cron: '23 4 * * *'    # daily fallback (harbour pushes changes straight away)
   workflow_dispatch:
 permissions:
   contents: write
