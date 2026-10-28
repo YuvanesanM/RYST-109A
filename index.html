@@ -52,8 +52,6 @@
   <link rel="manifest" href="/site.webmanifest">
 
   <!-- ── PERFORMANCE HINTS ── -->
-  <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-  <link rel="dns-prefetch" href="https://www.googletagmanager.com">
   <link rel="preload" as="font" type="font/woff2" href="/assets/fonts/dm-sans-latin-wght-normal.woff2" crossorigin>
   <!-- These two match what the hero H1/tagline actually render in (300 normal for "RYST",
        400 italic for "109A" + the tagline) — the previous single 400-normal preload matched
@@ -352,32 +350,9 @@
   }
   </script>
 
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HXR1631D1Y"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-HXR1631D1Y');
-  </script>
-
-  <!-- Meta Pixel Code -->
-  <script>
-  !function(f,b,e,v,n,t,s)
-  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-  n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];
-  s.parentNode.insertBefore(t,s)}(window,document,'script',
-  'https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', '1387854516865754');
-  fbq('track', 'PageView');
-  </script>
-  <noscript><img height="1" width="1" style="display:none" alt=""
-  src="https://www.facebook.com/tr?id=1387854516865754&amp;ev=PageView&amp;noscript=1"
-  /></noscript>
-  <!-- End Meta Pixel Code -->
+  <!-- Analytics and ads run only after the visitor agrees (assets/consent.js): Google Consent Mode v2
+       starts as "denied" and neither the Google tag nor the Meta Pixel is loaded until then. -->
+  <script src="/assets/consent.js?v=1"></script>
   <style>
     /* Inlined from /assets/css/shared.css (still used as an external file by
        nearby/faq/privacy/terms/ecr-road-trip-guide) — on this page it was a
@@ -2101,7 +2076,7 @@
           <div class="f-group">
             <label class="terms-check">
               <input type="checkbox" id="f-terms" required>
-              <span>I have read and agree to the <a href="terms.html#cancellations" target="_blank" rel="noopener" id="policyBoxToggle">Cancellation &amp; Refund Policy</a> and Terms &amp; Conditions.</span>
+              <span>I have read and agree to the <a href="terms.html#cancellations" target="_blank" rel="noopener" id="policyBoxToggle">Cancellation &amp; Refund Policy</a>, the <a href="terms.html" target="_blank" rel="noopener">Terms &amp; Conditions</a> and the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>, and I'm happy to be contacted on WhatsApp, phone or email about this booking.</span>
             </label>
             <div class="policy-box" id="policyBox" hidden>
               <p class="policy-box-title">Cancellation &amp; refund policy — quick glance</p>
@@ -2182,6 +2157,9 @@
           <a href="/collab.html">Creator Collaborations</a>
           <a href="#book">Book Your Stay</a>
           <a href="/privacy.html">Privacy Policy</a>
+          <a href="/cookies.html">Cookie Policy</a>
+          <a href="#" data-ck="open">Cookie Settings</a>
+          <a href="/copyright.html">Copyright &amp; Takedown</a>
           <a href="/terms.html">Terms &amp; Conditions</a>
           <a href="/terms.html#cancellations">Cancellation &amp; Refund Policy</a>
           <a href="/terms.html#contact">Contact Us</a>
@@ -3285,6 +3263,7 @@
       occasion: document.getElementById('f-occasion').value,
       message:  document.getElementById('f-message').value.trim(),
       website:  document.getElementById('f-website').value, // honeypot
+      agreed:   document.getElementById('f-terms').checked, policyVersion: '2026-10-28', // recorded with the booking
       paymentMode: selectedPaymentMode(),
       couponCode: couponState.code || '',
       // the WhatsApp enquiry this booking comes from (link from a "BOOK" reply)

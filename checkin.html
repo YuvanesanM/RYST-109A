@@ -336,7 +336,7 @@
                    buttons (camera / gallery) need real JS-attached listeners
                    either way, so there's no static fallback markup here. -->
               <div class="photo-box" id="photoBox" role="group" aria-labelledby="photoBoxLabel"></div>
-              <p class="trust-note">🔒 Your information is encrypted and securely stored, and used only for verification during your stay — it's never shared with third parties.</p>
+              <p class="trust-note">🔒 Why we ask: Indian law requires every accommodation to keep a guest register with the lead guest's ID, and to report foreign nationals to the FRRO (Form C). Any valid government photo ID works; if you use Aadhaar you may show a masked Aadhaar or Virtual ID. The photo travels over HTTPS to private storage that only the villa's owner and check-in staff can open, and is deleted automatically one year after check-out. It is shared only with the authorities when the law requires. <a href="https://stay.ryst.in/privacy.html#register" target="_blank" rel="noopener">Privacy notice</a></p>
             </div>
           </div>
         </fieldset>
@@ -387,7 +387,7 @@
 
           <label class="chk-row">
             <input type="checkbox" id="ci-agree">
-            <span>I confirm the details above are accurate and I have read and agree to the <a href="https://stay.ryst.in/terms.html" class="hr-open" target="_blank" rel="noopener">House Rules &amp; Terms</a>.</span>
+            <span>I confirm the details above are accurate, I am 18 or older, and I have read and agree to the <a href="https://stay.ryst.in/terms.html" class="hr-open" target="_blank" rel="noopener">House Rules &amp; Terms</a> and the <a href="https://stay.ryst.in/privacy.html" target="_blank" rel="noopener">privacy notice</a>.</span>
           </label>
         </fieldset>
 
@@ -926,6 +926,7 @@ $('#ciForm').addEventListener('submit', async e => {
     guestsCount: Number(guestsOnBooking) || null,
     note: $('#ci-note').value.trim(),
     website: $('#ci-website').value, // honeypot
+    agreed: $('#ci-agree').checked, // the house rules, terms and privacy notice (the server keeps when)
   };
 
   try{
