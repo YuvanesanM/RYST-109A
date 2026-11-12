@@ -6,7 +6,7 @@
 
   <url>
     <loc>https://stay.ryst.in/</loc>
-    <lastmod>2026-10-22</lastmod>
+    <lastmod>2026-11-12</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
@@ -63,7 +63,7 @@
 
   <url>
     <loc>https://stay.ryst.in/faq.html</loc>
-    <lastmod>2026-10-22</lastmod>
+    <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -89,7 +89,7 @@
 
   <url>
     <loc>https://stay.ryst.in/terms.html</loc>
-    <lastmod>2026-06-28</lastmod>
+    <lastmod>2026-11-12</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>
@@ -102,7 +102,7 @@
   </url>
   <url>
     <loc>https://stay.ryst.in/ecr-beach-house.html</loc>
-    <lastmod>2026-10-24</lastmod>
+    <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -114,13 +114,43 @@
   </url>
   <url>
     <loc>https://stay.ryst.in/pool-villa-near-mahabalipuram.html</loc>
-    <lastmod>2026-10-24</lastmod>
+    <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://stay.ryst.in/ecr-villas-guide.html</loc>
     <lastmod>2026-10-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stay.ryst.in/ecr-villa-christmas.html</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stay.ryst.in/ecr-villa-for-groups.html</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stay.ryst.in/ecr-villa-for-corporate-offsite.html</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stay.ryst.in/pet-friendly-villa-ecr.html</loc>
+    <lastmod>2026-11-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://stay.ryst.in/villa-near-pondicherry.html</loc>
+    <lastmod>2026-11-12</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
