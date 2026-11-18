@@ -268,6 +268,39 @@
   .viz-wrap{position:relative;width:100%;height:100%;overflow:hidden}
   #vizCanvas{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;width:100%;height:100%;display:block}
 
+  /* ── CLAW CATCH SCREEN ── up to 4 phones (play.html) each steer their own
+     claw over a shared pit of beach balls. The pit is drawn on a canvas;
+     the scoreboard, timer and banners are plain HTML on top so they stay
+     crisp at any resolution. Positioned with top/left/width/height (not
+     inset/gap) for the LED wall's older Chromium. */
+  #screen-claw{padding:0;top:0;right:0;bottom:0;left:0;inset:0}
+  .claw-wrap{position:relative;width:100%;height:100%;overflow:hidden}
+  #clawCanvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block}
+  .claw-hud{position:absolute;top:1.6vh;left:2.4vw;right:2.4vw;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+  .claw-title{font-family:var(--serif);font-weight:600;font-size:2.6vw;color:var(--sand);letter-spacing:.04em;text-shadow:0 3px 18px rgba(0,0,0,.45);white-space:nowrap}
+  .claw-title em{font-style:italic;color:var(--white)}
+  .claw-players{display:flex;align-items:center}
+  .claw-chip{display:flex;align-items:center;margin-left:1vw;padding:.7vh 1.1vw;border-radius:100px;background:rgba(4,16,24,.55);border:2px solid rgba(255,255,255,.12);
+    font-weight:700;font-size:1.35vw;color:var(--white);white-space:nowrap;transition:opacity .4s,border-color .4s}
+  .claw-chip .dot{width:1.1vw;height:1.1vw;border-radius:50%;margin-right:.6vw;box-shadow:0 0 12px currentColor}
+  .claw-chip .sc{font-family:var(--serif);font-size:1.5em;margin-left:.8vw;line-height:1}
+  .claw-chip.empty{opacity:.42}
+  .claw-chip.empty .sc{display:none}
+  .claw-chip.lead{border-color:var(--sand)}
+  .claw-timer{font-family:var(--serif);font-weight:600;font-size:3.4vw;color:var(--white);text-shadow:0 3px 18px rgba(0,0,0,.45);min-width:9vw;text-align:center}
+  .claw-timer.low{color:var(--coral)}
+  .claw-banner{position:absolute;left:43%;top:42%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);text-align:center;pointer-events:none;
+    padding:3vh 4vw;border-radius:2vw;background:rgba(4,16,24,.62);box-shadow:0 20px 60px rgba(0,0,0,.35);transition:opacity .4s}
+  .claw-banner.hide{opacity:0}
+  .claw-banner .big{font-family:var(--serif);font-weight:600;font-size:5vw;line-height:1.05;color:var(--white)}
+  .claw-banner .big em{font-style:italic;color:var(--sand)}
+  .claw-banner .small{margin-top:1.4vh;font-size:1.6vw;color:var(--mist);font-weight:600}
+  .claw-join{position:absolute;right:1.6vw;bottom:6vh;width:13vw;display:flex;flex-direction:column;align-items:center;text-align:center;padding:1.6vh .8vw;border-radius:1.2vw;background:rgba(4,16,24,.62);pointer-events:none}
+  .claw-join .qr{background:var(--white);border-radius:.8vw;padding:.6vw;margin-bottom:1.2vh}
+  .claw-join .qr img{display:block;width:9vw;height:9vw}
+  .claw-join .t{font-size:1.3vw;font-weight:700;color:var(--white);line-height:1.4}
+  .claw-join .t span{display:block;font-weight:600;color:var(--mist);font-size:.8em;margin-top:.4vh}
+
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -474,6 +507,19 @@
       <canvas id="vizCanvas"></canvas>
     </div>
   </section>
+
+  <section class="screen" id="screen-claw">
+    <div class="claw-wrap">
+      <canvas id="clawCanvas"></canvas>
+      <div class="claw-hud">
+        <div class="claw-title">Claw <em>Catch</em></div>
+        <div class="claw-timer" id="clawTimer"></div>
+        <div class="claw-players" id="clawPlayers"></div>
+      </div>
+      <div class="claw-banner" id="clawBanner"><div class="big" id="clawBannerBig"></div><div class="small" id="clawBannerSmall"></div></div>
+      <div class="claw-join"><div class="qr"><img id="qrPlayClaw" alt="Scan to play"></div><div class="t">Scan to play<span>Up to 4 players · your phone is the joystick</span></div></div>
+    </div>
+  </section>
 </main>
 
 <div id="checkoutScreen">
@@ -506,6 +552,7 @@ $('#qrGuide').src = qr(SITE_URL + '/', 200);
 $('#qrCaretaker').src = qr(`https://api.whatsapp.com/send/?phone=${CARETAKER_WHATSAPP}&text=${encodeURIComponent('Hi Senthil! We are staying at RYST 109A and need some help.')}`, 200);
 $('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayMemory').src = qr(SITE_URL + '/play.html', 200);
+$('#qrPlayClaw').src = qr(SITE_URL + '/play.html', 200);
 
 // ── TOP BAR: CLOCK + DATE + WEATHER ──
 // Formatted with an explicit timeZone rather than trusting whatever the
@@ -978,20 +1025,311 @@ function stopViz(){
 }
 
 function updateMainScreen(){
-  if($('#checkoutScreen').classList.contains('active')){ stopViz(); return; } // that takeover covers everything anyway
+  if($('#checkoutScreen').classList.contains('active')){ stopViz(); stopClaw(); return; } // that takeover covers everything anyway
   const active = isGameActive();
   const showTTT = active && currentGame.mode === 'tictactoe';
   const showScoreboard = active && currentGame.mode === 'scoreboard';
   const showMemory = active && currentGame.mode === 'memory';
   const showBackdrop = active && currentGame.mode === 'backdrop';
   const showViz = active && currentGame.mode === 'visualizer';
-  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz);
+  const showClaw = active && currentGame.mode === 'claw';
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
   $('#screen-memory').classList.toggle('active', showMemory);
   $('#screen-backdrop').classList.toggle('active', showBackdrop);
   $('#screen-visualizer').classList.toggle('active', showViz);
+  $('#screen-claw').classList.toggle('active', showClaw);
   showViz ? startViz() : stopViz();
+  showClaw ? startClaw() : stopClaw();
+}
+
+// ── CLAW CATCH ── the pool screen runs the whole game: physics, claws,
+// scoring and the round clock. Phones only send stick/drop/start presses,
+// which the proxy relays here over the same WebSocket as live audio, each
+// stamped with the slot (0–3) the proxy gave that phone — so a phone can
+// only ever move its own claw. Plain ES2017, no optional chaining: the LED
+// wall's player runs an older Chromium.
+const CLAW = {
+  W: 1600, H: 900,                       // logical size; scaled to the canvas
+  left: 60, right: 1330, top: 120, floor: 860,  // the right-hand strip is for the join code
+  railY: 150, restY: 215,                // claw rests with its tip here
+  moveSpeed: 560, dropSpeed: 700, liftSpeed: 430,
+  roundSecs: 60, countdownSecs: 3, overSecs: 10,
+  colours: ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'],
+  names: ['P1', 'P2', 'P3', 'P4'],
+  ballColours: ['#ff6fae', '#4d8dff', '#a6e35a', '#ffd166', '#4dd0e1', '#ff7a4d', '#f4efe6', '#b98cff'],
+};
+let clawCtx = null, clawRaf = null, clawLastT = 0, clawScale = 1, clawOffX = 0, clawOffY = 0;
+let clawBalls = [], clawFx = [], clawRespawn = [];
+let clawPlayers = [0, 1, 2, 3].map(i => ({ on: false, x: 260 + i * 280, y: CLAW.restY, dir: 0, state: 'idle', open: 1, t: 0, ball: null, score: 0 }));
+let clawPhase = 'lobby', clawPhaseEnd = 0, clawWinners = [], clawWs = null, clawWsRetry = 0, clawWsTimer = null, clawLastSent = 0;
+
+function clawNewBall(x, y){
+  const roll = Math.random();
+  const kind = roll < 0.04 ? 'pearl' : roll < 0.16 ? 'gold' : 'plain';
+  const r = kind === 'pearl' ? 30 : 33 + Math.random() * 8;
+  return { x, y, ox: x, oy: y, r, kind, value: kind === 'pearl' ? 5 : kind === 'gold' ? 3 : 1,
+    colour: CLAW.ballColours[Math.floor(Math.random() * CLAW.ballColours.length)], held: -1 };
+}
+function clawFill(){
+  clawBalls = [];
+  for (let i = 0; i < 56; i++) {
+    const x = CLAW.left + 50 + Math.random() * (CLAW.right - CLAW.left - 100);
+    clawBalls.push(clawNewBall(x, CLAW.floor - 40 - Math.random() * 300));
+  }
+  for (let k = 0; k < 240; k++) clawPhysics(1 / 60); // settle before anyone sees it
+}
+function clawPhysics(dt){
+  const g = 2200 * dt * dt, minX = CLAW.left + 6, maxX = CLAW.right - 6;
+  for (const b of clawBalls) {
+    if (b.held >= 0) continue;
+    const vx = (b.x - b.ox) * 0.985, vy = (b.y - b.oy) * 0.985;
+    b.ox = b.x; b.oy = b.y; b.x += vx; b.y += vy + g;
+  }
+  for (let it = 0; it < 3; it++) {
+    for (let i = 0; i < clawBalls.length; i++) {
+      const a = clawBalls[i]; if (a.held >= 0) continue;
+      for (let j = i + 1; j < clawBalls.length; j++) {
+        const b = clawBalls[j]; if (b.held >= 0) continue;
+        const dx = b.x - a.x, dy = b.y - a.y, min = a.r + b.r, d2 = dx * dx + dy * dy;
+        if (d2 >= min * min || d2 === 0) continue;
+        const d = Math.sqrt(d2), push = (min - d) / 2, nx = dx / d, ny = dy / d;
+        a.x -= nx * push; a.y -= ny * push; b.x += nx * push; b.y += ny * push;
+      }
+    }
+    for (const b of clawBalls) {
+      if (b.held >= 0) continue;
+      if (b.y + b.r > CLAW.floor) { b.y = CLAW.floor - b.r; b.oy = b.y + (b.y - b.oy) * 0.2; }
+      if (b.x - b.r < minX) { b.x = minX + b.r; b.ox = b.x; }
+      if (b.x + b.r > maxX) { b.x = maxX - b.r; b.ox = b.x; }
+    }
+  }
+}
+// The tip of a claw — where it touches and grabs — sits below its hub.
+const CLAW_TIP = 52;
+function clawStep(p, i, dt, now){
+  const minX = CLAW.left + 70, maxX = CLAW.right - 70;
+  if (p.state === 'idle') {
+    p.x = Math.max(minX, Math.min(maxX, p.x + p.dir * CLAW.moveSpeed * dt));
+    p.open = Math.min(1, p.open + dt * 3);
+  } else if (p.state === 'down') {
+    p.y += CLAW.dropSpeed * dt;
+    const tip = p.y + CLAW_TIP;
+    let hit = tip >= CLAW.floor - 8;
+    for (const b of clawBalls) if (b.held < 0 && Math.abs(b.x - p.x) < b.r * 0.85 && tip >= b.y - b.r * 0.35) { hit = true; break; }
+    if (hit) { p.state = 'closing'; p.t = 0; }
+  } else if (p.state === 'closing') {
+    p.t += dt; p.open = Math.max(0, 1 - p.t / 0.35);
+    if (p.t >= 0.35) {
+      // the nearest free ball to the tip; a dead-centre grab nearly always holds, an edge grab rarely does
+      let best = null, bestD = 62;
+      for (const b of clawBalls) {
+        if (b.held >= 0) continue;
+        const d = Math.hypot(b.x - p.x, b.y - (p.y + CLAW_TIP));
+        if (d < bestD) { bestD = d; best = b; }
+      }
+      if (best && Math.random() < (0.12 + 0.83 * (1 - bestD / 62)) * (best.kind === 'pearl' ? 0.8 : 1)) { best.held = i; p.ball = best; }
+      p.state = 'up';
+    }
+  } else if (p.state === 'up') {
+    p.y -= CLAW.liftSpeed * dt;
+    if (p.ball) {
+      const b = p.ball, slip = b.kind === 'pearl' ? 0.32 : b.kind === 'gold' ? 0.2 : 0.09; // chance per second of slipping out
+      b.x = p.x; b.y = p.y + CLAW_TIP + b.r * 0.35; b.ox = b.x; b.oy = b.y;
+      if (Math.random() < slip * dt) { b.held = -1; b.oy = b.y - 4; p.ball = null; clawFx.push({ kind: 'text', x: p.x, y: p.y + 40, text: 'Oops!', colour: '#ffffff', t: 0 }); }
+    }
+    if (p.y <= CLAW.restY) {
+      p.y = CLAW.restY; p.state = 'idle';
+      if (p.ball) clawScore(p, i, p.ball, now);
+      p.ball = null;
+    }
+  }
+}
+function clawScore(p, i, b, now){
+  clawBalls.splice(clawBalls.indexOf(b), 1);
+  clawRespawn.push(now + 1200);
+  const counts = clawPhase === 'play' && now < clawPhaseEnd && clawSecsLeft(now) <= CLAW.roundSecs; // not during the 3-2-1
+  if (counts) p.score += b.value;
+  clawFx.push({ kind: 'text', x: p.x, y: p.y - 10, text: (counts ? '+' : 'Practice +') + b.value, colour: CLAW.colours[i], t: 0 });
+  for (let k = 0; k < 18; k++) clawFx.push({ kind: 'spark', x: p.x, y: p.y + 40, vx: (Math.random() - 0.5) * 700, vy: -Math.random() * 600, colour: b.kind === 'plain' ? b.colour : '#ffe28a', t: 0 });
+  clawRenderHud(); clawSendState(true);
+}
+function clawDrop(i){ const p = clawPlayers[i]; if (p && p.on && p.state === 'idle') { p.state = 'down'; p.dir = 0; } }
+function clawStart(){
+  if (clawPhase === 'play') return;
+  clawPlayers.forEach(p => { p.score = 0; });
+  clawWinners = []; clawPhase = 'play';
+  clawPhaseEnd = performance.now() + (CLAW.countdownSecs + CLAW.roundSecs) * 1000;
+  clawRenderHud(); clawSendState(true);
+}
+function clawTickPhase(now){
+  if (clawPhase === 'play' && now >= clawPhaseEnd) {
+    const on = clawPlayers.map((p, i) => i).filter(i => clawPlayers[i].on);
+    const top = Math.max.apply(null, on.map(i => clawPlayers[i].score).concat([0]));
+    clawWinners = top > 0 ? on.filter(i => clawPlayers[i].score === top) : [];
+    clawPhase = 'over'; clawPhaseEnd = now + CLAW.overSecs * 1000;
+    clawRenderHud(); clawSendState(true);
+  } else if (clawPhase === 'over' && now >= clawPhaseEnd) {
+    clawPhase = 'lobby'; clawRenderHud(); clawSendState(true);
+  }
+}
+function clawSecsLeft(now){
+  if (clawPhase !== 'play') return 0;
+  return Math.max(0, Math.ceil((clawPhaseEnd - now) / 1000));
+}
+function clawRenderHud(){
+  const now = performance.now(), left = clawSecsLeft(now), counting = clawPhase === 'play' && left > CLAW.roundSecs;
+  const lead = Math.max.apply(null, clawPlayers.map(p => p.on ? p.score : 0));
+  $('#clawPlayers').innerHTML = clawPlayers.map((p, i) => `<div class="claw-chip${p.on ? '' : ' empty'}${p.on && lead > 0 && p.score === lead ? ' lead' : ''}"><span class="dot" style="background:${CLAW.colours[i]};color:${CLAW.colours[i]}"></span>${CLAW.names[i]}<span class="sc">${p.score}</span></div>`).join('');
+  const t = $('#clawTimer');
+  t.textContent = clawPhase === 'play' && !counting ? left + 's' : '';
+  t.classList.toggle('low', clawPhase === 'play' && left <= 10);
+  const nOn = clawPlayers.filter(p => p.on).length;
+  let big = '', small = '';
+  if (clawPhase === 'play' && counting) { big = String(left - CLAW.roundSecs); small = 'Get ready!'; }
+  else if (clawPhase === 'over') {
+    big = clawWinners.length === 1 ? `<em>${CLAW.names[clawWinners[0]]}</em> wins!` : clawWinners.length > 1 ? `It's a <em>tie</em>!` : 'Time!';
+    small = clawWinners.length ? clawWinners.map(i => CLAW.names[i]).join(' & ') + ' · ' + clawPlayers[clawWinners[0]].score + ' points' : 'No catches this round — try again!';
+  } else if (clawPhase === 'lobby') {
+    big = nOn ? 'Press <em>Start</em>' : 'Claw <em>Catch</em>';
+    small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in · practise now, or press Start on your phone for a ${CLAW.roundSecs}-second round` : 'Scan the code with your phone to join — up to 4 players';
+  }
+  $('#clawBannerBig').innerHTML = big; $('#clawBannerSmall').textContent = small;
+  $('#clawBanner').classList.toggle('hide', !big);
+}
+function clawBall(ctx, b){
+  const grd = ctx.createRadialGradient(b.x - b.r * 0.35, b.y - b.r * 0.4, b.r * 0.1, b.x, b.y, b.r);
+  if (b.kind === 'gold') { grd.addColorStop(0, '#fff6c8'); grd.addColorStop(0.45, '#ffd34d'); grd.addColorStop(1, '#b8860b'); }
+  else if (b.kind === 'pearl') { grd.addColorStop(0, '#ffffff'); grd.addColorStop(0.5, '#e8f4ff'); grd.addColorStop(1, '#a9b8d6'); }
+  else { grd.addColorStop(0, '#ffffff'); grd.addColorStop(0.28, b.colour); grd.addColorStop(1, 'rgba(0,0,0,.55)'); }
+  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
+  if (b.kind !== 'plain') {
+    ctx.save(); ctx.shadowColor = b.kind === 'gold' ? '#ffd34d' : '#bfe3ff'; ctx.shadowBlur = 24;
+    ctx.fillStyle = b.kind === 'gold' ? '#7a5200' : '#40507a';
+    ctx.font = `700 ${Math.round(b.r * 0.9)}px DM Sans, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(b.kind === 'gold' ? '3' : '5', b.x, b.y + 2); ctx.restore();
+  }
+}
+function clawDrawClaw(ctx, p, i){
+  const c = CLAW.colours[i], hubY = p.y, spread = 12 + p.open * 30;
+  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(p.x, CLAW.railY + 14); ctx.lineTo(p.x, hubY - 16); ctx.stroke();      // cable
+  ctx.fillStyle = c; ctx.fillRect(p.x - 26, CLAW.railY - 4, 52, 20);                                 // carriage on the rail
+  ctx.fillStyle = '#0b2430'; ctx.font = '700 15px DM Sans, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(CLAW.names[i], p.x, CLAW.railY + 6);
+  ctx.save(); ctx.shadowColor = c; ctx.shadowBlur = 18;
+  ctx.fillStyle = c; ctx.beginPath(); ctx.arc(p.x, hubY - 6, 19, 0, Math.PI * 2); ctx.fill();         // hub
+  ctx.restore();
+  ctx.strokeStyle = c; ctx.lineWidth = 8; ctx.lineCap = 'round';
+  [-1, 1].forEach(s => {                                                                              // two prongs that open and close
+    ctx.beginPath(); ctx.moveTo(p.x + s * 8, hubY + 4);
+    ctx.quadraticCurveTo(p.x + s * (spread + 8), hubY + 22, p.x + s * (spread * 0.55), hubY + CLAW_TIP);
+    ctx.stroke();
+  });
+  ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(p.x, hubY + 6); ctx.lineTo(p.x, hubY + CLAW_TIP - 10); ctx.stroke();
+}
+function clawDraw(now){
+  const cv = $('#clawCanvas'), ctx = clawCtx;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(clawScale, 0, 0, clawScale, clawOffX, clawOffY);
+  // the cabinet: a glass box with a lit back wall and the top rail
+  const bg = ctx.createLinearGradient(0, CLAW.top, 0, CLAW.floor);
+  bg.addColorStop(0, 'rgba(77,168,184,.22)'); bg.addColorStop(1, 'rgba(11,61,82,.55)');
+  ctx.fillStyle = bg; ctx.fillRect(CLAW.left, CLAW.top, CLAW.right - CLAW.left, CLAW.floor - CLAW.top);
+  ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 4; ctx.strokeRect(CLAW.left, CLAW.top, CLAW.right - CLAW.left, CLAW.floor - CLAW.top);
+  ctx.fillStyle = 'rgba(232,193,126,.85)'; ctx.fillRect(CLAW.left, CLAW.railY + 2, CLAW.right - CLAW.left, 8);
+  for (const b of clawBalls) if (b.held < 0) clawBall(ctx, b);
+  clawPlayers.forEach((p, i) => { if (p.on) clawDrawClaw(ctx, p, i); });
+  for (const b of clawBalls) if (b.held >= 0) clawBall(ctx, b);
+  // glass sheen over the front
+  const sh = ctx.createLinearGradient(CLAW.left, 0, CLAW.left + 500, 0);
+  sh.addColorStop(0, 'rgba(255,255,255,.10)'); sh.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = sh; ctx.fillRect(CLAW.left, CLAW.top, 500, CLAW.floor - CLAW.top);
+  clawFx = clawFx.filter(f => f.t < (f.kind === 'text' ? 1.4 : 0.9));
+  for (const f of clawFx) {
+    if (f.kind === 'text') {
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 1.4); ctx.fillStyle = f.colour; ctx.font = '700 46px Cormorant Garamond, Georgia, serif';
+      ctx.textAlign = 'center'; ctx.fillText(f.text, f.x, f.y - f.t * 90);
+    } else {
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 0.9); ctx.fillStyle = f.colour;
+      ctx.beginPath(); ctx.arc(f.x + f.vx * f.t, f.y + f.vy * f.t + 900 * f.t * f.t, 6, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+function clawFrame(now){
+  const dt = Math.min(0.05, (now - (clawLastT || now)) / 1000); clawLastT = now;
+  clawPlayers.forEach((p, i) => { if (p.on) clawStep(p, i, dt, now); });
+  clawPhysics(dt);
+  clawFx.forEach(f => { f.t += dt; });
+  while (clawRespawn.length && clawRespawn[0] <= now) {
+    clawRespawn.shift();
+    clawBalls.push(clawNewBall(CLAW.left + 80 + Math.random() * (CLAW.right - CLAW.left - 160), CLAW.top + 80));
+  }
+  clawTickPhase(now);
+  if (clawPhase === 'play') { const s = clawSecsLeft(now); if (s !== clawFrame.lastSecs) { clawFrame.lastSecs = s; clawRenderHud(); } }
+  clawSendState(false);
+  clawDraw(now);
+  clawRaf = requestAnimationFrame(clawFrame);
+}
+function clawResize(){
+  const cv = $('#clawCanvas'), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  clawScale = Math.min(cv.width / CLAW.W, cv.height / CLAW.H);
+  clawOffX = (cv.width - CLAW.W * clawScale) / 2; clawOffY = (cv.height - CLAW.H * clawScale) / 2;
+}
+window.addEventListener('resize', () => { if (clawRaf) clawResize(); });
+
+// The screen tells the phones the phase, clock and scores (sanitized again by the proxy).
+function clawSendState(force){
+  const now = performance.now();
+  if (!clawWs || clawWs.readyState !== 1 || (!force && now - clawLastSent < 500)) return;
+  clawLastSent = now;
+  clawWs.send(JSON.stringify({ type: 'claw-state', phase: clawPhase, timeLeft: Math.min(clawSecsLeft(now), CLAW.roundSecs), scores: clawPlayers.map(p => p.score), winners: clawWinners }));
+}
+function clawRoster(slots){
+  slots.forEach((on, i) => {
+    const p = clawPlayers[i];
+    if (on && !p.on) Object.assign(p, { on: true, x: 260 + i * 280, y: CLAW.restY, dir: 0, state: 'idle', open: 1, ball: null, score: clawPhase === 'play' ? 0 : p.score });
+    if (!on && p.on) { if (p.ball) p.ball.held = -1; Object.assign(p, { on: false, ball: null, dir: 0, score: 0 }); }
+  });
+  clawRenderHud();
+}
+function clawConnect(){
+  if (clawWs) return;
+  const sock = clawWs = new WebSocket(AUDIO_WS_URL + '?role=listen');
+  sock.addEventListener('open', () => { clawWsRetry = 0; sock.send(JSON.stringify({ type: 'claw-hello' })); clawSendState(true); });
+  sock.addEventListener('message', ev => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+    if (!m || typeof m.type !== 'string') return;
+    if (m.type === 'claw-roster' && Array.isArray(m.slots)) clawRoster(m.slots);
+    else if (m.type === 'claw-move' && clawPlayers[m.slot]) clawPlayers[m.slot].dir = m.dir === -1 || m.dir === 1 ? m.dir : 0;
+    else if (m.type === 'claw-drop') clawDrop(m.slot);
+    else if (m.type === 'claw-start') clawStart();
+  });
+  sock.addEventListener('close', () => {
+    if (clawWs !== sock) return; // an old socket closing after stopClaw() or a reconnect
+    clawWs = null; clawPlayers.forEach(p => { p.dir = 0; });
+    if (clawRaf) { clawWsRetry = Math.min(clawWsRetry + 1, 6); clawWsTimer = setTimeout(clawConnect, 1000 * clawWsRetry); }
+  });
+  sock.addEventListener('error', () => {});
+}
+function startClaw(){
+  if (clawRaf) return;
+  clawCtx = $('#clawCanvas').getContext('2d');
+  clawResize();
+  if (!clawBalls.length) clawFill();
+  clawLastT = 0; clawRenderHud();
+  clawRaf = requestAnimationFrame(clawFrame);
+  clawConnect();
+}
+function stopClaw(){
+  if (!clawRaf) return;
+  cancelAnimationFrame(clawRaf); clawRaf = null;
+  clearTimeout(clawWsTimer);
+  if (clawWs) { const w = clawWs; clawWs = null; try { w.close(); } catch (e) { /* closed */ } }
 }
 
 async function refreshGame(){
