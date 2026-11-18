@@ -1145,7 +1145,8 @@ function updateMainScreen(){
   const showMemory = active && currentGame.mode === 'memory';
   const showBackdrop = active && currentGame.mode === 'backdrop';
   const showViz = active && currentGame.mode === 'visualizer';
-  const showClaw = active && currentGame.mode === 'claw';
+  // a round in progress, or players seated, keeps the game up even if no phone has checked in lately (players watch the TV and phones auto-lock)
+  const showClaw = currentGame.mode === 'claw' && (active || Claw3D.busy());
   $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
@@ -2328,6 +2329,7 @@ const Claw3D = (function(){
   ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => SFX.unlock())); // a remote or a tap lets audio start where the browser asks for one
   return {
     supported: hasWebGL,
+    busy(){ return !!raf && (phase !== 'lobby' || flyers.length > 0 || players.some(p => p.on)); },
     start(onFail){
       if (raf) return;
       $('#clawGl').style.display = ''; $('#clawCanvas').style.display = 'none';
