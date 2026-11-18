@@ -16,6 +16,14 @@ Never put private information (seat owners, the quiz answer before reveal) on th
 ## Game-state design (design each one explicitly)
 Lobby (join, ready, start) → countdown → playing (whose turn / time left / what to do now) → resolution (reveal, capture, catch) → round end → game over (winner, play again). Plus: reconnecting, seat lost, full, idle/skipped.
 
+## Workflow
+1. Read the mode's state from the proxy (`/game` JSON and the rule module) and list phases, turn order, timers, legal actions and events.
+2. Write a state table: for each phase and event, what the pool screen shows, what the active phone shows, what the other phones show, and the sound or motion.
+3. Fill the gaps (reconnecting, seat lost, full, idle, tie) before coding.
+4. Design identity, turn signal and feedback with the patterns below.
+5. Implement presentation only; rules stay in the proxy.
+6. Verify every state with `visual-qa` (`shoot.js` fixtures) and play the flow end to end.
+
 ## Patterns that work here
 - **Player identity**: colour + avatar (`RYST_AVATARS`) + name, the same in every game. Active player = glow/border in their colour; leader = gold + crown.
 - **Turn clarity**: one sentence of status ("Your turn, Asha: roll the die"); the phone buzzes on your turn.
@@ -32,7 +40,14 @@ Lobby (join, ready, start) → countdown → playing (whose turn / time left / w
 4. Screen: a `<section class="screen rp-stage" id="screen-<mode>">`, a view module (`LudoView`/`QuizView` pattern) updated from `refreshGame`, `updateMainScreen` wiring, faster polling in `gameLoop` if turn-based.
 5. End-to-end test with two phones and the screen (visual-qa skill).
 
-## Checklist
+## Quality standards
+- Whose turn it is can be read within one second from the sun loungers (3–8 m) on the pool screen.
+- Every proxy event has visible feedback on both the phone that acted (under 100 ms, locally) and the pool screen (within a poll).
+- Player identity survives greyscale: colour plus avatar plus name, identical in every game.
+- Timers derive from server time and agree across phones within ~250 ms.
+- The game can be followed with sound off.
+
+## Completion checklist
 - [ ] Every state above designed on both phone and TV
 - [ ] Shared screen never shows private data
 - [ ] Player identity consistent across games

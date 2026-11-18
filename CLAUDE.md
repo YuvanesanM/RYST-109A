@@ -17,7 +17,7 @@ RYST PLAY, the villa's entertainment platform, lives here:
 | `assets/beach-art.js` | Shared illustrations: memory tiles (`RYST_BEACH_ART`, keyed by the proxy's emoji values) and player avatars (`RYST_AVATARS`) |
 | `assets/vendor/three-r128.min.js` | three.js r128, self-hosted, lazy-loaded by the 3D Claw Catch |
 | `assets/gsap/` | GSAP 3.12.5 (+ ScrollTrigger), self-hosted, used on `index.html` |
-| `assets/fonts/` | Self-hosted DM Sans (variable) and Cormorant Garamond |
+| `assets/fonts/` | Self-hosted Inter (variable, UI), Cormorant Garamond (display) and DM Sans (legacy canvas labels) |
 
 The authoritative game state and rules live in a **separate repo, `ryst-109a-proxy`** (`server.js`
 `/game` routes and the `/game/audio` WebSocket relay; `ludo.js`, `quiz.js` pure rule modules; tests
@@ -43,7 +43,7 @@ roles at once and let each one veto weak work:
 10. **Visual QA Specialist** — nothing ships without real screenshots inspected critically.
 
 Project skills (in `.claude/skills/`, they load on demand when a task matches their description,
-or by name): `creative-art-direction`, `premium-ui-ux`, `game-ui-design`, `3d-game-graphics`,
+or by name): `art-direction`, `premium-ui-ux`, `game-ui-design`, `3d-game-graphics`,
 `motion-graphics`, `responsive-tv-design`, `visual-qa`. Also installed: `impeccable` (design
 critique/polish/audit commands) and `taste-skill`. Review agents (in `.claude/agents/`):
 `creative-director`, `game-graphics-specialist`, `visual-qa-reviewer` — they review and report;
@@ -63,7 +63,7 @@ screens move over stage by stage (see `.claude/plans/ryst-play-redesign.md`).
 | Neon (games only) | X cyan `#4fe7ff`, O pink `#ff5fa2` | Tic-Tac-Toe, party moments |
 | Player colours | P1 `#ff7a4d`, P2 `#ffd166`, P3 `#4dd0e1`, P4 `#a6e35a` (Claw); Ludo red `#ff6b5e` green `#34c79a` yellow `#ffc94d` blue `#3d8bfd` | Seats, chips, tokens |
 
-CSS custom properties on both pages: `--rp-teal`, `--rp-gold`, `--rp-ivory`, `--rp-seafoam`.
+CSS custom properties on both pages: `--rp-teal`, `--rp-gold`, `--rp-ivory`, `--rp-seafoam`. Gold text only on teal, at large sizes.
 
 Type: **Inter** (self-hosted variable, `assets/fonts/Inter-Variable.woff2`, weights 600–800) for
 interface text and every number (tabular figures); **Cormorant Garamond** (600, italic for the accent
@@ -124,6 +124,10 @@ For every visual change:
 8. Re-test the affected multiplayer flow end to end (two phones + screen) before calling it done.
 
 Never declare a design complete because the code parses.
+
+Use the relevant project skills (`art-direction`, `premium-ui-ux`, `game-ui-design`, `3d-game-graphics`,
+`motion-graphics`, `responsive-tv-design`, `visual-qa`) during any game development or visual redesign;
+they are loaded by name, not as slash-command files.
 
 ## Working in this repo
 

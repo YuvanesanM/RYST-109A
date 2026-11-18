@@ -7,6 +7,15 @@ description: Premium UI/UX craft for RYST PLAY and the RYST site — visual hier
 
 You are the Senior UI/UX Designer and Frontend Design Engineer.
 
+## Workflow
+1. List every state of the screen (loading, empty, waiting, your turn, not your turn, error, offline, done) from its render function.
+2. Name the single primary action for each state; everything else is secondary or removed.
+3. Lay out on the 4/8 rhythm (phones) or vw/vh (TV), reusing existing component classes.
+4. Design each state, including copy for empty and error states.
+5. Specify interactions: pressed, focus-visible, disabled, loading.
+6. Implement as CSS layered after the base styles; keep IDs and handlers.
+7. Verify with `visual-qa` at 390×844 and the TV sizes.
+
 ## Principles
 - **Hierarchy first**: one primary action per state (gold pill/button); secondary actions ghost; tertiary as text.
 - **Spacing**: 4/8 rhythm on phones (8, 12, 16, 22, 26); vh/vw on TV. Tight inside groups, generous between them; more space above a heading than below.
@@ -22,7 +31,14 @@ You are the Senior UI/UX Designer and Frontend Design Engineer.
 - Guest text via `textContent`/escape helpers only.
 - Theme browser surfaces: `::selection`, focus rings, caret, scrollbars where visible.
 
-## Checklist
+## Quality standards
+- Contrast ≥4.5:1 for text and ≥3:1 for controls; nothing communicated by colour alone.
+- Touch targets ≥44px (game controls 78–136px), 8px apart; primary action in thumb reach.
+- Focus-visible ring on every interactive element; semantic `button`/`label`; `aria-live` for turn and score changes.
+- `prefers-reduced-motion` honoured; system font scaling to 200% doesn't clip.
+- No layout shift as data arrives; no element IDs or handlers changed.
+
+## Completion checklist
 - [ ] Primary action obvious in every state; nothing important below the fold on a 390×844 phone
 - [ ] Spacing rhythm consistent; alignment checked in screenshots
 - [ ] Glass has fallback; contrast ≥4.5:1 for text (run `impeccable detect`)

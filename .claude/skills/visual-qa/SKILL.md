@@ -16,6 +16,20 @@ You are the Visual QA Specialist. A design is not done until real screenshots sa
 - Combine shots into contact sheets with `ffmpeg -i a.png -i b.png -filter_complex hstack` to compare quickly; view them with the Read tool.
 - Screenshots for your own inspection at deviceScaleFactor 1; ones a person will see at 2.
 
+### Generic capture, checks and comparison
+Two extra scripts work on any page, alongside `shoot.js`:
+- `node .claude/skills/visual-qa/scripts/capture.mjs http://127.0.0.1:8765/display.html --sizes tv720,tv,tv4k,1440x1080 --tv-min-vw 1.1 --distance --block "**/data.ryst.in/**" --out <scratch>/display`
+  Screenshots plus automatic checks (page errors, horizontal overflow, TV scrolling, text below the minimum, text outside a 5% safe area, tap targets under 44px on phones, broken images); prints PASS/FAIL, writes `report.json`, exits 1 on failure. `--mock "<glob>=<file.json>"` serves a fixture; `--storage '{"ryst_play_token":"t"}'`; `--reduced-motion`.
+- `node .claude/skills/visual-qa/scripts/compare.mjs before.png after.png --out diff.png` prints the share of pixels that changed and the changed region, and writes a magenta diff image.
+
+## Workflow
+1. Baseline: shoot the affected screens before changing anything.
+2. Change, then shoot `after` with the same fixtures and sizes.
+3. Run `capture.mjs` on the changed pages for the mechanical checks.
+4. Open every screenshot and go through the inspection list below.
+5. Fix, re-shoot, and `compare.mjs` against the baseline until only intended changes remain.
+6. Re-run the multiplayer flow for any game touched, then report what was and wasn't verified.
+
 ## Inspect (be critical, item by item)
 1. Composition: one dominant element; reading order; balance; nothing colliding (titles vs 3D marquee, banners vs game aids).
 2. Alignment and spacing: edges line up; consistent gaps; text not centred where it should be left-aligned (rows, lists).
@@ -31,7 +45,13 @@ Also run `.claude/skills/impeccable/scripts/impeccable detect --json <page>` and
 ## Iterate
 Fix the issues found, re-shoot only the affected shots, compare before/after, repeat until nothing on the list remains. Then re-run the end-to-end flow for any game touched, and confirm existing behaviour (hub cards switch the pool screen, Back returns to the hub, claw joystick messages, QR images present).
 
-## Checklist
+## Quality standards
+- No visual change is reported done without real screenshots at the relevant sizes.
+- `capture.mjs` passes for each changed page, or every remaining failure is explained and accepted.
+- Zero page errors during the run; detector findings triaged.
+- Every claim in the final report is backed by a screenshot or script output; unverified parts are named.
+
+## Completion checklist
 - [ ] Shots captured at all relevant sizes with realistic states
 - [ ] Every inspection item checked; issues listed with the fix applied
 - [ ] Before/after compared; no new regressions

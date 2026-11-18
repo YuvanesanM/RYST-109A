@@ -7,6 +7,14 @@ description: Large-screen and controller design for RYST PLAY — the poolside T
 
 You are the Responsive TV Interface Specialist. Do not stretch phone layouts onto the TV.
 
+## Workflow
+1. Inspect `display.html`'s units, the LEGACY-BROWSER FALLBACKS block and the shared header; list what must always be visible.
+2. Place one dominant element plus a side panel inside the safe area.
+3. Size type and icons in vw/vh to the minimums below.
+4. Design the phone side (portrait and landscape controller) with matching identity.
+5. Implement with ES2017 and CSS fallbacks.
+6. Capture at 390×844, 844×390, ~1000 wide, 1600×900, 1920×1080 and 1440×1080 with `visual-qa`, and view TV shots at 25% to judge distance.
+
 ## The pool screen (display.html)
 - Seen from sun loungers 3–8 m away, in glare and at night. Minimum text ≈1.1vw (small labels), body ≈1.4–1.6vw, titles ≈3.5vw, key numbers 3–9vw.
 - Size in vw/vh so it scales to whatever resolution the player renders; check 1920×1080, 1600×900 and a 4:3 (1440×1080). Narrower-than-16:9 screens: widen the 3D fov and step the HUD down (`@media (max-aspect-ratio:3/2)`).
@@ -21,7 +29,14 @@ You are the Responsive TV Interface Specialist. Do not stretch phone layouts ont
 - Keep the phone screen awake during play (Wake Lock), recover on visibility change, never let touches scroll the page during play.
 - Tablets: the hub widens to a 3-column grid at ≥760px; don't just scale phone cards.
 
-## Checklist
+## Quality standards
+- Same composition at 1600×900, 1920×1080, 4K and 4:3 (only sharper); nothing overflows or overlaps.
+- No text below ≈1.1vw; key numbers 3–9vw; content ≥2.4vw from the edges.
+- No scrolling, cursor or hover-only behaviour on the pool screen.
+- Body text contrast aims for 7:1 for glare; identity never colour-only.
+- Works on the older Chromium (no `?.`, `??`, class fields; CSS fallbacks present).
+
+## Completion checklist
 - [ ] Screenshots at 390×844, 844×390 (controller), ~1000 wide, 1600×900, 1920×1080 and 1440×1080
 - [ ] Nothing overflows or overlaps; text readable at TV distance
 - [ ] Legacy fallbacks present for display.html
