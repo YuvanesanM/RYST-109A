@@ -10,10 +10,12 @@
 <link rel="icon" type="image/png" href="/assets/favicon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="/assets/beach-art.js"></script>
 
 <style>
   @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-italic.woff2') format('woff2'); }
 
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -226,12 +228,195 @@
   .mem-card.up{background:var(--foam);transform:rotateY(0)}
   .mem-card.matched{background:var(--foam);opacity:.55;cursor:default}
   .mem-card:disabled{cursor:default}
+
+  /* ═════════ RYST PLAY — coastal-luxury theme ═════════
+     A layer over the components above (same classes the scripts use):
+     deep teal night, ivory type, seafoam and muted-gold accents, glass
+     panels. Mobile-first; the hub widens to 3 columns on tablets. */
+  :root{
+    --ink:#f4efe4; --sea:#f4efe4; --sea-mid:#7fe3d4; --foam:rgba(255,255,255,.06); --white:rgba(255,255,255,.05);
+    --sand:#d8b46a; --coral:#ff9a7a; --muted:#a9c4bf; --muted-text:#a9c4bf; --line:rgba(255,255,255,.12);
+    --gold:#e2bf73; --gold-hi:#f7dfa4; --seafoam:#7fe3d4; --deep:#06202a; --glass:rgba(12,46,58,.55); --glass-edge:rgba(160,230,220,.18);
+    --neon-x:#4fe7ff; --neon-o:#ff5fa2;
+  }
+  html,body{background:var(--deep);color:var(--ink)}
+  body{align-items:flex-start;padding:18px 16px 40px;
+    background:radial-gradient(90% 60% at 50% 0%,#0f4656 0%,transparent 70%),radial-gradient(70% 40% at 50% 100%,rgba(79,231,255,.10),transparent 70%),linear-gradient(180deg,#082a36,#041820 80%);background-attachment:fixed}
+  body::before,body::after{content:'';position:fixed;top:0;width:46vw;max-width:340px;height:70vh;pointer-events:none;opacity:.22;background:no-repeat center/contain;z-index:0;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 400'%3E%3Cg fill='%2304141a'%3E%3Cpath d='M30 400C45 300 52 220 76 150l7 2C62 222 54 300 44 400Z'/%3E%3Cpath d='M80 152C50 110 15 104-20 120c40-34 80-24 104 28Z'/%3E%3Cpath d='M82 150C70 100 36 64-10 56c50-4 88 30 96 90Z'/%3E%3Cpath d='M86 148c12-54 50-84 104-88-50 16-80 50-96 92Z'/%3E%3Cpath d='M88 152c30-30 72-30 106-8-42-8-76 0-102 14Z'/%3E%3Cpath d='M84 150c-4-50 4-100 34-136-14 44-22 90-26 136Z'/%3E%3C/g%3E%3C/svg%3E")}
+  body::before{left:-8vw} body::after{right:-8vw;transform:scaleX(-1)}
+  .wrap{position:relative;z-index:1;max-width:460px}
+  body.hub .wrap{max-width:1000px}
+  .card{background:none;box-shadow:none;border:none;padding:0;overflow:visible}
+  .card::before{display:none}
+  .logo{height:44px;margin-bottom:6px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.4))}
+  h1{color:var(--ink);font-size:28px}
+  .sub{color:var(--muted-text)}
+  ::selection{background:rgba(226,191,115,.35);color:#fff}
+  :focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:10px}
+  .back-btn{color:var(--muted-text)}
+  .btn.primary{background:linear-gradient(180deg,#f7dfa4,#e2bf73 55%,#c99a4c);color:#1d2a2c;box-shadow:0 8px 22px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.6)}
+  .btn.ghost{background:rgba(255,255,255,.04);color:var(--ink);border:1.5px solid var(--line)}
+  /* glass panels for every activity screen */
+  .screen:not(#screen-dashboard):not(#screen-signin){background:var(--glass);border:1px solid var(--glass-edge);border-radius:26px;padding:20px 18px 22px;
+    box-shadow:0 24px 60px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+  #screen-signin{background:var(--glass);border:1px solid var(--glass-edge);border-radius:26px;padding:26px 20px}
+
+  /* ── the hub ── */
+  .rp-brand{display:flex;flex-direction:column;align-items:center;margin:4px 0 6px}
+  .rp-brand .villa{display:flex;align-items:center;gap:12px;font-family:var(--serif);font-weight:600;font-size:15px;letter-spacing:.32em;color:var(--gold);text-transform:uppercase}
+  .rp-brand .villa::before,.rp-brand .villa::after{content:'';width:34px;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+  .rp-brand .villa::after{transform:scaleX(-1)}
+  .rp-title{font-family:var(--sans);font-weight:800;font-size:44px;letter-spacing:-.02em;line-height:1;margin:10px 0 8px;color:var(--ink);text-align:center}
+  .rp-title em{font-family:var(--serif);font-style:italic;font-weight:600;font-size:1.18em;color:var(--gold);letter-spacing:0;text-shadow:0 0 22px rgba(226,191,115,.35)}
+  .rp-sub{color:var(--muted-text);font-size:13.5px;text-align:center;max-width:36ch;margin:0 auto 14px;line-height:1.5}
+  .rp-status{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .rp-pill{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;border-radius:100px;background:rgba(255,255,255,.05);border:1px solid var(--line);font-size:12px;font-weight:600;color:var(--muted-text)}
+  .rp-pill i{width:7px;height:7px;border-radius:50%;background:#7c8f8b}
+  .rp-pill.on i{background:#4ade80;box-shadow:0 0 8px #4ade80}
+  .rp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .rp-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:0;text-align:center;padding:14px 12px 14px;border-radius:22px;cursor:pointer;
+    background:linear-gradient(180deg,rgba(20,64,78,.62),rgba(8,34,44,.72));border:1px solid var(--glass-edge);color:var(--ink);font-family:var(--sans);
+    box-shadow:0 14px 34px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.06);transition:transform .25s cubic-bezier(.16,1,.3,1),border-color .25s,box-shadow .25s;
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+  .rp-card:active{transform:scale(.97)}
+  @media (hover:hover){ .rp-card:hover{transform:translateY(-4px);border-color:rgba(226,191,115,.55)} }
+  .rp-card.featured{border:1.5px solid rgba(226,191,115,.85);box-shadow:0 14px 34px rgba(0,0,0,.3),0 0 26px rgba(226,191,115,.25),inset 0 0 22px rgba(226,191,115,.08)}
+  .rp-card.live{border-color:var(--seafoam);box-shadow:0 14px 34px rgba(0,0,0,.3),0 0 22px rgba(127,227,212,.3)}
+  .rp-card .live-tag{position:absolute;top:10px;right:10px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#062b2b;background:var(--seafoam);padding:3px 8px;border-radius:100px;display:none}
+  .rp-card.live .live-tag{display:block}
+  .rp-art{width:100%;max-width:150px;height:92px;margin-bottom:6px}
+  .rp-art svg{width:100%;height:100%;overflow:visible}
+  .rp-card.featured .rp-art{animation:rp-bob 3.2s ease-in-out infinite}
+  @keyframes rp-bob{50%{transform:translateY(-4px)}}
+  .rp-name{font-weight:800;font-size:16.5px;letter-spacing:-.01em;margin-bottom:4px}
+  .rp-card.featured .rp-name{color:var(--gold-hi)}
+  .rp-desc{font-size:12px;line-height:1.4;color:var(--muted-text);margin-bottom:12px;min-height:34px}
+  .rp-cta{margin-top:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:100px;font-weight:700;font-size:12.5px;color:#1d2a2c;
+    background:linear-gradient(180deg,#f7dfa4,#e2bf73 55%,#c99a4c);box-shadow:0 6px 16px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.6)}
+  .rp-cta svg{width:9px;height:9px}
+  .rp-section{display:flex;align-items:center;gap:14px;margin:26px 0 12px;font-weight:800;font-size:17px;color:var(--gold);white-space:nowrap}
+  .rp-section::before,.rp-section::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(226,191,115,.6))}
+  .rp-section::after{transform:scaleX(-1)}
+  .rp-more{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .rp-tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border-radius:16px;text-align:center;text-decoration:none;cursor:pointer;
+    background:rgba(255,255,255,.04);border:1px solid rgba(226,191,115,.28);color:var(--ink);font-family:var(--sans);transition:border-color .2s,transform .2s}
+  .rp-tile:active{transform:scale(.96)}
+  .rp-tile svg{width:28px;height:28px;color:var(--gold)}
+  .rp-tile b{font-size:12.5px;font-weight:700}
+  .rp-tile span{font-size:10.5px;color:var(--muted-text);line-height:1.3}
+  .rp-tile.soon{opacity:.78}
+  .rp-tile.soon span{color:var(--gold)}
+  .rp-toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);opacity:0;z-index:20;padding:10px 16px;border-radius:100px;background:rgba(6,32,42,.92);border:1px solid var(--glass-edge);color:var(--ink);font-size:13px;font-weight:600;transition:opacity .25s,transform .25s;pointer-events:none;white-space:nowrap}
+  .rp-toast.show{opacity:1;transform:translate(-50%,0)}
+  @media (min-width:760px){ .rp-grid{grid-template-columns:repeat(3,1fr);gap:16px} .rp-more{grid-template-columns:repeat(6,1fr)} .rp-title{font-size:60px} .rp-art{height:110px} .rp-desc{font-size:13px} }
+  @media (max-width:340px){ .rp-grid{grid-template-columns:1fr} }
+  @media (prefers-reduced-motion:reduce){ .rp-card.featured .rp-art{animation:none} .rp-card,.rp-tile{transition:none} }
+
+  /* ── activity screens, upgraded ── */
+  /* tic-tac-toe: a neon board, cyan X and pink O */
+  .score{background:rgba(255,255,255,.05);border:1px solid var(--line)}
+  .score.x .mark{color:var(--neon-x);text-shadow:0 0 12px rgba(79,231,255,.6)} .score.o .mark{color:var(--neon-o);text-shadow:0 0 12px rgba(255,95,162,.6)}
+  .score .n{color:var(--ink)}
+  .turn .mark.x{color:var(--neon-x)} .turn .mark.o{color:var(--neon-o)}
+  .board{padding:10px;border-radius:20px;border:2px solid rgba(79,231,255,.7);box-shadow:0 0 22px rgba(79,231,255,.25),inset 0 0 18px rgba(79,231,255,.12);background:rgba(4,20,28,.6)}
+  .cell{background:rgba(255,255,255,.04);border:1px solid rgba(79,231,255,.25);color:var(--neon-x);text-shadow:0 0 14px rgba(79,231,255,.75)}
+  .cell.o{color:var(--neon-o);text-shadow:0 0 14px rgba(255,95,162,.75)}
+  .cell:not(:disabled):active{background:rgba(79,231,255,.12)}
+  /* scoreboard */
+  .count-btn{background:rgba(255,255,255,.04);border-color:var(--line);color:var(--muted-text)}
+  .count-btn.active{background:var(--gold);border-color:var(--gold);color:#1d2a2c}
+  .player-row{background:rgba(255,255,255,.05);border:1px solid var(--line)}
+  .player-row:nth-child(1){box-shadow:inset 3px 0 0 #ff7a4d} .player-row:nth-child(2){box-shadow:inset 3px 0 0 #ffd166} .player-row:nth-child(3){box-shadow:inset 3px 0 0 #4dd0e1} .player-row:nth-child(4){box-shadow:inset 3px 0 0 #a6e35a}
+  .player-name{color:var(--ink)}
+  .score-btn{background:rgba(255,255,255,.06);border-color:var(--line);color:var(--gold)}
+  .player-score{color:var(--gold-hi)}
+  /* memory: ocean-blue tiles with a shell on the back, ivory faces */
+  .mem-card{background:linear-gradient(160deg,#2d78b8,#174a7c);border:1px solid rgba(255,255,255,.18);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 6px 14px rgba(0,0,0,.25);position:relative;overflow:hidden}
+  .mem-card:not(.flipped):not(.matched)::after{content:'';position:absolute;inset:22%;background:no-repeat center/contain;opacity:.55;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cfe7ff' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M12 20c-4.5 0-8-3.5-8-8 0-2 1-4 2.5-5.3L12 4l5.5 2.7C19 8 20 10 20 12c0 4.5-3.5 8-8 8z'/%3E%3Cpath d='M12 20V5M12 20 7 7M12 20l5-13M12 20 4.6 9.6M12 20l7.4-10.4'/%3E%3C/svg%3E")}
+  .mem-card.flipped,.mem-card.matched{background:linear-gradient(160deg,#fbf3e2,#ead8b5);border-color:rgba(226,191,115,.7)}
+  .mem-card.matched{box-shadow:0 0 14px rgba(226,191,115,.55)}
+  /* party backdrop + DJ visuals */
+  .bd-label,.viz-tempo .lbl{color:var(--muted-text)}
+  .bd-text{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--ink)}
+  .bd-text::placeholder{color:rgba(244,239,228,.4)}
+  .bd-preset,.viz-preset{background:rgba(255,255,255,.05);color:var(--ink);border-color:transparent}
+  .bd-preset.active,.viz-preset.active{border-color:var(--gold)}
+  .viz-pal.active{border-color:var(--gold)}
+  .viz-tempo-btn{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--muted-text)}
+  .viz-tempo-btn.active{background:var(--gold);border-color:var(--gold);color:#1d2a2c}
+  .viz-live-card{background:rgba(255,255,255,.05);border:1px solid var(--line)}
+  .viz-live-title{color:var(--ink)}
+  /* claw controller */
+  .claw-mute{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--ink)}
+  .claw-me{background:rgba(255,255,255,.05);border:1px solid var(--line)}
+  .claw-nums b{color:var(--gold-hi)}
+  .claw-stick{background:radial-gradient(circle,rgba(255,255,255,.08) 0 40%,rgba(255,255,255,.03) 70%);box-shadow:inset 0 4px 14px rgba(0,0,0,.45),0 0 0 1px rgba(127,227,212,.25)}
+  .claw-stick svg.marks{color:var(--seafoam)}
+  .claw-knob{background:radial-gradient(circle at 38% 32%,#4fb7c4,#0e4c5c 70%);box-shadow:0 8px 16px rgba(0,0,0,.45),inset 0 2px 2px rgba(255,255,255,.3),0 0 16px rgba(127,227,212,.25)}
+  .claw-status.err{color:var(--coral)}
+  .claw-nums .time.low b{color:var(--coral)}
+
+  /* ── RYST PLAY refinements: one type system, drawn marks, corner back controls, a featured banner ── */
+  .rp-brand .villa-sub{font-family:var(--sans);font-size:9.5px;font-weight:700;letter-spacing:.55em;color:rgba(226,191,115,.75);text-transform:uppercase;margin-top:4px;padding-left:.55em}
+  .screen:not(#screen-dashboard):not(#screen-signin){position:relative}
+  .screen:not(#screen-dashboard):not(#screen-signin):not(#screen-claw) > .back-btn{position:absolute;top:14px;left:14px;margin:0;padding:7px 12px;border-radius:100px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);font-size:12px}
+  .screen:not(#screen-dashboard):not(#screen-signin):not(#screen-claw) > h1{margin-top:34px}
+  .screen h1{font-family:var(--sans);font-weight:800;font-size:25px;letter-spacing:-.02em}
+  .score .mark,.score .n,.player-score,.claw-nums b{font-family:var(--sans);font-weight:800;font-variant-numeric:tabular-nums}
+  .score .n{font-size:28px}
+  .cell{display:flex;align-items:center;justify-content:center;font-size:0}
+  .cell svg{width:64%;height:64%;fill:none;stroke-width:5;stroke-linecap:round;overflow:visible}
+  .cell .nx{stroke:var(--neon-x);filter:drop-shadow(0 0 6px rgba(79,231,255,.9))}
+  .cell .no{stroke:var(--neon-o);filter:drop-shadow(0 0 6px rgba(255,95,162,.9))}
+  .cell svg{animation:rp-draw .35s cubic-bezier(.16,1,.3,1)}
+  @keyframes rp-draw{from{transform:scale(.4);opacity:0}}
+  .mem-card.up,.mem-card.matched{background:linear-gradient(160deg,#fbf3e2,#ead8b5);border-color:rgba(226,191,115,.7);padding:12%}
+  .mem-card svg{width:100%;height:100%}
+  .mem-card.matched{box-shadow:0 0 14px rgba(226,191,115,.55);opacity:1}
+  .viz-preset .viz-ic{color:var(--seafoam);display:inline-flex;align-items:center;justify-content:center}
+  .viz-preset .viz-ic svg{width:22px;height:22px}
+  /* featured banner: the flagship game gets the width, the art and the detail */
+  .rp-hero{position:relative;display:flex;align-items:center;gap:6px;width:100%;margin-bottom:12px;padding:16px 16px 16px 6px;border-radius:24px;text-align:left;cursor:pointer;font-family:var(--sans);color:var(--ink);
+    background:radial-gradient(120% 140% at 0% 50%,rgba(226,191,115,.22),transparent 55%),linear-gradient(135deg,rgba(24,72,86,.75),rgba(8,32,42,.85));
+    border:1.5px solid rgba(226,191,115,.8);box-shadow:0 18px 40px rgba(0,0,0,.35),0 0 30px rgba(226,191,115,.2),inset 0 1px 0 rgba(255,255,255,.08);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);transition:transform .25s cubic-bezier(.16,1,.3,1)}
+  .rp-hero:active{transform:scale(.98)}
+  .rp-hero .live-tag{position:absolute;top:10px;right:12px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#062b2b;background:var(--seafoam);padding:3px 8px;border-radius:100px;display:none}
+  .rp-hero.live .live-tag{display:block}
+  .rp-hero-art{flex:0 0 42%;max-width:190px;height:128px}
+  .rp-hero-art svg{width:100%;height:100%;overflow:visible;animation:rp-bob 3.2s ease-in-out infinite}
+  .rp-hero-body{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+  .rp-hero-name{font-weight:800;font-size:23px;letter-spacing:-.02em;color:var(--gold-hi);line-height:1.05}
+  .rp-hero-desc{font-size:12.5px;line-height:1.45;color:var(--muted-text);margin:6px 0 8px}
+  .rp-hero-meta{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px}
+  .rp-hero-meta span{font-size:10.5px;font-weight:700;color:var(--seafoam);background:rgba(127,227,212,.1);border:1px solid rgba(127,227,212,.25);padding:3px 8px;border-radius:100px}
+  .rp-hero .rp-cta{margin-top:0}
+  .rp-grid > .rp-card:last-child:nth-child(odd){grid-column:1/-1;flex-direction:row;text-align:left;gap:12px;padding:12px 16px}
+  .rp-grid > .rp-card:last-child:nth-child(odd) .rp-art{flex:0 0 38%;max-width:140px;height:84px;margin:0}
+  .rp-grid > .rp-card:last-child:nth-child(odd) .rp-desc{min-height:0;margin-bottom:10px}
+  .rp-body{display:flex;flex-direction:column;align-items:center;flex:1;width:100%;min-width:0}
+  .rp-grid > .rp-card:last-child:nth-child(odd) .rp-body{align-items:flex-start}
+  @media (min-width:760px){
+    .rp-hero{padding:22px 28px 22px 14px;margin-bottom:16px} .rp-hero-art{max-width:300px;height:170px} .rp-hero-name{font-size:34px} .rp-hero-desc{font-size:14.5px;max-width:42ch}
+    .rp-grid{grid-template-columns:repeat(6,1fr)}
+    .rp-grid > .rp-card{grid-column:span 2}
+    .rp-grid > .rp-card:nth-child(4),.rp-grid > .rp-card:nth-child(5){grid-column:span 3;flex-direction:row;text-align:left;gap:14px;padding:16px 20px}
+    .rp-grid > .rp-card:nth-child(4) .rp-art,.rp-grid > .rp-card:nth-child(5) .rp-art{flex:0 0 40%;margin:0}
+    .rp-grid > .rp-card:nth-child(4) .rp-desc,.rp-grid > .rp-card:nth-child(5) .rp-desc{min-height:0}
+    .rp-grid > .rp-card:nth-child(4) .rp-body,.rp-grid > .rp-card:nth-child(5) .rp-body{align-items:flex-start}
+  }
+  @media (prefers-reduced-motion:reduce){ .rp-hero-art svg,.cell svg{animation:none} }
+  .screen h1.rp-title{font-size:44px;letter-spacing:-.02em}
+  @media (min-width:760px){ .screen h1.rp-title{font-size:62px} .rp-grid > .rp-card:last-child:nth-child(odd){grid-column:span 3} }
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="card">
     <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
+    <div class="rp-toast" id="rpToast" role="status" aria-live="polite"></div>
 
     <section class="screen active" id="screen-signin">
       <h1>Sign in to play</h1>
@@ -241,52 +426,14 @@
     </section>
 
     <section class="screen" id="screen-dashboard">
-      <h1>What would you like to do?</h1>
-      <p class="sub">Shared with the pool screen — everyone staying at the villa sees the same thing.</p>
-      <div class="menu">
-        <button type="button" class="menu-item" data-mode="claw">
-          <span class="menu-icon">🕹️</span>
-          <span>
-            <span class="menu-title">Claw Catch</span>
-            <span class="menu-desc">Up to 4 players — your phone steers a claw on the pool screen</span>
-          </span>
-        </button>
-        <button type="button" class="menu-item" data-mode="tictactoe">
-          <span class="menu-icon">🎮</span>
-          <span>
-            <span class="menu-title">Tic-Tac-Toe</span>
-            <span class="menu-desc">Take turns with the pool screen</span>
-          </span>
-        </button>
-        <button type="button" class="menu-item" data-mode="scoreboard">
-          <span class="menu-icon">🏆</span>
-          <span>
-            <span class="menu-title">Scoreboard</span>
-            <span class="menu-desc">Track points for up to 4 players</span>
-          </span>
-        </button>
-        <button type="button" class="menu-item" data-mode="memory">
-          <span class="menu-icon">🐚</span>
-          <span>
-            <span class="menu-title">Memory Match</span>
-            <span class="menu-desc">Find the beach-themed pairs — fun for kids</span>
-          </span>
-        </button>
-        <button type="button" class="menu-item" data-mode="backdrop">
-          <span class="menu-icon">🎉</span>
-          <span>
-            <span class="menu-title">Party Backdrop</span>
-            <span class="menu-desc">Custom message for birthdays &amp; celebrations</span>
-          </span>
-        </button>
-        <button type="button" class="menu-item" data-mode="visualizer">
-          <span class="menu-icon">🎛️</span>
-          <span>
-            <span class="menu-title">DJ Visuals</span>
-            <span class="menu-desc">Animated light-show for the pool screen</span>
-          </span>
-        </button>
-      </div>
+      <div class="rp-brand"><span class="villa">RYST 109A</span><span class="villa-sub">Beach Villa</span></div>
+      <h1 class="rp-title">RYST <em>Play</em></h1>
+      <p class="rp-sub">Shared with the pool screen — everyone at the villa sees the same thing.</p>
+      <div class="rp-status"><span class="rp-pill on" id="rpSession"><i></i>Signed in</span><span class="rp-pill" id="rpScreen"><i></i>Pool screen</span></div>
+      <div id="rpHero"></div>
+      <div class="rp-grid" id="rpGrid"></div>
+      <div class="rp-section">More fun at the villa</div>
+      <div class="rp-more" id="rpMore"></div>
     </section>
 
     <section class="screen" id="screen-claw">
@@ -399,13 +546,13 @@
       <label class="bd-label">Style</label>
       <div class="viz-presets" id="vizPresets">
         <button type="button" class="viz-preset" data-preset="spectrum">
-          <span class="viz-ic">📊</span><span>Spectrum Bars</span>
+          <span class="viz-ic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="12" width="3" height="9" rx="1"/><rect x="8" y="7" width="3" height="14" rx="1"/><rect x="13" y="10" width="3" height="11" rx="1"/><rect x="18" y="4" width="3" height="17" rx="1"/></svg></span><span>Spectrum Bars</span>
         </button>
         <button type="button" class="viz-preset" data-preset="waveform">
-          <span class="viz-ic">〰️</span><span>Waveform</span>
+          <span class="viz-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0 2 3 2 3"/></svg></span><span>Waveform</span>
         </button>
         <button type="button" class="viz-preset" data-preset="bass">
-          <span class="viz-ic">🔊</span><span>Bass Pulse</span>
+          <span class="viz-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="10" opacity=".5"/></svg></span><span>Bass Pulse</span>
         </button>
       </div>
       <label class="bd-label">Colours</label>
@@ -428,7 +575,7 @@
         <div class="viz-live-head"><span class="viz-live-dot" id="vizLiveDot"></span><span class="viz-live-title">Live Audio</span></div>
         <p class="viz-live-desc">Use this phone's microphone so the visuals react to the actual music instead of the tempo above. Only one phone can be live at a time — hold it near the speaker for the best result.</p>
         <p class="viz-live-status" id="vizLiveStatus">&nbsp;</p>
-        <button type="button" class="btn primary" id="vizGoLiveBtn">🎤 Go Live</button>
+        <button type="button" class="btn primary" id="vizGoLiveBtn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-2px;margin-right:6px" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Go Live</button>
         <button type="button" class="btn ghost" id="vizStopLiveBtn" style="display:none">Stop</button>
       </div>
     </section>
@@ -438,6 +585,98 @@
 
 <script>
 const PROXY_URL = 'https://data.ryst.in';
+
+// ── RYST PLAY: the activity registry ── the hub is rendered from this list,
+// so a new activity is one entry here plus its own <section id="screen-…">
+// (and its mode added to the proxy's /game/mode allow-list and to
+// display.html). `soon` entries show in "More fun at the villa" until built;
+// `href` entries are links to other villa pages.
+const ART = {
+  claw: `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><linearGradient id="aSteel" x1="0" x2="1"><stop offset="0" stop-color="#7d8a90"/><stop offset=".45" stop-color="#f2f6f7"/><stop offset="1" stop-color="#6e7a80"/></linearGradient><radialGradient id="aGlow"><stop offset="0" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffd27a" stop-opacity="0"/></radialGradient></defs>
+    <ellipse cx="75" cy="66" rx="58" ry="30" fill="url(#aGlow)"/><rect x="71" y="0" width="8" height="18" fill="#9aa6ab"/><rect x="62" y="16" width="26" height="14" rx="4" fill="url(#aSteel)"/><rect x="62" y="22" width="26" height="4" fill="#e2bf73"/>
+    <path d="M66 30C46 36 40 50 46 64M84 30c20 6 26 20 20 34" fill="none" stroke="url(#aSteel)" stroke-width="6" stroke-linecap="round"/><path d="M46 64l8 6M104 64l-8 6" stroke="#5d686e" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="75" cy="72" rx="22" ry="14" fill="#ff5a3c"/><ellipse cx="75" cy="76" rx="15" ry="7" fill="#ff8a6a"/><path d="M55 70c-10-2-14-10-10-16 6 2 8 8 10 10M95 70c10-2 14-10 10-16-6 2-8 8-10 10" fill="#ff5a3c"/>
+    <circle cx="68" cy="60" r="5" fill="#fff"/><circle cx="82" cy="60" r="5" fill="#fff"/><circle cx="69" cy="61" r="2.6" fill="#14171a"/><circle cx="81" cy="61" r="2.6" fill="#14171a"/><path d="M70 75q5 4 10 0" stroke="#7a1d0c" stroke-width="2" fill="none" stroke-linecap="round"/></svg>`,
+  tictactoe: `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><filter id="aNeon" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <rect x="31" y="4" width="88" height="88" rx="10" fill="rgba(4,20,28,.6)" stroke="rgba(255,255,255,.12)"/><path d="M75 8v80M35 48h80" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+    <g filter="url(#aNeon)" stroke-width="6" stroke-linecap="round" fill="none"><path d="M43 16l20 20M63 16 43 36M87 60l20 20M107 60 87 80" stroke="#4fe7ff"/><circle cx="97" cy="26" r="11" stroke="#ff5fa2"/><circle cx="53" cy="70" r="11" stroke="#ff5fa2"/></g></svg>`,
+  scoreboard: `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><linearGradient id="aGold" x1="0" x2="1"><stop offset="0" stop-color="#b8862f"/><stop offset=".5" stop-color="#ffe7a8"/><stop offset="1" stop-color="#a87726"/></linearGradient></defs>
+    <path d="M52 10h46v18c0 16-10 28-23 28S52 44 52 28z" fill="url(#aGold)"/><path d="M52 16H40c0 14 6 20 14 22M98 16h12c0 14-6 20-14 22" fill="none" stroke="url(#aGold)" stroke-width="5"/>
+    <path d="M70 56h10v14H70z" fill="#c99a4c"/><rect x="58" y="70" width="34" height="8" rx="2" fill="url(#aGold)"/><rect x="52" y="78" width="46" height="10" rx="3" fill="#8a6428"/>
+    <path d="M75 20l3.5 7 7.5 1-5.5 5 1.5 7.5L75 37l-6.5 3.5L70 33l-5.5-5 7.5-1z" fill="#fff4cf"/>
+    <g fill="#d8b46a">${[0,1,2,3,4].map(k => { const y = 72 - k * 10, x = 34 - Math.sin(k / 4 * 2.2) * 8; return `<ellipse cx="${x}" cy="${y}" rx="3.4" ry="7" transform="rotate(${-30 + k * 8} ${x} ${y})"/><ellipse cx="${150 - x}" cy="${y}" rx="3.4" ry="7" transform="rotate(${30 - k * 8} ${150 - x} ${y})"/>`; }).join('')}</g>
+    <path d="M38 80C26 70 24 50 32 32M112 80c12-10 14-30 6-48" fill="none" stroke="#b8923f" stroke-width="1.6"/></svg>`,
+  memory: `<svg viewBox="0 0 150 100" aria-hidden="true"><g transform="rotate(-10 55 50)"><rect x="28" y="16" width="50" height="66" rx="8" fill="#2d78b8" stroke="#cfe7ff" stroke-opacity=".5"/><path d="M53 66c-10 0-16-7-16-15 0-4 2-8 5-10l11-6 11 6c3 2 5 6 5 10 0 8-6 15-16 15z" fill="#e8f3ff"/><path d="M53 66V37M53 66l-9-26M53 66l9-26" stroke="#7fa9d6" stroke-width="1.4"/></g>
+    <g transform="rotate(10 95 50)"><rect x="72" y="14" width="50" height="66" rx="8" fill="#fbf3e2" stroke="#e2bf73"/><path d="M97 28l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#ff8a3d"/></g></svg>`,
+  backdrop: `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><linearGradient id="aSun" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb35c"/><stop offset="1" stop-color="#ff4f9a"/></linearGradient><filter id="aGlow2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <path d="M58 70a34 34 0 0 1 68 0z" fill="url(#aSun)"/><g stroke="#06202a" stroke-width="3"><path d="M60 58h64M62 50h60M66 42h52"/></g>
+    <g filter="url(#aGlow2)" fill="none" stroke="#4fe7ff" stroke-width="3" stroke-linecap="round"><path d="M44 80c2-20 6-36 14-48"/><path d="M58 32c-10-6-22-4-30 4M58 32c-4-10-14-16-24-14M58 32c8-8 20-8 28-2M58 32c10-2 18 4 22 12"/>
+    <path d="M14 82c12-6 22 6 34 0s22 6 34 0 22 6 34 0 18 4 24 2" stroke="#7fe3d4"/></g></svg>`,
+  visualizer: `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><linearGradient id="aHp" x1="0" x2="1"><stop offset="0" stop-color="#7b5cff"/><stop offset="1" stop-color="#4fe7ff"/></linearGradient><filter id="aGlow3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+    <path d="M47 64V54a28 28 0 0 1 56 0v10" fill="none" stroke="url(#aHp)" stroke-width="7" stroke-linecap="round"/><rect x="38" y="56" width="18" height="30" rx="7" fill="#5a3fd6"/><rect x="94" y="56" width="18" height="30" rx="7" fill="#3fb3d6"/>
+    <g filter="url(#aGlow3)" fill="none" stroke-width="3.5" stroke-linecap="round"><path d="M28 56c-4 6-4 18 0 24M18 50c-8 10-8 30 0 40" stroke="#7b5cff"/><path d="M122 56c4 6 4 18 0 24M132 50c8 10 8 30 0 40" stroke="#4fe7ff"/></g></svg>`,
+};
+const ICON = {
+  ludo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/></svg>',
+  quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/><path d="M10.6 8.6a1.6 1.6 0 1 1 2.2 1.5c-.5.2-.8.6-.8 1.1"/></svg>',
+  photo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  family: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="14" r="6"/><path d="M12 11l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z"/><path d="M8.5 3 10 8M15.5 3 14 8"/></svg>',
+  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 21h4"/></svg>',
+  gallery: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="9" r="1.5"/></svg>',
+};
+const ACTIVITIES = [
+  { mode: 'claw', name: 'Claw Catch', desc: 'Up to 4 players: your phone steers a claw on the pool screen', cta: 'Play now', featured: true },
+  { mode: 'tictactoe', name: 'Tic-Tac-Toe', desc: 'Take turns on the big screen', cta: 'Play now' },
+  { mode: 'scoreboard', name: 'Scoreboard', desc: 'Track points for up to 4 players', cta: 'Keep score' },
+  { mode: 'memory', name: 'Memory Match', desc: 'Find the beach-themed pairs, fun for kids', cta: 'Play now' },
+  { mode: 'backdrop', name: 'Party Backdrop', desc: 'Your message for birthdays and celebrations', cta: 'Create' },
+  { mode: 'visualizer', name: 'DJ Visuals', desc: 'A light show for the pool screen', cta: 'Play now' },
+];
+const MORE = [
+  { key: 'ludo', name: 'Ludo Lounge', note: 'Coming soon', soon: true },
+  { key: 'quiz', name: 'Quiz Night', note: 'Coming soon', soon: true },
+  { key: 'photo', name: 'Photo Booth', note: 'Coming soon', soon: true },
+  { key: 'family', name: 'Family Challenge', note: 'Coming soon', soon: true },
+  { key: 'gallery', name: 'Villa gallery', note: 'Photos of the villa', href: '/#gallery' },
+  { key: 'help', name: 'Need anything?', note: 'Requests and help', href: '/guest.html' },
+];
+const PLAY_ARROW = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 4-7 4z" fill="currentColor"/></svg>';
+(function renderHub(){
+  const hero = ACTIVITIES.find(a => a.featured), rest = ACTIVITIES.filter(a => !a.featured);
+  document.getElementById('rpHero').innerHTML = hero ? `
+    <button type="button" class="menu-item rp-hero" data-mode="${hero.mode}">
+      <span class="live-tag">On screen</span>
+      <span class="rp-hero-art">${ART[hero.mode] || ''}</span>
+      <span class="rp-hero-body">
+        <span class="rp-hero-name">${hero.name}</span>
+        <span class="rp-hero-desc">${hero.desc}</span>
+        <span class="rp-hero-meta"><span>1–4 players</span><span>60-second rounds</span><span>3D on the pool screen</span></span>
+        <span class="rp-cta">${hero.cta} ${PLAY_ARROW}</span>
+      </span>
+    </button>` : '';
+  document.getElementById('rpGrid').innerHTML = rest.map(a => `
+    <button type="button" class="menu-item rp-card" data-mode="${a.mode}">
+      <span class="live-tag">On screen</span>
+      <span class="rp-art">${ART[a.mode] || ''}</span>
+      <span class="rp-body"><span class="rp-name">${a.name}</span><span class="rp-desc">${a.desc}</span><span class="rp-cta">${a.cta} ${PLAY_ARROW}</span></span>
+    </button>`).join('');
+  document.getElementById('rpMore').innerHTML = MORE.map(m => m.href
+    ? `<a class="rp-tile" href="${m.href}">${ICON[m.key]}<b>${m.name}</b><span>${m.note}</span></a>`
+    : `<button type="button" class="rp-tile soon" data-soon="${m.name}">${ICON[m.key]}<b>${m.name}</b><span>${m.note}</span></button>`).join('');
+  let toastTimer = null;
+  document.querySelectorAll('[data-soon]').forEach(b => b.addEventListener('click', () => {
+    const t = document.getElementById('rpToast'); t.textContent = b.dataset.soon + ' is on its way to RYST Play'; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+  }));
+})();
+function renderHubState(){ // which activity the pool screen is showing right now
+  const names = {}; ACTIVITIES.forEach(a => { names[a.mode] = a.name; });
+  document.querySelectorAll('.rp-card,.rp-hero').forEach(c => c.classList.toggle('live', !!state.mode && c.dataset.mode === state.mode));
+  const pill = document.getElementById('rpScreen'); if (!pill) return;
+  pill.classList.toggle('on', !!state.mode);
+  pill.lastChild.textContent = state.mode ? 'Pool screen: ' + (names[state.mode] || 'playing') : 'Pool screen ready';
+}
+
 const $ = s => document.querySelector(s);
 let state = {
   mode: null, board: Array(9).fill(null), turn: 'X', winner: null, scoreX: 0, scoreO: 0,
@@ -488,6 +727,7 @@ function showScreen(mode){
   $('#screen-backdrop').classList.toggle('active', screen === 'backdrop');
   $('#screen-visualizer').classList.toggle('active', screen === 'visualizer');
   $('#screen-claw').classList.toggle('active', screen === 'claw');
+  document.body.classList.toggle('hub', screen === 'dashboard' || (screen !== 'signin' && !activities.includes(screen)));
   screen === 'claw' ? clawEnter() : clawExit();
 }
 
@@ -537,6 +777,8 @@ setTimeout(() => {
   }
 }, 8000);
 
+const NEON_X = '<svg class="nx" viewBox="0 0 40 40" aria-hidden="true"><path d="M10 10l20 20M30 10 10 30"/></svg>';
+const NEON_O = '<svg class="no" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="11"/></svg>';
 function renderTicTacToe(){
   $('#scoreX').textContent = state.scoreX;
   $('#scoreO').textContent = state.scoreO;
@@ -545,7 +787,7 @@ function renderTicTacToe(){
   else $('#turnLabel').innerHTML = `<span class="mark ${state.turn.toLowerCase()}">${state.turn}</span>'s turn`;
 
   $('#board').innerHTML = state.board.map((v,i) =>
-    `<button type="button" class="cell ${v==='O'?'o':''}" data-i="${i}" ${v||state.winner?'disabled':''}>${v||''}</button>`
+    `<button type="button" class="cell ${v==='O'?'o':''}" data-i="${i}" aria-label="${v ? v : 'Empty square ' + (i + 1)}" ${v||state.winner?'disabled':''}>${v === 'X' ? NEON_X : v === 'O' ? NEON_O : ''}</button>`
   ).join('');
   $('#board').querySelectorAll('.cell').forEach(btn => btn.addEventListener('click', () => move(Number(btn.dataset.i))));
 }
@@ -582,7 +824,8 @@ function renderMemory(){
     const faceUp = m.matched[i] || (m.flipped.includes(i) && (m.flipped.length === 1 || showMismatch));
     const cls = m.matched[i] ? 'matched' : (faceUp ? 'up' : '');
     const disabled = m.matched[i] || m.winner ? 'disabled' : '';
-    return `<button type="button" class="mem-card ${cls}" data-i="${i}" ${disabled}>${faceUp ? c : ''}</button>`;
+    const art = (window.RYST_BEACH_ART || {})[c] || c;
+    return `<button type="button" class="mem-card ${cls}" data-i="${i}" aria-label="${faceUp ? 'Card' : 'Hidden card'} ${i + 1}" ${disabled}>${faceUp ? art : ''}</button>`;
   }).join('');
   $('#memBoard').querySelectorAll('.mem-card').forEach(btn => btn.addEventListener('click', () => memFlip(Number(btn.dataset.i))));
   // A pending mismatch is only visible for MEM_MISMATCH_REVEAL_MS — re-render
@@ -632,6 +875,7 @@ function renderViz(){
 
 function render(){
   showScreen(state.mode);
+  renderHubState();
   renderTicTacToe();
   renderScoreboard();
   renderMemory();

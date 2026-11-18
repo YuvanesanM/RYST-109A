@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https://www.googletagmanager.com https://www.google.com https://*.google-analytics.com https://api.qrserver.com; connect-src 'self' https://data.ryst.in wss://data.ryst.in https://www.googletagmanager.com https://*.google-analytics.com https://*.analytics.google.com https://accounts.google.com https://api.open-meteo.com; frame-src https://accounts.google.com https://www.google.com; object-src 'none'; base-uri 'self'; form-action 'self';">
 <title>RYST 109A — Welcome</title>
+<script src="/assets/beach-art.js"></script>
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" type="image/png" href="/assets/favicon.png">
@@ -397,6 +398,82 @@
   @media (max-aspect-ratio:3/2){ .claw-join{width:23vw;top:28vh} .claw-chip{font-size:1.4vw;padding:.8vh 1.2vw} .claw-title .tx{font-size:2.6vw} }
   @media (prefers-reduced-motion:reduce){ .claw-amb .sway,.claw-conn.on i,.claw-chip.win,.claw-timer-pill.run .ic .hand,.claw-banner.count .big{-webkit-animation:none;animation:none} }
 
+
+  /* ═════ RYST PLAY on the pool screen: Tic-Tac-Toe, Memory Match, Scoreboard, Party Backdrop ═════
+     A lit glass stage for each game; neon marks; the same beach art as the phones (assets/beach-art.js).
+     Margins rather than gap/inset for the LED wall's older Chromium. */
+  .rp-stage{padding:0}
+  .rp-frame{position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:1.6vw;
+    background:radial-gradient(80% 70% at 50% 40%,rgba(30,96,112,.45),transparent 70%),linear-gradient(180deg,rgba(10,44,56,.6),rgba(4,20,28,.7));
+    border:1.5px solid rgba(160,230,220,.18);box-shadow:inset 0 0 6vw rgba(0,0,0,.35)}
+  .rp-stage h2{font-family:var(--sans) !important;font-weight:800 !important;letter-spacing:-.02em;color:#f2c66d !important;font-size:3.6vw !important;margin-bottom:3vh !important;text-shadow:0 .3vw 1.6vw rgba(242,198,109,.3)}
+  .rp-join{position:absolute;right:2.4vw;bottom:3vh;display:flex;align-items:center;padding:1vh 1vw;border-radius:1vw;background:rgba(6,24,34,.6);border:1px solid rgba(95,227,242,.3)}
+  .rp-join .qr{margin-right:1vw;padding:.6vw !important}
+  .rp-join .qr img{width:7vw !important;height:7vw !important}
+  .rp-join .qr-label{font-family:var(--sans);font-weight:700;color:#e6f2ef !important;opacity:1 !important;font-size:1vw !important;line-height:1.4}
+  /* tic-tac-toe */
+  #screen-game .game-layout{display:flex;align-items:center}
+  #screen-game .game-layout > * + *{margin-left:3.4vw}
+  .ttt-board{padding:1.4vw;border-radius:1.6vw;border:3px solid #4fe7ff;background:rgba(4,20,28,.65);box-shadow:0 0 2.4vw rgba(79,231,255,.4),inset 0 0 2vw rgba(79,231,255,.15);width:52vh !important}
+  .ttt-cell{background:rgba(255,255,255,.03) !important;border:1px solid rgba(79,231,255,.22) !important;border-radius:.8vw !important}
+  .ttt-cell svg{width:70%;height:70%;fill:none;stroke:#4fe7ff;stroke-width:5;stroke-linecap:round;overflow:visible;-webkit-filter:drop-shadow(0 0 .5vw rgba(79,231,255,.95));filter:drop-shadow(0 0 .5vw rgba(79,231,255,.95));
+    -webkit-animation:rp-in .4s cubic-bezier(.16,1,.3,1);animation:rp-in .4s cubic-bezier(.16,1,.3,1)}
+  .ttt-cell.o svg{stroke:#ff5fa2;-webkit-filter:drop-shadow(0 0 .5vw rgba(255,95,162,.95));filter:drop-shadow(0 0 .5vw rgba(255,95,162,.95))}
+  @-webkit-keyframes rp-in{from{-webkit-transform:scale(.4);opacity:0}} @keyframes rp-in{from{transform:scale(.4);opacity:0}}
+  .game-score{min-width:8vw !important;padding:1.6vh 1.6vw !important;border-radius:1.2vw !important;background:rgba(255,255,255,.05) !important}
+  .game-score .mark{font-family:var(--sans) !important;font-weight:800 !important;font-size:1.6vw !important;padding:.4vh .8vw;border-radius:.5vw;display:inline-block;color:#04202a !important}
+  .game-score .mark span{opacity:.7;margin-left:.3vw}
+  .game-score.x .mark{background:#4fe7ff} .game-score.o .mark{background:#ff5fa2}
+  .game-score .n{font-family:var(--sans) !important;font-weight:800 !important;font-size:4vw !important;margin-top:1vh;font-variant-numeric:tabular-nums}
+  .game-turn{margin-top:3vh;font-family:var(--sans);font-size:1.6vw !important}
+  .game-turn .mark.x{color:#4fe7ff !important} .game-turn .mark.o{color:#ff5fa2 !important}
+  /* memory */
+  #screen-memory .mem-layout{display:flex;align-items:center}
+  #screen-memory .mem-layout > * + *{margin-left:3vw}
+  .mem-side{display:flex;flex-direction:column;align-items:center;min-width:9vw}
+  .mem-side > * + *{margin-top:3vh}
+  .mem-board{width:min(62vh,42vw) !important;width:62vh}
+  .mem-card{border-radius:.9vw !important;background:linear-gradient(160deg,#2d78b8,#174a7c) !important;border:1px solid rgba(255,255,255,.2) !important;position:relative;overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 .5vw 1vw rgba(0,0,0,.3)}
+  .mem-card:not(.up):not(.matched)::after{content:'';position:absolute;top:22%;left:22%;width:56%;height:56%;background:no-repeat center/contain;opacity:.55;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23cfe7ff' stroke-width='1.4' stroke-linecap='round'%3E%3Cpath d='M12 20c-4.5 0-8-3.5-8-8 0-2 1-4 2.5-5.3L12 4l5.5 2.7C19 8 20 10 20 12c0 4.5-3.5 8-8 8z'/%3E%3Cpath d='M12 20V5M12 20 7 7M12 20l5-13M12 20 4.6 9.6M12 20l7.4-10.4'/%3E%3C/svg%3E")}
+  .mem-card.up,.mem-card.matched{background:linear-gradient(160deg,#fbf3e2,#ead8b5) !important;border-color:rgba(242,198,109,.75) !important;opacity:1 !important;padding:12%}
+  .mem-card.matched{box-shadow:0 0 1.2vw rgba(242,198,109,.55)}
+  .mem-card svg{width:100%;height:100%;-webkit-animation:rp-in .35s cubic-bezier(.16,1,.3,1);animation:rp-in .35s cubic-bezier(.16,1,.3,1)}
+  .mem-score{min-width:8vw !important;background:rgba(255,255,255,.05) !important;border-radius:1.2vw !important;padding:1.6vh 1.4vw !important}
+  .mem-score .mark{font-family:var(--sans) !important;font-weight:800 !important;font-size:1.5vw !important;color:#04202a !important;padding:.4vh .8vw;border-radius:.5vw;display:inline-block}
+  .mem-score.p1 .mark{background:#4fe7ff} .mem-score.p2 .mark{background:#ff5fa2}
+  .mem-score .n{font-family:var(--sans) !important;font-weight:800 !important;font-size:3.6vw !important;margin-top:1vh}
+  .mem-pairs{text-align:center;font-family:var(--sans);color:#bcd8d4}
+  .mem-pairs span{display:block;font-size:1.1vw;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+  .mem-pairs b{font-size:2.6vw;color:#fbfaf8;font-variant-numeric:tabular-nums}
+  .mem-turn{margin-top:3vh;font-family:var(--sans);font-size:1.6vw !important}
+  /* scoreboard */
+  .scoreboard-layout > *{margin:0 .9vw}
+  .scoreboard-col{position:relative;min-width:17vw !important;padding:5vh 2.6vw 4.4vh !important;border-radius:1.6vw !important;background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03)) !important;
+    border:1.5px solid rgba(255,255,255,.14) !important;box-shadow:0 1vw 3vw rgba(0,0,0,.3)}
+  .scoreboard-col::before{content:'';position:absolute;top:0;left:20%;right:20%;height:.4vh;border-radius:0 0 1vw 1vw;background:var(--pc,#f2c66d)}
+  .scoreboard-col.p1{--pc:#ff7a4d} .scoreboard-col.p2{--pc:#ffd166} .scoreboard-col.p3{--pc:#4dd0e1} .scoreboard-col.p4{--pc:#a6e35a}
+  .scoreboard-col .p-name{font-family:var(--sans) !important;font-weight:800 !important;color:var(--pc) !important;font-size:2.4vw !important;margin-bottom:2vh !important}
+  .scoreboard-col .p-score{font-family:var(--sans) !important;font-weight:800 !important;font-size:9vw !important;font-variant-numeric:tabular-nums;line-height:1}
+  .scoreboard-col .crown{position:absolute;top:-2.4vh;left:50%;width:2.6vw;height:2.6vw;margin-left:-1.3vw;fill:#f2c66d;opacity:0;-webkit-filter:drop-shadow(0 .3vw .8vw rgba(242,198,109,.6));filter:drop-shadow(0 .3vw .8vw rgba(242,198,109,.6))}
+  .scoreboard-col.lead{border-color:rgba(242,198,109,.8) !important;box-shadow:0 1vw 3vw rgba(0,0,0,.3),0 0 2.4vw rgba(242,198,109,.3)}
+  .scoreboard-col.lead .crown{opacity:1}
+  /* party backdrop: neon script lettering inside a frame of marquee bulbs, palms either side */
+  .backdrop-text{font-family:var(--serif) !important;font-style:italic;font-weight:600 !important;color:#ffe9f6 !important;font-size:9vw !important;line-height:1.05 !important;max-width:72vw;
+    text-shadow:0 0 .4vw #fff,0 0 1.2vw #ff5fd2,0 0 2.6vw #ff3fbf,0 0 5vw #b04cff !important;-webkit-animation:bd-flicker 6s infinite;animation:bd-flicker 6s infinite}
+  @-webkit-keyframes bd-flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.82}94%{opacity:1}96%{opacity:.9}}
+  @keyframes bd-flicker{0%,100%{opacity:1}92%{opacity:1}93%{opacity:.82}94%{opacity:1}96%{opacity:.9}}
+  .bd-bulbs{position:absolute;top:6vh;left:9vw;right:9vw;bottom:6vh;z-index:1;pointer-events:none;border-radius:1vw;
+    background:radial-gradient(circle,#ffe7a8 0 .35vw,rgba(255,200,110,.0) .7vw) 0 0/3.2vw 3.2vw;
+    -webkit-mask:linear-gradient(#000,#000) top/100% 1.6vw no-repeat,linear-gradient(#000,#000) bottom/100% 1.6vw no-repeat,linear-gradient(#000,#000) left/1.6vw 100% no-repeat,linear-gradient(#000,#000) right/1.6vw 100% no-repeat;
+    mask:linear-gradient(#000,#000) top/100% 1.6vw no-repeat,linear-gradient(#000,#000) bottom/100% 1.6vw no-repeat,linear-gradient(#000,#000) left/1.6vw 100% no-repeat,linear-gradient(#000,#000) right/1.6vw 100% no-repeat;
+    -webkit-filter:drop-shadow(0 0 .6vw rgba(255,200,110,.8));filter:drop-shadow(0 0 .6vw rgba(255,200,110,.8));-webkit-animation:bd-chase 1.6s steps(2) infinite;animation:bd-chase 1.6s steps(2) infinite}
+  @-webkit-keyframes bd-chase{50%{opacity:.75}} @keyframes bd-chase{50%{opacity:.75}}
+  .bd-palm{position:absolute;bottom:0;width:16vw;height:70vh;z-index:1;color:rgba(2,10,14,.85);pointer-events:none}
+  .bd-palm.l{left:-1vw} .bd-palm.r{right:-1vw;-webkit-transform:scaleX(-1);transform:scaleX(-1)}
+  .backdrop-bg.glow ~ .backdrop-text{color:#fff7e0 !important;text-shadow:0 0 .4vw #fff,0 0 1.4vw #ffd27a,0 0 3vw #f2a63c !important}
+  @media (prefers-reduced-motion:reduce){ .backdrop-text,.bd-bulbs,.ttt-cell svg,.mem-card svg{-webkit-animation:none;animation:none} }
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -545,46 +622,41 @@
     </div>
   </section>
 
-  <section class="screen" id="screen-game">
-    <div>
-      <h2>Live Game</h2>
+  <section class="screen rp-stage" id="screen-game">
+    <div class="rp-frame">
+      <h2>Tic-Tac-Toe</h2>
       <div class="game-layout">
+        <div class="game-score x"><div class="mark">P1 <span>X</span></div><div class="n" id="gameScoreX">0</div></div>
         <div class="ttt-board" id="tttBoard"></div>
-        <div class="game-side">
-          <div class="game-scoreboard">
-            <div class="game-score x"><div class="mark">X</div><div class="n" id="gameScoreX">0</div></div>
-            <div class="game-score o"><div class="mark">O</div><div class="n" id="gameScoreO">0</div></div>
-          </div>
-          <p class="game-turn" id="gameTurn">&nbsp;</p>
-          <div class="qr"><img id="qrPlay" alt="Scan to play"></div>
-          <span class="qr-label">Scan to play from your phone</span>
-        </div>
+        <div class="game-score o"><div class="mark">P2 <span>O</span></div><div class="n" id="gameScoreO">0</div></div>
       </div>
+      <p class="game-turn" id="gameTurn">&nbsp;</p>
+      <div class="rp-join"><div class="qr"><img id="qrPlay" alt="Scan to play"></div><span class="qr-label">Scan to play<br>from your phone</span></div>
     </div>
   </section>
 
-  <section class="screen" id="screen-scoreboard">
-    <div>
+  <section class="screen rp-stage" id="screen-scoreboard">
+    <div class="rp-frame">
       <h2>Scoreboard</h2>
       <div class="scoreboard-layout" id="scoreboardCols"></div>
     </div>
   </section>
 
-  <section class="screen" id="screen-memory">
-    <div>
+  <section class="screen rp-stage" id="screen-memory">
+    <div class="rp-frame">
       <h2>Memory Match</h2>
       <div class="mem-layout">
+        <div class="mem-side left">
+          <div class="mem-score p1"><div class="mark">P1</div><div class="n" id="memScore1">0</div></div>
+          <div class="mem-pairs"><span>Pairs</span><b id="memPairs">0/8</b></div>
+        </div>
         <div class="mem-board" id="memBoard"></div>
         <div class="mem-side">
-          <div class="mem-scoreboard">
-            <div class="mem-score"><div class="mark">P1</div><div class="n" id="memScore1">0</div></div>
-            <div class="mem-score"><div class="mark">P2</div><div class="n" id="memScore2">0</div></div>
-          </div>
-          <p class="mem-turn" id="memTurn">&nbsp;</p>
-          <div class="qr"><img id="qrPlayMemory" alt="Scan to play"></div>
-          <span class="qr-label">Scan to play from your phone</span>
+          <div class="mem-score p2"><div class="mark">P2</div><div class="n" id="memScore2">0</div></div>
         </div>
       </div>
+      <p class="mem-turn" id="memTurn">&nbsp;</p>
+      <div class="rp-join"><div class="qr"><img id="qrPlayMemory" alt="Scan to play"></div><span class="qr-label">Scan to play<br>from your phone</span></div>
     </div>
   </section>
 
@@ -594,6 +666,9 @@
         <span class="plight l1"></span><span class="plight l2"></span><span class="plight l3"></span><span class="plight l4"></span><span class="plight l5"></span>
         <div id="confettiField"></div>
       </div>
+      <div class="bd-bulbs" aria-hidden="true"></div>
+      <svg class="bd-palm l" viewBox="0 0 200 400" aria-hidden="true"><g fill="currentColor"><path d="M30 400C45 300 52 220 76 150l7 2C62 222 54 300 44 400Z"/><path d="M80 152C50 110 15 104-20 120c40-34 80-24 104 28Z"/><path d="M82 150C70 100 36 64-10 56c50-4 88 30 96 90Z"/><path d="M86 148c12-54 50-84 104-88-50 16-80 50-96 92Z"/><path d="M88 152c30-30 72-30 106-8-42-8-76 0-102 14Z"/><path d="M84 150c-4-50 4-100 34-136-14 44-22 90-26 136Z"/></g></svg>
+      <svg class="bd-palm r" viewBox="0 0 200 400" aria-hidden="true"><g fill="currentColor"><path d="M30 400C45 300 52 220 76 150l7 2C62 222 54 300 44 400Z"/><path d="M80 152C50 110 15 104-20 120c40-34 80-24 104 28Z"/><path d="M82 150C70 100 36 64-10 56c50-4 88 30 96 90Z"/><path d="M86 148c12-54 50-84 104-88-50 16-80 50-96 92Z"/><path d="M88 152c30-30 72-30 106-8-42-8-76 0-102 14Z"/><path d="M84 150c-4-50 4-100 34-136-14 44-22 90-26 136Z"/></g></svg>
       <div class="backdrop-text" id="backdropText">Let's Celebrate!</div>
     </div>
   </section>
@@ -805,7 +880,7 @@ function renderGame(g){
   $('#gameTurn').innerHTML = g.winner === 'draw' ? "It's a draw!"
     : g.winner ? `<span class="mark ${g.winner.toLowerCase()}">${g.winner}</span> wins!`
     : `<span class="mark ${g.turn.toLowerCase()}">${g.turn}</span>'s turn`;
-  $('#tttBoard').innerHTML = g.board.map(v => `<div class="ttt-cell ${v==='O'?'o':''}">${v||''}</div>`).join('');
+  $('#tttBoard').innerHTML = g.board.map(v => `<div class="ttt-cell ${v==='O'?'o':''}">${v === 'X' ? '<svg viewBox="0 0 40 40"><path d="M10 10l20 20M30 10 10 30"/></svg>' : v === 'O' ? '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="11"/></svg>' : ''}</div>`).join('');
 }
 
 // Player names are arbitrary guest-typed text going into innerHTML, so they
@@ -813,8 +888,10 @@ function renderGame(g){
 // input.value/textContent and never needs to.
 function renderScoreboard(g){
   const players = (g.players || []).slice(0, g.playerCount || 2);
+  const top = Math.max.apply(null, players.map(p => Number(p.score) || 0).concat([0]));
   $('#scoreboardCols').innerHTML = players.map((p, i) => `
-    <div class="scoreboard-col">
+    <div class="scoreboard-col p${i + 1}${top > 0 && Number(p.score) === top ? ' lead' : ''}">
+      <svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>
       <div class="p-name">${escHtml(p.name || ('Player ' + (i+1)))}</div>
       <div class="p-score">${p.score}</div>
     </div>`).join('');
@@ -836,8 +913,9 @@ function renderMemoryDisplay(g){
     : `Player ${m.turn}'s turn`;
   $('#memBoard').innerHTML = m.cards.map((c, i) => {
     const faceUp = m.matched[i] || (m.flipped.includes(i) && (m.flipped.length === 1 || showMismatch));
-    return `<div class="mem-card ${m.matched[i] ? 'matched' : ''}">${faceUp ? c : ''}</div>`;
+    return `<div class="mem-card ${m.matched[i] ? 'matched' : faceUp ? 'up' : ''}">${faceUp ? ((window.RYST_BEACH_ART || {})[c] || c) : ''}</div>`;
   }).join('');
+  const pe = $('#memPairs'); if (pe) pe.textContent = (m.matched.filter(Boolean).length / 2) + '/' + (m.cards.length / 2);
   if(m.flipped.length === 2 && !m.matched[m.flipped[0]]){
     const remaining = MEM_MISMATCH_REVEAL_MS - (Date.now() - m.mismatchAt);
     if(remaining > 0) setTimeout(() => renderMemoryDisplay(currentGame), remaining + 50);
