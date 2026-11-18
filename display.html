@@ -282,16 +282,25 @@
   .claw-players{display:flex;align-items:center}
   .claw-chip{display:flex;align-items:center;margin-left:1vw;padding:.7vh 1.1vw;border-radius:100px;background:rgba(4,16,24,.55);border:2px solid rgba(255,255,255,.12);
     font-weight:700;font-size:1.35vw;color:var(--white);white-space:nowrap;transition:opacity .4s,border-color .4s}
-  .claw-chip .dot{width:1.1vw;height:1.1vw;border-radius:50%;margin-right:.6vw;box-shadow:0 0 12px currentColor}
+  .claw-chip .dot{width:1.1vw;height:1.1vw;border-radius:50%;margin-right:.6vw;box-shadow:inset 0 -2px 3px rgba(0,0,0,.35),0 2px 6px rgba(0,0,0,.4)}
   .claw-chip .sc{font-family:var(--serif);font-size:1.5em;margin-left:.8vw;line-height:1}
   .claw-chip.empty{opacity:.42}
   .claw-chip.empty .sc{display:none}
   .claw-chip.lead{border-color:var(--sand)}
-  .claw-timer{font-family:var(--serif);font-weight:600;font-size:3.4vw;color:var(--white);text-shadow:0 3px 18px rgba(0,0,0,.45);min-width:9vw;text-align:center}
+  .claw-chip .sc{font-variant-numeric:tabular-nums}
+  .claw-chip.pop{-webkit-animation:claw-pop .45s cubic-bezier(.16,1,.3,1);animation:claw-pop .45s cubic-bezier(.16,1,.3,1)}
+  @-webkit-keyframes claw-pop{0%{-webkit-transform:scale(1)}35%{-webkit-transform:scale(1.18)}100%{-webkit-transform:scale(1)}}
+  @keyframes claw-pop{0%{transform:scale(1)}35%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .claw-timer{font-variant-numeric:tabular-nums;font-family:var(--serif);font-weight:600;font-size:3.4vw;color:var(--white);text-shadow:0 3px 18px rgba(0,0,0,.45);min-width:9vw;text-align:center}
   .claw-timer.low{color:var(--coral)}
   .claw-banner{position:absolute;left:43%;top:42%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);text-align:center;pointer-events:none;
     padding:3vh 4vw;border-radius:2vw;background:rgba(4,16,24,.62);box-shadow:0 20px 60px rgba(0,0,0,.35);transition:opacity .4s}
   .claw-banner.hide{opacity:0}
+  .claw-banner.slim{top:27%;padding:1.4vh 2.4vw}
+  .claw-banner.slim .big{font-size:2.6vw}
+  .claw-banner.slim .small{font-size:1.2vw;margin-top:.6vh}
+  .claw-banner.count{background:none;box-shadow:none}
+  .claw-banner.count .big{font-size:14vw;line-height:1;color:var(--sand);text-shadow:0 8px 40px rgba(0,0,0,.45)}
   .claw-banner .big{font-family:var(--serif);font-weight:600;font-size:5vw;line-height:1.05;color:var(--white)}
   .claw-banner .big em{font-style:italic;color:var(--sand)}
   .claw-banner .small{margin-top:1.4vh;font-size:1.6vw;color:var(--mist);font-weight:600}
@@ -1045,117 +1054,166 @@ function updateMainScreen(){
 }
 
 // ── CLAW CATCH ── the pool screen runs the whole game: physics, claws,
-// scoring and the round clock. Phones only send stick/drop/start presses,
-// which the proxy relays here over the same WebSocket as live audio, each
-// stamped with the slot (0–3) the proxy gave that phone — so a phone can
-// only ever move its own claw. Plain ES2017, no optional chaining: the LED
-// wall's player runs an older Chromium.
+// scoring and the round clock. Phones only send an analog stick value
+// (-1..1), drops and starts, which the proxy relays here over the same
+// WebSocket as live audio, each stamped with the slot (0–3) the proxy gave
+// that phone — so a phone can only ever move its own claw.
+//
+// Feel: the carriage eases up to the stick's speed, the claw hangs on its
+// cable as a damped pendulum (it swings when the carriage starts, stops or
+// turns, and a swinging grab is a worse grab), balls roll as they move and
+// knock into each other, and a catch flies up into its player's score.
+// Physics runs on a fixed 120 Hz step so it behaves the same at any frame
+// rate; balls are drawn from cached sprites, so a full pit stays cheap on
+// the LED wall's older player. Plain ES2017, no optional chaining.
 const CLAW = {
-  W: 1600, H: 900,                       // logical size; scaled to the canvas
+  W: 1600, H: 900,
   left: 60, right: 1330, top: 120, floor: 860,  // the right-hand strip is for the join code
-  railY: 150, restY: 215,                // claw rests with its tip here
-  moveSpeed: 560, dropSpeed: 700, liftSpeed: 430,
+  railY: 158, restLen: 66,                      // cable length when the claw is parked up top
+  maxSpeed: 600, accel: 7,                      // carriage px/s at full stick; how fast it reaches that (1/s)
+  dropSpeed: 760, liftSpeed: 470,
+  gravity: 2600, swingDamp: 2.6, swingCouple: 0.28, // how much the carriage's starts and stops rock the claw
   roundSecs: 60, countdownSecs: 3, overSecs: 10,
   colours: ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'],
   names: ['P1', 'P2', 'P3', 'P4'],
-  ballColours: ['#ff6fae', '#4d8dff', '#a6e35a', '#ffd166', '#4dd0e1', '#ff7a4d', '#f4efe6', '#b98cff'],
+  solids: ['#ff5d8f', '#3f7cff', '#8fd14f', '#ffc53d', '#33c6d6', '#ff7a45', '#a77bff'],
+  beach: [['#ff5d5d', '#ffd23f', '#3f9cff'], ['#ff7ab6', '#7ae0ff', '#ffe066'], ['#44d19a', '#ff8a3d', '#5c7cff']],
 };
-let clawCtx = null, clawRaf = null, clawLastT = 0, clawScale = 1, clawOffX = 0, clawOffY = 0;
-let clawBalls = [], clawFx = [], clawRespawn = [];
-let clawPlayers = [0, 1, 2, 3].map(i => ({ on: false, x: 260 + i * 280, y: CLAW.restY, dir: 0, state: 'idle', open: 1, t: 0, ball: null, score: 0 }));
+const CLAW_STEP = 1 / 120, CLAW_K = 1.4, CLAW_TIP = 60 * CLAW_K, CLAW_TIP_R = 16; // CLAW_K: the claw's drawn size, so it reads as big as a ball
+let clawCtx = null, clawRaf = null, clawLastT = 0, clawAcc = 0, clawScale = 1, clawOffX = 0, clawOffY = 0, clawDpr = 1;
+let clawBalls = [], clawFx = [], clawFlyers = [], clawRespawn = [], clawSprites = {}, clawStage = null;
 let clawPhase = 'lobby', clawPhaseEnd = 0, clawWinners = [], clawWs = null, clawWsRetry = 0, clawWsTimer = null, clawLastSent = 0;
+const clawHome = i => 230 + i * 290;
+function clawFreshPlayer(i){ return { on: false, cx: clawHome(i), cvx: 0, input: 0, len: CLAW.restLen, th: 0, om: 0, state: 'idle', grip: 0, t: 0, ball: null, score: 0, pulse: 0 }; }
+let clawPlayers = [0, 1, 2, 3].map(clawFreshPlayer);
 
+// ── balls ──
 function clawNewBall(x, y){
   const roll = Math.random();
-  const kind = roll < 0.04 ? 'pearl' : roll < 0.16 ? 'gold' : 'plain';
-  const r = kind === 'pearl' ? 30 : 33 + Math.random() * 8;
-  return { x, y, ox: x, oy: y, r, kind, value: kind === 'pearl' ? 5 : kind === 'gold' ? 3 : 1,
-    colour: CLAW.ballColours[Math.floor(Math.random() * CLAW.ballColours.length)], held: -1 };
+  const kind = roll < 0.04 ? 'pearl' : roll < 0.15 ? 'gold' : roll < 0.55 ? 'beach' : 'solid';
+  const r = kind === 'pearl' ? 30 : kind === 'gold' ? 34 : 33 + Math.floor(Math.random() * 3) * 3;
+  const look = kind === 'solid' ? Math.floor(Math.random() * CLAW.solids.length) : kind === 'beach' ? Math.floor(Math.random() * CLAW.beach.length) : 0;
+  return { x, y, ox: x, oy: y, r, kind, look, ang: Math.random() * 6.28, value: kind === 'pearl' ? 5 : kind === 'gold' ? 3 : 1, held: -1 };
 }
 function clawFill(){
   clawBalls = [];
-  for (let i = 0; i < 56; i++) {
-    const x = CLAW.left + 50 + Math.random() * (CLAW.right - CLAW.left - 100);
-    clawBalls.push(clawNewBall(x, CLAW.floor - 40 - Math.random() * 300));
-  }
-  for (let k = 0; k < 240; k++) clawPhysics(1 / 60); // settle before anyone sees it
+  for (let i = 0; i < 66; i++) clawBalls.push(clawNewBall(CLAW.left + 50 + Math.random() * (CLAW.right - CLAW.left - 100), CLAW.floor - 40 - Math.random() * 320));
+  for (let k = 0; k < 600; k++) clawPhysics(CLAW_STEP); // settle before anyone sees it
 }
+function clawHead(p){ return { x: p.cx + Math.sin(p.th) * p.len, y: CLAW.railY + Math.cos(p.th) * p.len }; }
 function clawPhysics(dt){
-  const g = 2200 * dt * dt, minX = CLAW.left + 6, maxX = CLAW.right - 6;
+  const g = CLAW.gravity * dt * dt, minX = CLAW.left + 4, maxX = CLAW.right - 4;
   for (const b of clawBalls) {
-    if (b.held >= 0) continue;
-    const vx = (b.x - b.ox) * 0.985, vy = (b.y - b.oy) * 0.985;
+    if (b.held !== -1) continue;
+    const vx = (b.x - b.ox) * 0.996, vy = (b.y - b.oy) * 0.996;
     b.ox = b.x; b.oy = b.y; b.x += vx; b.y += vy + g;
   }
-  for (let it = 0; it < 3; it++) {
+  // the claws' tips are solid: a descending claw shoulders balls aside instead of passing through them
+  const tips = [];
+  clawPlayers.forEach(p => { if (p.on && p.state !== 'idle') { const h = clawHead(p); tips.push({ x: h.x + Math.sin(p.th) * CLAW_TIP, y: h.y + Math.cos(p.th) * CLAW_TIP }); } });
+  for (let it = 0; it < 2; it++) {
     for (let i = 0; i < clawBalls.length; i++) {
-      const a = clawBalls[i]; if (a.held >= 0) continue;
+      const a = clawBalls[i]; if (a.held !== -1) continue;
       for (let j = i + 1; j < clawBalls.length; j++) {
-        const b = clawBalls[j]; if (b.held >= 0) continue;
+        const b = clawBalls[j]; if (b.held !== -1) continue;
         const dx = b.x - a.x, dy = b.y - a.y, min = a.r + b.r, d2 = dx * dx + dy * dy;
         if (d2 >= min * min || d2 === 0) continue;
-        const d = Math.sqrt(d2), push = (min - d) / 2, nx = dx / d, ny = dy / d;
+        const d = Math.sqrt(d2), push = (min - d) * 0.5, nx = dx / d, ny = dy / d;
         a.x -= nx * push; a.y -= ny * push; b.x += nx * push; b.y += ny * push;
+      }
+      for (const t of tips) {
+        const dx = a.x - t.x, dy = a.y - t.y, min = a.r + CLAW_TIP_R, d2 = dx * dx + dy * dy;
+        if (d2 < min * min && d2 > 0) { const d = Math.sqrt(d2); a.x += dx / d * (min - d) * 0.25; a.y += dy / d * (min - d) * 0.25; } // a nudge, not a plough
       }
     }
     for (const b of clawBalls) {
-      if (b.held >= 0) continue;
-      if (b.y + b.r > CLAW.floor) { b.y = CLAW.floor - b.r; b.oy = b.y + (b.y - b.oy) * 0.2; }
-      if (b.x - b.r < minX) { b.x = minX + b.r; b.ox = b.x; }
-      if (b.x + b.r > maxX) { b.x = maxX - b.r; b.ox = b.x; }
+      if (b.held !== -1) continue;
+      if (b.y + b.r > CLAW.floor) { b.y = CLAW.floor - b.r; b.oy = b.y + (b.y - b.oy) * 0.3; b.ox = b.x - (b.x - b.ox) * 0.9; }
+      if (b.x - b.r < minX) { b.x = minX + b.r; b.ox = b.x + (b.x - b.ox) * 0.4; }
+      if (b.x + b.r > maxX) { b.x = maxX - b.r; b.ox = b.x + (b.x - b.ox) * 0.4; }
     }
   }
+  for (const b of clawBalls) if (b.held === -1) b.ang += (b.x - b.ox) / b.r; // rolling
 }
-// The tip of a claw — where it touches and grabs — sits below its hub.
-const CLAW_TIP = 52;
-function clawStep(p, i, dt, now){
+// ── claws ──
+function clawStepPlayer(p, i, dt, now){
   const minX = CLAW.left + 70, maxX = CLAW.right - 70;
-  if (p.state === 'idle') {
-    p.x = Math.max(minX, Math.min(maxX, p.x + p.dir * CLAW.moveSpeed * dt));
-    p.open = Math.min(1, p.open + dt * 3);
-  } else if (p.state === 'down') {
-    p.y += CLAW.dropSpeed * dt;
-    const tip = p.y + CLAW_TIP;
-    let hit = tip >= CLAW.floor - 8;
-    for (const b of clawBalls) if (b.held < 0 && Math.abs(b.x - p.x) < b.r * 0.85 && tip >= b.y - b.r * 0.35) { hit = true; break; }
-    if (hit) { p.state = 'closing'; p.t = 0; }
-  } else if (p.state === 'closing') {
-    p.t += dt; p.open = Math.max(0, 1 - p.t / 0.35);
-    if (p.t >= 0.35) {
-      // the nearest free ball to the tip; a dead-centre grab nearly always holds, an edge grab rarely does
-      let best = null, bestD = 62;
+  const target = p.state === 'idle' ? p.input * CLAW.maxSpeed : 0;
+  const prevV = p.cvx;
+  p.cvx += (target - p.cvx) * Math.min(1, CLAW.accel * dt);
+  if (Math.abs(p.cvx) < 0.5 && target === 0) p.cvx = 0;
+  p.cx += p.cvx * dt;
+  if (p.cx < minX) { p.cx = minX; p.cvx = 0; } if (p.cx > maxX) { p.cx = maxX; p.cvx = 0; }
+  // damped pendulum hanging from the carriage: the carriage's acceleration is what sets it swinging
+  const acc = (p.cvx - prevV) / dt, L = Math.max(40, p.len);
+  p.om += (-(CLAW.gravity / L) * Math.sin(p.th) - (acc * CLAW.swingCouple / L) * Math.cos(p.th) - CLAW.swingDamp * p.om) * dt;
+  p.th = Math.max(-0.45, Math.min(0.45, p.th + p.om * dt));
+  const h = clawHead(p), tipX = h.x + Math.sin(p.th) * CLAW_TIP, tipY = h.y + Math.cos(p.th) * CLAW_TIP;
+  if (p.state === 'idle') { p.grip = Math.max(0, p.grip - dt * 3); }
+  else if (p.state === 'down') {
+    p.len += CLAW.dropSpeed * dt;
+    let blocked = tipY >= CLAW.floor - 10;
+    for (const b of clawBalls) if (b.held === -1 && Math.abs(b.x - tipX) < b.r * 0.95 && tipY >= b.y - b.r * 0.75) { blocked = true; break; }
+    if (blocked) { p.state = 'grip'; p.t = 0; }
+  } else if (p.state === 'grip') {
+    p.t += dt; p.grip = Math.min(1, p.t / 0.42);
+    if (p.t >= 0.42) {
+      let best = null, bestD = 1e9;
       for (const b of clawBalls) {
-        if (b.held >= 0) continue;
-        const d = Math.hypot(b.x - p.x, b.y - (p.y + CLAW_TIP));
-        if (d < bestD) { bestD = d; best = b; }
+        if (b.held !== -1) continue;
+        const d = Math.hypot(b.x - tipX, b.y - tipY);
+        if (d < b.r + 24 && d < bestD) { bestD = d; best = b; }
       }
-      if (best && Math.random() < (0.12 + 0.83 * (1 - bestD / 62)) * (best.kind === 'pearl' ? 0.8 : 1)) { best.held = i; p.ball = best; }
+      if (best) {
+        const centred = 1 - Math.min(1, Math.abs(best.x - tipX) / (best.r + 10));
+        const steady = 1 - Math.min(0.55, Math.abs(p.om) * 0.35 + Math.abs(p.th) * 1.5);
+        const odds = (0.18 + 0.8 * centred) * steady * (best.kind === 'pearl' ? 0.75 : best.kind === 'gold' ? 0.88 : 1);
+        if (Math.random() < odds) { best.held = i; p.ball = best; p.ballOff = (best.x - tipX) * 0.5; }
+        else best.ox = best.x - (best.x - tipX) * 0.08; // the prongs knock it as they miss
+      }
       p.state = 'up';
     }
   } else if (p.state === 'up') {
-    p.y -= CLAW.liftSpeed * dt;
+    p.len = Math.max(CLAW.restLen, p.len - CLAW.liftSpeed * dt);
     if (p.ball) {
-      const b = p.ball, slip = b.kind === 'pearl' ? 0.32 : b.kind === 'gold' ? 0.2 : 0.09; // chance per second of slipping out
-      b.x = p.x; b.y = p.y + CLAW_TIP + b.r * 0.35; b.ox = b.x; b.oy = b.y;
-      if (Math.random() < slip * dt) { b.held = -1; b.oy = b.y - 4; p.ball = null; clawFx.push({ kind: 'text', x: p.x, y: p.y + 40, text: 'Oops!', colour: '#ffffff', t: 0 }); }
+      const b = p.ball, wob = Math.abs(p.om) * 0.12;
+      const slip = (b.kind === 'pearl' ? 0.3 : b.kind === 'gold' ? 0.18 : 0.07) + wob + Math.abs(p.ballOff) * 0.012;
+      b.ox = b.x; b.oy = b.y;
+      b.x = tipX + p.ballOff * Math.cos(p.th); b.y = tipY - b.r * 0.15;
+      if (Math.random() < slip * dt) { // it slips: let it fall with the claw's own motion
+        b.held = -1; b.ox = b.x - (p.cvx + p.om * p.len) * dt; b.oy = b.y + CLAW.liftSpeed * dt * 0.5; p.ball = null;
+        clawFx.push({ kind: 'text', x: tipX, y: tipY + 30, text: 'So close!', colour: '#f6f1e6', t: 0 });
+      }
     }
-    if (p.y <= CLAW.restY) {
-      p.y = CLAW.restY; p.state = 'idle';
-      if (p.ball) clawScore(p, i, p.ball, now);
-      p.ball = null;
-    }
+    if (p.len <= CLAW.restLen) { p.state = 'idle'; if (p.ball) clawDeliver(p, i, p.ball, now); p.ball = null; }
   }
 }
-function clawScore(p, i, b, now){
-  clawBalls.splice(clawBalls.indexOf(b), 1);
-  clawRespawn.push(now + 1200);
+// A catch flies up into its player's chip on the scoreboard; the point lands when it arrives.
+function clawDeliver(p, i, b, now){
+  b.held = -2; // airborne: out of the pit, still drawn
   const counts = clawPhase === 'play' && now < clawPhaseEnd && clawSecsLeft(now) <= CLAW.roundSecs; // not during the 3-2-1
-  if (counts) p.score += b.value;
-  clawFx.push({ kind: 'text', x: p.x, y: p.y - 10, text: (counts ? '+' : 'Practice +') + b.value, colour: CLAW.colours[i], t: 0 });
-  for (let k = 0; k < 18; k++) clawFx.push({ kind: 'spark', x: p.x, y: p.y + 40, vx: (Math.random() - 0.5) * 700, vy: -Math.random() * 600, colour: b.kind === 'plain' ? b.colour : '#ffe28a', t: 0 });
-  clawRenderHud(); clawSendState(true);
+  const to = clawChipPoint(i);
+  clawFlyers.push({ b, i, x0: b.x, y0: b.y, x1: to.x, y1: to.y, t: 0, counts });
+  clawRespawn.push(now + 900);
+  for (let k = 0; k < 16; k++) clawFx.push({ kind: 'spark', x: b.x, y: b.y, vx: (Math.random() - 0.5) * 640, vy: -Math.random() * 520, colour: b.kind === 'gold' ? '#ffd76a' : b.kind === 'pearl' ? '#e9f3ff' : CLAW.colours[i], t: 0 });
 }
-function clawDrop(i){ const p = clawPlayers[i]; if (p && p.on && p.state === 'idle') { p.state = 'down'; p.dir = 0; } }
+function clawChipPoint(i){
+  const chip = document.querySelectorAll('#clawPlayers .claw-chip')[i], cv = $('#clawCanvas');
+  if (!chip || !cv) return { x: CLAW.W - 200, y: 40 };
+  const r = chip.getBoundingClientRect(), c = cv.getBoundingClientRect();
+  return { x: ((r.left + r.width * 0.75 - c.left) * clawDpr - clawOffX) / clawScale, y: ((r.top + r.height / 2 - c.top) * clawDpr - clawOffY) / clawScale };
+}
+function clawLand(f, now){
+  const p = clawPlayers[f.i];
+  clawBalls.splice(clawBalls.indexOf(f.b), 1);
+  if (f.counts && p.on) p.score += f.b.value;
+  clawFx.push({ kind: 'text', x: f.x1 - 30, y: f.y1 + 70, text: (f.counts ? '+' : 'Practice +') + f.b.value, colour: CLAW.colours[f.i], t: 0 });
+  clawRenderHud();
+  const chip2 = document.querySelectorAll('#clawPlayers .claw-chip')[f.i];
+  if (chip2) { chip2.classList.remove('pop'); void chip2.offsetWidth; chip2.classList.add('pop'); }
+  clawSendState(true);
+}
+function clawDrop(i){ const p = clawPlayers[i]; if (p && p.on && p.state === 'idle') { p.state = 'down'; p.input = 0; } }
 function clawStart(){
   if (clawPhase === 'play') return;
   clawPlayers.forEach(p => { p.score = 0; });
@@ -1164,8 +1222,8 @@ function clawStart(){
   clawRenderHud(); clawSendState(true);
 }
 function clawTickPhase(now){
-  if (clawPhase === 'play' && now >= clawPhaseEnd) {
-    const on = clawPlayers.map((p, i) => i).filter(i => clawPlayers[i].on);
+  if (clawPhase === 'play' && now >= clawPhaseEnd && !clawFlyers.some(f => f.counts)) { // let the last catches land first
+    const on = [0, 1, 2, 3].filter(i => clawPlayers[i].on);
     const top = Math.max.apply(null, on.map(i => clawPlayers[i].score).concat([0]));
     clawWinners = top > 0 ? on.filter(i => clawPlayers[i].score === top) : [];
     clawPhase = 'over'; clawPhaseEnd = now + CLAW.overSecs * 1000;
@@ -1174,98 +1232,184 @@ function clawTickPhase(now){
     clawPhase = 'lobby'; clawRenderHud(); clawSendState(true);
   }
 }
-function clawSecsLeft(now){
-  if (clawPhase !== 'play') return 0;
-  return Math.max(0, Math.ceil((clawPhaseEnd - now) / 1000));
-}
+function clawSecsLeft(now){ return clawPhase === 'play' ? Math.max(0, Math.ceil((clawPhaseEnd - now) / 1000)) : 0; }
 function clawRenderHud(){
   const now = performance.now(), left = clawSecsLeft(now), counting = clawPhase === 'play' && left > CLAW.roundSecs;
   const lead = Math.max.apply(null, clawPlayers.map(p => p.on ? p.score : 0));
-  $('#clawPlayers').innerHTML = clawPlayers.map((p, i) => `<div class="claw-chip${p.on ? '' : ' empty'}${p.on && lead > 0 && p.score === lead ? ' lead' : ''}"><span class="dot" style="background:${CLAW.colours[i]};color:${CLAW.colours[i]}"></span>${CLAW.names[i]}<span class="sc">${p.score}</span></div>`).join('');
+  const chips = $('#clawPlayers');
+  if (!chips.children.length) chips.innerHTML = clawPlayers.map((p, i) => `<div class="claw-chip"><span class="dot" style="background:${CLAW.colours[i]}"></span>${CLAW.names[i]}<span class="sc">0</span></div>`).join('');
+  clawPlayers.forEach((p, i) => { // update in place, so the catch "pop" animation isn't wiped by a re-render
+    const c = chips.children[i];
+    c.classList.toggle('empty', !p.on); c.classList.toggle('lead', p.on && lead > 0 && p.score === lead);
+    c.querySelector('.sc').textContent = p.score;
+  });
   const t = $('#clawTimer');
-  t.textContent = clawPhase === 'play' && !counting ? left + 's' : '';
+  t.textContent = clawPhase === 'play' && !counting ? '0:' + String(left).padStart(2, '0') : '';
   t.classList.toggle('low', clawPhase === 'play' && left <= 10);
   const nOn = clawPlayers.filter(p => p.on).length;
   let big = '', small = '';
-  if (clawPhase === 'play' && counting) { big = String(left - CLAW.roundSecs); small = 'Get ready!'; }
+  if (clawPhase === 'play' && counting) { big = String(left - CLAW.roundSecs); small = 'Get ready'; }
   else if (clawPhase === 'over') {
-    big = clawWinners.length === 1 ? `<em>${CLAW.names[clawWinners[0]]}</em> wins!` : clawWinners.length > 1 ? `It's a <em>tie</em>!` : 'Time!';
-    small = clawWinners.length ? clawWinners.map(i => CLAW.names[i]).join(' & ') + ' · ' + clawPlayers[clawWinners[0]].score + ' points' : 'No catches this round — try again!';
+    big = clawWinners.length === 1 ? `<em>${CLAW.names[clawWinners[0]]}</em> wins` : clawWinners.length > 1 ? `A <em>tie</em>` : 'Time';
+    small = clawWinners.length ? clawWinners.map(i => CLAW.names[i]).join(' & ') + ' · ' + clawPlayers[clawWinners[0]].score + ' points' : 'No catches this round. Press Start to try again.';
   } else if (clawPhase === 'lobby') {
     big = nOn ? 'Press <em>Start</em>' : 'Claw <em>Catch</em>';
-    small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in · practise now, or press Start on your phone for a ${CLAW.roundSecs}-second round` : 'Scan the code with your phone to join — up to 4 players';
+    small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in. Practise now, or press Start on your phone for a ${CLAW.roundSecs}-second round.` : 'Scan the code with your phone to join. Up to 4 players.';
   }
   $('#clawBannerBig').innerHTML = big; $('#clawBannerSmall').textContent = small;
-  $('#clawBanner').classList.toggle('hide', !big);
+  const ban = $('#clawBanner');
+  ban.classList.toggle('hide', !big); ban.classList.toggle('count', clawPhase === 'play' && counting);
+  ban.classList.toggle('slim', clawPhase === 'lobby' && nOn > 0); // players are practising: keep the pit visible
 }
-function clawBall(ctx, b){
-  const grd = ctx.createRadialGradient(b.x - b.r * 0.35, b.y - b.r * 0.4, b.r * 0.1, b.x, b.y, b.r);
-  if (b.kind === 'gold') { grd.addColorStop(0, '#fff6c8'); grd.addColorStop(0.45, '#ffd34d'); grd.addColorStop(1, '#b8860b'); }
-  else if (b.kind === 'pearl') { grd.addColorStop(0, '#ffffff'); grd.addColorStop(0.5, '#e8f4ff'); grd.addColorStop(1, '#a9b8d6'); }
-  else { grd.addColorStop(0, '#ffffff'); grd.addColorStop(0.28, b.colour); grd.addColorStop(1, 'rgba(0,0,0,.55)'); }
-  ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2); ctx.fill();
-  if (b.kind !== 'plain') {
-    ctx.save(); ctx.shadowColor = b.kind === 'gold' ? '#ffd34d' : '#bfe3ff'; ctx.shadowBlur = 24;
-    ctx.fillStyle = b.kind === 'gold' ? '#7a5200' : '#40507a';
-    ctx.font = `700 ${Math.round(b.r * 0.9)}px DM Sans, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(b.kind === 'gold' ? '3' : '5', b.x, b.y + 2); ctx.restore();
+
+// ── drawing ── everything static is pre-rendered once per size; each frame only composites sprites.
+function clawCanvas(w, h){ const c = document.createElement('canvas'); c.width = Math.max(1, Math.ceil(w)); c.height = Math.max(1, Math.ceil(h)); return c; }
+function clawSprite(b){
+  const key = b.kind + b.look + ':' + b.r;
+  if (clawSprites[key]) return clawSprites[key];
+  const s = b.r * 2 * clawScale, c = clawCanvas(s, s), x = c.getContext('2d'), R = s / 2;
+  // the surface pattern — this layer rotates as the ball rolls
+  const pat = clawCanvas(s, s), q = pat.getContext('2d');
+  q.beginPath(); q.arc(R, R, R, 0, Math.PI * 2); q.clip();
+  if (b.kind === 'beach') {
+    const cols = CLAW.beach[b.look];
+    q.fillStyle = '#fbf8f2'; q.fillRect(0, 0, s, s);
+    for (let k = 0; k < 6; k++) {
+      if (k % 2) continue;
+      q.fillStyle = cols[(k / 2) % 3];
+      q.beginPath(); q.moveTo(R, R); q.arc(R, R, R, k * Math.PI / 3, (k + 1) * Math.PI / 3); q.closePath(); q.fill();
+    }
+    q.fillStyle = '#fbf8f2'; q.beginPath(); q.arc(R, R, R * 0.16, 0, Math.PI * 2); q.fill();
+  } else if (b.kind === 'gold') {
+    q.fillStyle = '#e8b42c'; q.fillRect(0, 0, s, s);
+    q.fillStyle = '#fff1b8'; q.beginPath();
+    for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, rr = k % 2 ? R * 0.24 : R * 0.56; q.lineTo(R + Math.cos(a) * rr, R + Math.sin(a) * rr); }
+    q.closePath(); q.fill();
+  } else if (b.kind === 'pearl') {
+    const gp = q.createLinearGradient(0, 0, s, s); gp.addColorStop(0, '#fdfcff'); gp.addColorStop(0.5, '#e5ecff'); gp.addColorStop(1, '#ffe9f4');
+    q.fillStyle = gp; q.fillRect(0, 0, s, s);
+  } else {
+    q.fillStyle = CLAW.solids[b.look]; q.fillRect(0, 0, s, s);
+    q.strokeStyle = 'rgba(255,255,255,.28)'; q.lineWidth = s * 0.05; q.beginPath(); q.arc(R, R, R * 0.62, 0.3, 2.2); q.stroke();
   }
+  // shading — fixed to the light, it does not rotate: a soft key light up-left, dark falloff at the rim
+  const sh = clawCanvas(s, s), w = sh.getContext('2d');
+  const g1 = w.createRadialGradient(R * 0.62, R * 0.55, R * 0.05, R, R, R);
+  g1.addColorStop(0, 'rgba(255,255,255,.55)'); g1.addColorStop(0.35, 'rgba(255,255,255,.08)'); g1.addColorStop(0.75, 'rgba(0,0,0,.12)'); g1.addColorStop(1, 'rgba(0,10,20,.55)');
+  w.fillStyle = g1; w.beginPath(); w.arc(R, R, R, 0, Math.PI * 2); w.fill();
+  w.fillStyle = 'rgba(255,255,255,.75)'; w.beginPath(); w.ellipse(R * 0.62, R * 0.45, R * 0.2, R * 0.11, -0.6, 0, Math.PI * 2); w.fill();
+  return (clawSprites[key] = { pat, sh, s });
+}
+function clawBuildStage(){
+  // the cabinet, drawn once per size: lit back wall, floor, frame, rail and the glass's reflections
+  const cv = $('#clawCanvas'), st = clawCanvas(cv.width, cv.height), x = st.getContext('2d');
+  x.setTransform(clawScale, 0, 0, clawScale, clawOffX, clawOffY);
+  const L = CLAW.left, R = CLAW.right, T = CLAW.top, F = CLAW.floor;
+  x.fillStyle = 'rgba(0,0,0,.35)'; x.beginPath(); x.ellipse((L + R) / 2, F + 26, (R - L) * 0.52, 22, 0, 0, Math.PI * 2); x.fill(); // floor shadow under the cabinet
+  const wall = x.createLinearGradient(0, T, 0, F);
+  wall.addColorStop(0, '#2b6f80'); wall.addColorStop(0.45, '#14475a'); wall.addColorStop(1, '#0a2a38');
+  x.fillStyle = wall; x.fillRect(L, T, R - L, F - T);
+  const spot = x.createRadialGradient((L + R) / 2, T, 40, (L + R) / 2, T + 120, (R - L) * 0.7); // the cabinet's top light
+  spot.addColorStop(0, 'rgba(255,240,210,.32)'); spot.addColorStop(1, 'rgba(255,240,210,0)');
+  x.fillStyle = spot; x.fillRect(L, T, R - L, F - T);
+  x.fillStyle = 'rgba(0,0,0,.25)'; x.fillRect(L, F - 6, R - L, 6);
+  const frame = (fx, fy, fw, fh) => { const g = x.createLinearGradient(fx, fy, fx + fw, fy + fh); g.addColorStop(0, '#d9c08c'); g.addColorStop(0.5, '#f3e2b8'); g.addColorStop(1, '#a8874f'); x.fillStyle = g; x.fillRect(fx, fy, fw, fh); };
+  frame(L - 14, T - 14, R - L + 28, 14); frame(L - 14, F, R - L + 28, 16); frame(L - 14, T, 14, F - T); frame(R, T, 14, F - T);
+  const rail = x.createLinearGradient(0, CLAW.railY - 6, 0, CLAW.railY + 8);
+  rail.addColorStop(0, '#f6f0e2'); rail.addColorStop(0.5, '#9aa3a8'); rail.addColorStop(1, '#4b5559');
+  x.fillStyle = rail; x.fillRect(L, CLAW.railY - 6, R - L, 14);
+  return st;
+}
+function clawBuildGlass(){
+  const cv = $('#clawCanvas'), gl = clawCanvas(cv.width, cv.height), x = gl.getContext('2d');
+  x.setTransform(clawScale, 0, 0, clawScale, clawOffX, clawOffY);
+  const L = CLAW.left, R = CLAW.right, T = CLAW.top, F = CLAW.floor;
+  x.save(); x.beginPath(); x.rect(L, T, R - L, F - T); x.clip();
+  [[L + 120, 150, 0.09], [L + 330, 46, 0.06], [R - 380, 90, 0.04]].forEach(s => { // diagonal reflections on the front glass
+    x.fillStyle = `rgba(255,255,255,${s[2]})`; x.beginPath();
+    x.moveTo(s[0], T); x.lineTo(s[0] + s[1], T); x.lineTo(s[0] + s[1] - 260, F); x.lineTo(s[0] - 260, F); x.closePath(); x.fill();
+  });
+  const edge = x.createLinearGradient(L, 0, R, 0);
+  edge.addColorStop(0, 'rgba(0,0,0,.22)'); edge.addColorStop(0.08, 'rgba(0,0,0,0)'); edge.addColorStop(0.92, 'rgba(0,0,0,0)'); edge.addColorStop(1, 'rgba(0,0,0,.22)');
+  x.fillStyle = edge; x.fillRect(L, T, R - L, F - T);
+  x.restore();
+  return gl;
+}
+function clawDrawBall(ctx, b){
+  const sp = clawSprite(b), half = b.r; // sprite is in device pixels; draw it in logical units
+  ctx.save(); ctx.translate(b.x, b.y);
+  ctx.save(); ctx.rotate(b.ang); ctx.drawImage(sp.pat, -half, -half, half * 2, half * 2); ctx.restore();
+  ctx.drawImage(sp.sh, -half, -half, half * 2, half * 2);
+  ctx.restore();
 }
 function clawDrawClaw(ctx, p, i){
-  const c = CLAW.colours[i], hubY = p.y, spread = 12 + p.open * 30;
-  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(p.x, CLAW.railY + 14); ctx.lineTo(p.x, hubY - 16); ctx.stroke();      // cable
-  ctx.fillStyle = c; ctx.fillRect(p.x - 26, CLAW.railY - 4, 52, 20);                                 // carriage on the rail
-  ctx.fillStyle = '#0b2430'; ctx.font = '700 15px DM Sans, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(CLAW.names[i], p.x, CLAW.railY + 6);
-  ctx.save(); ctx.shadowColor = c; ctx.shadowBlur = 18;
-  ctx.fillStyle = c; ctx.beginPath(); ctx.arc(p.x, hubY - 6, 19, 0, Math.PI * 2); ctx.fill();         // hub
+  const c = CLAW.colours[i], h = clawHead(p), open = 1 - p.grip;
+  // carriage: a little trolley on the rail with the player's lamp
+  ctx.fillStyle = '#26333a'; ctx.fillRect(p.cx - 30, CLAW.railY - 18, 60, 22);
+  ctx.fillStyle = c; ctx.fillRect(p.cx - 30, CLAW.railY - 18, 60, 6);
+  ctx.fillStyle = '#111a1f'; [-18, 18].forEach(o => { ctx.beginPath(); ctx.arc(p.cx + o, CLAW.railY + 8, 6, 0, Math.PI * 2); ctx.fill(); });
+  ctx.fillStyle = '#f6f1e6'; ctx.font = '700 15px DM Sans, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(CLAW.names[i], p.cx, CLAW.railY - 5);
+  // cable
+  ctx.strokeStyle = 'rgba(220,228,232,.85)'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(p.cx, CLAW.railY + 4); ctx.lineTo(h.x, h.y); ctx.stroke();
+  // the claw itself, rotated with its swing
+  ctx.save(); ctx.translate(h.x, h.y); ctx.rotate(-p.th); ctx.scale(CLAW_K, CLAW_K);
+  const steel = ctx.createLinearGradient(-30, 0, 30, 0); steel.addColorStop(0, '#5d686e'); steel.addColorStop(0.45, '#eef2f3'); steel.addColorStop(1, '#6b767c');
+  ctx.fillStyle = steel; ctx.beginPath(); ctx.moveTo(-17, 0); ctx.lineTo(17, 0); ctx.lineTo(13, 22); ctx.lineTo(-13, 22); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = c; ctx.fillRect(-17, 6, 34, 6);
+  const prong = (side, depth) => { // a jointed steel prong: upper arm, knuckle, curled finger
+    const sp = side * (16 + open * 30) * depth, tipIn = side * (4 + open * 22) * depth;
+    ctx.strokeStyle = depth < 1 ? '#7d898f' : '#c9d1d4'; ctx.lineWidth = depth < 1 ? 6 : 8; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(side * 9 * depth, 20); ctx.lineTo(sp, 40); ctx.quadraticCurveTo(sp + side * 4, 56, tipIn, 62); ctx.stroke();
+    ctx.fillStyle = '#39444a'; ctx.beginPath(); ctx.arc(sp, 40, depth < 1 ? 3.5 : 4.5, 0, Math.PI * 2); ctx.fill();
+  };
+  prong(1, 0.55); prong(-1, 1); prong(1, 1);
   ctx.restore();
-  ctx.strokeStyle = c; ctx.lineWidth = 8; ctx.lineCap = 'round';
-  [-1, 1].forEach(s => {                                                                              // two prongs that open and close
-    ctx.beginPath(); ctx.moveTo(p.x + s * 8, hubY + 4);
-    ctx.quadraticCurveTo(p.x + s * (spread + 8), hubY + 22, p.x + s * (spread * 0.55), hubY + CLAW_TIP);
-    ctx.stroke();
-  });
-  ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(p.x, hubY + 6); ctx.lineTo(p.x, hubY + CLAW_TIP - 10); ctx.stroke();
 }
 function clawDraw(now){
   const cv = $('#clawCanvas'), ctx = clawCtx;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+  if (!clawStage) { clawStage = clawBuildStage(); clawStage.glass = clawBuildGlass(); }
+  ctx.drawImage(clawStage, 0, 0);
   ctx.setTransform(clawScale, 0, 0, clawScale, clawOffX, clawOffY);
-  // the cabinet: a glass box with a lit back wall and the top rail
-  const bg = ctx.createLinearGradient(0, CLAW.top, 0, CLAW.floor);
-  bg.addColorStop(0, 'rgba(77,168,184,.22)'); bg.addColorStop(1, 'rgba(11,61,82,.55)');
-  ctx.fillStyle = bg; ctx.fillRect(CLAW.left, CLAW.top, CLAW.right - CLAW.left, CLAW.floor - CLAW.top);
-  ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 4; ctx.strokeRect(CLAW.left, CLAW.top, CLAW.right - CLAW.left, CLAW.floor - CLAW.top);
-  ctx.fillStyle = 'rgba(232,193,126,.85)'; ctx.fillRect(CLAW.left, CLAW.railY + 2, CLAW.right - CLAW.left, 8);
-  for (const b of clawBalls) if (b.held < 0) clawBall(ctx, b);
-  clawPlayers.forEach((p, i) => { if (p.on) clawDrawClaw(ctx, p, i); });
-  for (const b of clawBalls) if (b.held >= 0) clawBall(ctx, b);
-  // glass sheen over the front
-  const sh = ctx.createLinearGradient(CLAW.left, 0, CLAW.left + 500, 0);
-  sh.addColorStop(0, 'rgba(255,255,255,.10)'); sh.addColorStop(1, 'rgba(255,255,255,0)');
-  ctx.fillStyle = sh; ctx.fillRect(CLAW.left, CLAW.top, 500, CLAW.floor - CLAW.top);
-  clawFx = clawFx.filter(f => f.t < (f.kind === 'text' ? 1.4 : 0.9));
+  ctx.save(); ctx.beginPath(); ctx.rect(CLAW.left, CLAW.top, CLAW.right - CLAW.left, CLAW.floor - CLAW.top); ctx.clip();
+  for (const b of clawBalls) if (b.held === -1) clawDrawBall(ctx, b);
+  clawPlayers.forEach((p, i) => { if (p.on && !p.ball) clawDrawClaw(ctx, p, i); });
+  clawPlayers.forEach((p, i) => { if (p.on && p.ball) { clawDrawBall(ctx, p.ball); clawDrawClaw(ctx, p, i); } }); // a held ball sits inside its claw's fingers
+  ctx.restore();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(clawStage.glass, 0, 0);
+  ctx.setTransform(clawScale, 0, 0, clawScale, clawOffX, clawOffY);
+  for (const f of clawFlyers) { // catches on their way to the scoreboard: an arc that shrinks into the chip
+    const e = 1 - Math.pow(1 - Math.min(1, f.t / 0.75), 3), lift = Math.sin(e * Math.PI) * 120;
+    f.b.x = f.x0 + (f.x1 - f.x0) * e; f.b.y = f.y0 + (f.y1 - f.y0) * e - lift;
+    ctx.save(); ctx.translate(f.b.x, f.b.y); ctx.scale(1 - e * 0.7, 1 - e * 0.7); ctx.translate(-f.b.x, -f.b.y);
+    clawDrawBall(ctx, f.b); ctx.restore();
+  }
   for (const f of clawFx) {
     if (f.kind === 'text') {
-      ctx.globalAlpha = Math.max(0, 1 - f.t / 1.4); ctx.fillStyle = f.colour; ctx.font = '700 46px Cormorant Garamond, Georgia, serif';
-      ctx.textAlign = 'center'; ctx.fillText(f.text, f.x, f.y - f.t * 90);
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 1.3); ctx.fillStyle = f.colour; ctx.font = '600 48px Cormorant Garamond, Georgia, serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(f.text, f.x, f.y - f.t * 70);
     } else {
-      ctx.globalAlpha = Math.max(0, 1 - f.t / 0.9); ctx.fillStyle = f.colour;
-      ctx.beginPath(); ctx.arc(f.x + f.vx * f.t, f.y + f.vy * f.t + 900 * f.t * f.t, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = Math.max(0, 1 - f.t / 0.8); ctx.fillStyle = f.colour;
+      ctx.beginPath(); ctx.arc(f.x + f.vx * f.t, f.y + f.vy * f.t + 900 * f.t * f.t, 5, 0, Math.PI * 2); ctx.fill();
     }
   }
   ctx.globalAlpha = 1;
 }
 function clawFrame(now){
-  const dt = Math.min(0.05, (now - (clawLastT || now)) / 1000); clawLastT = now;
-  clawPlayers.forEach((p, i) => { if (p.on) clawStep(p, i, dt, now); });
-  clawPhysics(dt);
-  clawFx.forEach(f => { f.t += dt; });
-  while (clawRespawn.length && clawRespawn[0] <= now) {
+  const dt = Math.min(0.1, (now - (clawLastT || now)) / 1000); clawLastT = now;
+  clawAcc += dt;
+  while (clawAcc >= CLAW_STEP) { // fixed step: the same game at 30, 60 or 120 fps
+    clawPlayers.forEach((p, i) => { if (p.on) clawStepPlayer(p, i, CLAW_STEP, now); });
+    clawPhysics(CLAW_STEP);
+    clawAcc -= CLAW_STEP;
+  }
+  clawFx.forEach(f => { f.t += dt; }); clawFx = clawFx.filter(f => f.t < (f.kind === 'text' ? 1.3 : 0.8));
+  clawFlyers.forEach(f => { f.t += dt; });
+  clawFlyers = clawFlyers.filter(f => { if (f.t >= 0.75) { clawLand(f, now); return false; } return true; });
+  while (clawRespawn.length && clawRespawn[0] <= now) { // a new ball drops in from above, so the pit stays full
     clawRespawn.shift();
-    clawBalls.push(clawNewBall(CLAW.left + 80 + Math.random() * (CLAW.right - CLAW.left - 160), CLAW.top + 80));
+    clawBalls.push(clawNewBall(CLAW.left + 80 + Math.random() * (CLAW.right - CLAW.left - 160), CLAW.railY + 60));
   }
   clawTickPhase(now);
   if (clawPhase === 'play') { const s = clawSecsLeft(now); if (s !== clawFrame.lastSecs) { clawFrame.lastSecs = s; clawRenderHud(); } }
@@ -1274,11 +1418,12 @@ function clawFrame(now){
   clawRaf = requestAnimationFrame(clawFrame);
 }
 function clawResize(){
-  const cv = $('#clawCanvas'), dpr = Math.min(2, window.devicePixelRatio || 1);
+  const cv = $('#clawCanvas'); clawDpr = Math.min(2, window.devicePixelRatio || 1);
   const w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
-  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  cv.width = Math.round(w * clawDpr); cv.height = Math.round(h * clawDpr);
   clawScale = Math.min(cv.width / CLAW.W, cv.height / CLAW.H);
   clawOffX = (cv.width - CLAW.W * clawScale) / 2; clawOffY = (cv.height - CLAW.H * clawScale) / 2;
+  clawSprites = {}; clawStage = null;
 }
 window.addEventListener('resize', () => { if (clawRaf) clawResize(); });
 
@@ -1292,8 +1437,8 @@ function clawSendState(force){
 function clawRoster(slots){
   slots.forEach((on, i) => {
     const p = clawPlayers[i];
-    if (on && !p.on) Object.assign(p, { on: true, x: 260 + i * 280, y: CLAW.restY, dir: 0, state: 'idle', open: 1, ball: null, score: clawPhase === 'play' ? 0 : p.score });
-    if (!on && p.on) { if (p.ball) p.ball.held = -1; Object.assign(p, { on: false, ball: null, dir: 0, score: 0 }); }
+    if (on && !p.on) { const keep = clawPhase === 'play' ? 0 : p.score; Object.assign(p, clawFreshPlayer(i), { on: true, score: keep }); }
+    if (!on && p.on) { if (p.ball) p.ball.held = -1; Object.assign(p, clawFreshPlayer(i)); }
   });
   clawRenderHud();
 }
@@ -1305,13 +1450,13 @@ function clawConnect(){
     let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
     if (!m || typeof m.type !== 'string') return;
     if (m.type === 'claw-roster' && Array.isArray(m.slots)) clawRoster(m.slots);
-    else if (m.type === 'claw-move' && clawPlayers[m.slot]) clawPlayers[m.slot].dir = m.dir === -1 || m.dir === 1 ? m.dir : 0;
+    else if (m.type === 'claw-move' && clawPlayers[m.slot]) { const d = Number(m.dir); clawPlayers[m.slot].input = isFinite(d) ? Math.max(-1, Math.min(1, d)) : 0; }
     else if (m.type === 'claw-drop') clawDrop(m.slot);
     else if (m.type === 'claw-start') clawStart();
   });
   sock.addEventListener('close', () => {
     if (clawWs !== sock) return; // an old socket closing after stopClaw() or a reconnect
-    clawWs = null; clawPlayers.forEach(p => { p.dir = 0; });
+    clawWs = null; clawPlayers.forEach(p => { p.input = 0; });
     if (clawRaf) { clawWsRetry = Math.min(clawWsRetry + 1, 6); clawWsTimer = setTimeout(clawConnect, 1000 * clawWsRetry); }
   });
   sock.addEventListener('error', () => {});
@@ -1321,7 +1466,7 @@ function startClaw(){
   clawCtx = $('#clawCanvas').getContext('2d');
   clawResize();
   if (!clawBalls.length) clawFill();
-  clawLastT = 0; clawRenderHud();
+  clawLastT = 0; clawAcc = 0; clawRenderHud();
   clawRaf = requestAnimationFrame(clawFrame);
   clawConnect();
 }

@@ -164,32 +164,57 @@
   .viz-live-status.warn{color:#c0922f}
 
 
-  /* ── CLAW CATCH (this phone is a joystick for one claw on the pool screen) ── */
-  .claw-me{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px}
-  .claw-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:100px;font-weight:700;font-size:15px;color:#0b2430}
-  .claw-stat{font-family:var(--serif);font-weight:600;font-size:22px;color:var(--sea)}
-  .claw-status{font-size:13px;font-weight:600;color:var(--muted-text);min-height:18px;margin-bottom:14px;line-height:1.45}
-  .claw-status.err{color:var(--coral)}
-  .claw-pad{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;touch-action:none;user-select:none;-webkit-user-select:none}
-  .claw-arrows{display:flex;gap:10px}
-  .claw-arrow,.claw-drop{border:none;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;font-family:var(--sans)}
-  .claw-arrow{flex-shrink:0;width:78px;height:78px;border-radius:22px;background:var(--sea);color:#fff;font-size:34px;font-weight:700;box-shadow:0 8px 0 #072a38;transition:transform .06s,box-shadow .06s}
-  .claw-arrow.on{transform:translateY(6px);box-shadow:0 2px 0 #072a38}
-  .claw-drop{flex-shrink:0;width:112px;height:112px;border-radius:50%;color:#1a2c33;font-size:17px;font-weight:800;letter-spacing:.06em;
-    background:radial-gradient(circle at 35% 30%,#fff3cf,#e3c486 55%,#c79a52);box-shadow:0 9px 0 #8a6428,0 16px 30px rgba(20,40,50,.25);transition:transform .06s,box-shadow .06s}
-  .claw-drop.on{transform:translateY(7px);box-shadow:0 2px 0 #8a6428}
-  .claw-drop:disabled,.claw-arrow:disabled{opacity:.4}
+  /* ── CLAW CATCH (this phone is a joystick for one claw on the pool screen) ──
+     A controller, not a form: one analog stick on the left thumb, one big
+     Drop on the right, a status strip on top. Everything reacts on touch-down
+     (never on click), the stick tracks the finger 1:1 and springs back when
+     let go, and nothing on this screen scrolls, selects or zooms. */
+  #screen-claw{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .claw-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .claw-top .back-btn{margin:0}
+  .claw-sig{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--muted-text);font-variant-numeric:tabular-nums}
+  .claw-sig i{width:8px;height:8px;border-radius:50%;background:#b9c3c0}
+  .claw-sig.good i{background:#2f9e6e} .claw-sig.ok i{background:#d39b2a} .claw-sig.bad i{background:#c0471c}
+  .claw-mute{width:34px;height:34px;border-radius:10px;border:1.5px solid var(--line);background:var(--white);color:var(--sea);display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+  .claw-mute svg{width:18px;height:18px}
+  .claw-me{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:16px;background:var(--foam);margin-bottom:10px}
+  .claw-badge{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;color:var(--ink)}
+  .claw-badge i{width:14px;height:14px;border-radius:50%;background:#c9d3d0;box-shadow:inset 0 -2px 3px rgba(0,0,0,.25)}
+  .claw-nums{display:flex;align-items:baseline;gap:14px;font-variant-numeric:tabular-nums}
+  .claw-nums b{font-family:var(--serif);font-weight:600;font-size:24px;color:var(--sea);line-height:1}
+  .claw-nums span{font-size:11px;font-weight:600;color:var(--muted-text);margin-left:3px}
+  .claw-nums .time.low b{color:#9c4520}
+  .claw-status{font-size:13px;font-weight:600;color:var(--muted-text);min-height:36px;margin-bottom:12px;line-height:1.4;display:flex;align-items:center;justify-content:center}
+  .claw-status.err{color:#9c4520}
+  .claw-pad{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+  .claw-stick{position:relative;flex:1 1 auto;max-width:220px;height:96px;border-radius:48px;touch-action:none;cursor:grab;
+    background:linear-gradient(180deg,#dce9e6,#eef5f3);box-shadow:inset 0 3px 8px rgba(11,61,82,.18),inset 0 -1px 0 rgba(255,255,255,.9)}
+  .claw-stick::before,.claw-stick::after{content:'';position:absolute;top:50%;width:0;height:0;margin-top:-7px;border:7px solid transparent;opacity:.35}
+  .claw-stick::before{left:14px;border-right:9px solid var(--sea);border-left:0}
+  .claw-stick::after{right:14px;border-left:9px solid var(--sea);border-right:0}
+  .claw-knob{position:absolute;top:8px;left:50%;width:80px;height:80px;margin-left:-40px;border-radius:50%;pointer-events:none;will-change:transform;
+    background:radial-gradient(circle at 38% 32%,#2a7f92,#0b3d52 70%);box-shadow:0 8px 14px rgba(7,42,56,.35),inset 0 2px 2px rgba(255,255,255,.25);
+    transition:transform .22s cubic-bezier(.16,1,.3,1)}
+  .claw-knob::after{content:'';position:absolute;top:22px;left:22px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,0) 70%);border:1.5px solid rgba(255,255,255,.18)}
+  .claw-stick.held .claw-knob{transition:none}
+  .claw-drop{flex-shrink:0;width:112px;height:112px;border-radius:50%;border:none;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;
+    font-family:var(--sans);font-size:15px;font-weight:800;letter-spacing:.08em;color:#1a2c33;
+    background:radial-gradient(circle at 35% 30%,#fff3cf,#e3c486 55%,#c79a52);box-shadow:0 9px 0 #8a6428,0 16px 28px rgba(20,40,50,.25);transition:transform .06s,box-shadow .06s}
+  .claw-drop.on{transform:translateY(7px);box-shadow:0 2px 0 #8a6428,0 6px 12px rgba(20,40,50,.2)}
+  .claw-drop:disabled,.claw-stick.off{opacity:.4;pointer-events:none}
   .claw-hint{font-size:12px;color:var(--muted-text);line-height:1.5;margin-top:12px}
   /* a phone held sideways, like a game controller: drop the chrome, keep the pad */
   @media (orientation:landscape) and (max-height:520px){
     body.claw-on{padding:8px}
-    body.claw-on .wrap{max-width:820px}
-    body.claw-on .card{padding:12px 22px 16px}
+    body.claw-on .wrap{max-width:860px}
+    body.claw-on .card{padding:12px 24px 16px}
     body.claw-on .logo, body.claw-on .claw-hint, body.claw-on #screen-claw h1{display:none}
-    body.claw-on .back-btn{margin-bottom:4px}
+    body.claw-on .claw-status{min-height:20px;margin-bottom:8px}
     body.claw-on .claw-pad{margin-bottom:10px}
-    body.claw-on .claw-arrow{width:100px;height:100px}
-    body.claw-on .claw-drop{width:132px;height:132px}
+    body.claw-on .claw-stick{max-width:300px;height:110px;border-radius:55px}
+    body.claw-on .claw-knob{width:94px;height:94px;margin-left:-47px}
+    body.claw-on .claw-knob::after{top:26px;left:26px;width:42px;height:42px}
+    body.claw-on .claw-drop{width:136px;height:136px}
   }
   /* ── MEMORY MATCH ── */
   .mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0 auto 22px;max-width:300px}
@@ -264,19 +289,25 @@
     </section>
 
     <section class="screen" id="screen-claw">
-      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <div class="claw-top">
+        <button type="button" class="back-btn" data-back>&larr; Back</button>
+        <span class="claw-sig" id="clawSig"><i></i><span>Connecting</span></span>
+        <button type="button" class="claw-mute" id="clawMute" aria-label="Sound off" aria-pressed="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/><path class="off" d="m22 9-6 6M16 9l6 6" style="display:none"/></svg>
+        </button>
+      </div>
       <h1>Claw Catch</h1>
-      <div class="claw-me"><span class="claw-badge" id="clawBadge" style="background:#e8f2f0">Joining…</span><span class="claw-stat" id="clawMyScore"></span></div>
+      <div class="claw-me">
+        <span class="claw-badge"><i id="clawDot"></i><span id="clawBadge">Joining</span></span>
+        <span class="claw-nums"><span class="time" id="clawTimeWrap"><b id="clawTime">–</b><span>sec</span></span><span><b id="clawMyScore">0</b><span>pts</span></span></span>
+      </div>
       <p class="claw-status" id="clawStatus">&nbsp;</p>
       <div class="claw-pad">
-        <div class="claw-arrows">
-          <button type="button" class="claw-arrow" id="clawLeft" aria-label="Move left">&#9664;</button>
-          <button type="button" class="claw-arrow" id="clawRight" aria-label="Move right">&#9654;</button>
-        </div>
+        <div class="claw-stick" id="clawStick" role="slider" aria-label="Move your claw left and right" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0"><div class="claw-knob" id="clawKnob"></div></div>
         <button type="button" class="claw-drop" id="clawDropBtn">DROP</button>
       </div>
       <button type="button" class="btn primary" id="clawStartBtn" style="width:100%">Start a round</button>
-      <p class="claw-hint">Hold ◀ ▶ to line your claw up over a ball, then drop. Gold balls are worth 3, pearls 5 — but they slip more easily.</p>
+      <p class="claw-hint">Slide the stick to steer: push further to move faster. Let the claw stop swinging before you drop. Gold balls are worth 3 and pearls 5, but they slip out more easily.</p>
     </section>
 
     <section class="screen" id="screen-tictactoe">
@@ -822,82 +853,157 @@ document.addEventListener('visibilitychange', () => { if(document.hidden && live
 
 // ── CLAW CATCH ── this phone holds one of the 4 player seats and sends its
 // stick/drop presses to the pool screen over the same WebSocket relay as
-// live audio (REST polling is far too slow for a joystick). The proxy
-// gives out the seats and stamps every press with this phone's seat, and
-// the pool screen runs the game and sends back the clock and scores.
+// live audio (REST polling is far too slow for a joystick). The proxy gives
+// out the seats and stamps every press with this phone's seat; the pool
+// screen runs the game and sends back the clock and scores.
+//
+// Latency: everything fires on pointerdown, the analog stick sends only when
+// its value changes (in 0.05 steps, at most every 25 ms, always ending on
+// the exact release value), and the phone pings the proxy every 2 s to show
+// the live round trip. Feedback that can't wait for the network (the knob,
+// button press, haptics, sound) happens on the phone itself instantly.
 const CLAW_COLOURS = ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'];
 let clawWs = null, clawSlot = null, clawDir = 0, clawWanted = false, clawRetry = 0, clawRetryTimer = null, clawLastScore = 0;
-let clawGame = { phase: 'lobby', timeLeft: 0, scores: [0, 0, 0, 0], winners: [] };
+let clawSentDir = 0, clawSendAt = 0, clawSendTimer = null, clawPingTimer = null, clawWake = null, clawAudio = null;
+let clawMuted = false; try{ clawMuted = localStorage.getItem('ryst_claw_muted') === '1'; }catch(e){}
+let clawGame = { phase: 'lobby', timeLeft: 0, scores: [0, 0, 0, 0], winners: [] }, clawPrevPhase = 'lobby';
 function clawSend(m){ if(clawWs && clawWs.readyState === 1) clawWs.send(JSON.stringify(m)); }
 function clawSetStatus(text, err){ const el = $('#clawStatus'); el.textContent = text || ' '; el.classList.toggle('err', !!err); }
+function clawBuzz(p){ if(navigator.vibrate) try{ navigator.vibrate(p); }catch(e){} }
+// Tiny synthesized sounds (no files to load): a click, a motor whirr, a clunk and a chime.
+function clawTone(kind){
+  if(clawMuted) return;
+  try{
+    if(!clawAudio) clawAudio = new (window.AudioContext || window.webkitAudioContext)();
+    const a = clawAudio, t = a.currentTime, o = a.createOscillator(), g = a.createGain();
+    o.connect(g); g.connect(a.destination);
+    const env = (peak, dur) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(peak, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.start(t); o.stop(t + dur + 0.02); };
+    if(kind === 'tick'){ o.type = 'square'; o.frequency.setValueAtTime(1800, t); env(0.03, 0.03); }
+    else if(kind === 'drop'){ o.type = 'sawtooth'; o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.5); env(0.06, 0.55); }
+    else if(kind === 'catch'){ o.type = 'triangle'; o.frequency.setValueAtTime(660, t); o.frequency.setValueAtTime(990, t + 0.09); o.frequency.setValueAtTime(1320, t + 0.18); env(0.12, 0.42); }
+    else if(kind === 'go'){ o.type = 'triangle'; o.frequency.setValueAtTime(520, t); o.frequency.exponentialRampToValueAtTime(1040, t + 0.25); env(0.1, 0.3); }
+  }catch(e){ /* no Web Audio: silent */ }
+}
+function clawRenderMute(){
+  const b = $('#clawMute'); b.setAttribute('aria-pressed', String(clawMuted)); b.setAttribute('aria-label', clawMuted ? 'Sound on' : 'Sound off');
+  b.querySelector('.on').style.display = clawMuted ? 'none' : ''; b.querySelector('.off').style.display = clawMuted ? '' : 'none';
+}
 function clawRenderMe(){
-  const b = $('#clawBadge');
-  if(clawSlot == null){ b.textContent = clawWs ? 'Joining…' : 'Not connected'; b.style.background = '#e8f2f0'; $('#clawMyScore').textContent = ''; }
-  else { b.textContent = 'You’re P' + (clawSlot + 1); b.style.background = CLAW_COLOURS[clawSlot]; $('#clawMyScore').textContent = (clawGame.scores[clawSlot] || 0) + ' pts'; }
-  const g = clawGame, seated = clawSlot != null;
-  ['#clawLeft', '#clawRight', '#clawDropBtn'].forEach(id => { $(id).disabled = !seated; });
+  const seated = clawSlot != null, g = clawGame;
+  $('#clawBadge').textContent = seated ? 'You’re P' + (clawSlot + 1) : clawWs ? 'Joining' : 'Not connected';
+  $('#clawDot').style.background = seated ? CLAW_COLOURS[clawSlot] : '';
+  $('#clawMyScore').textContent = seated ? (g.scores[clawSlot] || 0) : 0;
+  const playing = g.phase === 'play' && g.timeLeft > 0;
+  $('#clawTime').textContent = playing ? g.timeLeft : '–';
+  $('#clawTimeWrap').classList.toggle('low', playing && g.timeLeft <= 10);
+  $('#clawStick').classList.toggle('off', !seated); $('#clawDropBtn').disabled = !seated;
   $('#clawStartBtn').style.display = seated && g.phase !== 'play' ? '' : 'none';
   if(!seated) return;
-  if(g.phase === 'play') clawSetStatus(g.timeLeft > 0 ? g.timeLeft + 's left — grab as many as you can!' : 'Get ready…');
-  else if(g.phase === 'over') clawSetStatus(g.winners.length ? (g.winners.indexOf(clawSlot) >= 0 ? (g.winners.length > 1 ? 'A tie — you’re joint winner! 🏆' : 'You win! 🏆') : 'P' + (g.winners[0] + 1) + ' wins this round.') : 'Time! No catches this round.');
-  else clawSetStatus('Practise now, or start a 60-second round for everyone.');
+  if(g.phase === 'play') clawSetStatus(g.timeLeft > 0 ? 'Grab as many as you can' : 'Get ready…');
+  else if(g.phase === 'over') clawSetStatus(g.winners.length ? (g.winners.indexOf(clawSlot) >= 0 ? (g.winners.length > 1 ? 'A tie. You’re a joint winner!' : 'You win this round!') : 'P' + (g.winners[0] + 1) + ' wins this round') : 'Time. No catches this round.');
+  else clawSetStatus('Practise now, or start a 60-second round for everyone');
+}
+function clawSetSig(ms){
+  const el = $('#clawSig');
+  el.className = 'claw-sig' + (ms == null ? '' : ms < 120 ? ' good' : ms < 300 ? ' ok' : ' bad');
+  el.querySelector('span').textContent = ms == null ? (clawWs ? 'Connecting' : 'Offline') : 'Live · ' + ms + ' ms';
 }
 function clawConnect(){
   if(clawWs || !playToken) return;
   const sock = clawWs = new WebSocket(WS_URL);
-  sock.addEventListener('open', () => { clawRetry = 0; sock.send(JSON.stringify({ type:'claw-join', token: playToken })); clawRenderMe(); });
+  sock.addEventListener('open', () => {
+    clawRetry = 0; sock.send(JSON.stringify({ type:'claw-join', token: playToken })); clawRenderMe();
+    clearInterval(clawPingTimer);
+    const ping = () => clawSend({ type:'claw-ping', t: Math.round(performance.now()) });
+    ping(); clawPingTimer = setInterval(ping, 2000);
+  });
   sock.addEventListener('message', ev => {
     let m; try{ m = JSON.parse(ev.data); }catch(e){ return; }
     if(!m) return;
-    if(m.type === 'claw-you'){ clawSlot = m.slot; clawRenderMe(); }
-    else if(m.type === 'claw-full'){ clawSetStatus('All 4 claws are taken — try again when someone leaves.', true); setTimeout(() => { if(clawWanted && clawSlot == null) clawSend({ type:'claw-join', token: playToken }); }, 5000); }
-    else if(m.type === 'claw-denied'){ clawSetStatus('Please sign in again to play.', true); }
-    else if(m.type === 'claw-left'){ clawSlot = null; clawSetStatus('You were idle for a while, so your claw went back. Tap a button to rejoin.', true); clawRenderMe(); }
+    if(m.type === 'claw-pong') clawSetSig(Math.max(1, Math.round(performance.now() - m.t)));
+    else if(m.type === 'claw-you'){ clawSlot = m.slot; clawBuzz(30); clawRenderMe(); }
+    else if(m.type === 'claw-full'){ clawSetStatus('All 4 claws are taken. You’ll get one as soon as someone leaves.', true); setTimeout(() => { if(clawWanted && clawSlot == null) clawSend({ type:'claw-join', token: playToken }); }, 5000); }
+    else if(m.type === 'claw-denied'){ clawSetStatus('Your sign-in has expired. Go back and sign in again to play.', true); }
+    else if(m.type === 'claw-left'){ clawSlot = null; clawSetStatus('Your claw was idle for 3 minutes, so it went back. Touch the stick to rejoin.', true); clawRenderMe(); }
     else if(m.type === 'claw-state'){
       clawGame = m; const mine = clawSlot != null ? (m.scores[clawSlot] || 0) : 0;
-      if(mine > clawLastScore && navigator.vibrate) navigator.vibrate([40, 60, 40]);
-      clawLastScore = mine; clawRenderMe();
+      if(mine > clawLastScore){ clawBuzz([35, 50, 35]); clawTone('catch'); }
+      if(m.phase === 'play' && clawPrevPhase !== 'play'){ clawBuzz(60); clawTone('go'); }
+      if(m.phase === 'over' && clawPrevPhase === 'play' && m.winners.indexOf(clawSlot) >= 0) clawBuzz([80, 60, 80, 60, 160]);
+      clawPrevPhase = m.phase; clawLastScore = mine; clawRenderMe();
     }
   });
   sock.addEventListener('close', () => {
     if(clawWs !== sock) return;
-    clawWs = null; clawSlot = null; clawRenderMe();
-    if(clawWanted){ clawRetry = Math.min(clawRetry + 1, 5); clawSetStatus('Reconnecting…', true); clawRetryTimer = setTimeout(clawConnect, 800 * clawRetry); }
+    clawWs = null; clawSlot = null; clearInterval(clawPingTimer); clawSetSig(null); clawRenderMe();
+    if(clawWanted){ clawRetry = Math.min(clawRetry + 1, 5); clawSetStatus('Reconnecting…', true); clawRetryTimer = setTimeout(clawConnect, 600 * clawRetry); }
   });
   sock.addEventListener('error', () => {});
 }
-function clawEnter(){ if(clawWanted) return; clawWanted = true; document.body.classList.add('claw-on'); clawConnect(); clawRenderMe(); }
+async function clawKeepAwake(){ // a phone dimming mid-round is the worst kind of lag
+  try{ if('wakeLock' in navigator && !clawWake && !document.hidden) { clawWake = await navigator.wakeLock.request('screen'); clawWake.addEventListener('release', () => { clawWake = null; }); } }catch(e){ clawWake = null; }
+}
+function clawEnter(){ if(clawWanted) return; clawWanted = true; document.body.classList.add('claw-on'); clawRenderMute(); clawConnect(); clawKeepAwake(); clawRenderMe(); }
 function clawExit(){
   if(!clawWanted) return;
-  clawWanted = false; document.body.classList.remove('claw-on'); clearTimeout(clawRetryTimer); clawSetDir(0);
+  clawWanted = false; document.body.classList.remove('claw-on'); clearTimeout(clawRetryTimer); clearInterval(clawPingTimer); clawStickTo(0, true);
+  if(clawWake){ try{ clawWake.release(); }catch(e){} clawWake = null; }
   if(clawWs){ const w = clawWs; clawSend({ type:'claw-leave' }); clawWs = null; clawSlot = null; try{ w.close(); }catch(e){} }
 }
 function clawRejoinIfNeeded(){ if(clawWanted && clawWs && clawSlot == null) clawSend({ type:'claw-join', token: playToken }); }
-function clawSetDir(d){
-  if(d === clawDir) return;
-  clawDir = d; clawSend({ type:'claw-move', dir: d });
-  $('#clawLeft').classList.toggle('on', d === -1); $('#clawRight').classList.toggle('on', d === 1);
+// Sends the stick value: only on change, coalesced to one message per 25 ms, never dropping the final value.
+function clawFlushDir(){
+  clawSendTimer = null;
+  if(clawDir === clawSentDir) return;
+  clawSentDir = clawDir; clawSendAt = performance.now(); clawSend({ type:'claw-move', dir: clawDir });
 }
-// Hold-to-move: pointer events cover touch and mouse; releasing anywhere stops.
-[['#clawLeft', -1], ['#clawRight', 1]].forEach(([id, d]) => {
-  const el = $(id);
-  el.addEventListener('pointerdown', e => { e.preventDefault(); clawRejoinIfNeeded(); try{ el.setPointerCapture(e.pointerId); }catch(x){} clawSetDir(d); });
-  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => el.addEventListener(t, () => { if(clawDir === d) clawSetDir(0); }));
-  el.addEventListener('contextmenu', e => e.preventDefault());
-});
+function clawQueueDir(){
+  const wait = 25 - (performance.now() - clawSendAt);
+  if(wait <= 0){ clearTimeout(clawSendTimer); clawFlushDir(); }
+  else if(!clawSendTimer) clawSendTimer = setTimeout(clawFlushDir, wait);
+}
+function clawStickTo(v, release){
+  const q = Math.round(v * 20) / 20; // 0.05 steps: smooth enough to feel analog, coarse enough not to flood
+  const knob = $('#clawKnob'), stick = $('#clawStick');
+  const travel = (stick.clientWidth - knob.offsetWidth) / 2 - 6;
+  knob.style.transform = 'translateX(' + (release ? 0 : v * travel) + 'px)';
+  stick.setAttribute('aria-valuenow', String(q));
+  if(q !== clawDir){
+    if((clawDir === 0) !== (q === 0)) clawTone('tick');
+    if(Math.abs(q) === 1 && Math.abs(clawDir) !== 1) clawBuzz(8); // a detent at full lock
+    clawDir = q; clawQueueDir();
+  }
+}
+(function clawStickInput(){
+  const stick = $('#clawStick'); let pid = null, cx = 0;
+  const read = e => { const r = stick.getBoundingClientRect(), half = (r.width - $('#clawKnob').offsetWidth) / 2 - 6; return Math.max(-1, Math.min(1, (e.clientX - cx) / half)); };
+  stick.addEventListener('pointerdown', e => {
+    e.preventDefault(); clawRejoinIfNeeded(); clawKeepAwake();
+    pid = e.pointerId; try{ stick.setPointerCapture(pid); }catch(x){}
+    const r = stick.getBoundingClientRect(); cx = r.left + r.width / 2; // centre-anchored: touching left of centre already steers left
+    stick.classList.add('held'); clawStickTo(read(e));
+  });
+  stick.addEventListener('pointermove', e => { if(e.pointerId === pid){ e.preventDefault(); clawStickTo(read(e)); } });
+  const end = e => { if(e.pointerId !== pid) return; pid = null; stick.classList.remove('held'); clawStickTo(0, true); };
+  ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => stick.addEventListener(t, end));
+  stick.addEventListener('contextmenu', e => e.preventDefault());
+})();
 $('#clawDropBtn').addEventListener('pointerdown', e => {
-  e.preventDefault(); clawRejoinIfNeeded(); clawSetDir(0); clawSend({ type:'claw-drop' });
+  e.preventDefault(); clawRejoinIfNeeded();
+  clawSend({ type:'claw-drop' });
   const b = $('#clawDropBtn'); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 140);
-  if(navigator.vibrate) navigator.vibrate(25);
+  clawBuzz(25); clawTone('drop');
 });
+$('#clawDropBtn').addEventListener('contextmenu', e => e.preventDefault());
 $('#clawStartBtn').addEventListener('click', () => { clawRejoinIfNeeded(); clawSend({ type:'claw-start' }); });
+$('#clawMute').addEventListener('click', () => { clawMuted = !clawMuted; try{ localStorage.setItem('ryst_claw_muted', clawMuted ? '1' : '0'); }catch(e){} clawRenderMute(); if(!clawMuted) clawTone('tick'); });
 document.addEventListener('keydown', e => {
   if(!clawWanted || e.repeat) return;
-  if(e.key === 'ArrowLeft') clawSetDir(-1); else if(e.key === 'ArrowRight') clawSetDir(1);
-  else if(e.key === ' ' || e.key === 'ArrowDown'){ e.preventDefault(); clawSend({ type:'claw-drop' }); }
+  if(e.key === 'ArrowLeft') clawStickTo(-1); else if(e.key === 'ArrowRight') clawStickTo(1);
+  else if(e.key === ' ' || e.key === 'ArrowDown'){ e.preventDefault(); clawSend({ type:'claw-drop' }); clawTone('drop'); }
 });
-document.addEventListener('keyup', e => { if(clawWanted && ((e.key === 'ArrowLeft' && clawDir === -1) || (e.key === 'ArrowRight' && clawDir === 1))) clawSetDir(0); });
-document.addEventListener('visibilitychange', () => { if(document.hidden) clawSetDir(0); });
+document.addEventListener('keyup', e => { if(clawWanted && ((e.key === 'ArrowLeft' && clawDir < 0) || (e.key === 'ArrowRight' && clawDir > 0))) clawStickTo(0, true); });
+document.addEventListener('visibilitychange', () => { if(document.hidden) clawStickTo(0, true); else if(clawWanted) clawKeepAwake(); });
 
 // Polls so this stays in sync with the pool screen and anyone else's phone —
 // including which activity is open, so every phone and the big screen are
