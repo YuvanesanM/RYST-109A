@@ -510,6 +510,37 @@
   .claw-chip.named .av{display:block} .claw-chip.named .dot{display:none}
   .claw-chip .lbl{max-width:9vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ludo-players .lp .lav{width:2.4vw;height:2.4vw;margin-right:.8vw;flex-shrink:0} .ludo-players .lp .lav svg{width:100%;height:100%}
+
+  /* ── Quiz Night on the pool screen ── */
+  .quiz-frame{justify-content:flex-start !important;padding:3vh 4vw}
+  .qz-head{display:flex;align-items:center;width:100%;margin-bottom:2vh}
+  .qz-head h2{margin:0 !important;flex:0 0 auto}
+  .qz-num{flex:1;text-align:center;font-family:var(--sans);font-weight:800;font-size:1.8vw;color:#bcd8d4;letter-spacing:.02em}
+  .qz-ring{position:relative;width:7vw;height:7vw}
+  .qz-ring svg{width:100%;height:100%;-webkit-transform:rotate(-90deg);transform:rotate(-90deg)}
+  .qz-ring circle{fill:none;stroke-width:4}
+  .qz-ring .bg{stroke:rgba(255,255,255,.12)} .qz-ring .fg{stroke:#f2c66d;stroke-linecap:round;stroke-dasharray:119.4;transition:stroke-dashoffset .2s linear}
+  .qz-ring.low .fg{stroke:#ff7a4d}
+  .qz-ring span{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-weight:800;font-size:2.4vw;color:#fbfaf8;font-variant-numeric:tabular-nums}
+  .qz-body{width:100%;flex:1;display:flex;flex-direction:column;justify-content:center}
+  .qz-text{font-family:var(--sans);font-weight:800;font-size:3.6vw;line-height:1.2;letter-spacing:-.02em;color:#fbfaf8;text-align:center;margin:0 auto 4vh;max-width:78vw}
+  .qz-text.lobby{color:#bcd8d4;font-size:2.6vw}
+  .qz-text.in{-webkit-animation:qz-in .6s cubic-bezier(.16,1,.3,1);animation:qz-in .6s cubic-bezier(.16,1,.3,1)}
+  @-webkit-keyframes qz-in{from{opacity:0;-webkit-transform:translateY(2vh)}} @keyframes qz-in{from{opacity:0;transform:translateY(2vh)}}
+  .qz-opts{display:flex;flex-wrap:wrap;justify-content:center;width:100%}
+  .qz-opt{display:flex;align-items:center;width:44%;margin:0 1vw 2vh;padding:2.2vh 1.6vw;border-radius:1.2vw;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.14);font-family:var(--sans);font-weight:700;font-size:2vw;color:#fbfaf8;transition:opacity .4s,border-color .4s,box-shadow .4s}
+  .qz-opt b{flex-shrink:0;width:3.6vw;height:3.6vw;border-radius:.8vw;margin-right:1.4vw;display:flex;align-items:center;justify-content:center;background:var(--oc);color:#062028;font-size:2vw}
+  .qz-opt.dim{opacity:.32}
+  .qz-opt.right{border-color:#f2c66d;box-shadow:0 0 2.6vw rgba(242,198,109,.55);background:rgba(242,198,109,.12);-webkit-animation:qz-pop .5s cubic-bezier(.16,1,.3,1);animation:qz-pop .5s cubic-bezier(.16,1,.3,1)}
+  @-webkit-keyframes qz-pop{40%{-webkit-transform:scale(1.04)}} @keyframes qz-pop{40%{transform:scale(1.04)}}
+  .qz-teams{display:flex;justify-content:center;width:100%;margin-top:1vh}
+  .qz-team{position:relative;min-width:15vw;margin:0 .9vw;padding:1.6vh 1.4vw;border-radius:1.2vw;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.12);border-top:.5vh solid var(--tc);font-family:var(--sans);text-align:center;transition:border-color .3s,box-shadow .3s}
+  .qz-team .tn{font-weight:800;font-size:1.5vw;color:var(--tc)} .qz-team .tsc{font-weight:800;font-size:3vw;color:#fbfaf8;font-variant-numeric:tabular-nums;line-height:1.1}
+  .qz-team .tst{font-weight:700;font-size:1.05vw;color:#bcd8d4;margin-top:.4vh} .qz-team .tav{display:flex;justify-content:center;margin-top:.8vh;min-height:2vw} .qz-team .tav span{width:2vw;height:2vw;margin:0 .15vw} .qz-team .tav svg{width:100%;height:100%}
+  .qz-team.done{border-color:var(--tc)} .qz-team.scored .tst{color:#f2c66d;font-size:1.6vw}
+  .qz-team.lead{box-shadow:0 0 2vw rgba(242,198,109,.25)} .qz-team.won{border-color:#f2c66d;box-shadow:0 0 2.6vw rgba(242,198,109,.5)}
+  .qz-join{position:absolute;right:2.4vw;bottom:3vh}
+  #qzWin[hidden]{display:none}
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -686,6 +717,20 @@
     </div>
   </section>
 
+  <section class="screen rp-stage" id="screen-quiz">
+    <div class="rp-frame quiz-frame">
+      <div class="qz-head"><h2>Quiz Night</h2><div class="qz-num" id="qzNum"></div>
+        <div class="qz-ring" id="qzRing"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" class="bg"/><circle cx="22" cy="22" r="19" class="fg" id="qzArc"/></svg><span id="qzSecs"></span></div></div>
+      <div class="qz-body">
+        <div class="qz-text" id="qzText"></div>
+        <div class="qz-opts" id="qzOpts"></div>
+      </div>
+      <div class="qz-teams" id="qzTeams"></div>
+      <div class="ludo-join-card qz-join" id="qzJoin"><div class="qr"><img id="qrPlayQuiz" alt="Scan to play"></div><span>Scan to join a team<br><small>answer on your phone</small></span></div>
+      <div class="ludo-win" id="qzWin" hidden><div class="big" id="qzWinBig"></div><div class="small" id="qzWinSmall"></div></div>
+    </div>
+  </section>
+
   <section class="screen rp-stage" id="screen-scoreboard">
     <div class="rp-frame">
       <h2>Scoreboard</h2>
@@ -793,6 +838,7 @@ $('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayMemory').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayClaw').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayLudo').src = qr(SITE_URL + '/play.html', 200);
+$('#qrPlayQuiz').src = qr(SITE_URL + '/play.html', 200);
 
 // ── TOP BAR: CLOCK + DATE + WEATHER ──
 // Formatted with an explicit timeZone rather than trusting whatever the
@@ -1278,7 +1324,8 @@ function updateMainScreen(){
   // a round in progress, or players seated, keeps the game up even if no phone has checked in lately (players watch the TV and phones auto-lock)
   const showClaw = currentGame.mode === 'claw' && (active || Claw3D.busy());
   const showLudo = currentGame.mode === 'ludo' && (active || (currentGame.ludo && currentGame.ludo.phase === 'play')); // a game in progress stays up while phones sleep
-  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw && !showLudo);
+  const showQuiz = currentGame.mode === 'quiz' && (active || (currentGame.quiz && (currentGame.quiz.phase === 'question' || currentGame.quiz.phase === 'reveal')));
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw && !showLudo && !showQuiz);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
   $('#screen-memory').classList.toggle('active', showMemory);
@@ -1286,6 +1333,8 @@ function updateMainScreen(){
   $('#screen-visualizer').classList.toggle('active', showViz);
   $('#screen-claw').classList.toggle('active', showClaw);
   $('#screen-ludo').classList.toggle('active', showLudo);
+  $('#screen-quiz').classList.toggle('active', showQuiz);
+  if (showQuiz) QuizView.show(); else QuizView.hide();
   if (showLudo) LudoView.show(); else LudoView.hide();
   showViz ? startViz() : stopViz();
   showClaw ? startClaw() : stopClaw();
@@ -2631,6 +2680,53 @@ const LudoView = (function(){
 })();
 window.addEventListener('resize', () => LudoView.resize());
 
+
+// ── QUIZ NIGHT on the pool screen ── the proxy runs the quiz on its clock (quiz.js); this shows the
+// question, the four answers, a countdown ring timed against the server's clock, how many on each team
+// have answered, then the reveal and the scores. Plain ES2017.
+const QuizView = (function(){
+  const L = ['A', 'B', 'C', 'D'], HUES = ['#4fd1c5', '#ffb85c', '#ff7aa8', '#8c9bff'];
+  let Q = null, on = false, timer = null, skew = 0, lastWin = -1, lastQ = -2;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const av = k => (window.RYST_AVATARS || {})[k] || '';
+  function clock(){
+    if (!Q || !Q.endsAt) { $('#qzRing').style.visibility = 'hidden'; return; }
+    const left = Math.max(0, Q.endsAt - (Date.now() + skew)), total = Q.phase === 'question' ? 20000 : 7000, f = left / total;
+    $('#qzRing').style.visibility = Q.phase === 'question' ? 'visible' : 'hidden';
+    $('#qzArc').style.strokeDashoffset = String(119.4 * (1 - f));
+    $('#qzSecs').textContent = Math.ceil(left / 1000);
+    $('#qzRing').classList.toggle('low', left < 5000);
+  }
+  function render(){
+    const inGame = Q.phase === 'question' || Q.phase === 'reveal', rv = Q.phase === 'reveal' ? Q.reveal : null;
+    $('#qzNum').textContent = inGame ? 'Question ' + (Q.qIndex + 1) + ' of ' + Q.total : '';
+    $('#qzText').innerHTML = inGame && Q.question ? esc(Q.question.text) : Q.phase === 'over' ? 'Final scores' : 'Pick a team on your phone, then start the quiz';
+    $('#qzText').classList.toggle('lobby', !inGame);
+    if (inGame && Q.qIndex !== lastQ) { lastQ = Q.qIndex; const el = $('#qzText'); el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); }
+    $('#qzOpts').innerHTML = inGame && Q.question ? Q.question.options.map((o, i) => `<div class="qz-opt${rv ? (i === rv.correct ? ' right' : ' dim') : ''}" style="--oc:${HUES[i]}"><b>${L[i]}</b><span>${esc(o)}</span></div>`).join('') : '';
+    const lead = Math.max.apply(null, Q.teams.map(t => t.score));
+    $('#qzTeams').innerHTML = Q.teams.map((t, i) => { const n = t.members.length; if (!n && Q.phase !== 'lobby') return '';
+      const status = Q.phase === 'question' ? `${Q.answered[i]}/${n} answered` : rv ? `+${rv.points[i]}` : n ? n + (n === 1 ? ' player' : ' players') : 'Waiting for players';
+      return `<div class="qz-team${Q.phase === 'question' && n && Q.answered[i] >= n ? ' done' : ''}${rv && rv.points[i] > 0 ? ' scored' : ''}${Q.phase === 'over' && (Q.winners || []).indexOf(i) >= 0 ? ' won' : ''}${lead > 0 && t.score === lead && Q.phase !== 'lobby' ? ' lead' : ''}" style="--tc:${t.colour}">
+        <div class="tn">${esc(t.name)}</div><div class="tsc">${t.score}</div><div class="tst">${status}</div><div class="tav">${t.members.slice(0, 7).map(m => `<span>${av(m.avatar)}</span>`).join('')}</div></div>`; }).join('');
+    $('#qzJoin').style.display = inGame ? 'none' : '';
+    const won = Q.phase === 'over' && (Q.winners || []).length;
+    $('#qzWin').hidden = !won;
+    if (won) {
+      $('#qzWinBig').innerHTML = Q.winners.map(i => `<em style="color:${Q.teams[i].colour}">${esc(Q.teams[i].name)}</em>`).join(' & ') + (Q.winners.length > 1 ? ' tie' : ' win');
+      $('#qzWinSmall').textContent = Q.teams[Q.winners[0]].score + ' points · play again from any phone';
+      if (lastWin !== Q.gameId) { lastWin = Q.gameId; for (let k = 0; k < 60; k++) { const el = document.createElement('div'); el.className = 'claw-confetti'; el.style.left = (Math.random() * 100) + '%'; el.style.background = Q.teams[Q.winners[0]].colour;
+        el.style.setProperty('--dx', ((Math.random() - 0.5) * 30) + 'vw'); el.style.animationDuration = (2.4 + Math.random() * 2) + 's'; el.style.animationDelay = (Math.random() * 0.8) + 's'; $('#screen-quiz .rp-frame').appendChild(el); setTimeout(() => el.remove(), 5500); } }
+    }
+    clock();
+  }
+  return {
+    update(g){ if (!g || !g.quiz) return; Q = g.quiz; if (g.serverNow) skew = g.serverNow - Date.now(); if (on) render(); },
+    show(){ if (on) return; on = true; if (Q) render(); timer = setInterval(clock, 200); },
+    hide(){ on = false; clearInterval(timer); timer = null; },
+  };
+})();
+
 async function refreshGame(){
   try{
     const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
@@ -2640,11 +2736,12 @@ async function refreshGame(){
     renderMemoryDisplay(currentGame);
     renderBackdropDisplay(currentGame);
     LudoView.update(currentGame.ludo);
+    QuizView.update(currentGame);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }
 // every 4 s is fast enough for spectators — except a Ludo roll, which should land on the big screen within a second
-(function gameLoop(){ refreshGame().then(() => setTimeout(gameLoop, currentGame.mode === 'ludo' ? 900 : 4000), () => setTimeout(gameLoop, 4000)); })();
+(function gameLoop(){ refreshGame().then(() => setTimeout(gameLoop, currentGame.mode === 'ludo' || currentGame.mode === 'quiz' ? 900 : 4000), () => setTimeout(gameLoop, 4000)); })();
 
 // ── SELF-UPDATE ──
 // This runs unattended on a screen nobody's going to walk over and refresh,
