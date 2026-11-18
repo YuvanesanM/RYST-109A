@@ -13,6 +13,7 @@
 <script src="/assets/beach-art.js"></script>
 
 <style>
+  @font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/assets/fonts/Inter-Variable.woff2') format('woff2'); }
   @font-face { font-family: 'DM Sans'; font-style: normal; font-weight: 100 1000; font-display: swap; src: url('/assets/fonts/dm-sans-latin-wght-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Cormorant Garamond'; font-style: italic; font-weight: 600; font-display: swap; src: url('/assets/fonts/cormorant-garamond-latin-600-italic.woff2') format('woff2'); }
@@ -22,7 +23,7 @@
     --ink:#0e2420; --sea:#0b3d52; --sea-mid:#1a6a7a; --foam:#e8f2f0;
     --sand:#c8a97a; --coral:#c96a3b; --white:#fbfaf8; --muted:#6b8480; --muted-text:#5a706c;
     --line:rgba(14,36,32,.1); --serif:'Cormorant Garamond',Georgia,serif;
-    --sans:'DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
+    --sans:'Inter','DM Sans',system-ui,sans-serif; --ease:cubic-bezier(.22,1,.36,1);
   }
   html,body{background:var(--foam);color:var(--ink);font-family:var(--sans);min-height:100%;-webkit-font-smoothing:antialiased}
   body{display:flex;align-items:center;justify-content:center;padding:24px;min-height:100vh}
@@ -421,7 +422,7 @@
   .ludo-seat.turn{border-color:var(--lc);animation:ludo-turn 1.6s ease-in-out infinite}
   @keyframes ludo-turn{50%{box-shadow:0 0 0 2px var(--lc),0 0 22px color-mix(in srgb,var(--lc) 55%,transparent)}}
   .ludo-seat:disabled{cursor:default}
-  .ludo-seat .pips{display:flex;gap:4px;margin-top:3px} .ludo-seat .pips i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--lc)} .ludo-seat .pips i.on{background:var(--lc)}
+  .ludo-seat .pips{display:flex;gap:4px;margin-top:3px} .ludo-seat .pips i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--lc)} .ludo-seat .pips i.on{background:var(--lc)} .ludo-seat .pips i.h{background:#f6f3ec;border-color:#d8b879;box-shadow:0 0 6px rgba(247,223,164,.8)}
   .ludo-join{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
   .ludo-join input{flex:1 1 100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--lc,var(--line));background:rgba(255,255,255,.05);color:var(--ink);font-family:var(--sans);font-size:15px;outline:none}
   .ludo-join .btn{flex:1}
@@ -438,9 +439,23 @@
   .ludo-tokens{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
   .ludo-token{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid var(--line);color:var(--ink);font-family:var(--sans);cursor:pointer;text-align:left;opacity:.5}
   .ludo-token.can{opacity:1;border-color:var(--lc);box-shadow:0 0 16px color-mix(in srgb,var(--lc) 35%,transparent)}
-  .ludo-token .pawn{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle at 35% 30%,#fff,var(--lc) 45%,color-mix(in srgb,var(--lc) 70%,#000));box-shadow:0 0 0 2px #fff,0 3px 6px rgba(0,0,0,.35)}
+  .ludo-token .pawn{width:30px;height:34px;flex-shrink:0;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35))}
   .ludo-token .tx{display:flex;flex-direction:column;flex:1;min-width:0} .ludo-token .tx b{font-size:14px} .ludo-token .tx span{font-size:12px;color:var(--muted-text)}
   .ludo-token .bar{width:70px;height:6px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden} .ludo-token .bar i{display:block;height:100%;background:var(--lc)}
+  .ll-h1{font-family:var(--serif) !important;font-weight:600 !important;font-size:38px !important;letter-spacing:0 !important;line-height:1;margin-bottom:2px}
+  .ll-h1 em{font-style:italic;color:#d8b879}
+  .ll-tag{font-family:var(--serif);font-style:italic;font-weight:600;font-size:17px;color:var(--muted-text);margin-bottom:12px}
+  .ludo-token .pawn svg{display:block;width:100%;height:100%}
+  .ludo-token .tx em{font-style:normal;font-weight:700;color:#d8b879}
+  .ludo-token .tx em.cap{color:#ff8a7e} .ludo-token .tx em.safe{color:#a9cfc5}
+  .ludo-ranks{list-style:none;margin:0 0 14px;padding:0}
+  .ludo-ranks li{display:flex;align-items:center;gap:10px;padding:10px 12px;margin-bottom:8px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-weight:700;font-size:14px}
+  .ludo-ranks li:first-child{border-color:rgba(216,184,121,.6);background:linear-gradient(90deg,rgba(216,184,121,.16),rgba(255,255,255,.03))}
+  .ludo-ranks .pl{width:18px;color:var(--muted-text);font-variant-numeric:tabular-nums} .ludo-ranks li:first-child .pl{color:#d8b879}
+  .ludo-ranks .lav{width:26px;height:26px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2px var(--lc);background:#f3ead8;flex-shrink:0} .ludo-ranks .lav svg{width:100%;height:100%;display:block}
+  .ludo-ranks .lav b{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#07333b;font-size:13px}
+  .ludo-ranks .nm{flex:1;min-width:0;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} .ludo-ranks .ct{font-size:12px;color:var(--muted-text);font-variant-numeric:tabular-nums}
+  .ludo-ranks[hidden],#ludoOther[hidden]{display:none !important}
   .ludo-actions .btn[hidden],.ludo-join[hidden],.ludo-play[hidden],.ludo-roll[hidden],#ludoSub[hidden]{display:none !important}
   @media (prefers-reduced-motion:reduce){ .ludo-seat.turn,.ludo-die.roll{animation:none} }
 
@@ -563,7 +578,8 @@
 
     <section class="screen" id="screen-ludo">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1>Ludo Lounge</h1>
+      <h1 class="ll-h1">Ludo <em>Lounge</em></h1>
+      <p class="ll-tag">A classic for family &amp; friends.</p>
       <p class="sub" id="ludoSub">Pick a colour to join. One phone can play more than one colour.</p>
       <div class="ludo-seats" id="ludoSeats"></div>
       <div class="ludo-join" id="ludoJoin" hidden>
@@ -577,10 +593,12 @@
         <button type="button" class="btn primary ludo-roll" id="ludoRoll">Roll the die</button>
       </div>
       <div class="ludo-tokens" id="ludoTokens"></div>
+      <ol class="ludo-ranks" id="ludoRanks" hidden></ol>
       <div class="actions ludo-actions">
         <button type="button" class="btn primary" id="ludoStart" hidden>Start game</button>
         <button type="button" class="btn ghost" id="ludoSkip" hidden>Skip turn</button>
-        <button type="button" class="btn primary" id="ludoNew" hidden>New game</button>
+        <button type="button" class="btn primary" id="ludoNew" hidden>Play again</button>
+        <button type="button" class="btn ghost" id="ludoOther" hidden>Choose another game</button>
       </div>
       <p class="claw-hint">A 6 brings a token out and rolls again. Land on a rival to send them home, except on the star and start squares. You need the exact roll to get home. First to bring all four home wins.</p>
     </section>
@@ -1453,6 +1471,19 @@ const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4
 function dieFace(n){ return Array.from({ length: 9 }, (_, i) => `<i${(DIE_PIPS[n] || []).indexOf(i) >= 0 ? ' class="on"' : ''}></i>`).join(''); }
 function ludoCanMove(L, c, t, d){ const p = L.tokens[c][t]; if (p === LUDO.HOME) return false; if (p < 0) return d === 6; return p + d <= LUDO.HOME; }
 function ludoWhere(p){ return p < 0 ? 'In base' : p === LUDO.HOME ? 'Home' : p > 50 ? 'Home stretch · ' + (LUDO.HOME - p) + ' to go' : (LUDO.HOME - p) + ' to go'; }
+const LUDO_START = [0, 13, 26, 39], LUDO_SAFE = [0, 8, 13, 21, 26, 34, 39, 47];
+function ludoPawn(c, t){ const id = 'lpw' + c + t; return `<svg viewBox="0 0 30 34" aria-hidden="true"><defs><radialGradient id="${id}" cx=".36" cy=".28" r=".85"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="${LUDO.colours[c]}"/><stop offset="1" stop-color="#1c1c1c" stop-opacity=".55"/></radialGradient></defs><ellipse cx="15" cy="30" rx="11" ry="3.4" fill="${LUDO.colours[c]}"/><ellipse cx="15" cy="30" rx="11" ry="3.4" fill="url(#${id})"/><path d="M10.5 28 12.6 16h4.8l2.1 12z" fill="url(#${id})"/><rect x="9.4" y="27" width="11.2" height="2.4" rx="1.2" fill="#f6f3ec"/><circle cx="15" cy="10" r="6.4" fill="${LUDO.colours[c]}"/><circle cx="15" cy="10" r="6.4" fill="url(#${id})"/></svg>`; }
+// where this roll would take a pawn: home, home stretch, a capture or a safe star
+function ludoHint(L, c, p, d){
+  const to = p < 0 ? 0 : p + d;
+  if (to === LUDO.HOME) return '<em>Home!</em>';
+  if (to > 50) return p <= 50 ? '<em>Into the home stretch</em>' : '';
+  const sq = (LUDO_START[c] + to) % 52;
+  if (LUDO_SAFE.indexOf(sq) < 0) for (let o = 0; o < 4; o++) { if (o === c || !L.seats[o]) continue; if (L.tokens[o].some(q => q >= 0 && q <= 50 && (LUDO_START[o] + q) % 52 === sq)) return '<em class="cap">Captures ' + String(L.seats[o].name).replace(/[&<>"]/g, '') + '!</em>'; }
+  if (p < 0) return '<em>Out of the yard</em>';
+  if (LUDO_SAFE.indexOf(sq) >= 0) return '<em class="safe">Safe star</em>';
+  return '';
+}
 function renderLudo(){
   const L = state.ludo; if (!L || state.mode !== 'ludo') return;
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1462,14 +1493,14 @@ function renderLudo(){
     return `<button type="button" class="ludo-seat${s ? ' taken' : ''}${mine ? ' mine' : ''}${L.turn === c ? ' turn' : ''}" style="--lc:${LUDO.colours[c]}" data-seat="${c}" ${s && !(mine && L.phase !== 'play') ? 'disabled' : ''}>
       <span class="sw"></span><span class="nm">${s && s.avatar ? '<span class="lav">' + avatarSvg(s.avatar) + '</span>' : ''}${s ? esc(s.name) : 'Join ' + LUDO.names[c]}</span>
       <span class="meta">${s ? (mine ? (L.phase === 'play' ? 'You' : 'You · tap to leave') : (L.phase === 'lobby' ? 'Ready' : home + ' of 4 home')) : 'Free seat'}</span>
-      ${s && L.phase !== 'lobby' ? `<span class="pips">${[0, 1, 2, 3].map(k => `<i${k < home ? ' class="on"' : ''}></i>`).join('')}</span>` : ''}
+      ${s && L.phase !== 'lobby' ? `<span class="pips">${L.tokens[c].slice().sort((x, y) => y - x).map(q => `<i class="${q === LUDO.HOME ? 'h' : q >= 0 ? 'on' : ''}"></i>`).join('')}</span>` : ''}
     </button>`; }).join('');
   const nSeated = L.seats.filter(Boolean).length, turnName = L.turn >= 0 && L.seats[L.turn] ? L.seats[L.turn].name : '';
   let status = '';
   if (L.phase === 'lobby') status = nSeated < 2 ? 'Waiting for at least 2 players' : (seatedMine ? nSeated + ' players ready. Start when everyone is in.' : 'Join a colour to play');
   else if (L.phase === 'play') {
     const last = L.last, lastTxt = !last ? '' : last.pass ? (L.seats[last.c] ? L.seats[last.c].name : '') + ' rolled ' + last.d + ': no move. ' : last.forfeit ? 'Three 6s in a row: turn lost. ' : last.captured ? (L.seats[last.c] ? L.seats[last.c].name : '') + ' sent ' + (L.seats[last.captured.c] ? L.seats[last.captured.c].name : 'a rival') + ' home! ' : last.skipped ? 'Turn skipped. ' : '';
-    status = lastTxt + (myTurn ? (L.rolled ? `${esc(turnName)}: pick a token to move ${L.dice}` : `Your turn, ${esc(turnName)}: roll the die`) : `${esc(turnName)}'s turn`);
+    status = lastTxt + (myTurn ? (L.rolled ? `${esc(turnName)}: pick a pawn to move ${L.dice}` : `Your turn, ${esc(turnName)}: roll the die`) : `${esc(turnName)}'s turn`);
   } else if (L.phase === 'over') status = L.winner >= 0 && L.seats[L.winner] ? `${esc(L.seats[L.winner].name)} wins!` : 'Game over';
   $('#ludoStatus').innerHTML = status || '&nbsp;';
   $('#ludoSub').hidden = L.phase !== 'lobby';
@@ -1484,9 +1515,16 @@ function renderLudo(){
   // tokens of the seat on turn, when it's mine and I've rolled
   const c = L.turn;
   $('#ludoTokens').innerHTML = myTurn && L.rolled ? [0, 1, 2, 3].map(t => {
-    const p = L.tokens[c][t], ok = ludoCanMove(L, c, t, L.dice), prog = p < 0 ? 0 : Math.round(p / LUDO.HOME * 100);
+    const p = L.tokens[c][t], ok = ludoCanMove(L, c, t, L.dice), prog = p < 0 ? 0 : Math.round(p / LUDO.HOME * 100), hint = ok ? ludoHint(L, c, p, L.dice) : '';
     return `<button type="button" class="ludo-token${ok ? ' can' : ''}" style="--lc:${LUDO.colours[c]}" data-token="${t}" ${ok ? '' : 'disabled'}>
-      <span class="pawn"></span><span class="tx"><b>Token ${t + 1}</b><span>${ludoWhere(p)}</span></span><span class="bar"><i style="width:${prog}%"></i></span></button>`; }).join('') : '';
+      <span class="pawn">${ludoPawn(c, t)}</span><span class="tx"><b>Pawn ${t + 1}</b><span>${ludoWhere(p)}${hint ? ' &middot; ' + hint : ''}</span></span><span class="bar"><i style="width:${prog}%"></i></span></button>`; }).join('') : '';
+  // game over: the standings, then play again or pick another game
+  const over = L.phase === 'over' && L.winner >= 0;
+  $('#ludoRanks').hidden = !over;
+  if (over) { const ranks = (L.ranks && L.ranks.length ? L.ranks : [L.winner]).filter(x => L.seats[x]);
+    $('#ludoRanks').innerHTML = ranks.map((x, i) => { const home = L.tokens[x].filter(q => q === LUDO.HOME).length, st = (L.stats || [])[x];
+      return `<li style="--lc:${LUDO.colours[x]}"><span class="pl">${i + 1}</span><span class="lav">${avatarSvg(L.seats[x].avatar) || '<b>' + esc(String(L.seats[x].name).charAt(0).toUpperCase()) + '</b>'}</span><span class="nm">${esc(L.seats[x].name)}</span><span class="ct">${home}/4 home${st ? ' · ' + st.caps + ' cap' : ''}</span></li>`; }).join(''); }
+  $('#ludoOther').hidden = !over;
   $('#ludoStart').hidden = !(L.phase === 'lobby' && seatedMine && nSeated >= 2);
   $('#ludoSkip').hidden = !(L.phase === 'play' && seatedMine && !myTurn && Date.now() - (L.actAt || Date.now()) > 40000);
   $('#ludoSkip').textContent = turnName ? 'Skip ' + turnName + "'s turn" : 'Skip turn';
@@ -1514,6 +1552,7 @@ $('#ludoTokens').addEventListener('click', e => { const b = e.target.closest('[d
 $('#ludoStart').addEventListener('click', () => ludoPost('/game/ludo/start'));
 $('#ludoSkip').addEventListener('click', () => ludoPost('/game/ludo/skip'));
 $('#ludoNew').addEventListener('click', () => ludoPost('/game/ludo/new'));
+$('#ludoOther').addEventListener('click', () => { const b = document.querySelector('#screen-ludo [data-back]'); if (b) b.click(); });
 
 
 // ── RYST PLAY profile ── a name and beach avatar per guest, kept by the proxy (POST /game/profile)
@@ -1629,6 +1668,8 @@ function ping(){
   fetch(PROXY_URL+'/game/open', { method:'POST', headers:{'X-Token':playToken}, cache:'no-store' })
     .then(res => { if(res.status === 401){ playToken=''; localStorage.removeItem('ryst_play_token'); render(); } })
     .catch(()=>{});
+  // seated at Ludo: check in so the pool screen keeps showing this player as connected
+  if (state && state.mode === 'ludo' && ludoMine.length && !busy) postJson('/game/ludo/mine', {}).then(j => { if (j && j.ludo && !busy) { state = j; render(); } }).catch(() => {});
 }
 ping();
 setInterval(ping, 10000);

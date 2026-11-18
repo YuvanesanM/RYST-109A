@@ -12,9 +12,9 @@ A premium coastal resort at night by the pool: deep teal water, champagne-gold l
 linen, seafoam highlights, palm silhouettes, soft caustics. Calm luxury, never casino. Playful only
 inside the games, and even then crafted — think boutique resort games room, not app-store clone.
 
-Tokens (see CLAUDE.md for the full table): deep teal `#06202a`→`#0f4656`, champagne gold `#e2bf73`
-(TV `#f2c66d`, highlight `#f7dfa4`), warm ivory `#f4efe4`, seafoam `#7fe3d4`. Type: DM Sans 700–800
-for UI and numbers; Cormorant Garamond italic as the single brand accent.
+Tokens (design system v2, see CLAUDE.md for the full table): deep teal `#07333B`, champagne gold
+`#D8B879` (highlight `#F7DFA4`), warm ivory `#F6F3EC`, seafoam `#A9CFC5`. Type: Inter 600–800 for
+interface text and numbers; Cormorant Garamond for display headings, italic for the accent word.
 
 ## Process
 1. **Read the incumbent.** Open the target page and screenshot it. Note what already works; refinement preserves identity.
@@ -28,7 +28,7 @@ for UI and numbers; Cormorant Garamond italic as the single brand accent.
 ## Checklist
 - [ ] Direction written and followed; one focal element per screen
 - [ ] Palette from tokens; gold reserved for reward/primary action/leaders
-- [ ] Type roles consistent with the rest of RYST PLAY; numbers in DM Sans tabular
+- [ ] Type roles consistent with the rest of RYST PLAY; numbers in Inter tabular
 - [ ] Every icon/illustration custom and stylistically consistent; zero emoji
 - [ ] Each game has its own personality (neon TTT, beach memory, coastal-luxury claw) inside the shared frame
 - [ ] Compared against the reference/previous version in real screenshots (visual-qa)

@@ -21,14 +21,16 @@ const base = () => ({
   memory: { cards: ['🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠','🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠'], matched: [true,false,false,false,false,false,true,false,true,false,false,false,false,false,true,false], flipped: [3], mismatchAt: 0, scores: [2, 1], turn: 1, winner: null },
   backdrop: { text: 'Happy Birthday, Asha', preset: 'party' }, viz: { preset: 'spectrum', palette: 'neon', bpm: 120 },
   leaders: [{ id: 'm', name: 'Meera', avatar: 'sun', wins: 3, claw: 2, ludo: 1 }, { id: 'a', name: 'Asha', avatar: 'octopus', wins: 1, claw: 1, ludo: 0 }],
-  ludo: { phase: 'play', seats: [{ name: 'Asha', avatar: 'octopus' }, null, { name: 'Ravi', avatar: 'crab' }, { name: 'Kiran', avatar: 'sun' }],
-    tokens: [[5, 30, -1, -1], [-1, -1, -1, -1], [12, 52, -1, 56], [-1, 40, -1, -1]], turn: 2, dice: 6, rolled: true, rollId: 4, sixes: 1, winner: -1, last: null, actAt: now, gameId: 1 },
+  ludo: { phase: 'play', seats: [{ name: 'Asha', avatar: 'octopus', seen: now }, null, { name: 'Ravi', avatar: 'crab', seen: now }, { name: 'Kiran', avatar: 'sun', seen: now - 90000 }],
+    tokens: [[5, 30, -1, -1], [-1, -1, -1, -1], [12, 52, -1, 56], [-1, 40, -1, -1]], turn: 2, dice: 6, rolled: true, rollId: 4, sixes: 1, winner: -1, last: null, actAt: now, gameId: 1,
+    startedAt: now - 1122000, endedAt: 0, ranks: null, stats: [{ caps: 1, sixes: 3 }, { caps: 0, sixes: 0 }, { caps: 2, sixes: 4 }, { caps: 0, sixes: 1 }] },
   quiz: { phase: 'question', teams: [{ name: 'Sea Turtles', colour: '#34c79a', score: 320, members: [{ id: 'a', name: 'Asha', avatar: 'octopus' }] }, { name: 'Coconuts', colour: '#ffc94d', score: 0, members: [] },
     { name: 'Sandcastles', colour: '#ff9a6b', score: 0, members: [] }, { name: 'Starfish', colour: '#7b8cff', score: 410, members: [{ id: 'b', name: 'Bala', avatar: 'sun' }] }],
     qIndex: 2, total: 10, question: { text: 'Which ocean lies off the coast of Tamil Nadu?', options: ['The Arabian Sea', 'The Bay of Bengal (Indian Ocean)', 'The Pacific Ocean', 'The Atlantic Ocean'] }, endsAt: now + 14000, answered: [1, 0, 0, 0], reveal: null, winners: [], gameId: 1 },
 });
 // [name, page, viewport, game mode, extra state, after-load hook]
 const PHONE = { width: 390, height: 844 }, TAB = { width: 1000, height: 1100 }, TV = { width: 1600, height: 900 }, FHD = { width: 1920, height: 1080 }, FOUR3 = { width: 1440, height: 1080 };
+const LUDO_WAIT = p => p.waitForTimeout(2500); // three.js loads and the pawns settle
 const SHOTS = [
   ['hub', 'play.html', PHONE, null, {}, null, true],
   ['hub-tablet', 'play.html', TAB, null, {}, null, true],
@@ -42,8 +44,12 @@ const SHOTS = [
   ['home-tv', 'display.html', TV, null, {}, null],
   ['claw-tv', 'display.html', TV, 'claw', {}, async p => { await p.waitForTimeout(3500); await p.evaluate(() => window.__in({ type: 'claw-roster', slots: [true, true, true, false], who: [{ name: 'Asha', avatar: 'octopus' }, { name: 'Ravi', avatar: 'crab' }, null, null] })); await p.waitForTimeout(800); }],
   ['claw-tv-4x3', 'display.html', FOUR3, 'claw', {}, async p => { await p.waitForTimeout(3500); await p.evaluate(() => window.__in({ type: 'claw-roster', slots: [true, true, false, false], who: [] })); await p.waitForTimeout(800); }],
-  ['ludo-tv', 'display.html', TV, 'ludo', {}, null],
-  ['ludo-tv-fhd', 'display.html', FHD, 'ludo', {}, null],
+  ['ludo-tv', 'display.html', TV, 'ludo', {}, LUDO_WAIT],
+  ['ludo-tv-fhd', 'display.html', FHD, 'ludo', {}, LUDO_WAIT],
+  ['ludo-tv-4x3', 'display.html', FOUR3, 'ludo', {}, LUDO_WAIT],
+  ['ludo-tv-lobby', 'display.html', TV, 'ludo', { ludo: Object.assign(base().ludo, { phase: 'lobby', turn: -1, dice: 0, rolled: false, tokens: [[-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1], [-1, -1, -1, -1]], seats: [{ name: 'Asha', avatar: 'octopus', seen: now }, null, { name: 'Ravi', avatar: 'crab', seen: now }, null] }) }, LUDO_WAIT],
+  ['ludo-tv-over', 'display.html', TV, 'ludo', { ludo: Object.assign(base().ludo, { phase: 'over', turn: -1, rolled: false, winner: 2, endedAt: now, ranks: [2, 0, 3], tokens: [[50, 56, 33, -1], [-1, -1, -1, -1], [56, 56, 56, 56], [-1, 40, 12, -1]] }) }, async p => { await LUDO_WAIT(p); await p.waitForTimeout(1500); }],
+  ['ludo-tv-2d', 'display.html', TV, 'ludo', {}, LUDO_WAIT, false, true],
   ['quiz-tv', 'display.html', TV, 'quiz', {}, null],
   ['ttt-tv', 'display.html', TV, 'tictactoe', {}, null],
   ['memory-tv', 'display.html', TV, 'memory', {}, null],
@@ -66,7 +72,7 @@ const server = http.createServer((req, res) => {
 }).listen(0, async () => {
   const port = server.address().port, errors = [];
   const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
-  for (const [name, page, vp, mode, extra, after, profile] of SHOTS) {
+  for (const [name, page, vp, mode, extra, after, profile, noGL] of SHOTS) {
     if (ONLY && ONLY.indexOf(name) < 0) continue;
     const p = await browser.newPage({ viewport: vp });
     p.on('pageerror', e => errors.push(name + ': ' + e.message));
@@ -80,6 +86,7 @@ const server = http.createServer((req, res) => {
     });
     await p.route(/open-meteo\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ current: { temperature_2m: 29, weather_code: 2, is_day: 1 } }) }));
     await p.addInitScript(INIT);
+    if (noGL) await p.addInitScript('window.WebGLRenderingContext = undefined;'); // the LED wall without WebGL: the 2D board
     await p.goto(`http://127.0.0.1:${port}/${page}`); await p.waitForTimeout(2500);
     if (after) await after(p);
     const file = path.join(OUT, name + '.png');

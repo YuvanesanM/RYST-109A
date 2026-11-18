@@ -20,7 +20,7 @@ Lobby (join, ready, start) → countdown → playing (whose turn / time left / w
 - **Player identity**: colour + avatar (`RYST_AVATARS`) + name, the same in every game. Active player = glow/border in their colour; leader = gold + crown.
 - **Turn clarity**: one sentence of status ("Your turn, Asha: roll the die"); the phone buzzes on your turn.
 - **Timers**: server-clock based (`serverNow` skew) — ring on TV, bar on phone; coral for the last 5–10 s.
-- **Scores**: DM Sans tabular, pop animation on change; team scores fair (Quiz uses averages).
+- **Scores**: Inter tabular, pop animation on change; team scores fair (Quiz uses averages).
 - **Choices**: show only legal options as enabled (Ludo glows movable tokens); auto-play when only one real choice.
 - **Rewards**: a burst at the moment of success (chute burst, captured token, right answer glow), confetti and a banner for the winner; leaderboard tally once per game.
 - **Join**: QR + one line of instruction on the TV; one-tap join with the profile on the phone.

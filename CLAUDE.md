@@ -51,18 +51,24 @@ the main session makes the changes.
 
 ## RYST PLAY visual identity
 
+Design system v2 (Nov 2026, owner's palette). New and redesigned surfaces use these; older game
+screens move over stage by stage (see `.claude/plans/ryst-play-redesign.md`).
+
 | Token | Value | Use |
 |---|---|---|
-| Deep teal | `#06202a` → `#0f4656` (gradients), glass `rgba(12,46,58,.55)` | Backgrounds, panels |
-| Champagne gold | `#e2bf73` (TV `#f2c66d`), highlight `#f7dfa4`, deep `#c99a4c` | Titles, primary CTAs, leaders, frames |
-| Warm ivory | `#f4efe4` / `#fbfaf8` | Text; game boards (`#fbf6ea`) |
-| Seafoam | `#7fe3d4` | Live status, secondary accents |
+| Deep teal | `#07333B` (gradients `#0a3b44` → `#041f25`), glass `linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02))` + 1px `rgba(246,243,236,.12)` edge | Backgrounds, panels |
+| Champagne gold | `#D8B879`, highlight `#F7DFA4`, deep `#9C7536` | Titles' accent word, frames, rewards, leaders, primary CTAs |
+| Warm ivory | `#F6F3EC` | Text; game boards (`#FBF8F1` → `#ECE3CF`) |
+| Seafoam | `#A9CFC5` | Live/connected status, kickers, secondary accents |
 | Neon (games only) | X cyan `#4fe7ff`, O pink `#ff5fa2` | Tic-Tac-Toe, party moments |
 | Player colours | P1 `#ff7a4d`, P2 `#ffd166`, P3 `#4dd0e1`, P4 `#a6e35a` (Claw); Ludo red `#ff6b5e` green `#34c79a` yellow `#ffc94d` blue `#3d8bfd` | Seats, chips, tokens |
 
-Type: **DM Sans** (700–800) for UI, titles and every number (tabular figures); **Cormorant
-Garamond italic** only as a brand accent ("RYST *Play*", party script). Never Cormorant for scores —
-its numerals read as letters.
+CSS custom properties on both pages: `--rp-teal`, `--rp-gold`, `--rp-ivory`, `--rp-seafoam`.
+
+Type: **Inter** (self-hosted variable, `assets/fonts/Inter-Variable.woff2`, weights 600–800) for
+interface text and every number (tabular figures); **Cormorant Garamond** (600, italic for the accent
+word) for display headings — "Ludo *Lounge*", "RYST *Play*", winner names. Never Cormorant for scores
+or timers — its numerals read as letters. DM Sans remains loaded only for older canvas labels.
 
 Always: custom drawn graphics (inline SVG, canvas, three.js) — **never emoji as icons or art**;
 dimensional game pieces; soft directional light; glass panels with a 1px light edge; gold for
