@@ -16,7 +16,7 @@ fs.mkdirSync(OUT, { recursive: true });
 const now = Date.now();
 const base = () => ({
   mode: null, openedAt: now, updatedAt: now, serverNow: now,
-  board: ['X', 'O', null, null, 'X', null, 'O', null, 'X'], turn: 'O', winner: null, scoreX: 2, scoreO: 1,
+  board: ['X', 'O', null, null, 'X', null, 'O', null, 'X'], turn: 'O', winner: null, scoreX: 2, scoreO: 1, ttt: { X: { name: 'Asha', avatar: 'octopus', seen: now }, O: { name: 'Ravi', avatar: 'crab', seen: now } },
   players: [{ name: 'Asha', score: 7 }, { name: 'Ravi', score: 4 }, { name: 'Meera', score: 9 }, { name: 'Kiran', score: 2 }], playerCount: 4,
   memory: { cards: ['🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠','🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠'], matched: [true,false,false,false,false,false,true,false,true,false,false,false,false,false,true,false], flipped: [3], mismatchAt: 0, scores: [2, 1], turn: 1, winner: null },
   backdrop: { text: 'Happy Birthday, Asha', preset: 'party' }, viz: { preset: 'spectrum', palette: 'neon', bpm: 120 },
@@ -83,7 +83,7 @@ const server = http.createServer((req, res) => {
       const url = route.request().url();
       const body = Object.assign({}, state, { serverNow: Date.now(), openedAt: Date.now() },
         /\/game\/profile/.test(url) ? { profile: profile ? { id: 'a', name: 'Asha', avatar: 'octopus' } : { id: 'a', name: 'Asha', avatar: 'octopus' }, avatars: [] } : {},
-        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
+        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/ttt\//.test(url) ? { tttMine: 'O' } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body), headers: { 'access-control-allow-origin': '*' } });
     });
     await p.route(/open-meteo\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ current: { temperature_2m: 29, weather_code: 2, is_day: 1 } }) }));

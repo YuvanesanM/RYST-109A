@@ -484,6 +484,7 @@
   .game-score{min-width:8vw !important;padding:1.6vh 1.6vw !important;border-radius:1.2vw !important;background:rgba(255,255,255,.05) !important}
   .game-score .mark{font-family:var(--sans) !important;font-weight:800 !important;font-size:1.6vw !important;padding:.4vh .8vw;border-radius:.5vw;display:inline-block;color:#04202a !important}
   .game-score .mark span{opacity:.7;margin-left:.3vw}
+  .game-score .mark b{display:inline-block;max-width:11vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:bottom;font-weight:800}
   .game-score.x .mark{background:#4fe7ff} .game-score.o .mark{background:#ff5fa2}
   .game-score .n{font-family:var(--sans) !important;font-weight:800 !important;font-size:4vw !important;margin-top:1vh;font-variant-numeric:tabular-nums}
   .game-turn{margin-top:3vh;font-family:var(--sans);font-size:1.6vw !important}
@@ -859,9 +860,9 @@
     <div class="rp-frame">
       <h2>Tic-Tac-Toe</h2>
       <div class="game-layout">
-        <div class="game-score x"><div class="mark">P1 <span>X</span></div><div class="n" id="gameScoreX">0</div></div>
+        <div class="game-score x"><div class="mark"><b id="tttNameX">Player</b> <span>X</span></div><div class="n" id="gameScoreX">0</div></div>
         <div class="ttt-board" id="tttBoard"></div>
-        <div class="game-score o"><div class="mark">P2 <span>O</span></div><div class="n" id="gameScoreO">0</div></div>
+        <div class="game-score o"><div class="mark"><b id="tttNameO">Player</b> <span>O</span></div><div class="n" id="gameScoreO">0</div></div>
       </div>
       <p class="game-turn" id="gameTurn">&nbsp;</p>
       <div class="rp-join"><div class="qr"><img id="qrPlay" alt="Scan to play"></div><span class="qr-label">Scan to play<br>from your phone</span></div>
@@ -1165,9 +1166,12 @@ function isGameActive(){
 function renderGame(g){
   $('#gameScoreX').textContent = g.scoreX;
   $('#gameScoreO').textContent = g.scoreO;
-  $('#gameTurn').innerHTML = g.winner === 'draw' ? "It's a draw!"
-    : g.winner ? `<span class="mark ${g.winner.toLowerCase()}">${g.winner}</span> wins!`
-    : `<span class="mark ${g.turn.toLowerCase()}">${g.turn}</span>'s turn`;
+  const seats = g.ttt || { X: null, O: null }, nm = m => seats[m] ? escHtml(seats[m].name) : '';
+  $('#tttNameX').innerHTML = nm('X') || 'Open'; $('#tttNameO').innerHTML = nm('O') || 'Open';
+  $('#gameTurn').innerHTML = !(seats.X && seats.O) ? (seats.X || seats.O ? 'Waiting for a second player: scan to take ' + (seats.X ? 'O' : 'X') : 'Two players: scan and take X or O')
+    : g.winner === 'draw' ? "It's a draw!"
+    : g.winner ? `<span class="mark ${g.winner.toLowerCase()}">${g.winner}</span> ${nm(g.winner)} wins!`
+    : `<span class="mark ${g.turn.toLowerCase()}">${g.turn}</span> ${nm(g.turn)}'s turn`;
   $('#tttBoard').innerHTML = g.board.map(v => `<div class="ttt-cell ${v==='O'?'o':''}">${v === 'X' ? '<svg viewBox="0 0 40 40"><path d="M10 10l20 20M30 10 10 30"/></svg>' : v === 'O' ? '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="11"/></svg>' : ''}</div>`).join('');
 }
 
@@ -2010,10 +2014,30 @@ const Claw3D = (function(){
         ac = new (window.AudioContext || window.webkitAudioContext)();
         const comp = ac.createDynamicsCompressor(); comp.connect(ac.destination);
         master = ac.createGain(); master.gain.value = 0.55; master.connect(comp);
-        for (let i = 0; i < 4; i++) { // one motor hum per trolley: a filtered sawtooth whose level follows speed
-          const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain();
-          o.type = 'sawtooth'; o.frequency.value = 62 + i * 7; f.type = 'lowpass'; f.frequency.value = 420; g.gain.value = 0;
-          o.connect(f); f.connect(g); g.connect(master); o.start(); hums.push({ o, g });
+        // one gear-and-chain drive per trolley: a geared motor's whine, the gear teeth ticking (noise pulsed at the
+        // tooth rate), a lighter chain rattle on top and a soft low body. Pitch and tick rate follow the claw's speed.
+        const nb = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), nd = nb.getChannelData(0);
+        for (let k = 0; k < nd.length; k++) nd[k] = Math.random() * 2 - 1;
+        for (let i = 0; i < 4; i++) {
+          const g = ac.createGain(); g.gain.value = 0; g.connect(master);
+          const osc = (type, f) => { const o = ac.createOscillator(); o.type = type; o.frequency.value = f; o.start(); return o; };
+          const filt = (type, f, q) => { const b = ac.createBiquadFilter(); b.type = type; b.frequency.value = f; b.Q.value = q || 0.7; return b; };
+          const gain = v => { const n = ac.createGain(); n.gain.value = v; return n; };
+          // motor whine: two slightly detuned triangles, band-passed
+          const w1 = osc('triangle', 240 + i * 11), w2 = osc('triangle', 243 + i * 11), wbp = filt('bandpass', 520, 2.2), wg = gain(0.32);
+          w1.connect(wbp); w2.connect(wbp); wbp.connect(wg); wg.connect(g);
+          // gear teeth: noise through a resonant band, its level pulsed by a square wave at the tooth rate
+          const n1 = ac.createBufferSource(); n1.buffer = nb; n1.loop = true; n1.start(0, Math.random());
+          const tbp = filt('bandpass', 1500 + i * 120, 5), tick = gain(0.5), tickLfo = osc('square', 24), tickDepth = gain(0.5), tg = gain(0.9);
+          tickLfo.connect(tickDepth); tickDepth.connect(tick.gain); n1.connect(tbp); tbp.connect(tick); tick.connect(tg); tg.connect(g);
+          // chain rattle: brighter, faster and quieter, slightly out of step with the gears
+          const n2 = ac.createBufferSource(); n2.buffer = nb; n2.loop = true; n2.start(0, Math.random());
+          const cbp = filt('bandpass', 3600, 3), chain = gain(0.5), chainLfo = osc('sawtooth', 53), chainDepth = gain(0.5), cg = gain(0.28);
+          chainLfo.connect(chainDepth); chainDepth.connect(chain.gain); n2.connect(cbp); cbp.connect(chain); chain.connect(cg); cg.connect(g);
+          // body: a low, soft sawtooth for weight
+          const b = osc('sawtooth', 55 + i * 4), blp = filt('lowpass', 180), bg = gain(0.35);
+          b.connect(blp); blp.connect(bg); bg.connect(g);
+          hums.push({ g, w1, w2, wbp, tickLfo, chainLfo, b, i });
         }
         if (ac.state === 'suspended') ac.resume().catch(() => {});
       } catch (e) { ac = null; }
@@ -2080,7 +2104,11 @@ const Claw3D = (function(){
         mus = { bus, n: 0, next: ac.currentTime + 0.1, mood: 'calm', timer: setInterval(musicTick, 30) };
       },
       mood(m){ if (mus) mus.mood = m; else if (ac && ac.state === 'running') { this.music(true); if (mus) mus.mood = m; } },
-      motors(levels){ const a = ctx(); if (!a) return; levels.forEach((v, i) => { const h = hums[i]; h.g.gain.setTargetAtTime(Math.min(0.09, v * 0.09), a.currentTime, 0.06); h.o.frequency.setTargetAtTime(62 + i * 7 + v * 40, a.currentTime, 0.1); }); },
+      motors(levels){ const a = ctx(); if (!a) return; const t = a.currentTime;
+        levels.forEach((v, i) => { const h = hums[i]; if (!h) return; v = Math.max(0, Math.min(1, v));
+          h.g.gain.setTargetAtTime(v > 0.02 ? 0.05 + v * 0.07 : 0, t, v > 0.02 ? 0.04 : 0.09); // quick spin-up, a little coast on stopping
+          const w = 240 + i * 11 + v * 300; h.w1.frequency.setTargetAtTime(w, t, 0.12); h.w2.frequency.setTargetAtTime(w * 1.012, t, 0.12); h.wbp.frequency.setTargetAtTime(w * 2.1, t, 0.12);
+          h.tickLfo.frequency.setTargetAtTime(14 + v * 46, t, 0.1); h.chainLfo.frequency.setTargetAtTime(31 + v * 70, t, 0.1); h.b.frequency.setTargetAtTime(52 + i * 4 + v * 26, t, 0.15); }); },
       drop(){ tone('square', 330, 160, 0.18, 0.05); },
       clack(){ noise(0.07, 2600, 0.5); tone('sine', 140, 70, 0.12, 0.18); },
       grabbed(){ tone('triangle', 520, 780, 0.16, 0.08, 0.05); },
