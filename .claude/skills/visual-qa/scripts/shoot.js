@@ -43,6 +43,8 @@ const SHOTS = [
   ['scoreboard-phone', 'play.html', PHONE, 'scoreboard', {}, null],
   ['home-tv', 'display.html', TV, null, {}, null],
   ['claw-tv', 'display.html', TV, 'claw', {}, async p => { await p.waitForTimeout(3500); await p.evaluate(() => window.__in({ type: 'claw-roster', slots: [true, true, true, false], who: [{ name: 'Asha', avatar: 'octopus' }, { name: 'Ravi', avatar: 'crab' }, null, null] })); await p.waitForTimeout(800); }],
+  ['claw-tv-results', 'display.html?qa=1', TV, 'claw', {}, async p => { await p.waitForTimeout(3500); await p.evaluate(() => window.__in({ type: 'claw-roster', slots: [true, true, true, false], who: [{ name: 'Asha', avatar: 'octopus' }, { name: 'Ravi', avatar: 'crab' }, null, null] })); await p.waitForTimeout(500); await p.evaluate(() => window.__clawQA.results([7, 9, 2, 0], [['plush', 'beach', 'plush', 'beach', 'beach'], ['pearl', 'plush', 'beach', 'beach'], ['plush']])); await p.waitForTimeout(1600); }],
+  ['claw-tv-reveal', 'display.html?qa=1', TV, 'claw', {}, async p => { await p.waitForTimeout(3500); await p.evaluate(() => window.__in({ type: 'claw-roster', slots: [true, true, true, false], who: [{ name: 'Asha', avatar: 'octopus' }, { name: 'Ravi', avatar: 'crab' }, null, null] })); await p.evaluate(() => { window.__clawQA.rush(); window.__clawQA.reveal('pearl', 1); }); await p.waitForTimeout(1300); }],
   ['claw-tv-4x3', 'display.html', FOUR3, 'claw', {}, async p => { await p.waitForTimeout(3500); await p.evaluate(() => window.__in({ type: 'claw-roster', slots: [true, true, false, false], who: [] })); await p.waitForTimeout(800); }],
   ['ludo-tv', 'display.html', TV, 'ludo', {}, LUDO_WAIT],
   ['ludo-tv-fhd', 'display.html', FHD, 'ludo', {}, LUDO_WAIT],

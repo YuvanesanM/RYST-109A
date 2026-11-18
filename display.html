@@ -281,7 +281,7 @@
      wall's older Chromium (no inset/gap/backdrop-filter). */
   #screen-claw{padding:0;top:0;right:0;bottom:0;left:0;inset:0}
   .claw-wrap{position:relative;width:100%;height:100%;overflow:hidden;
-    --cc-gold:#f2c66d;--cc-gold-hi:#ffe2a3;--cc-cyan:#5fe3f2;--cc-glass:rgba(10,38,50,.46);--cc-edge:rgba(255,255,255,.14)}
+    --cc-gold:#d8b879;--cc-gold-hi:#f7dfa4;--cc-cyan:#5fe3f2;--cc-glass:rgba(10,38,50,.46);--cc-edge:rgba(255,255,255,.14)}
   .claw-amb{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:hidden}
   .claw-amb .floor{position:absolute;left:4%;width:62%;bottom:-6vh;height:22vh;border-radius:50%;
     background:radial-gradient(closest-side,rgba(242,198,109,.28),rgba(242,198,109,.08) 55%,transparent);-webkit-filter:blur(6px);filter:blur(6px)}
@@ -296,7 +296,8 @@
   .claw-hud{position:absolute;top:.6vh;left:2.4vw;right:2.4vw;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
   .claw-title{position:relative;display:flex;align-items:center;padding-bottom:1vh;white-space:nowrap}
   .claw-title .ic{width:3.4vw;height:3.4vw;color:var(--cc-gold);margin-right:.9vw;-webkit-filter:drop-shadow(0 .3vw .6vw rgba(242,198,109,.35));filter:drop-shadow(0 .3vw .6vw rgba(242,198,109,.35))}
-  .claw-title .tx{font-family:var(--sans);font-weight:800;font-size:3vw;letter-spacing:-.01em;color:var(--cc-gold);text-shadow:0 .2vw 1.4vw rgba(242,198,109,.35),0 .1vw 0 rgba(0,0,0,.4)}
+  .claw-title .tx{font-family:var(--serif);font-weight:600;font-size:3.6vw;line-height:1;letter-spacing:0;color:#f6f3ec;text-shadow:0 .3vw 1.6vw rgba(0,0,0,.4)}
+  .claw-title .tx em{font-style:italic;color:var(--cc-gold)}
   .claw-title::after{content:'';position:absolute;left:4.3vw;right:-6vw;bottom:0;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--cc-gold),rgba(242,198,109,0))}
   .claw-timer-pill{display:flex;align-items:center;padding:.9vh 2.2vw .9vh 1.6vw;border-radius:100px;background:var(--cc-glass);
     border:2px solid rgba(242,198,109,.85);box-shadow:0 .4vw 2vw rgba(0,0,0,.35),0 0 1.6vw rgba(242,198,109,.35),inset 0 0 1vw rgba(242,198,109,.12)}
@@ -391,6 +392,64 @@
   @-webkit-keyframes cc-fall{to{-webkit-transform:translate3d(var(--dx),110vh,0) rotate(720deg)}}
   @keyframes cc-fall{to{transform:translate3d(var(--dx),110vh,0) rotate(720deg)}}
 
+
+  /* ── Claw Catch v2: timer bar, rush, rare-prize reveal, results card ── */
+  .claw-timer-pill{position:relative;overflow:hidden}
+  .claw-timer-pill .bar{position:absolute;left:1.6vw;right:2.2vw;bottom:.55vh;height:.32vh;border-radius:1vh;background:rgba(246,243,236,.12);overflow:hidden}
+  .claw-timer-pill .bar i{display:block;height:100%;width:100%;border-radius:1vh;background:linear-gradient(90deg,#d8b879,#f7dfa4);-webkit-transform-origin:0 50%;transform-origin:0 50%;-webkit-transition:-webkit-transform 1s linear;transition:transform 1s linear}
+  .claw-timer-pill.low .bar i{background:linear-gradient(90deg,#ff7a4d,#ffb39a)}
+  .claw-timer-pill.idle .bar{opacity:.4}
+  .claw-chip .av{box-shadow:0 0 0 .2vw var(--pc),0 .2vw .6vw rgba(0,0,0,.3)}
+  .claw-join{background:linear-gradient(170deg,rgba(255,255,255,.075),rgba(255,255,255,.02)),rgba(7,51,59,.55);border:1px solid rgba(246,243,236,.14);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 1.2vw 3vw rgba(0,0,0,.35)}
+  .claw-join h3{font-family:var(--serif);font-weight:600;font-size:2.4vw;color:#f6f3ec}
+  .claw-conn{color:#a9cfc5} .claw-conn.on i{background:#a9cfc5;box-shadow:0 0 .6vw #a9cfc5}
+  .claw-banner{background:rgba(7,51,59,.72);border-color:rgba(216,184,121,.4)}
+  .claw-banner .big{font-family:var(--serif);font-weight:600;letter-spacing:0} .claw-banner .big em{font-style:italic}
+  .claw-banner.count .big{font-family:var(--sans);font-weight:800}
+  .claw-wrap:after{content:'';position:absolute;left:0;top:0;right:0;bottom:0;pointer-events:none;opacity:0;box-shadow:inset 0 0 11vw rgba(255,122,77,.75),inset 0 0 0 .3vw rgba(255,122,77,.5);-webkit-transition:opacity .6s;transition:opacity .6s}
+  .claw-wrap.rush:after{opacity:1;-webkit-animation:cc-rush 1s ease-in-out infinite;animation:cc-rush 1s ease-in-out infinite}
+  @-webkit-keyframes cc-rush{50%{opacity:.45}} @keyframes cc-rush{50%{opacity:.45}}
+  .claw-reveal{position:absolute;left:36%;top:52%;z-index:5;display:-webkit-box;display:flex;align-items:center;padding:1.6vh 2.4vw 1.6vh 1.4vw;border-radius:4vw;pointer-events:none;white-space:nowrap;
+    background:linear-gradient(160deg,rgba(10,59,68,.95),rgba(4,31,37,.95));border:1px solid #d8b879;box-shadow:0 1.4vw 3vw rgba(0,0,0,.45),0 0 3vw rgba(247,223,164,.45);
+    -webkit-animation:cc-reveal 2.6s cubic-bezier(.16,1,.3,1) forwards;animation:cc-reveal 2.6s cubic-bezier(.16,1,.3,1) forwards}
+  @-webkit-keyframes cc-reveal{0%{opacity:0;-webkit-transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;-webkit-transform:translate(-50%,-50%) scale(1.06)}20%{-webkit-transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;-webkit-transform:translate(-50%,-70%) scale(1)}}
+  @keyframes cc-reveal{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
+  .claw-reveal .orb{width:5vw;height:5vw;border-radius:50%;margin-right:1.2vw;background:radial-gradient(circle at 35% 30%,#fff3c2,#e8b42c 60%,#9c7414);box-shadow:inset -.5vw -.6vw 1vw rgba(0,0,0,.3),inset .4vw .4vw .8vw rgba(255,255,255,.5),0 0 2.4vw rgba(247,223,164,.8);-webkit-animation:cc-orb 1.2s ease-in-out infinite;animation:cc-orb 1.2s ease-in-out infinite}
+  .claw-reveal.pearl .orb{background:radial-gradient(circle at 35% 30%,#ffffff,#e8ecff 60%,#a9b4d6);box-shadow:inset -.5vw -.6vw 1vw rgba(0,0,0,.2),inset .4vw .4vw .8vw rgba(255,255,255,.7),0 0 2.4vw rgba(233,243,255,.9)}
+  @-webkit-keyframes cc-orb{50%{-webkit-transform:scale(1.08) rotate(8deg)}} @keyframes cc-orb{50%{transform:scale(1.08) rotate(8deg)}}
+  .claw-reveal .tx b{display:block;font-family:var(--serif);font-style:italic;font-weight:600;font-size:3.2vw;line-height:1;color:#f7dfa4}
+  .claw-reveal .tx span{display:block;font-family:var(--sans);font-weight:800;font-size:1.5vw;color:var(--pc);margin-top:.5vh}
+  .claw-results{position:absolute;left:0;top:0;right:0;bottom:0;z-index:6;display:-webkit-box;display:flex;align-items:center;justify-content:center;pointer-events:none;opacity:0;visibility:hidden;
+    background:radial-gradient(60% 70% at 50% 50%,rgba(4,31,37,.45),rgba(3,22,27,.85));-webkit-transition:opacity .5s,visibility .5s;transition:opacity .5s,visibility .5s}
+  .claw-results.on{opacity:1;visibility:visible}
+  .cr-card{width:46vw;padding:3.2vh 2.6vw 2.6vh;border-radius:1.6vw;text-align:center;font-family:var(--sans);color:#f6f3ec;
+    background:linear-gradient(170deg,rgba(10,59,68,.97),rgba(4,31,37,.98));border:1px solid rgba(216,184,121,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 2.4vw 6vw rgba(0,0,0,.55),0 0 4vw rgba(216,184,121,.22)}
+  .claw-results.on .cr-card{-webkit-animation:ll-pop .7s cubic-bezier(.16,1,.3,1);animation:ll-pop .7s cubic-bezier(.16,1,.3,1)}
+  .cr-kicker{font-weight:700;font-size:.85vw;letter-spacing:.3em;text-transform:uppercase;color:#a9cfc5}
+  .cr-hero{position:relative;width:7vw;height:7vw;margin:4.4vh auto 1.4vh}
+  .cr-hero .crown{position:absolute;left:50%;top:-2.4vw;width:4vw;margin-left:-2vw}
+  .cr-hero .av{width:100%;height:100%;border-radius:50%;overflow:hidden;background:radial-gradient(circle at 35% 30%,#fbf6ea,#e7dcc4);box-shadow:0 0 0 .35vw var(--pc),0 0 0 .6vw rgba(216,184,121,.7),0 0 3vw rgba(216,184,121,.4)}
+  .cr-hero .av svg{display:block;width:100%;height:100%}
+  .cr-card .ini{display:-webkit-box;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:800;color:#07333b}
+  .cr-hero .ini{font-size:2.8vw}
+  .cr-big{font-family:var(--serif);font-weight:600;font-size:3.4vw;line-height:1.05;margin-top:1vh} .cr-big em{font-style:italic;color:#d8b879}
+  .cr-meta{font-weight:600;font-size:1vw;color:rgba(246,243,236,.66);margin-top:.8vh;font-variant-numeric:tabular-nums}
+  .cr-list{list-style:none;margin:2.2vh 0 1.4vh;text-align:left}
+  .cr-list li{display:-webkit-box;display:flex;align-items:center;padding:.9vh .9vw;margin-bottom:.8vh;border-radius:.8vw;background:rgba(255,255,255,.04);border:1px solid rgba(246,243,236,.08);opacity:0}
+  .claw-results.on .cr-list li{-webkit-animation:ll-rank .5s cubic-bezier(.16,1,.3,1) forwards;animation:ll-rank .5s cubic-bezier(.16,1,.3,1) forwards}
+  .cr-list li.won{border-color:rgba(216,184,121,.55);background:linear-gradient(90deg,rgba(216,184,121,.16),rgba(255,255,255,.03))}
+  .cr-list .pl{flex:0 0 2.2vw;font-weight:800;font-size:1.3vw;color:rgba(246,243,236,.55);font-variant-numeric:tabular-nums} .cr-list li.won .pl{color:#d8b879}
+  .cr-list .lav{flex:0 0 auto;width:2.6vw;height:2.6vw;border-radius:50%;overflow:hidden;margin-right:.8vw;background:radial-gradient(circle at 35% 30%,#fbf6ea,#e7dcc4);box-shadow:0 0 0 .16vw var(--pc)}
+  .cr-list .lav svg{display:block;width:100%;height:100%} .cr-list .ini{font-size:1.1vw}
+  .cr-list .nm{flex:0 1 10vw;min-width:0;font-weight:800;font-size:1.2vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cr-list .toks{flex:1 1 auto;display:-webkit-box;display:flex;align-items:center;justify-content:flex-end;margin:0 1vw;min-height:1.8vw}
+  .cr-list .toks i{position:relative;display:block;width:1.6vw;height:1.6vw;margin:0 0 0 .3vw;border-radius:50%;box-shadow:inset -.2vw -.25vw .4vw rgba(0,0,0,.35),inset .15vw .15vw .3vw rgba(255,255,255,.45),0 .15vw .3vw rgba(0,0,0,.3);transition:none}
+  .cr-list .toks b{font-size:.9vw;color:rgba(246,243,236,.7);margin-left:.4vw} .cr-list .toks em{font-style:normal;font-weight:600;font-size:.9vw;color:rgba(246,243,236,.45)}
+  .cr-list .pts{flex:0 0 3vw;text-align:right;font-weight:800;font-size:1.6vw;font-variant-numeric:tabular-nums} .cr-list li.won .pts{color:#f7dfa4}
+  .cr-best{font-weight:700;font-size:1vw;color:rgba(246,243,236,.8)} .cr-best b{font-weight:800}
+  .cr-foot{font-weight:600;font-size:.95vw;color:#a9cfc5;margin-top:1.2vh}
+  @media (max-aspect-ratio:3/2){ .cr-card{width:60vw} }
+  @media (prefers-reduced-motion:reduce){ .claw-wrap.rush:after,.claw-reveal .orb{-webkit-animation:none;animation:none} .cr-list li{opacity:1} }
   /* glass where supported; a plain translucent panel otherwise, and on slow screens */
   @supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
     .claw-wrap:not(.lowfx) .claw-chip,.claw-wrap:not(.lowfx) .claw-timer-pill,.claw-wrap:not(.lowfx) .claw-join{-webkit-backdrop-filter:blur(10px) saturate(130%);backdrop-filter:blur(10px) saturate(130%)}
@@ -908,14 +967,23 @@
       <div class="claw-hud">
         <div class="claw-title">
           <svg class="ic" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M24 3v7"/><rect x="18" y="10" width="12" height="7" rx="2"/><path d="M20 17c-8 3-12 10-11 18l4 7M28 17c8 3 12 10 11 18l-4 7M24 17v13"/><path d="M13 42l3-6M35 42l-3-6"/></svg>
-          <span class="tx">Claw Catch</span>
+          <span class="tx">Claw <em>Catch</em></span>
         </div>
         <div class="claw-timer-pill idle" id="clawTimerPill">
           <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><path d="M10 2h4M12 2v3M19 6l1.5-1.5"/><path class="hand" d="M12 13V8.5"/></svg>
-          <div class="claw-timer" id="clawTimer"></div>
+          <div class="claw-timer" id="clawTimer"></div><span class="bar"><i id="clawTimerBar"></i></span>
         </div>
         <div class="claw-players" id="clawPlayers"></div>
       </div>
+      <div class="claw-results" id="clawResults" aria-live="polite"><div class="cr-card">
+        <div class="cr-kicker" id="clawResKicker">Round over</div>
+        <div class="cr-hero" id="clawResHero"></div>
+        <div class="cr-big" id="clawResBig"></div>
+        <div class="cr-meta" id="clawResMeta"></div>
+        <ol class="cr-list" id="clawResList"></ol>
+        <div class="cr-best" id="clawResBest">&nbsp;</div>
+        <div class="cr-foot">Press Start on any phone for the next round</div>
+      </div></div>
       <div class="claw-banner" id="clawBanner"><div class="big" id="clawBannerBig"></div><div class="small" id="clawBannerSmall"></div></div>
       <div class="claw-join">
         <h3>Scan to Play</h3>
@@ -1930,7 +1998,7 @@ const Claw3D = (function(){
   let perf = { t: 0, n: 0, sum: 0, level: 2 }; // adaptive quality: 2 = shadows on, 1 = off, 0 = lower resolution too
   const home = i => -1.2 + i * 0.8;
   function freshPlayer(i){ return { on: false, cx: home(i), cz: -0.15, vx: 0, vz: 0, ix: 0, iz: 0, len: C.restLen, thx: 0, omx: 0, thz: 0, omz: 0,
-    state: 'idle', grip: 0, gripTo: 0, t: 0, toy: null, off: null, q: 0, score: 0, obj: null, target: null }; }
+    state: 'idle', grip: 0, gripTo: 0, t: 0, toy: null, off: null, q: 0, score: 0, obj: null, target: null, catches: [] }; }
   const players = [0, 1, 2, 3].map(freshPlayer);
 
   // ── sound ── tiny synthesized effects; nothing to download
@@ -2161,7 +2229,7 @@ const Claw3D = (function(){
     const strip = (len, axis, col, x, y, z) => {
       const bar = add(axis === 'x' ? new T.BoxGeometry(len, 0.022, 0.022) : new T.BoxGeometry(0.022, len, 0.022), new T.MeshBasicMaterial({ color: col }), x, y, z);
       const glow = new T.Mesh(new T.PlaneGeometry(axis === 'x' ? len + 0.3 : 0.32, axis === 'x' ? 0.32 : len + 0.3), new T.MeshBasicMaterial({ map: halo, color: col, transparent: true, opacity: 0.55, blending: T.AdditiveBlending, depthWrite: false }));
-      glow.position.set(x, y, z + 0.02); scene.add(glow); return bar;
+      glow.position.set(x, y, z + 0.02); scene.add(glow); stripGlows.push(glow.material); return bar;
     };
     strip(2 * X, 'x', 0xffc66b, 0, H - 0.05, Z + 0.04); strip(2 * X, 'x', 0xffc66b, 0, 0.05, Z + 0.04);
     strip(H, 'y', 0x5fe3f2, -X - 0.01, H / 2, Z + 0.04); strip(H, 'y', 0x5fe3f2, X + 0.01, H / 2, Z + 0.04);
@@ -2415,12 +2483,13 @@ const Claw3D = (function(){
     wrap().appendChild(el);
     const dx = cr.left + cr.width * 0.75 - wr.left - from.x, dy = cr.top + cr.height / 2 - wr.top - from.y;
     requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transform = `translate(${dx}px, ${dy}px) scale(.35)`; el.style.opacity = '.9'; }));
-    flyers.push({ el, i, value: b.value, counts, at: now + 720 });
+    flyers.push({ el, i, value: b.value, counts, at: now + 720, cls: el.className, bg: el.style.background, kind: b.kind });
+    if (counts && b.value >= 3) reveal(b, i); // gold and pearls are rare: give them a moment
     note({ x: b.chute.x, y: 0.75, z: b.chute.z }, (counts ? '+' : 'Practice +') + b.value, C.colours[i]);
   }
   function land(f){
     f.el.remove();
-    const p = players[f.i]; if (f.counts && p.on) p.score += f.value;
+    const p = players[f.i]; if (f.counts && p.on) { p.score += f.value; p.catches.push({ cls: f.cls, bg: f.bg, value: f.value, kind: f.kind }); }
     renderHud();
     const chip = document.querySelectorAll('#clawPlayers .claw-chip')[f.i];
     if (chip) { chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
@@ -2437,15 +2506,15 @@ const Claw3D = (function(){
   function start(){
     if (phase === 'play') return;
     restock();
-    players.forEach(p => { p.score = 0; }); winners = []; phase = 'play';
+    players.forEach(p => { p.score = 0; p.catches = []; }); winners = []; phase = 'play'; hideResults();
     phaseEnd = performance.now() + (C.countdownSecs + C.roundSecs) * 1000; lastSecs = -1; renderHud(); sendState(true);
   }
   function tickPhase(now){
     if (phase === 'play' && now >= phaseEnd && !flyers.some(f => f.counts) && !toys.some(b => b.chute && b.by >= 0)) {
       const on = [0, 1, 2, 3].filter(i => players[i].on), top = Math.max.apply(null, on.map(i => players[i].score).concat([0]));
       winners = top > 0 ? on.filter(i => players[i].score === top) : [];
-      phase = 'over'; phaseEnd = now + C.overSecs * 1000; renderHud(); sendState(true); SFX.fanfare(); if (winners.length) confetti();
-    } else if (phase === 'over' && now >= phaseEnd) { phase = 'lobby'; restock(); renderHud(); sendState(true); }
+      phase = 'over'; phaseEnd = now + C.overSecs * 1000; renderHud(); sendState(true); SFX.fanfare(); if (winners.length) confetti(); showResults();
+    } else if (phase === 'over' && now >= phaseEnd) { phase = 'lobby'; hideResults(); restock(); renderHud(); sendState(true); }
   }
   let connOn = false;
   function setConn(on){ connOn = on; renderConn(); }
@@ -2477,6 +2546,7 @@ const Claw3D = (function(){
     // the timer always shows something: the round length while waiting, the clock in a round, 0:00 at the end
     const pill = $('#clawTimerPill'), t = $('#clawTimer'), shown = phase === 'play' ? Math.min(left, C.roundSecs) : phase === 'over' ? 0 : C.roundSecs;
     t.textContent = Math.floor(shown / 60) + ':' + String(shown % 60).padStart(2, '0');
+    const tb = $('#clawTimerBar'); if (tb) { const f = phase === 'play' && !counting ? Math.max(0, (left - 1) / C.roundSecs) : phase === 'over' ? 0 : 1; tb.style.webkitTransform = tb.style.transform = 'scaleX(' + f + ')'; }
     if (pill) {
       pill.classList.toggle('idle', phase !== 'play' || counting); pill.classList.toggle('run', phase === 'play' && !counting);
       pill.classList.toggle('low', phase === 'play' && !counting && left <= 10);
@@ -2492,14 +2562,47 @@ const Claw3D = (function(){
       big = nOn ? 'Press <em>Start</em>' : 'Claw <em>Catch</em>';
       small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in. Drop a prize in a chute to score: plush 2, beach ball 1, gold 3, pearl 5.` : 'Scan the code with your phone to join. Up to 4 players.';
     }
+    if (phase === 'over') big = small = ''; // the results card speaks for the round
     $('#clawBannerBig').innerHTML = big; $('#clawBannerSmall').textContent = small;
     const ban = $('#clawBanner'); ban.classList.toggle('hide', !big); ban.classList.toggle('count', phase === 'play' && counting); ban.classList.toggle('slim', phase === 'lobby' && nOn > 0);
     ban.classList.toggle('winner', phase === 'over' && winners.length > 0);
     renderConn();
   }
   function burst(at){ const s2 = toScreen(at), el = document.createElement('div'); el.className = 'claw-burst'; el.style.left = s2.x + 'px'; el.style.top = s2.y + 'px'; wrap().appendChild(el); setTimeout(() => el.remove(), 900); }
+  // ── end of round: one card for everyone: winner, ranking, every prize each player landed, best catch ──
+  const PRIZE_NAME = { gold: 'Gold coin', pearl: 'Pearl', beach: 'Beach ball', plush: 'Plush toy', solid: 'Ball' };
+  function showResults(){
+    const box = $('#clawResults'); if (!box) return;
+    const on = [0, 1, 2, 3].filter(i => players[i].on); if (!on.length) return;
+    const nm = i => escHtml(players[i].who ? players[i].who.name : C.names[i]);
+    const av = i => { const a = (window.RYST_AVATARS || {})[players[i].who && players[i].who.avatar] || ''; return a || `<span class="ini">${escHtml((players[i].who ? players[i].who.name : 'P' + (i + 1)).charAt(0).toUpperCase())}</span>`; };
+    const order = on.slice().sort((a, b) => players[b].score - players[a].score || players[b].catches.length - players[a].catches.length || a - b);
+    const w = winners.length ? winners[0] : -1;
+    let best = null; on.forEach(i => players[i].catches.forEach(c => { if (!best || c.value > best.c.value) best = { i, c }; }));
+    box.style.setProperty('--pc', w >= 0 ? C.colours[w] : '#d8b879');
+    $('#clawResHero').innerHTML = w >= 0 ? `<svg class="crown" viewBox="0 0 64 40" aria-hidden="true"><defs><linearGradient id="ccCr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3cf"/><stop offset=".55" stop-color="#d8b879"/><stop offset="1" stop-color="#9c7536"/></linearGradient></defs><path d="M6 34 3 10l15 11L32 3l14 18 15-11-3 24z" fill="url(#ccCr)" stroke="#7a5a26" stroke-width="1.2" stroke-linejoin="round"/><rect x="6" y="33" width="52" height="5" rx="2" fill="url(#ccCr)"/></svg><div class="av">${av(w)}</div>` : '';
+    $('#clawResHero').style.display = w >= 0 ? '' : 'none';
+    $('#clawResBig').innerHTML = winners.length > 1 ? 'A <em>tie</em>' : w >= 0 ? `<em>${nm(w)}</em> wins` : 'No prizes <em>this time</em>';
+    const total = on.reduce((n, i) => n + players[i].catches.length, 0);
+    $('#clawResMeta').textContent = w >= 0 ? (winners.length > 1 ? winners.map(i => players[i].who ? players[i].who.name : C.names[i]).join(' & ') + ' · ' : '') + players[w].score + ' points · ' + total + (total === 1 ? ' prize' : ' prizes') + ' landed in all' : 'Line the ring up, let the claw settle, then drop.';
+    $('#clawResList').innerHTML = order.map((i, k) => { const p = players[i], won = winners.indexOf(i) >= 0;
+      const toks = p.catches.slice(0, 9).map(c => `<i class="${c.cls}"${c.bg ? ` style="background:${c.bg}"` : ''}></i>`).join('') + (p.catches.length > 9 ? `<b>+${p.catches.length - 9}</b>` : '');
+      return `<li class="${won ? 'won' : ''}" style="--pc:${C.colours[i]};-webkit-animation-delay:${0.2 + k * 0.12}s;animation-delay:${0.2 + k * 0.12}s"><span class="pl">${k + 1}</span><span class="lav">${av(i)}</span><span class="nm">${nm(i)}</span><span class="toks">${toks || '<em>no catches</em>'}</span><span class="pts">${p.score}</span></li>`; }).join('');
+    $('#clawResBest').innerHTML = best ? `Best catch &middot; <b style="color:${C.colours[best.i]}">${nm(best.i)}</b> &middot; ${PRIZE_NAME[best.c.kind] || 'Prize'} +${best.c.value}` : '&nbsp;';
+    box.classList.remove('on'); void box.offsetWidth; box.classList.add('on');
+  }
+  function hideResults(){ const box = $('#clawResults'); if (box) box.classList.remove('on'); }
+  // a rare prize (gold 3, pearl 5) gets its own reveal over the cabinet
+  function reveal(b, i){
+    const el = document.createElement('div'), name = b.kind === 'pearl' ? 'Pearl' : 'Gold coin';
+    el.className = 'claw-reveal ' + b.kind; el.style.setProperty('--pc', C.colours[i]);
+    el.innerHTML = `<span class="orb"></span><span class="tx"><b>${name}!</b><span>${escHtml(players[i].who ? players[i].who.name : C.names[i])} +${b.value}</span></span>`;
+    wrap().appendChild(el); setTimeout(() => el.remove(), 2600);
+    SFX.fanfare();
+  }
   function confetti(){
-    const w = wrap(), cols = C.colours.concat(['#f2c66d', '#fbfaf8']);
+    const w = wrap(), cols = C.colours.concat(['#d8b879', '#f6f3ec']);
+
     for (let k = 0; k < 70; k++) {
       const el = document.createElement('div'); el.className = 'claw-confetti';
       el.style.left = (Math.random() * 100) + '%'; el.style.background = cols[k % cols.length];
@@ -2572,9 +2675,11 @@ const Claw3D = (function(){
     renderer.render(scene, camera);
     adapt(dt);
     const mood = phase === 'play' ? (secsLeft(now) <= 10 && secsLeft(now) <= C.roundSecs ? 'rush' : 'play') : 'calm';
+    if (mood !== lastMood) { const wr = wrap(); if (wr) wr.classList.toggle('rush', mood === 'rush'); }
+    if (mood === 'rush' || lastMood === 'rush') { const k = mood === 'rush' ? 0.55 + 0.4 * Math.sin(now / 130) : 0.55; for (let g = 0; g < stripGlows.length; g++) stripGlows[g].opacity = k; }
     if (mood !== lastMood || now - lastMoodAt > 2000) { lastMood = mood; lastMoodAt = now; SFX.mood(mood); } // also (re)starts the music once audio is allowed
   }
-  let lastMood = '', lastMoodAt = 0;
+  let lastMood = '', lastMoodAt = 0; const stripGlows = [];
   function resize(){
     if (!renderer) return;
     const cv = renderer.domElement, w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
@@ -2648,6 +2753,13 @@ const Claw3D = (function(){
     sock.addEventListener('error', () => {});
   }
   ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => SFX.unlock())); // a remote or a tap lets audio start where the browser asks for one
+  // visual QA only (display.html?qa=1): stage end-of-round and rare-prize moments without playing a round
+  if (/[?&]qa=1/.test(location.search)) window.__clawQA = {
+    results(scores, catches){ scores.forEach((v, i) => { players[i].score = v; players[i].catches = (catches[i] || []).map(k => ({ cls: 'claw-token ' + (k === 'plush' ? 'plush crab' : k), bg: k === 'beach' ? 'conic-gradient(#ff5a5a 0 60deg,#fbf8f2 0 120deg,#2f8cff 0 180deg,#fbf8f2 0 240deg,#ffd23f 0 300deg,#fbf8f2 0)' : '', value: { gold: 3, pearl: 5, beach: 1, plush: 2 }[k], kind: k })); });
+      const on = [0, 1, 2, 3].filter(i => players[i].on), top = Math.max.apply(null, on.map(i => players[i].score)); winners = top > 0 ? on.filter(i => players[i].score === top) : []; phase = 'over'; phaseEnd = performance.now() + 60000; renderHud(); showResults(); },
+    reveal(kind, i){ reveal({ kind, value: kind === 'pearl' ? 5 : 3 }, i); },
+    rush(){ phase = 'play'; phaseEnd = performance.now() + 8000; },
+  };
   return {
     supported: hasWebGL,
     busy(){ return !!raf && (phase !== 'lobby' || flyers.length > 0 || players.some(p => p.on)); },

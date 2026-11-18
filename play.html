@@ -1332,7 +1332,10 @@ function clawRenderMe(){
   $('#clawStartBtn').style.display = seated && g.phase !== 'play' ? '' : 'none';
   if(!seated) return;
   if(g.phase === 'play') clawSetStatus(g.timeLeft > 0 ? 'Grab as many as you can' : 'Get ready…');
-  else if(g.phase === 'over') clawSetStatus(g.winners.length ? (g.winners.indexOf(clawSlot) >= 0 ? (g.winners.length > 1 ? 'A tie. You’re a joint winner!' : 'You win this round!') : 'P' + (g.winners[0] + 1) + ' wins this round') : 'Time. No catches this round.');
+  else if(g.phase === 'over'){
+    const mine = g.scores[clawSlot] || 0, place = 1 + g.scores.filter(x => x > mine).length, ord = ['1st', '2nd', '3rd', '4th'][place - 1];
+    clawSetStatus(g.winners.indexOf(clawSlot) >= 0 ? (g.winners.length > 1 ? 'A tie. You’re a joint winner with ' + mine + ' points!' : 'You win this round with ' + mine + ' points!') : mine > 0 ? 'You came ' + ord + ' with ' + mine + (mine === 1 ? ' point' : ' points') + '. Results are on the pool screen.' : g.winners.length ? 'P' + (g.winners[0] + 1) + ' wins this round. Start another and get one in a chute!' : 'Time. No catches this round.');
+  }
   else clawSetStatus('Practise now, or start a 60-second round for everyone');
 }
 function clawSetSig(ms){

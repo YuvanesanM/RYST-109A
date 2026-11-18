@@ -48,8 +48,8 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 |---|---|---|
 | 1 | Audit, plan, design system v2 (palette, Inter, tokens in CLAUDE.md and skills) | Done |
 | 2 | Ludo Lounge flagship | Done (see below) |
-| 3 | Claw Catch v2 | Next |
-| 4 | Tic-Tac-Toe (best of three, winning line, draw, replay) + Memory Match (3D flips, difficulty, timer, moves) | Planned |
+| 3 | Claw Catch v2 | Done (see below) |
+| 4 | Tic-Tac-Toe (best of three, winning line, draw, replay) + Memory Match (3D flips, difficulty, timer, moves) | Next |
 | 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Planned |
 | 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Planned |
 | 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Planned |
@@ -76,6 +76,21 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
   `stats` (captures, sixes), `touch()` for `seat.seen`; server stamps it on every owner request.
   Tests: 2/3/4-player turn order, release on six, legal moves, home column, exact finish, captures,
   stats, standings, connection, last-player-standing.
+
+### Stage 3 — Claw Catch v2 (delivered)
+- HUD in design system v2: Cormorant "Claw *Catch*" with the gold italic accent, champagne gold, a draining
+  timer bar under the clock (coral in the last 10 s), avatar rings on the player pills, v2 glass QR panel
+  with a seafoam live dot, Cormorant lobby banner.
+- Results card at the end of every round (replaces the winner banner): crown and avatar, "X wins" / tie /
+  no prizes, total prizes landed, each player's ranked row with the prizes they landed as tokens and their
+  points, the best catch of the round. Disappears when the round returns to the lobby or a new round starts.
+- Rare-prize reveal: a gold coin (3) or pearl (5) landing pops a "Pearl! Ravi +5" card with a spinning orb
+  and a fanfare.
+- Final-10-seconds rush: cabinet light strips pulse, coral vignette round the screen (alongside the
+  existing faster music and ticks).
+- Phones: after each round, "You came 2nd with 7 points" / "You win this round with 9 points!".
+- Unchanged: physics, grab odds, joystick and every `claw-*` message, scoring, restock, watchdogs.
+  QA hook `display.html?qa=1` (window.__clawQA) stages results/reveal/rush for screenshots only.
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a
