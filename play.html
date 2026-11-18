@@ -885,7 +885,8 @@ async function postJson(path, body){
   if(!res.ok) return state;
   const j = await res.json();
   if (j && Array.isArray(j.ludoMine)) ludoMine = j.ludoMine;
-  if (j && 'quizMe' in j) quizMe = j.quizMe;
+  if (j && 'quizMe' in j) { quizMe = j.quizMe; quizMeKey = j.quiz ? j.quiz.gameId + ':' + j.quiz.qIndex : ''; }
+  postGen++; // any poll that started before this reply is now stale
   if (j && j.serverNow) serverSkew = j.serverNow - Date.now();
   return j;
 }
@@ -1597,15 +1598,20 @@ function renderBoard(){
 // ── QUIZ NIGHT ── the proxy runs the quiz on its clock (quiz.js); this phone joins a team under the
 // player's profile, shows the question with four answer buttons and a countdown timed against the
 // server's clock (serverSkew), then the reveal.
-let quizMe = null, quizEntered = false, quizTimer = null, serverSkew = 0, quizLastQ = -2;
+let quizMe = null, quizMeKey = '', quizAsked = '', postGen = 0, quizEntered = false, quizTimer = null, serverSkew = 0, quizLastQ = -2;
 const QUIZ_LETTERS = ['A', 'B', 'C', 'D'], QUIZ_HUES = ['#4fd1c5', '#ffb85c', '#ff7aa8', '#8c9bff'];
 function quizEnter(){ if (quizEntered || !playToken) return; quizEntered = true; postJson('/game/quiz/me', {}).then(j => { if (j && j.quiz) { state = j; render(); } }).catch(() => {}); }
 function renderQuiz(){
   const Q = state.quiz; if (!Q || state.mode !== 'quiz') { clearInterval(quizTimer); quizTimer = null; return; }
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  // quizMe (my team, my answer) only comes back on my own requests; the shared poll can't carry it. When a new
+  // question (or a new game) shows up, last question's answer no longer applies: clear it and ask the proxy again.
+  const qKey = Q.gameId + ':' + Q.qIndex;
+  if (quizMe && quizMeKey !== qKey) { quizMe = { team: quizMe.team, answered: false, choice: -1 }; quizMeKey = qKey; }
+  if (playToken && quizAsked !== qKey) { quizAsked = qKey; postJson('/game/quiz/me', {}).then(j => { if (j && j.quiz && !busy) { state = j; render(); } }).catch(() => {}); }
   const inGame = Q.phase === 'question' || Q.phase === 'reveal', myTeam = quizMe ? quizMe.team : -1;
   $('#quizSub').hidden = inGame;
-  $('#quizTeams').innerHTML = Q.teams.map((t, i) => `<button type="button" class="quiz-team${myTeam === i ? ' mine' : ''}${Q.phase === 'over' && (Q.winners || []).indexOf(i) >= 0 ? ' won' : ''}" style="--tc:${t.colour}" data-team="${i}" ${inGame && myTeam >= 0 ? 'disabled' : ''}>
+  $('#quizTeams').innerHTML = Q.teams.map((t, i) => `<button type="button" class="quiz-team${myTeam === i ? ' mine' : ''}${Q.phase === 'over' && (Q.winners || []).indexOf(i) >= 0 ? ' won' : ''}" style="--tc:${t.colour}" data-team="${i}" ${Q.phase === 'question' && myTeam >= 0 ? 'disabled' : ''}>
       <span class="tn">${esc(t.name)}</span><span class="ts">${Q.phase === 'lobby' ? (t.members.length ? t.members.length + (t.members.length === 1 ? ' player' : ' players') : 'Tap to join') : t.score + ' pts'}</span>
       <span class="tm">${t.members.slice(0, 6).map(m => `<span title="${esc(m.name)}">${avatarSvg(m.avatar)}</span>`).join('')}</span></button>`).join('');
   $('#quizTeams').classList.toggle('compact', inGame);
@@ -1622,7 +1628,7 @@ function renderQuiz(){
     tickQuizClock();
   } else { clearInterval(quizTimer); quizTimer = null; }
   let st = '';
-  if (Q.phase === 'lobby') st = myTeam < 0 ? (profile ? 'Tap a team to join' : 'Set your name first: tap a team') : 'You’re on ' + esc(Q.teams[myTeam].name) + '. Start when everyone has a team.';
+  if (Q.phase === 'lobby') st = myTeam < 0 ? (profile ? 'Tap a team to join' : 'Set your name first: tap a team') : 'You’re on ' + esc(Q.teams[myTeam].name) + '. Tap another team to switch, or start when everyone has a team.';
   else if (Q.phase === 'question') st = myTeam < 0 ? 'Join a team to answer the next question' : quizMe.answered ? 'Locked in. Waiting for the others…' : 'Pick your answer';
   else if (Q.phase === 'reveal') { const rv = Q.reveal; st = myTeam < 0 ? '' : (quizMe.choice === rv.correct ? 'Correct! ' : quizMe.answered ? 'Not this time. ' : 'Out of time. ') + esc(Q.teams[myTeam].name) + ' +' + rv.points[myTeam]; }
   else if (Q.phase === 'over') st = (Q.winners || []).length ? (Q.winners.map(i => esc(Q.teams[i].name)).join(' & ') + ' win' + (Q.winners.length > 1 ? '' : 's') + '!') : 'Quiz over';
@@ -1652,8 +1658,10 @@ $('#quizNew').addEventListener('click', () => quizPost('/game/quiz/new'));
 async function poll(){
   if(busy) return;
   try{
-    const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
-    state = await res.json();
+    const gen = postGen, res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
+    const j = await res.json();
+    if (gen !== postGen || busy) return; // a tap's reply arrived meanwhile and is newer than this poll
+    state = j;
     if (state.serverNow) serverSkew = state.serverNow - Date.now();
     render();
   }catch(e){ /* keep showing the last known state */ }
