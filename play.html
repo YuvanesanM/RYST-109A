@@ -402,14 +402,47 @@
     .rp-hero{padding:22px 28px 22px 14px;margin-bottom:16px} .rp-hero-art{max-width:300px;height:170px} .rp-hero-name{font-size:34px} .rp-hero-desc{font-size:14.5px;max-width:42ch}
     .rp-grid{grid-template-columns:repeat(6,1fr)}
     .rp-grid > .rp-card{grid-column:span 2}
-    .rp-grid > .rp-card:nth-child(4),.rp-grid > .rp-card:nth-child(5){grid-column:span 3;flex-direction:row;text-align:left;gap:14px;padding:16px 20px}
-    .rp-grid > .rp-card:nth-child(4) .rp-art,.rp-grid > .rp-card:nth-child(5) .rp-art{flex:0 0 40%;margin:0}
-    .rp-grid > .rp-card:nth-child(4) .rp-desc,.rp-grid > .rp-card:nth-child(5) .rp-desc{min-height:0}
-    .rp-grid > .rp-card:nth-child(4) .rp-body,.rp-grid > .rp-card:nth-child(5) .rp-body{align-items:flex-start}
+
   }
   @media (prefers-reduced-motion:reduce){ .rp-hero-art svg,.cell svg{animation:none} }
   .screen h1.rp-title{font-size:44px;letter-spacing:-.02em}
   @media (min-width:760px){ .screen h1.rp-title{font-size:62px} .rp-grid > .rp-card:last-child:nth-child(odd){grid-column:span 3} }
+
+  /* ── Ludo Lounge ── */
+  .ludo-seats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 12px}
+  .ludo-seat{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px 12px 12px 16px;border-radius:16px;text-align:left;cursor:pointer;font-family:var(--sans);color:var(--ink);
+    background:rgba(255,255,255,.05);border:1.5px dashed rgba(255,255,255,.25);
+    background:linear-gradient(135deg,color-mix(in srgb,var(--lc) 22%,transparent),rgba(255,255,255,.03));border:1.5px dashed color-mix(in srgb,var(--lc) 55%,transparent);overflow:hidden}
+  .ludo-seat .sw{position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--lc)}
+  .ludo-seat .nm{font-weight:800;font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ludo-seat .meta{font-size:11.5px;color:var(--muted-text);font-weight:600}
+  .ludo-seat.taken{border-style:solid}
+  .ludo-seat.mine{box-shadow:0 0 0 1px var(--lc),0 0 18px color-mix(in srgb,var(--lc) 40%,transparent)}
+  .ludo-seat.turn{border-color:var(--lc);animation:ludo-turn 1.6s ease-in-out infinite}
+  @keyframes ludo-turn{50%{box-shadow:0 0 0 2px var(--lc),0 0 22px color-mix(in srgb,var(--lc) 55%,transparent)}}
+  .ludo-seat:disabled{cursor:default}
+  .ludo-seat .pips{display:flex;gap:4px;margin-top:3px} .ludo-seat .pips i{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--lc)} .ludo-seat .pips i.on{background:var(--lc)}
+  .ludo-join{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .ludo-join input{flex:1 1 100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--lc,var(--line));background:rgba(255,255,255,.05);color:var(--ink);font-family:var(--sans);font-size:15px;outline:none}
+  .ludo-join .btn{flex:1}
+  .ludo-status{min-height:40px;font-weight:700;font-size:14px;color:var(--ink);text-align:center;line-height:1.4;margin-bottom:10px}
+  .ludo-play{display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:14px}
+  .ludo-die{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:84px;height:84px;padding:12px;border-radius:18px;background:linear-gradient(145deg,#ffffff,#e9dcc2);
+    box-shadow:0 10px 22px rgba(0,0,0,.35),inset 0 -3px 0 rgba(0,0,0,.08),0 0 0 3px var(--lc)}
+  .ludo-die i{border-radius:50%;margin:3px}
+  .ludo-die i.on{background:#1d2a2c;box-shadow:inset 0 2px 2px rgba(255,255,255,.25)}
+  .ludo-die.blank i.on{background:transparent;box-shadow:none}
+  .ludo-die.roll{animation:ludo-roll .6s cubic-bezier(.16,1,.3,1)}
+  @keyframes ludo-roll{0%{transform:rotate(-200deg) scale(.6)}60%{transform:rotate(12deg) scale(1.08)}100%{transform:none}}
+  .ludo-roll{flex:1;max-width:190px;padding:16px}
+  .ludo-tokens{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+  .ludo-token{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid var(--line);color:var(--ink);font-family:var(--sans);cursor:pointer;text-align:left;opacity:.5}
+  .ludo-token.can{opacity:1;border-color:var(--lc);box-shadow:0 0 16px color-mix(in srgb,var(--lc) 35%,transparent)}
+  .ludo-token .pawn{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:radial-gradient(circle at 35% 30%,#fff,var(--lc) 45%,color-mix(in srgb,var(--lc) 70%,#000));box-shadow:0 0 0 2px #fff,0 3px 6px rgba(0,0,0,.35)}
+  .ludo-token .tx{display:flex;flex-direction:column;flex:1;min-width:0} .ludo-token .tx b{font-size:14px} .ludo-token .tx span{font-size:12px;color:var(--muted-text)}
+  .ludo-token .bar{width:70px;height:6px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden} .ludo-token .bar i{display:block;height:100%;background:var(--lc)}
+  .ludo-actions .btn[hidden],.ludo-join[hidden],.ludo-play[hidden],.ludo-roll[hidden],#ludoSub[hidden]{display:none !important}
+  @media (prefers-reduced-motion:reduce){ .ludo-seat.turn,.ludo-die.roll{animation:none} }
 </style>
 </head>
 <body>
@@ -461,6 +494,30 @@
       </div>
       <button type="button" class="btn primary" id="clawStartBtn" style="width:100%">Start a round</button>
       <p class="claw-hint">Steer with the joystick: up moves your claw further into the cabinet, down brings it closer. Line the ring in your colour up on a toy, let the claw stop swinging, then drop. The claw carries your prize to a chute; it only counts if it lands in. Plush toys 2, beach balls 1, gold 3, pearls 5. Soft plushes grip best; shiny balls slip.</p>
+    </section>
+
+    <section class="screen" id="screen-ludo">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1>Ludo Lounge</h1>
+      <p class="sub" id="ludoSub">Pick a colour to join. One phone can play more than one colour.</p>
+      <div class="ludo-seats" id="ludoSeats"></div>
+      <div class="ludo-join" id="ludoJoin" hidden>
+        <input type="text" id="ludoName" maxlength="16" placeholder="Your name" autocomplete="nickname">
+        <button type="button" class="btn primary" id="ludoJoinBtn">Join</button>
+        <button type="button" class="btn ghost" id="ludoJoinCancel">Cancel</button>
+      </div>
+      <p class="ludo-status" id="ludoStatus" role="status" aria-live="polite">&nbsp;</p>
+      <div class="ludo-play" id="ludoPlay" hidden>
+        <div class="ludo-die" id="ludoDie" aria-label="Die"></div>
+        <button type="button" class="btn primary ludo-roll" id="ludoRoll">Roll the die</button>
+      </div>
+      <div class="ludo-tokens" id="ludoTokens"></div>
+      <div class="actions ludo-actions">
+        <button type="button" class="btn primary" id="ludoStart" hidden>Start game</button>
+        <button type="button" class="btn ghost" id="ludoSkip" hidden>Skip turn</button>
+        <button type="button" class="btn primary" id="ludoNew" hidden>New game</button>
+      </div>
+      <p class="claw-hint">A 6 brings a token out and rolls again. Land on a rival to send them home, except on the star and start squares. You need the exact roll to get home. First to bring all four home wins.</p>
     </section>
 
     <section class="screen" id="screen-tictactoe">
@@ -612,6 +669,11 @@ const ART = {
     <path d="M58 70a34 34 0 0 1 68 0z" fill="url(#aSun)"/><g stroke="#06202a" stroke-width="3"><path d="M60 58h64M62 50h60M66 42h52"/></g>
     <g filter="url(#aGlow2)" fill="none" stroke="#4fe7ff" stroke-width="3" stroke-linecap="round"><path d="M44 80c2-20 6-36 14-48"/><path d="M58 32c-10-6-22-4-30 4M58 32c-4-10-14-16-24-14M58 32c8-8 20-8 28-2M58 32c10-2 18 4 22 12"/>
     <path d="M14 82c12-6 22 6 34 0s22 6 34 0 22 6 34 0 18 4 24 2" stroke="#7fe3d4"/></g></svg>`,
+  ludo: `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><linearGradient id="aDie" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9dcc2"/></linearGradient></defs>
+    <g transform="rotate(-8 60 52)"><rect x="18" y="14" width="76" height="76" rx="10" fill="#f6efe0"/><rect x="18" y="14" width="30" height="30" rx="6" fill="#ff6b5e"/><rect x="64" y="14" width="30" height="30" rx="6" fill="#34c79a"/><rect x="18" y="60" width="30" height="30" rx="6" fill="#3d8bfd"/><rect x="64" y="60" width="30" height="30" rx="6" fill="#ffc94d"/>
+    <path d="M56 44 48 52l8 8 8-8z" fill="#e2bf73"/></g>
+    <g transform="rotate(14 112 54)"><rect x="92" y="34" width="40" height="40" rx="9" fill="url(#aDie)" stroke="#d9c79f"/><circle cx="102" cy="44" r="3.6" fill="#1d2a2c"/><circle cx="112" cy="54" r="3.6" fill="#1d2a2c"/><circle cx="122" cy="64" r="3.6" fill="#1d2a2c"/></g>
+    <circle cx="40" cy="36" r="6" fill="#fff" stroke="#c74438" stroke-width="2.4"/><circle cx="82" cy="78" r="6" fill="#fff" stroke="#2266cc" stroke-width="2.4"/></svg>`,
   visualizer: `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><linearGradient id="aHp" x1="0" x2="1"><stop offset="0" stop-color="#7b5cff"/><stop offset="1" stop-color="#4fe7ff"/></linearGradient><filter id="aGlow3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
     <path d="M47 64V54a28 28 0 0 1 56 0v10" fill="none" stroke="url(#aHp)" stroke-width="7" stroke-linecap="round"/><rect x="38" y="56" width="18" height="30" rx="7" fill="#5a3fd6"/><rect x="94" y="56" width="18" height="30" rx="7" fill="#3fb3d6"/>
     <g filter="url(#aGlow3)" fill="none" stroke-width="3.5" stroke-linecap="round"><path d="M28 56c-4 6-4 18 0 24M18 50c-8 10-8 30 0 40" stroke="#7b5cff"/><path d="M122 56c4 6 4 18 0 24M132 50c8 10 8 30 0 40" stroke="#4fe7ff"/></g></svg>`,
@@ -631,9 +693,9 @@ const ACTIVITIES = [
   { mode: 'memory', name: 'Memory Match', desc: 'Find the beach-themed pairs, fun for kids', cta: 'Play now' },
   { mode: 'backdrop', name: 'Party Backdrop', desc: 'Your message for birthdays and celebrations', cta: 'Create' },
   { mode: 'visualizer', name: 'DJ Visuals', desc: 'A light show for the pool screen', cta: 'Play now' },
+  { mode: 'ludo', name: 'Ludo Lounge', desc: '2 to 4 players: roll, race and send rivals home', cta: 'Play now' },
 ];
 const MORE = [
-  { key: 'ludo', name: 'Ludo Lounge', note: 'Coming soon', soon: true },
   { key: 'quiz', name: 'Quiz Night', note: 'Coming soon', soon: true },
   { key: 'photo', name: 'Photo Booth', note: 'Coming soon', soon: true },
   { key: 'family', name: 'Family Challenge', note: 'Coming soon', soon: true },
@@ -713,12 +775,14 @@ async function postJson(path, body){
   // treating it as one would blow away board/players and crash the next
   // render(). Keep showing whatever was last known good instead.
   if(!res.ok) return state;
-  return res.json();
+  const j = await res.json();
+  if (j && Array.isArray(j.ludoMine)) ludoMine = j.ludoMine;
+  return j;
 }
 
 function showScreen(mode){
   const screen = playToken ? mode : 'signin';
-  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw'];
+  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw', 'ludo'];
   $('#screen-signin').classList.toggle('active', screen === 'signin');
   $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && !activities.includes(screen));
   $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
@@ -727,6 +791,8 @@ function showScreen(mode){
   $('#screen-backdrop').classList.toggle('active', screen === 'backdrop');
   $('#screen-visualizer').classList.toggle('active', screen === 'visualizer');
   $('#screen-claw').classList.toggle('active', screen === 'claw');
+  $('#screen-ludo').classList.toggle('active', screen === 'ludo');
+  if (screen === 'ludo') ludoEnter(); else ludoEntered = false;
   document.body.classList.toggle('hub', screen === 'dashboard' || (screen !== 'signin' && !activities.includes(screen)));
   screen === 'claw' ? clawEnter() : clawExit();
 }
@@ -876,6 +942,7 @@ function renderViz(){
 function render(){
   showScreen(state.mode);
   renderHubState();
+  renderLudo();
   renderTicTacToe();
   renderScoreboard();
   renderMemory();
@@ -1276,6 +1343,79 @@ document.addEventListener('visibilitychange', () => {
   if(clawWanted){ clawKeepAwake(); clawRejoinIfNeeded(); if(clawWs && clawWs.readyState === 1) clawSend({ type:'claw-ping', t: Math.round(performance.now()) }); } // back from the lock screen: get going again at once
 });
 window.addEventListener('online', () => { if(clawWanted && clawWs){ try{ clawWs.close(); }catch(e){} } else clawRejoinIfNeeded(); }); // network changed: a fresh connection
+
+
+// ── LUDO LOUNGE ── the proxy holds the table (rules in its ludo.js); this phone shows the seats,
+// rolls and moves for the seats it holds (ludoMine — one phone can hold several, for a family
+// passing it round). The board itself is on the pool screen; here each token is a button that
+// says where it is, and the ones the roll can move glow.
+const LUDO = { names: ['Red', 'Green', 'Yellow', 'Blue'], colours: ['#ff6b5e', '#34c79a', '#ffc94d', '#3d8bfd'], HOME: 56 };
+let ludoMine = [], ludoEntered = false, ludoJoinSeat = -1, ludoLastRoll = 0, ludoLastTurn = -2;
+function ludoEnter(){ if (ludoEntered || !playToken) return; ludoEntered = true; postJson('/game/ludo/mine', {}).then(j => { if (j && j.ludo) { state = j; render(); } }).catch(() => {}); }
+const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+function dieFace(n){ return Array.from({ length: 9 }, (_, i) => `<i${(DIE_PIPS[n] || []).indexOf(i) >= 0 ? ' class="on"' : ''}></i>`).join(''); }
+function ludoCanMove(L, c, t, d){ const p = L.tokens[c][t]; if (p === LUDO.HOME) return false; if (p < 0) return d === 6; return p + d <= LUDO.HOME; }
+function ludoWhere(p){ return p < 0 ? 'In base' : p === LUDO.HOME ? 'Home' : p > 50 ? 'Home stretch · ' + (LUDO.HOME - p) + ' to go' : (LUDO.HOME - p) + ' to go'; }
+function renderLudo(){
+  const L = state.ludo; if (!L || state.mode !== 'ludo') return;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const myTurn = L.phase === 'play' && ludoMine.indexOf(L.turn) >= 0, seatedMine = ludoMine.length > 0;
+  $('#ludoSeats').innerHTML = [0, 1, 2, 3].map(c => {
+    const s = L.seats[c], mine = ludoMine.indexOf(c) >= 0, home = L.tokens[c].filter(p => p === LUDO.HOME).length;
+    return `<button type="button" class="ludo-seat${s ? ' taken' : ''}${mine ? ' mine' : ''}${L.turn === c ? ' turn' : ''}" style="--lc:${LUDO.colours[c]}" data-seat="${c}" ${s && !(mine && L.phase !== 'play') ? 'disabled' : ''}>
+      <span class="sw"></span><span class="nm">${s ? esc(s.name) : 'Join ' + LUDO.names[c]}</span>
+      <span class="meta">${s ? (mine ? (L.phase === 'play' ? 'You' : 'You · tap to leave') : (L.phase === 'lobby' ? 'Ready' : home + ' of 4 home')) : 'Free seat'}</span>
+      ${s && L.phase !== 'lobby' ? `<span class="pips">${[0, 1, 2, 3].map(k => `<i${k < home ? ' class="on"' : ''}></i>`).join('')}</span>` : ''}
+    </button>`; }).join('');
+  const nSeated = L.seats.filter(Boolean).length, turnName = L.turn >= 0 && L.seats[L.turn] ? L.seats[L.turn].name : '';
+  let status = '';
+  if (L.phase === 'lobby') status = nSeated < 2 ? 'Waiting for at least 2 players' : (seatedMine ? nSeated + ' players ready. Start when everyone is in.' : 'Join a colour to play');
+  else if (L.phase === 'play') {
+    const last = L.last, lastTxt = !last ? '' : last.pass ? (L.seats[last.c] ? L.seats[last.c].name : '') + ' rolled ' + last.d + ': no move. ' : last.forfeit ? 'Three 6s in a row: turn lost. ' : last.captured ? (L.seats[last.c] ? L.seats[last.c].name : '') + ' sent ' + (L.seats[last.captured.c] ? L.seats[last.captured.c].name : 'a rival') + ' home! ' : last.skipped ? 'Turn skipped. ' : '';
+    status = lastTxt + (myTurn ? (L.rolled ? `${esc(turnName)}: pick a token to move ${L.dice}` : `Your turn, ${esc(turnName)}: roll the die`) : `${esc(turnName)}'s turn`);
+  } else if (L.phase === 'over') status = L.winner >= 0 && L.seats[L.winner] ? `${esc(L.seats[L.winner].name)} wins!` : 'Game over';
+  $('#ludoStatus').innerHTML = status || '&nbsp;';
+  $('#ludoSub').hidden = L.phase !== 'lobby';
+  // the die and the roll button: only when one of my seats is on turn
+  $('#ludoPlay').hidden = L.phase !== 'play';
+  $('#ludoPlay').style.setProperty('--lc', L.turn >= 0 ? LUDO.colours[L.turn] : '#e2bf73');
+  if (L.rollId !== ludoLastRoll) { const die = $('#ludoDie'); die.classList.remove('roll'); void die.offsetWidth; if (ludoLastRoll) die.classList.add('roll'); ludoLastRoll = L.rollId; }
+  $('#ludoDie').innerHTML = dieFace(L.dice || 1); $('#ludoDie').classList.toggle('blank', !L.dice);
+  $('#ludoRoll').hidden = !(myTurn && !L.rolled);
+  if (myTurn && L.turn !== ludoLastTurn && navigator.vibrate) { try { navigator.vibrate([40, 40, 40]); } catch (e) {} }
+  ludoLastTurn = myTurn ? L.turn : -2;
+  // tokens of the seat on turn, when it's mine and I've rolled
+  const c = L.turn;
+  $('#ludoTokens').innerHTML = myTurn && L.rolled ? [0, 1, 2, 3].map(t => {
+    const p = L.tokens[c][t], ok = ludoCanMove(L, c, t, L.dice), prog = p < 0 ? 0 : Math.round(p / LUDO.HOME * 100);
+    return `<button type="button" class="ludo-token${ok ? ' can' : ''}" style="--lc:${LUDO.colours[c]}" data-token="${t}" ${ok ? '' : 'disabled'}>
+      <span class="pawn"></span><span class="tx"><b>Token ${t + 1}</b><span>${ludoWhere(p)}</span></span><span class="bar"><i style="width:${prog}%"></i></span></button>`; }).join('') : '';
+  $('#ludoStart').hidden = !(L.phase === 'lobby' && seatedMine && nSeated >= 2);
+  $('#ludoSkip').hidden = !(L.phase === 'play' && seatedMine && !myTurn && Date.now() - (L.actAt || Date.now()) > 40000);
+  $('#ludoSkip').textContent = turnName ? 'Skip ' + turnName + "'s turn" : 'Skip turn';
+  $('#ludoNew').hidden = !(L.phase === 'over' && seatedMine);
+}
+async function ludoPost(path, body){ if (busy) return; busy = true; try { state = await postJson(path, body || {}); render(); } catch (e) {} finally { busy = false; } }
+$('#ludoSeats').addEventListener('click', e => {
+  const b = e.target.closest('[data-seat]'); if (!b || b.disabled) return;
+  const c = Number(b.dataset.seat), L = state.ludo;
+  if (ludoMine.indexOf(c) >= 0) { if (L.phase !== 'play') ludoPost('/game/ludo/leave', { seat: c }); return; }
+  ludoJoinSeat = c; $('#ludoJoin').hidden = false; $('#ludoJoin').style.setProperty('--lc', LUDO.colours[c]);
+  $('#ludoJoinBtn').textContent = 'Join as ' + LUDO.names[c];
+  try { $('#ludoName').value = localStorage.getItem('ryst_ludo_name') || ''; } catch (x) {}
+  $('#ludoName').focus();
+});
+$('#ludoJoinBtn').addEventListener('click', () => {
+  const name = $('#ludoName').value.trim(); try { if (name) localStorage.setItem('ryst_ludo_name', name); } catch (x) {}
+  $('#ludoJoin').hidden = true; ludoPost('/game/ludo/join', { seat: ludoJoinSeat, name });
+});
+$('#ludoName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#ludoJoinBtn').click(); });
+$('#ludoJoinCancel').addEventListener('click', () => { $('#ludoJoin').hidden = true; });
+$('#ludoRoll').addEventListener('click', () => { if (navigator.vibrate) try { navigator.vibrate(20); } catch (e) {} ludoPost('/game/ludo/roll'); });
+$('#ludoTokens').addEventListener('click', e => { const b = e.target.closest('[data-token]'); if (b && !b.disabled) ludoPost('/game/ludo/move', { token: Number(b.dataset.token) }); });
+$('#ludoStart').addEventListener('click', () => ludoPost('/game/ludo/start'));
+$('#ludoSkip').addEventListener('click', () => ludoPost('/game/ludo/skip'));
+$('#ludoNew').addEventListener('click', () => ludoPost('/game/ludo/new'));
 
 // Polls so this stays in sync with the pool screen and anyone else's phone —
 // including which activity is open, so every phone and the big screen are

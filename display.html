@@ -474,6 +474,35 @@
   .bd-palm.l{left:-1vw} .bd-palm.r{right:-1vw;-webkit-transform:scaleX(-1);transform:scaleX(-1)}
   .backdrop-bg.glow ~ .backdrop-text{color:#fff7e0 !important;text-shadow:0 0 .4vw #fff,0 0 1.4vw #ffd27a,0 0 3vw #f2a63c !important}
   @media (prefers-reduced-motion:reduce){ .backdrop-text,.bd-bulbs,.ttt-cell svg,.mem-card svg{-webkit-animation:none;animation:none} }
+
+  /* ── Ludo Lounge on the pool screen ── */
+  .ludo-frame{flex-direction:row !important;justify-content:center !important;padding:3vh 3vw}
+  .ludo-board-wrap{flex:0 0 auto;width:min(86vh,52vw);width:86vh;height:86vh;max-height:100%;display:flex;align-items:center;justify-content:center;margin-right:3vw}
+  #ludoCanvas{display:block;filter:drop-shadow(0 1.4vw 3vw rgba(0,0,0,.45))}
+  .ludo-panel{flex:0 1 30vw;display:flex;flex-direction:column;align-items:stretch;min-width:0}
+  .ludo-panel h2{margin:1vh 0 2vh !important;text-align:left}
+  .ludo-win[hidden]{display:none}
+  .ludo-turn{display:flex;align-items:center;font-family:var(--sans);font-weight:800;font-size:2vw;color:#fbfaf8;min-height:1.4em;margin-bottom:2.4vh}
+  .ludo-turn .dot{width:1.4vw;height:1.4vw;border-radius:50%;margin-right:.8vw;box-shadow:0 0 1vw currentColor}
+  .ludo-dd{display:grid;grid-template-columns:repeat(3,1fr);width:9vw;height:9vw;padding:1.1vw;border-radius:1.6vw;margin-bottom:3vh;background:linear-gradient(145deg,#ffffff,#e9dcc2);
+    box-shadow:0 1vw 2.4vw rgba(0,0,0,.4),inset 0 -.3vw 0 rgba(0,0,0,.08),0 0 0 .3vw var(--lc),0 0 2vw var(--lc)}
+  .ludo-dd i{border-radius:50%;margin:.3vw} .ludo-dd i.on{background:#1d2a2c} .ludo-dd.blank i.on{background:transparent}
+  .ludo-dd.roll{-webkit-animation:ludo-tumble .7s cubic-bezier(.16,1,.3,1);animation:ludo-tumble .7s cubic-bezier(.16,1,.3,1)}
+  @-webkit-keyframes ludo-tumble{0%{-webkit-transform:rotate(-260deg) scale(.5)}60%{-webkit-transform:rotate(14deg) scale(1.12)}100%{-webkit-transform:none}}
+  @keyframes ludo-tumble{0%{transform:rotate(-260deg) scale(.5)}60%{transform:rotate(14deg) scale(1.12)}100%{transform:none}}
+  .ludo-players .lp{position:relative;display:flex;align-items:center;padding:1.4vh 1.2vw 1.4vh 1.6vw;margin-bottom:1.2vh;border-radius:1vw;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);overflow:hidden;font-family:var(--sans)}
+  .ludo-players .lp .sw{position:absolute;left:0;top:0;bottom:0;width:.45vw;background:var(--lc)}
+  .ludo-players .lp .nm{flex:1;font-weight:800;font-size:1.5vw;color:#fbfaf8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ludo-players .lp .pp i{display:inline-block;width:.9vw;height:.9vw;border-radius:50%;margin-left:.35vw;border:2px solid var(--lc)} .ludo-players .lp .pp i.on{background:var(--lc)}
+  .ludo-players .lp.empty{opacity:.4}
+  .ludo-players .lp.turn{border-color:var(--lc);box-shadow:0 0 1.6vw var(--lc)}
+  .ludo-last{font-family:var(--sans);font-weight:700;font-size:1.3vw;color:#f2c66d;min-height:1.5em;margin:1vh 0 2vh}
+  .ludo-join-card{display:flex;align-items:center;padding:1vh 1vw;border-radius:1vw;background:rgba(6,24,34,.6);border:1px solid rgba(95,227,242,.3);font-family:var(--sans);font-weight:700;color:#e6f2ef;font-size:1.1vw;line-height:1.4}
+  .ludo-join-card .qr{background:#fff;border-radius:.6vw;padding:.5vw;margin-right:1vw} .ludo-join-card img{display:block;width:6.4vw;height:6.4vw}
+  .ludo-join-card small{font-weight:600;color:#bcd8d4;font-size:.85em}
+  .ludo-win{position:absolute;left:50%;top:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);text-align:center;padding:4vh 4vw;border-radius:1.6vw;background:rgba(6,24,34,.82);border:1.5px solid rgba(242,198,109,.7);box-shadow:0 2vw 5vw rgba(0,0,0,.5),0 0 3vw rgba(242,198,109,.3)}
+  .ludo-win .big{font-family:var(--sans);font-weight:800;font-size:5vw;color:#fbfaf8;letter-spacing:-.02em} .ludo-win .big em{font-style:normal}
+  .ludo-win .small{font-family:var(--sans);font-weight:600;font-size:1.4vw;color:#bcd8d4;margin-top:1vh}
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -635,6 +664,21 @@
     </div>
   </section>
 
+  <section class="screen rp-stage" id="screen-ludo">
+    <div class="rp-frame ludo-frame">
+      <div class="ludo-board-wrap"><canvas id="ludoCanvas"></canvas></div>
+      <div class="ludo-panel">
+        <h2>Ludo Lounge</h2>
+        <div class="ludo-turn" id="ludoTurn">&nbsp;</div>
+        <div class="ludo-dd" id="ludoDisplayDie"></div>
+        <div class="ludo-players" id="ludoPlayers"></div>
+        <div class="ludo-last" id="ludoLast">&nbsp;</div>
+        <div class="ludo-join-card"><div class="qr"><img id="qrPlayLudo" alt="Scan to play"></div><span>Scan to join<br><small>2 to 4 players · roll from your phone</small></span></div>
+      </div>
+      <div class="ludo-win" id="ludoWin" hidden><div class="big" id="ludoWinBig"></div><div class="small">Start a new game from any phone</div></div>
+    </div>
+  </section>
+
   <section class="screen rp-stage" id="screen-scoreboard">
     <div class="rp-frame">
       <h2>Scoreboard</h2>
@@ -741,6 +785,7 @@ $('#qrCaretaker').src = qr(`https://api.whatsapp.com/send/?phone=${CARETAKER_WHA
 $('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayMemory').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayClaw').src = qr(SITE_URL + '/play.html', 200);
+$('#qrPlayLudo').src = qr(SITE_URL + '/play.html', 200);
 
 // ── TOP BAR: CLOCK + DATE + WEATHER ──
 // Formatted with an explicit timeZone rather than trusting whatever the
@@ -1225,13 +1270,16 @@ function updateMainScreen(){
   const showViz = active && currentGame.mode === 'visualizer';
   // a round in progress, or players seated, keeps the game up even if no phone has checked in lately (players watch the TV and phones auto-lock)
   const showClaw = currentGame.mode === 'claw' && (active || Claw3D.busy());
-  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw);
+  const showLudo = currentGame.mode === 'ludo' && (active || (currentGame.ludo && currentGame.ludo.phase === 'play')); // a game in progress stays up while phones sleep
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw && !showLudo);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
   $('#screen-memory').classList.toggle('active', showMemory);
   $('#screen-backdrop').classList.toggle('active', showBackdrop);
   $('#screen-visualizer').classList.toggle('active', showViz);
   $('#screen-claw').classList.toggle('active', showClaw);
+  $('#screen-ludo').classList.toggle('active', showLudo);
+  if (showLudo) LudoView.show(); else LudoView.hide();
   showViz ? startViz() : stopViz();
   showClaw ? startClaw() : stopClaw();
 }
@@ -2448,6 +2496,129 @@ function startClaw(){
 }
 function stopClaw(){ Claw3D.stop(); Claw2D.stop(); }
 
+
+// ── LUDO LOUNGE on the pool screen ── the board is drawn on a canvas (works on the LED
+// wall's player too); the table itself comes from the proxy (gameState.ludo, rules in its
+// ludo.js). Tokens step square by square to where the server says they are, a captured
+// token drops back to base, and the die tumbles on every new roll. Plain ES2017.
+const LudoView = (function(){
+  const COL = ['#ff6b5e', '#34c79a', '#ffc94d', '#3d8bfd'], DARK = ['#c74438', '#1f9a74', '#d39b1c', '#2266cc'], LIGHT = ['#ffd6d1', '#cdf3e6', '#fff0c4', '#d3e5ff'];
+  const NAMES = ['Red', 'Green', 'Yellow', 'Blue'], START = [0, 13, 26, 39], SAFE = [0, 8, 13, 21, 26, 34, 39, 47], HOME = 56;
+  // the 52-square loop on a 15×15 grid, starting at red's start square and running clockwise
+  const PATH = [];
+  for (let c = 1; c <= 5; c++) PATH.push([6, c]); for (let r = 5; r >= 0; r--) PATH.push([r, 6]); PATH.push([0, 7], [0, 8]);
+  for (let r = 1; r <= 5; r++) PATH.push([r, 8]); for (let c = 9; c <= 14; c++) PATH.push([6, c]); PATH.push([7, 14], [8, 14]);
+  for (let c = 13; c >= 9; c--) PATH.push([8, c]); for (let r = 9; r <= 14; r++) PATH.push([r, 8]); PATH.push([14, 7], [14, 6]);
+  for (let r = 13; r >= 9; r--) PATH.push([r, 6]); for (let c = 5; c >= 0; c--) PATH.push([8, c]); PATH.push([7, 0], [6, 0]);
+  const HOMECOL = [[[7, 1], [7, 2], [7, 3], [7, 4], [7, 5]], [[1, 7], [2, 7], [3, 7], [4, 7], [5, 7]], [[7, 13], [7, 12], [7, 11], [7, 10], [7, 9]], [[13, 7], [12, 7], [11, 7], [10, 7], [9, 7]]];
+  const FINISH = [[7, 6.25], [6.25, 7], [7, 7.75], [7.75, 7]];
+  const BASE = [[0, 0], [0, 9], [9, 9], [9, 0]];
+  const baseSlot = (c, k) => [BASE[c][0] + 1.5 + (k >> 1) * 2, BASE[c][1] + 1.5 + (k & 1) * 2];
+  function cellOf(c, p, k){ if (p < 0) return baseSlot(c, k); if (p === HOME) return FINISH[c]; if (p > 50) return HOMECOL[c][p - 51]; return PATH[(START[c] + p) % 52]; }
+  let L = null, shown = null, raf = null, on = false, cv = null, ctx = null, N = 0, cell = 0, dpr = 1, lastRoll = 0, lastWin = -1, stepAt = 0, staticBoard = null;
+  function sizeUp(){
+    cv = cv || $('#ludoCanvas'); if (!cv) return; ctx = cv.getContext('2d');
+    const box = cv.parentNode.getBoundingClientRect(); dpr = Math.min(2, window.devicePixelRatio || 1);
+    N = Math.floor(Math.min(box.width, box.height)); if (!N) return;
+    cv.style.width = cv.style.height = N + 'px'; cv.width = cv.height = Math.round(N * dpr); cell = cv.width / 15; staticBoard = null;
+  }
+  function rr(x, y, w, h, r, c2){ c2.beginPath(); c2.moveTo(x + r, y); c2.arcTo(x + w, y, x + w, y + h, r); c2.arcTo(x + w, y + h, x, y + h, r); c2.arcTo(x, y + h, x, y, r); c2.arcTo(x, y, x + w, y, r); c2.closePath(); }
+  function star(c2, x, y, R, fill){ c2.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, r = i % 2 ? R * 0.45 : R; c2.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } c2.closePath(); c2.fillStyle = fill; c2.fill(); }
+  function drawBoard(){ // everything that never moves, drawn once per size
+    const b = document.createElement('canvas'); b.width = b.height = cv.width; const g = b.getContext('2d'), S = cv.width, C = cell;
+    g.fillStyle = 'rgba(0,0,0,.35)'; rr(S * 0.01, S * 0.02, S * 0.98, S * 0.98, C * 0.6, g); g.fill();
+    const iv = g.createLinearGradient(0, 0, S, S); iv.addColorStop(0, '#fbf6ea'); iv.addColorStop(1, '#efe4cc'); g.fillStyle = iv; rr(0, 0, S, S, C * 0.6, g); g.fill();
+    // bases
+    for (let c = 0; c < 4; c++) {
+      const [r0, c0] = BASE[c], x = c0 * C, y = r0 * C, w = 6 * C;
+      const gr = g.createLinearGradient(x, y, x + w, y + w); gr.addColorStop(0, COL[c]); gr.addColorStop(1, DARK[c]); g.fillStyle = gr; rr(x + C * 0.12, y + C * 0.12, w - C * 0.24, w - C * 0.24, C * 0.5, g); g.fill();
+      g.fillStyle = '#fbf6ea'; rr(x + C * 0.9, y + C * 0.9, w - C * 1.8, w - C * 1.8, C * 0.6, g); g.fill();
+      for (let k = 0; k < 4; k++) { const [sr, sc] = baseSlot(c, k); g.beginPath(); g.arc(sc * C, sr * C, C * 0.62, 0, Math.PI * 2); g.fillStyle = LIGHT[c]; g.fill(); g.lineWidth = C * 0.06; g.strokeStyle = COL[c]; g.stroke(); }
+    }
+    // loop squares
+    const sq = (r, c, fill) => { g.fillStyle = fill; g.fillRect(c * C + C * 0.04, r * C + C * 0.04, C * 0.92, C * 0.92); };
+    PATH.forEach(([r, c]) => sq(r, c, '#ffffff'));
+    START.forEach((i, c) => sq(PATH[i][0], PATH[i][1], COL[c]));
+    HOMECOL.forEach((col, c) => col.forEach(([r, cc]) => sq(r, cc, COL[c])));
+    SAFE.forEach(i => { if (START.indexOf(i) >= 0) return; const [r, c] = PATH[i]; star(g, c * C + C / 2, r * C + C / 2, C * 0.34, '#d9b36a'); });
+    START.forEach((i, c) => { const [r, cc] = PATH[i]; star(g, cc * C + C / 2, r * C + C / 2, C * 0.3, 'rgba(255,255,255,.85)'); });
+    g.strokeStyle = 'rgba(30,40,40,.12)'; g.lineWidth = Math.max(1, C * 0.03);
+    PATH.concat([].concat.apply([], HOMECOL)).forEach(([r, c]) => g.strokeRect(c * C + C * 0.04, r * C + C * 0.04, C * 0.92, C * 0.92));
+    // centre: four triangles meeting in a gold rosette
+    const cx = 7.5 * C, cy = 7.5 * C;
+    const edges = [[[6, 6], [6, 9]], [[6, 6], [9, 6]], [[9, 6], [9, 9]], [[6, 9], [9, 9]]]; // [x,y] pairs in cell units: red left, green top, yellow right, blue bottom
+    edges.forEach((e, c) => { g.beginPath(); g.moveTo(e[0][0] * C, e[0][1] * C); g.lineTo(e[1][0] * C, e[1][1] * C); g.lineTo(cx, cy); g.closePath(); g.fillStyle = COL[c]; g.fill(); });
+    g.beginPath(); g.arc(cx, cy, C * 0.55, 0, Math.PI * 2); const gg = g.createRadialGradient(cx - C * 0.15, cy - C * 0.15, 1, cx, cy, C * 0.55); gg.addColorStop(0, '#fff3cf'); gg.addColorStop(1, '#c99a4c'); g.fillStyle = gg; g.fill();
+    star(g, cx, cy, C * 0.32, '#fbf6ea');
+    staticBoard = b;
+  }
+  function drawToken(c, x, y, R, glow){
+    if (glow) { ctx.beginPath(); ctx.arc(x, y, R * (1.35 + Math.sin(performance.now() / 220) * 0.12), 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fill(); }
+    ctx.beginPath(); ctx.ellipse(x, y + R * 0.55, R * 0.95, R * 0.4, 0, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.fill();
+    const gr = ctx.createRadialGradient(x - R * 0.35, y - R * 0.45, R * 0.1, x, y, R); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.35, COL[c]); gr.addColorStop(1, DARK[c]);
+    ctx.beginPath(); ctx.arc(x, y, R, 0, Math.PI * 2); ctx.fillStyle = gr; ctx.fill();
+    ctx.lineWidth = R * 0.18; ctx.strokeStyle = '#fbf6ea'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(x, y, R * 0.42, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.fill();
+  }
+  function canMove(c, t){ const p = L.tokens[c][t], d = L.dice; if (p === HOME) return false; if (p < 0) return d === 6; return p + d <= HOME; }
+  function frame(){
+    raf = null; if (!on || !cv || !L) return;
+    if (!staticBoard) drawBoard();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height); ctx.drawImage(staticBoard, 0, 0);
+    // step shown positions toward the real ones, one square per 120 ms
+    const now = performance.now(); let moving = false;
+    if (now - stepAt > 120) {
+      stepAt = now;
+      for (let c = 0; c < 4; c++) for (let k = 0; k < 4; k++) {
+        const want = L.tokens[c][k], have = shown[c][k];
+        if (want === have) continue;
+        if (want < 0 || have < 0 || want < have) shown[c][k] = want; // out of base, captured or a new game: jump
+        else shown[c][k] = have + 1;
+      }
+    }
+    for (let c = 0; c < 4; c++) for (let k = 0; k < 4; k++) if (shown[c][k] !== L.tokens[c][k]) moving = true;
+    // tokens; several on one square fan out a little
+    const at = {};
+    for (let c = 0; c < 4; c++) { if (!L.seats[c]) continue; for (let k = 0; k < 4; k++) { const pos = cellOf(c, shown[c][k], k), key = pos.join(','); (at[key] = at[key] || []).push([c, k, pos]); } }
+    const live = L.phase === 'play' && L.rolled;
+    Object.keys(at).forEach(key => { const list = at[key], n = list.length;
+      list.forEach(([c, k, pos], i) => {
+        const off = n > 1 && shown[c][k] >= 0 ? (i - (n - 1) / 2) * cell * 0.26 : 0;
+        const inBase = shown[c][k] < 0, mid = inBase ? 0 : 0.5; // base slots are stored as centres; squares as their top-left cell
+        drawToken(c, (pos[1] + mid) * cell + off, (pos[0] + mid) * cell, cell * (inBase ? 0.42 : 0.36), live && c === L.turn && canMove(c, k));
+      }); });
+    if (moving || live) raf = requestAnimationFrame(frame);
+  }
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
+  function panel(){
+    const turnSeat = L.turn >= 0 ? L.seats[L.turn] : null;
+    $('#ludoTurn').innerHTML = L.phase === 'lobby' ? (L.seats.filter(Boolean).length < 2 ? 'Scan to join, 2 to 4 players' : 'Ready: start from any phone')
+      : L.phase === 'play' && turnSeat ? `<span class="dot" style="background:${COL[L.turn]}"></span>${esc(turnSeat.name)}${L.rolled ? ' · pick a token' : ' · roll the die'}` : L.phase === 'over' ? 'Game over' : '&nbsp;';
+    const die = $('#ludoDisplayDie');
+    die.style.setProperty('--lc', L.turn >= 0 ? COL[L.turn] : '#e2bf73');
+    die.innerHTML = Array.from({ length: 9 }, (_, i) => `<i${(PIPS[L.dice] || []).indexOf(i) >= 0 ? ' class="on"' : ''}></i>`).join('');
+    die.classList.toggle('blank', !L.dice);
+    if (L.rollId !== lastRoll) { die.classList.remove('roll'); void die.offsetWidth; if (lastRoll) die.classList.add('roll'); lastRoll = L.rollId; }
+    $('#ludoPlayers').innerHTML = [0, 1, 2, 3].map(c => { const s = L.seats[c], home = L.tokens[c].filter(p => p === HOME).length;
+      return `<div class="lp${s ? '' : ' empty'}${L.turn === c ? ' turn' : ''}" style="--lc:${COL[c]}"><span class="sw"></span><span class="nm">${s ? esc(s.name) : NAMES[c] + ' · free'}</span><span class="pp">${[0, 1, 2, 3].map(k => `<i${k < home ? ' class="on"' : ''}></i>`).join('')}</span></div>`; }).join('');
+    const last = L.last, nm = c => (L.seats[c] ? esc(L.seats[c].name) : NAMES[c]);
+    $('#ludoLast').innerHTML = !last || L.phase !== 'play' ? '&nbsp;' : last.captured ? `${nm(last.c)} sent ${nm(last.captured.c)} home!` : last.pass ? `${nm(last.c)} rolled ${last.d}: no move` : last.forfeit ? `${nm(last.c)}: three 6s, turn lost` : last.skipped ? 'Turn skipped' : last.to === HOME ? `${nm(last.c)} brought a token home!` : '&nbsp;';
+    const win = L.phase === 'over' && L.winner >= 0 && L.seats[L.winner];
+    $('#ludoWin').hidden = !win;
+    if (win) { $('#ludoWinBig').innerHTML = `<em style="color:${COL[L.winner]}">${esc(L.seats[L.winner].name)}</em> wins`; if (lastWin !== L.gameId) { lastWin = L.gameId; confettiBurst($('#screen-ludo .rp-frame')); } }
+  }
+  function confettiBurst(host){ if (!host) return; for (let k = 0; k < 60; k++) { const el = document.createElement('div'); el.className = 'claw-confetti'; el.style.left = (Math.random() * 100) + '%'; el.style.background = COL[k % 4];
+    el.style.setProperty('--dx', ((Math.random() - 0.5) * 30) + 'vw'); el.style.animationDuration = (2.4 + Math.random() * 2) + 's'; el.style.animationDelay = (Math.random() * 0.8) + 's'; host.appendChild(el); setTimeout(() => el.remove(), 5500); } }
+  return {
+    update(state){ if (!state) return; const first = !L || L.gameId !== state.gameId; L = state; if (first || !shown) shown = L.tokens.map(t => t.slice()); if (on) { panel(); if (!raf) raf = requestAnimationFrame(frame); } },
+    show(){ if (on) return; on = true; sizeUp(); if (L) { panel(); if (!raf) raf = requestAnimationFrame(frame); } },
+    hide(){ on = false; if (raf) { cancelAnimationFrame(raf); raf = null; } },
+    resize(){ if (on) { sizeUp(); if (!raf) raf = requestAnimationFrame(frame); } },
+  };
+})();
+window.addEventListener('resize', () => LudoView.resize());
+
 async function refreshGame(){
   try{
     const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
@@ -2456,11 +2627,12 @@ async function refreshGame(){
     renderScoreboard(currentGame);
     renderMemoryDisplay(currentGame);
     renderBackdropDisplay(currentGame);
+    LudoView.update(currentGame.ludo);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }
-refreshGame();
-setInterval(refreshGame, 4000); // fast enough to feel live for spectators, gentle enough for a free-tier server
+// every 4 s is fast enough for spectators — except a Ludo roll, which should land on the big screen within a second
+(function gameLoop(){ refreshGame().then(() => setTimeout(gameLoop, currentGame.mode === 'ludo' ? 900 : 4000), () => setTimeout(gameLoop, 4000)); })();
 
 // ── SELF-UPDATE ──
 // This runs unattended on a screen nobody's going to walk over and refresh,
