@@ -275,7 +275,17 @@
      inset/gap) for the LED wall's older Chromium. */
   #screen-claw{padding:0;top:0;right:0;bottom:0;left:0;inset:0}
   .claw-wrap{position:relative;width:100%;height:100%;overflow:hidden}
-  #clawCanvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block}
+  #clawCanvas,#clawGl{position:absolute;top:0;left:0;width:100%;height:100%;display:block}
+  /* 3D: floating notes ("So close!") and the token a catch flies up into its score chip as */
+  .claw-note{position:absolute;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);font-family:var(--serif);font-weight:600;font-size:2.6vw;pointer-events:none;
+    text-shadow:0 3px 14px rgba(0,0,0,.5);-webkit-animation:claw-note 1.4s cubic-bezier(.16,1,.3,1) forwards;animation:claw-note 1.4s cubic-bezier(.16,1,.3,1) forwards}
+  @-webkit-keyframes claw-note{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-6vh}}
+  @keyframes claw-note{from{opacity:1;margin-top:0}to{opacity:0;margin-top:-6vh}}
+  .claw-token{position:absolute;width:4.4vw;height:4.4vw;margin:-2.2vw 0 0 -2.2vw;border-radius:50%;pointer-events:none;
+    box-shadow:inset -.5vw -.6vw 1vw rgba(0,0,0,.35),inset .4vw .4vw .8vw rgba(255,255,255,.45),0 .6vw 1.2vw rgba(0,0,0,.35);
+    transition:transform .72s cubic-bezier(.5,0,.75,0),opacity .72s}
+  .claw-token.gold{background:radial-gradient(circle at 35% 30%,#fff3c2,#e8b42c 60%,#9c7414)}
+  .claw-token.pearl{background:radial-gradient(circle at 35% 30%,#ffffff,#e8ecff 60%,#a9b4d6)}
   .claw-hud{position:absolute;top:1.6vh;left:2.4vw;right:2.4vw;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
   .claw-title{font-family:var(--serif);font-weight:600;font-size:2.6vw;color:var(--sand);letter-spacing:.04em;text-shadow:0 3px 18px rgba(0,0,0,.45);white-space:nowrap}
   .claw-title em{font-style:italic;color:var(--white)}
@@ -296,7 +306,7 @@
   .claw-banner{position:absolute;left:43%;top:42%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);text-align:center;pointer-events:none;
     padding:3vh 4vw;border-radius:2vw;background:rgba(4,16,24,.62);box-shadow:0 20px 60px rgba(0,0,0,.35);transition:opacity .4s}
   .claw-banner.hide{opacity:0}
-  .claw-banner.slim{top:27%;padding:1.4vh 2.4vw}
+  .claw-banner.slim{top:auto;bottom:2.2vh;-webkit-transform:translate(-50%,0);transform:translate(-50%,0);padding:1.2vh 2.4vw}
   .claw-banner.slim .big{font-size:2.6vw}
   .claw-banner.slim .small{font-size:1.2vw;margin-top:.6vh}
   .claw-banner.count{background:none;box-shadow:none}
@@ -414,12 +424,12 @@
             <h3>Pool &amp; Jacuzzi</h3><div class="rule"></div>
             <p>Yours to enjoy throughout your stay</p>
           </div>
-          <div class="h2-card">
+          <div class="h2-card has-photo" style="background-image:url('/assets/gallery-19.jpg')">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"/><rect x="2" y="11" width="20" height="7" rx="2"/><path d="M6 18v2M18 18v2"/></svg>
             <h3>Games &amp; Recreation</h3><div class="rule"></div>
             <p>Indoor &amp; outdoor fun awaits</p>
           </div>
-          <div class="h2-card">
+          <div class="h2-card has-photo" style="background-image:url('/assets/gallery-23.jpg')">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c1.5 2 .5 3.5 0 4.5C11 8 12.5 9 13 10a3 3 0 1 1-5 1.5C8 9 12 8 12 2z"/><path d="M5 21h14"/></svg>
             <h3>BBQ Evenings</h3><div class="rule"></div>
             <p>Fire up the grill and dine under the stars</p>
@@ -520,6 +530,7 @@
   <section class="screen" id="screen-claw">
     <div class="claw-wrap">
       <canvas id="clawCanvas"></canvas>
+      <canvas id="clawGl"></canvas>
       <div class="claw-hud">
         <div class="claw-title">Claw <em>Catch</em></div>
         <div class="claw-timer" id="clawTimer"></div>
@@ -1053,6 +1064,8 @@ function updateMainScreen(){
   showClaw ? startClaw() : stopClaw();
 }
 
+// ── CLAW CATCH 2D ── the flat cabinet: the fallback for a screen without WebGL.
+const Claw2D = (function(){
 // ── CLAW CATCH ── the pool screen runs the whole game: physics, claws,
 // scoring and the round clock. Phones only send an analog stick value
 // (-1..1), drops and starts, which the proxy relays here over the same
@@ -1476,6 +1489,437 @@ function stopClaw(){
   clearTimeout(clawWsTimer);
   if (clawWs) { const w = clawWs; clawWs = null; try { w.close(); } catch (e) { /* closed */ } }
 }
+
+  return {
+    start(){ $('#clawCanvas').style.display = ''; $('#clawGl').style.display = 'none'; startClaw(); },
+    stop: stopClaw,
+  };
+})();
+
+// ── CLAW CATCH 3D ── the same game as Claw2D above, in a real 3D cabinet:
+// each claw hangs from its own trolley on the ceiling and moves left/right
+// AND forward/back (the phone's stick sends both axes), swinging on its
+// cable in both directions. Depth is hard to judge on a flat screen, so
+// every claw casts a ring in its colour onto whatever it would land on,
+// plus a faint beam down to it — aim with the ring, not by eye.
+// three.js r128 is self-hosted and only loaded when the game first opens,
+// so the welcome signage never pays for it. If WebGL isn't available (the
+// LED wall's player), the 2D version runs instead — see clawEngine().
+const Claw3D = (function(){
+  const C = {
+    X: 2.0, Z: 0.95, H: 3.0,                 // cabinet half-width, half-depth, height (world units ≈ metres)
+    ceil: 2.86, restLen: 0.42, tip: 0.66,    // trolley height; parked cable length; hub-to-fingertip (the claw is drawn at 1.3×)
+    maxSpeed: 1.35, accel: 7, dropSpeed: 1.7, liftSpeed: 1.25,
+    g: 9.8, swingDamp: 2.6, swingCouple: 0.28,
+    roundSecs: 60, countdownSecs: 3, overSecs: 10,
+    colours: ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'], names: ['P1', 'P2', 'P3', 'P4'],
+    solids: ['#ff5d8f', '#3f7cff', '#8fd14f', '#ffc53d', '#33c6d6', '#ff7a45', '#a77bff'],
+    beach: [['#ff5d5d', '#ffd23f', '#3f9cff'], ['#ff7ab6', '#7ae0ff', '#ffe066'], ['#44d19a', '#ff8a3d', '#5c7cff']],
+  };
+  const STEP = 1 / 120, TIP_R = 0.07;
+  let T = null, renderer = null, scene = null, camera = null, raf = null, lastT = 0, acc = 0, ready = false, loading = false;
+  let balls = [], respawn = [], flyers = [], geo = {}, mats = {};
+  let phase = 'lobby', phaseEnd = 0, winners = [], ws = null, wsRetry = 0, wsTimer = null, lastSent = 0, lastSecs = -1;
+  const home = i => -1.35 + i * 0.9;
+  function freshPlayer(i){ return { on: false, cx: home(i), cz: 0.35, vx: 0, vz: 0, ix: 0, iz: 0, len: C.restLen, thx: 0, omx: 0, thz: 0, omz: 0, state: 'idle', grip: 0, t: 0, ball: null, off: null, score: 0, obj: null }; }
+  const players = [0, 1, 2, 3].map(freshPlayer);
+
+  // ── loading ──
+  function hasWebGL(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
+  function load(cb){
+    if (window.THREE) return cb(true);
+    if (loading) return; loading = true;
+    const s = document.createElement('script'); s.src = '/assets/vendor/three-r128.min.js';
+    s.onload = () => { loading = false; cb(!!window.THREE); }; s.onerror = () => { loading = false; cb(false); };
+    document.head.appendChild(s);
+  }
+
+  // ── materials & textures ──
+  function canvasTex(w, h, draw){ const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.anisotropy = 4; return t; }
+  function ballMat(kind, look){
+    const key = kind + look; if (mats[key]) return mats[key];
+    let m;
+    if (kind === 'beach') {
+      const cols = C.beach[look];
+      const map = canvasTex(512, 256, (x, w, h) => { for (let k = 0; k < 6; k++) { x.fillStyle = k % 2 ? '#fbf8f2' : cols[(k / 2) % 3]; x.fillRect(k * w / 6, 0, w / 6 + 1, h); } x.fillStyle = '#fbf8f2'; x.fillRect(0, 0, w, h * 0.07); x.fillRect(0, h * 0.93, w, h * 0.07); });
+      m = new T.MeshPhongMaterial({ map, shininess: 70, specular: 0x444444 });
+    } else if (kind === 'gold') {
+      const map = canvasTex(512, 256, (x, w, h) => { x.fillStyle = '#e8b42c'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff0b0';
+        [w * 0.25, w * 0.75].forEach(cx => { x.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 22 : 52; x.lineTo(cx + Math.cos(a) * r, h / 2 + Math.sin(a) * r); } x.closePath(); x.fill(); }); });
+      m = new T.MeshPhongMaterial({ map, shininess: 120, specular: 0xffe7a0 });
+    } else if (kind === 'pearl') {
+      m = new T.MeshPhongMaterial({ color: 0xf4f2ff, emissive: 0x1a1830, shininess: 140, specular: 0xffffff });
+    } else {
+      m = new T.MeshPhongMaterial({ color: new T.Color(C.solids[look]), shininess: 90, specular: 0x555555 });
+    }
+    return (mats[key] = m);
+  }
+  function newBall(x, y, z){
+    const roll = Math.random();
+    const kind = roll < 0.04 ? 'pearl' : roll < 0.15 ? 'gold' : roll < 0.55 ? 'beach' : 'solid';
+    const r = kind === 'pearl' ? 0.2 : 0.22 + Math.floor(Math.random() * 3) * 0.02;
+    const look = kind === 'solid' ? Math.floor(Math.random() * C.solids.length) : kind === 'beach' ? Math.floor(Math.random() * C.beach.length) : 0;
+    const mesh = new T.Mesh(geo.ball, ballMat(kind, look)); mesh.scale.setScalar(r);
+    mesh.quaternion.setFromEuler(new T.Euler(Math.random() * 6, Math.random() * 6, Math.random() * 6));
+    scene.add(mesh);
+    return { x, y, z, ox: x, oy: y, oz: z, r, kind, look, value: kind === 'pearl' ? 5 : kind === 'gold' ? 3 : 1, held: -1, mesh };
+  }
+
+  // ── the cabinet ──
+  function buildCabinet(){
+    const X = C.X, Z = C.Z, H = C.H, gold = new T.MeshPhongMaterial({ color: 0xd9bb7f, specular: 0xfff1c8, shininess: 80 });
+    const add = (g, m, x, y, z) => { const o = new T.Mesh(g, m); o.position.set(x, y, z); scene.add(o); return o; };
+    // floor and lit back wall
+    add(new T.BoxGeometry(2 * X, 0.06, 2 * Z), new T.MeshPhongMaterial({ color: 0x0b2c3a, shininess: 10 }), 0, -0.03, 0);
+    const wall = canvasTex(256, 512, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3d8496'); g.addColorStop(0.5, '#174d61'); g.addColorStop(1, '#0a2a38'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+      const r = x.createRadialGradient(w / 2, 0, 10, w / 2, 60, w); r.addColorStop(0, 'rgba(255,240,210,.35)'); r.addColorStop(1, 'rgba(255,240,210,0)'); x.fillStyle = r; x.fillRect(0, 0, w, h); });
+    add(new T.PlaneGeometry(2 * X, H), new T.MeshBasicMaterial({ map: wall }), 0, H / 2, -Z);
+    // side and front glass, barely there, plus streaks of reflection on the front pane
+    const glass = new T.MeshPhongMaterial({ color: 0xbfe6ee, transparent: true, opacity: 0.07, shininess: 120, specular: 0xffffff, depthWrite: false, side: T.DoubleSide });
+    const side = new T.PlaneGeometry(2 * Z, H);
+    const l = add(side, glass, -X, H / 2, 0); l.rotation.y = Math.PI / 2;
+    const r = add(side, glass, X, H / 2, 0); r.rotation.y = Math.PI / 2;
+    add(new T.PlaneGeometry(2 * X, H), glass, 0, H / 2, Z);
+    const streak = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.06, depthWrite: false });
+    [[-1.3, 0.34], [-0.7, 0.12], [1.15, 0.22]].forEach(s => { const m = add(new T.PlaneGeometry(s[1], H * 1.1), streak, s[0], H / 2, Z + 0.005); m.rotation.z = -0.32; });
+    // gold frame on all twelve edges
+    const t = 0.07, bx = new T.BoxGeometry(2 * X + t, t, t), bz = new T.BoxGeometry(t, t, 2 * Z + t), by = new T.BoxGeometry(t, H, t);
+    [[0, 0, Z], [0, 0, -Z], [0, H, Z], [0, H, -Z]].forEach(p => add(bx, gold, p[0], p[1], p[2]));
+    [[-X, 0], [X, 0], [-X, H], [X, H]].forEach(p => add(bz, gold, p[0], p[1], 0));
+    [[-X, Z], [X, Z], [-X, -Z], [X, -Z]].forEach(p => add(by, gold, p[0], H / 2, p[1]));
+    // ceiling: a dark panel with a light strip and the trolleys' rail grid
+    add(new T.BoxGeometry(2 * X, 0.05, 2 * Z), new T.MeshPhongMaterial({ color: 0x18262d }), 0, H + 0.02, 0);
+    add(new T.BoxGeometry(2 * X - 0.3, 0.02, 0.08), new T.MeshBasicMaterial({ color: 0xfff1d6 }), 0, H - 0.01, -Z + 0.12);
+    const rail = new T.MeshPhongMaterial({ color: 0xb8c2c7, specular: 0xffffff, shininess: 90 });
+    [-0.6, 0, 0.6].forEach(z => add(new T.BoxGeometry(2 * X, 0.03, 0.03), rail, 0, C.ceil + 0.1, z * Z));
+    // base and marquee
+    add(new T.BoxGeometry(2 * X + 0.2, 0.55, 2 * Z + 0.2), new T.MeshPhongMaterial({ color: 0x102631, shininess: 30 }), 0, -0.33, 0);
+    add(new T.BoxGeometry(2 * X + 0.2, 0.04, 0.04), gold, 0, -0.06, Z + 0.1);
+    const sign = canvasTex(1024, 160, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#123c4d'); g.addColorStop(1, '#0a2532'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+      x.fillStyle = '#e8c17e'; x.font = '600 96px "Cormorant Garamond", Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('Claw  Catch', w / 2, h / 2 + 4);
+      x.fillStyle = 'rgba(232,193,126,.5)'; x.fillRect(40, h - 14, w - 80, 3); });
+    const mq = add(new T.BoxGeometry(2 * X + 0.2, 0.42, 0.16), [0, 0, 0, 0, new T.MeshBasicMaterial({ map: sign }), 0].map(m => m || new T.MeshPhongMaterial({ color: 0x0f2f3c })), 0, H + 0.26, Z - 0.02);
+    // light
+    scene.add(new T.HemisphereLight(0xdff4ff, 0x16323f, 0.55));
+    const key = new T.DirectionalLight(0xfff3e0, 0.75); key.position.set(-2, 6, 4); scene.add(key);
+    const top = new T.PointLight(0xfff1d6, 0.45, 7); top.position.set(0, H - 0.2, 0.2); scene.add(top);
+  }
+  // ── a claw: trolley, cable, hub, three jointed prongs, the landing ring and beam ──
+  function buildClaw(i){
+    const col = new T.Color(C.colours[i]), steel = new T.MeshPhongMaterial({ color: 0xd5dde0, specular: 0xffffff, shininess: 110 }), dark = new T.MeshPhongMaterial({ color: 0x26333a });
+    const o = { root: new T.Group() };
+    o.trolley = new T.Group();
+    const body = new T.Mesh(new T.BoxGeometry(0.3, 0.1, 0.3), dark); o.trolley.add(body);
+    const lamp = new T.Mesh(new T.BoxGeometry(0.31, 0.03, 0.31), new T.MeshBasicMaterial({ color: col })); lamp.position.y = 0.05; o.trolley.add(lamp);
+    o.label = makeLabel(C.names[i], C.colours[i]);
+    o.cable = new T.Mesh(new T.CylinderGeometry(0.008, 0.008, 1, 6), new T.MeshPhongMaterial({ color: 0xe6ecef }));
+    o.head = new T.Group();
+    const hub = new T.Mesh(new T.CylinderGeometry(0.075, 0.09, 0.15, 20), steel); hub.position.y = -0.06; o.head.add(hub);
+    const band = new T.Mesh(new T.CylinderGeometry(0.093, 0.093, 0.035, 20), new T.MeshPhongMaterial({ color: col, shininess: 60 })); band.position.y = -0.05; o.head.add(band);
+    o.label.position.set(0.17, 0.03, 0); o.label.scale.set(0.2, 0.1, 1); o.head.add(o.label); // the tag rides on the claw, not up on the ceiling
+    o.prongs = [];
+    for (let k = 0; k < 3; k++) {
+      const yaw = new T.Group(); yaw.rotation.y = k * Math.PI * 2 / 3; yaw.position.y = -0.13; o.head.add(yaw);
+      const pivot = new T.Group(); pivot.position.x = 0.07; yaw.add(pivot);         // the knuckle opens and closes about this
+      const upper = new T.Mesh(new T.CylinderGeometry(0.018, 0.016, 0.22, 8), steel); upper.position.y = -0.11; pivot.add(upper);
+      const elbow = new T.Group(); elbow.position.y = -0.22; pivot.add(elbow);
+      const finger = new T.Mesh(new T.CylinderGeometry(0.016, 0.01, 0.2, 8), steel); finger.position.y = -0.1; elbow.add(finger);
+      elbow.rotation.z = -0.95;                                                       // fingers curl inward, under the ball
+      const joint = new T.Mesh(new T.SphereGeometry(0.024, 10, 8), dark); elbow.add(joint);
+      o.prongs.push(pivot);
+    }
+    o.ring = new T.Mesh(new T.RingGeometry(0.15, 0.2, 40), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.85, depthTest: false, side: T.DoubleSide }));
+    o.ring.rotation.x = -Math.PI / 2; o.ring.renderOrder = 5;
+    o.beam = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 1, 12, 1, true), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.1, depthWrite: false }));
+    [o.trolley, o.cable, o.head, o.ring, o.beam].forEach(m => o.root.add(m));
+    o.root.visible = false; scene.add(o.root);
+    return o;
+  }
+  function makeLabel(text, colour){
+    const map = canvasTex(128, 64, (x, w, h) => { x.fillStyle = colour; x.beginPath(); x.moveTo(16, 6); x.arcTo(w - 6, 6, w - 6, h - 6, 14); x.arcTo(w - 6, h - 6, 6, h - 6, 14); x.arcTo(6, h - 6, 6, 6, 14); x.arcTo(6, 6, w - 6, 6, 14); x.fill();
+      x.fillStyle = '#0b2430'; x.font = '700 34px "DM Sans", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, w / 2, h / 2 + 2); });
+    const s = new T.Sprite(new T.SpriteMaterial({ map, depthTest: false })); s.scale.set(0.3, 0.15, 1); s.renderOrder = 6; return s;
+  }
+
+  // ── physics ──
+  function headPos(p){ return { x: p.cx + Math.sin(p.thx) * p.len, y: C.ceil - Math.cos(p.thx) * Math.cos(p.thz) * p.len, z: p.cz + Math.sin(p.thz) * p.len }; }
+  function tipPos(p){ const h = headPos(p); return { x: h.x + Math.sin(p.thx) * C.tip, y: h.y - C.tip, z: h.z + Math.sin(p.thz) * C.tip }; }
+  function physics(dt){
+    const g = C.g * dt * dt;
+    for (const b of balls) { if (b.held !== -1) continue;
+      const vx = (b.x - b.ox) * 0.996, vy = (b.y - b.oy) * 0.996, vz = (b.z - b.oz) * 0.996;
+      b.ox = b.x; b.oy = b.y; b.oz = b.z; b.x += vx; b.y += vy - g; b.z += vz; }
+    const tips = []; players.forEach(p => { if (p.on && p.state !== 'idle') tips.push(tipPos(p)); });
+    // sweep-and-prune on x: only nearby pairs are ever compared
+    const live = balls.filter(b => b.held === -1).sort((a, b) => a.x - b.x);
+    for (let it = 0; it < 2; it++) {
+      for (let i = 0; i < live.length; i++) {
+        const a = live[i];
+        for (let j = i + 1; j < live.length; j++) {
+          const b = live[j], min = a.r + b.r, dx = b.x - a.x; if (dx > min) break;
+          const dy = b.y - a.y, dz = b.z - a.z, d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 >= min * min || d2 === 0) continue;
+          const d = Math.sqrt(d2), push = (min - d) * 0.5 / d;
+          a.x -= dx * push; a.y -= dy * push; a.z -= dz * push; b.x += dx * push; b.y += dy * push; b.z += dz * push;
+        }
+        for (const t of tips) { const dx = a.x - t.x, dy = a.y - t.y, dz = a.z - t.z, min = a.r + TIP_R, d2 = dx * dx + dy * dy + dz * dz;
+          if (d2 < min * min && d2 > 0) { const d = Math.sqrt(d2), k = (min - d) / d * 0.25; a.x += dx * k; a.y += dy * k; a.z += dz * k; } }
+      }
+      for (const b of live) {
+        if (b.y - b.r < 0) { b.y = b.r; b.oy = b.y + (b.y - b.oy) * 0.3; b.ox = b.x - (b.x - b.ox) * 0.9; b.oz = b.z - (b.z - b.oz) * 0.9; }
+        if (b.x - b.r < -C.X) { b.x = -C.X + b.r; b.ox = b.x + (b.x - b.ox) * 0.4; } if (b.x + b.r > C.X) { b.x = C.X - b.r; b.ox = b.x + (b.x - b.ox) * 0.4; }
+        if (b.z - b.r < -C.Z) { b.z = -C.Z + b.r; b.oz = b.z + (b.z - b.oz) * 0.4; } if (b.z + b.r > C.Z) { b.z = C.Z - b.r; b.oz = b.z + (b.z - b.oz) * 0.4; }
+      }
+    }
+  }
+  function rollBalls(){
+    if (!T) return;
+    const q = new T.Quaternion(), axis = new T.Vector3();
+    for (const b of balls) {
+      if (b.held !== -1) continue;
+      const vx = b.x - b.ox, vz = b.z - b.oz, dist = Math.sqrt(vx * vx + vz * vz);
+      if (dist < 1e-5) continue;
+      axis.set(vz, 0, -vx).normalize(); q.setFromAxisAngle(axis, dist / b.r); b.mesh.quaternion.premultiply(q);
+    }
+  }
+  function stepPlayer(p, i, dt, now){
+    const mx = C.X - 0.3, mz = C.Z - 0.25, idle = p.state === 'idle';
+    const pvx = p.vx, pvz = p.vz;
+    p.vx += ((idle ? p.ix * C.maxSpeed : 0) - p.vx) * Math.min(1, C.accel * dt);
+    p.vz += ((idle ? p.iz * C.maxSpeed : 0) - p.vz) * Math.min(1, C.accel * dt);
+    p.cx += p.vx * dt; p.cz += p.vz * dt;
+    if (p.cx < -mx) { p.cx = -mx; p.vx = 0; } if (p.cx > mx) { p.cx = mx; p.vx = 0; }
+    if (p.cz < -mz) { p.cz = -mz; p.vz = 0; } if (p.cz > mz) { p.cz = mz; p.vz = 0; }
+    // trolleys share one ceiling: keep them from passing through each other
+    players.forEach((q, j) => { if (j === i || !q.on) return; const dx = p.cx - q.cx, dz = p.cz - q.cz, d = Math.sqrt(dx * dx + dz * dz), min = 0.36;
+      if (d < min && d > 0) { p.cx += dx / d * (min - d) * 0.5; p.cz += dz / d * (min - d) * 0.5; } });
+    // two damped pendulums, one per axis, driven by the trolley's acceleration
+    const L = Math.max(0.3, p.len), ax = (p.vx - pvx) / dt, az = (p.vz - pvz) / dt;
+    p.omx += (-(C.g / L) * Math.sin(p.thx) - (ax * C.swingCouple / L) * Math.cos(p.thx) - C.swingDamp * p.omx) * dt;
+    p.omz += (-(C.g / L) * Math.sin(p.thz) - (az * C.swingCouple / L) * Math.cos(p.thz) - C.swingDamp * p.omz) * dt;
+    p.thx = Math.max(-0.45, Math.min(0.45, p.thx + p.omx * dt)); p.thz = Math.max(-0.45, Math.min(0.45, p.thz + p.omz * dt));
+    const t = tipPos(p);
+    if (idle) p.grip = Math.max(0, p.grip - dt * 3);
+    else if (p.state === 'down') {
+      p.len += C.dropSpeed * dt;
+      let blocked = t.y <= 0.06;
+      for (const b of balls) { if (b.held !== -1) continue; const dx = b.x - t.x, dz = b.z - t.z; if (dx * dx + dz * dz < (b.r * 0.85) * (b.r * 0.85) && t.y <= b.y + b.r * 0.75) { blocked = true; break; } }
+      if (blocked) { p.state = 'grip'; p.t = 0; }
+    } else if (p.state === 'grip') {
+      p.t += dt; p.grip = Math.min(1, p.t / 0.42);
+      if (p.t >= 0.42) {
+        let best = null, bestD = 1e9;
+        for (const b of balls) { if (b.held !== -1) continue; const d = Math.hypot(b.x - t.x, b.y - t.y, b.z - t.z); if (d < b.r + 0.16 && d < bestD) { bestD = d; best = b; } }
+        if (best) {
+          const off = Math.hypot(best.x - t.x, best.z - t.z), centred = 1 - Math.min(1, off / (best.r + 0.06));
+          const steady = 1 - Math.min(0.55, (Math.abs(p.omx) + Math.abs(p.omz)) * 0.35 + (Math.abs(p.thx) + Math.abs(p.thz)) * 1.5);
+          const odds = (0.18 + 0.8 * centred) * steady * (best.kind === 'pearl' ? 0.75 : best.kind === 'gold' ? 0.88 : 1);
+          if (Math.random() < odds) { best.held = i; p.ball = best; p.off = { x: (best.x - t.x) * 0.5, z: (best.z - t.z) * 0.5 }; }
+          else { best.ox = best.x - (best.x - t.x) * 0.08; best.oz = best.z - (best.z - t.z) * 0.08; }
+        }
+        p.state = 'up';
+      }
+    } else if (p.state === 'up') {
+      p.len = Math.max(C.restLen, p.len - C.liftSpeed * dt);
+      if (p.ball) {
+        const b = p.ball, wob = (Math.abs(p.omx) + Math.abs(p.omz)) * 0.12;
+        const slip = (b.kind === 'pearl' ? 0.3 : b.kind === 'gold' ? 0.18 : 0.07) + wob + Math.hypot(p.off.x, p.off.z) * 0.6;
+        b.ox = b.x; b.oy = b.y; b.oz = b.z;
+        b.x = t.x + p.off.x; b.y = t.y + b.r * 0.55; b.z = t.z + p.off.z;
+        if (Math.random() < slip * dt) {
+          b.held = -1; b.ox = b.x - p.vx * dt; b.oy = b.y + C.liftSpeed * dt * 0.5; b.oz = b.z - p.vz * dt; p.ball = null;
+          note(t, 'So close!', '#f6f1e6');
+        }
+      }
+      if (p.len <= C.restLen) { p.state = 'idle'; if (p.ball) deliver(p, i, p.ball, now); p.ball = null; }
+    }
+  }
+
+  // ── catches, notes and the scoreboard ──
+  const wrap = () => $('#screen-claw .claw-wrap');
+  function toScreen(v){ const r = renderer.domElement.getBoundingClientRect(), p = new T.Vector3(v.x, v.y, v.z).project(camera); return { x: (p.x + 1) / 2 * r.width, y: (1 - p.y) / 2 * r.height }; }
+  function note(at, text, colour){
+    const s = toScreen(at), el = document.createElement('div');
+    el.className = 'claw-note'; el.textContent = text; el.style.color = colour; el.style.left = s.x + 'px'; el.style.top = s.y + 'px';
+    wrap().appendChild(el); setTimeout(() => el.remove(), 1400);
+  }
+  // A catch leaves the cabinet as a coloured token that arcs into the player's chip; the point lands with it.
+  function deliver(p, i, b, now){
+    const counts = phase === 'play' && now < phaseEnd && secsLeft(now) <= C.roundSecs;
+    const from = toScreen(b), chip = document.querySelectorAll('#clawPlayers .claw-chip')[i], wr = wrap().getBoundingClientRect();
+    const cr = chip ? chip.getBoundingClientRect() : { left: wr.right - 100, top: wr.top + 20, width: 60, height: 30 };
+    const el = document.createElement('div');
+    el.className = 'claw-token ' + b.kind;
+    el.style.background = b.kind === 'beach' ? `conic-gradient(${C.beach[b.look][0]} 0 60deg,#fbf8f2 0 120deg,${C.beach[b.look][1]} 0 180deg,#fbf8f2 0 240deg,${C.beach[b.look][2]} 0 300deg,#fbf8f2 0)` : b.kind === 'solid' ? C.solids[b.look] : '';
+    el.style.left = from.x + 'px'; el.style.top = from.y + 'px';
+    wrap().appendChild(el);
+    const dx = cr.left + cr.width * 0.75 - wr.left - from.x, dy = cr.top + cr.height / 2 - wr.top - from.y;
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transform = `translate(${dx}px, ${dy}px) scale(.35)`; el.style.opacity = '.9'; }));
+    scene.remove(b.mesh); balls.splice(balls.indexOf(b), 1);
+    flyers.push({ el, i, value: b.value, counts, at: now + 720 });
+    respawn.push(now + 900);
+  }
+  function land(f){
+    f.el.remove();
+    const p = players[f.i]; if (f.counts && p.on) p.score += f.value;
+    renderHud();
+    const chip = document.querySelectorAll('#clawPlayers .claw-chip')[f.i];
+    if (chip) { chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
+    sendState(true);
+  }
+  function secsLeft(now){ return phase === 'play' ? Math.max(0, Math.ceil((phaseEnd - now) / 1000)) : 0; }
+  function start(){
+    if (phase === 'play') return;
+    players.forEach(p => { p.score = 0; }); winners = []; phase = 'play';
+    phaseEnd = performance.now() + (C.countdownSecs + C.roundSecs) * 1000; renderHud(); sendState(true);
+  }
+  function tickPhase(now){
+    if (phase === 'play' && now >= phaseEnd && !flyers.some(f => f.counts)) {
+      const on = [0, 1, 2, 3].filter(i => players[i].on), top = Math.max.apply(null, on.map(i => players[i].score).concat([0]));
+      winners = top > 0 ? on.filter(i => players[i].score === top) : [];
+      phase = 'over'; phaseEnd = now + C.overSecs * 1000; renderHud(); sendState(true);
+    } else if (phase === 'over' && now >= phaseEnd) { phase = 'lobby'; renderHud(); sendState(true); }
+  }
+  function renderHud(){
+    const now = performance.now(), left = secsLeft(now), counting = phase === 'play' && left > C.roundSecs;
+    const lead = Math.max.apply(null, players.map(p => p.on ? p.score : 0)), chips = $('#clawPlayers');
+    if (chips.children.length !== 4) chips.innerHTML = players.map((p, i) => `<div class="claw-chip"><span class="dot" style="background:${C.colours[i]}"></span>${C.names[i]}<span class="sc">0</span></div>`).join('');
+    players.forEach((p, i) => { const c = chips.children[i]; c.classList.toggle('empty', !p.on); c.classList.toggle('lead', p.on && lead > 0 && p.score === lead); c.querySelector('.sc').textContent = p.score; });
+    const t = $('#clawTimer'); t.textContent = phase === 'play' && !counting ? '0:' + String(left).padStart(2, '0') : ''; t.classList.toggle('low', phase === 'play' && left <= 10);
+    const nOn = players.filter(p => p.on).length; let big = '', small = '';
+    if (phase === 'play' && counting) { big = String(left - C.roundSecs); small = 'Get ready'; }
+    else if (phase === 'over') {
+      big = winners.length === 1 ? `<em>${C.names[winners[0]]}</em> wins` : winners.length > 1 ? 'A <em>tie</em>' : 'Time';
+      small = winners.length ? winners.map(i => C.names[i]).join(' & ') + ' · ' + players[winners[0]].score + ' points' : 'No catches this round. Press Start to try again.';
+    } else if (phase === 'lobby') {
+      big = nOn ? 'Press <em>Start</em>' : 'Claw <em>Catch</em>';
+      small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in. Practise now, or press Start on your phone for a ${C.roundSecs}-second round.` : 'Scan the code with your phone to join. Up to 4 players.';
+    }
+    $('#clawBannerBig').innerHTML = big; $('#clawBannerSmall').textContent = small;
+    const ban = $('#clawBanner'); ban.classList.toggle('hide', !big); ban.classList.toggle('count', phase === 'play' && counting); ban.classList.toggle('slim', phase === 'lobby' && nOn > 0);
+  }
+
+  // ── per-frame ──
+  function landingY(t, p){ // the top of whatever is directly under the claw — where its ring goes
+    let y = 0.005;
+    for (const b of balls) { if (b.held !== -1) continue; const dx = b.x - t.x, dz = b.z - t.z, d2 = dx * dx + dz * dz; if (d2 < b.r * b.r) y = Math.max(y, b.y + Math.sqrt(b.r * b.r - d2)); }
+    return y;
+  }
+  function syncMeshes(){
+    for (const b of balls) b.mesh.position.set(b.x, b.y, b.z);
+    players.forEach((p, i) => {
+      const o = p.obj; if (!o) return; o.root.visible = p.on; if (!p.on) return;
+      const h = headPos(p), t = tipPos(p);
+      o.trolley.position.set(p.cx, C.ceil + 0.06, p.cz);
+      const top = new T.Vector3(p.cx, C.ceil, p.cz), hv = new T.Vector3(h.x, h.y, h.z), mid = top.clone().add(hv).multiplyScalar(0.5), len = top.distanceTo(hv);
+      o.cable.position.copy(mid); o.cable.scale.set(1, len, 1); o.cable.lookAt(hv); o.cable.rotateX(Math.PI / 2);
+      o.head.position.copy(hv); o.head.rotation.set(-p.thz, 0, p.thx); o.head.scale.setScalar(1.3);
+      const open = 1 - p.grip; o.prongs.forEach(pv => { pv.rotation.z = 0.12 + open * 0.55; });
+      const y = landingY(t, p), showAim = p.state === 'idle';
+      o.ring.visible = o.beam.visible = showAim;
+      if (showAim) {
+        o.ring.position.set(t.x, y + 0.01, t.z);
+        const pulse = 1 + Math.sin(performance.now() / 260) * 0.06; o.ring.scale.set(pulse, pulse, pulse);
+        const bl = Math.max(0.01, t.y - y); o.beam.position.set(t.x, y + bl / 2, t.z); o.beam.scale.set(1, bl, 1);
+      }
+    });
+  }
+  function frame(now){
+    const dt = Math.min(0.1, (now - (lastT || now)) / 1000); lastT = now; acc += dt;
+    while (acc >= STEP) { players.forEach((p, i) => { if (p.on) stepPlayer(p, i, STEP, now); }); physics(STEP); rollBalls(); acc -= STEP; }
+    flyers = flyers.filter(f => { if (now >= f.at) { land(f); return false; } return true; });
+    while (respawn.length && respawn[0] <= now) { respawn.shift(); balls.push(newBall((Math.random() * 2 - 1) * (C.X - 0.4), C.ceil - 0.4, (Math.random() * 2 - 1) * (C.Z - 0.3))); }
+    tickPhase(now);
+    if (phase === 'play') { const s = secsLeft(now); if (s !== lastSecs) { lastSecs = s; renderHud(); } }
+    sendState(false);
+    syncMeshes();
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(frame);
+  }
+  function resize(){
+    if (!renderer) return;
+    const cv = renderer.domElement, w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
+    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1)); renderer.setSize(w, h, false);
+    camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  function init(){
+    T = window.THREE;
+    const cv = $('#clawGl');
+    renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.outputEncoding = T.LinearEncoding; renderer.toneMapping = T.NoToneMapping; // colours render exactly as authored (an sRGB pipeline washed the villa palette to pastels)
+    scene = new T.Scene();
+    camera = new T.PerspectiveCamera(36, 16 / 9, 0.1, 50);
+    camera.position.set(1.05, 3.8, 7.5); camera.lookAt(1.05, 1.5, 0); // looking down into the cabinet, which sits left of centre (the join code is on the right)
+    geo.ball = new T.SphereGeometry(1, 28, 18);
+    buildCabinet();
+    players.forEach((p, i) => { p.obj = buildClaw(i); });
+    for (let i = 0; i < 64; i++) balls.push(newBall((Math.random() * 2 - 1) * (C.X - 0.3), 0.3 + Math.random() * 1.6, (Math.random() * 2 - 1) * (C.Z - 0.25)));
+    for (let k = 0; k < 700; k++) physics(STEP); // settle
+    for (const b of balls) { b.ox = b.x; b.oy = b.y; b.oz = b.z; }
+    window.addEventListener('resize', resize);
+    ready = true;
+  }
+
+  // ── network (same messages as Claw2D) ──
+  function sendState(force){
+    const now = performance.now();
+    if (!ws || ws.readyState !== 1 || (!force && now - lastSent < 500)) return;
+    lastSent = now;
+    ws.send(JSON.stringify({ type: 'claw-state', phase, timeLeft: Math.min(secsLeft(now), C.roundSecs), scores: players.map(p => p.score), winners }));
+  }
+  function roster(slots){
+    slots.forEach((on, i) => { const p = players[i];
+      if (on && !p.on) { const keep = phase === 'play' ? 0 : p.score, obj = p.obj; Object.assign(p, freshPlayer(i), { on: true, score: keep, obj }); }
+      if (!on && p.on) { if (p.ball) p.ball.held = -1; const obj = p.obj; Object.assign(p, freshPlayer(i), { obj }); } });
+    renderHud();
+  }
+  function connect(){
+    if (ws) return;
+    const sock = ws = new WebSocket(AUDIO_WS_URL + '?role=listen');
+    sock.addEventListener('open', () => { wsRetry = 0; sock.send(JSON.stringify({ type: 'claw-hello' })); sendState(true); });
+    sock.addEventListener('message', ev => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (!m || typeof m.type !== 'string') return;
+      const ax = v => { const d = Number(v); return isFinite(d) ? Math.max(-1, Math.min(1, d)) : 0; };
+      if (m.type === 'claw-roster' && Array.isArray(m.slots)) roster(m.slots);
+      else if (m.type === 'claw-move' && players[m.slot]) { players[m.slot].ix = ax(m.dir); players[m.slot].iz = -ax(m.dz); } // stick up (+dz) = into the cabinet (-z)
+      else if (m.type === 'claw-drop') { const p = players[m.slot]; if (p && p.on && p.state === 'idle') { p.state = 'down'; p.ix = p.iz = 0; } }
+      else if (m.type === 'claw-start') start();
+    });
+    sock.addEventListener('close', () => {
+      if (ws !== sock) return; ws = null; players.forEach(p => { p.ix = p.iz = 0; });
+      if (raf) { wsRetry = Math.min(wsRetry + 1, 6); wsTimer = setTimeout(connect, 1000 * wsRetry); }
+    });
+    sock.addEventListener('error', () => {});
+  }
+  return {
+    supported: hasWebGL,
+    start(onFail){
+      if (raf) return;
+      $('#clawGl').style.display = ''; $('#clawCanvas').style.display = 'none';
+      load(ok => {
+        if (!ok) { onFail(); return; }
+        if (!ready) { try { init(); } catch (e) { onFail(); return; } }
+        if (!$('#screen-claw').classList.contains('active')) return; // closed while loading
+        resize(); lastT = 0; acc = 0; renderHud();
+        raf = requestAnimationFrame(frame); connect();
+      });
+    },
+    stop(){
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      clearTimeout(wsTimer);
+      if (ws) { const w = ws; ws = null; try { w.close(); } catch (e) { /* closed */ } }
+    },
+    debug: () => ({ players, balls, get phase(){ return phase; }, start }),
+  };
+})();
+// 3D where the screen can do WebGL, otherwise the 2D cabinet.
+let clawUse2D = false;
+function startClaw(){
+  if (!clawUse2D && Claw3D.supported()) Claw3D.start(() => { clawUse2D = true; Claw3D.stop(); Claw2D.start(); });
+  else Claw2D.start();
+}
+function stopClaw(){ Claw3D.stop(); Claw2D.stop(); }
 
 async function refreshGame(){
   try{

@@ -184,18 +184,18 @@
   .claw-nums b{font-family:var(--serif);font-weight:600;font-size:24px;color:var(--sea);line-height:1}
   .claw-nums span{font-size:11px;font-weight:600;color:var(--muted-text);margin-left:3px}
   .claw-nums .time.low b{color:#9c4520}
-  .claw-status{font-size:13px;font-weight:600;color:var(--muted-text);min-height:36px;margin-bottom:12px;line-height:1.4;display:flex;align-items:center;justify-content:center}
+  .claw-status{font-size:13px;font-weight:600;color:var(--muted-text);min-height:36px;margin-bottom:22px;line-height:1.4;display:flex;align-items:center;justify-content:center}
   .claw-status.err{color:#9c4520}
-  .claw-pad{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
-  .claw-stick{position:relative;flex:1 1 auto;max-width:220px;height:96px;border-radius:48px;touch-action:none;cursor:grab;
-    background:linear-gradient(180deg,#dce9e6,#eef5f3);box-shadow:inset 0 3px 8px rgba(11,61,82,.18),inset 0 -1px 0 rgba(255,255,255,.9)}
-  .claw-stick::before,.claw-stick::after{content:'';position:absolute;top:50%;width:0;height:0;margin-top:-7px;border:7px solid transparent;opacity:.35}
-  .claw-stick::before{left:14px;border-right:9px solid var(--sea);border-left:0}
-  .claw-stick::after{right:14px;border-left:9px solid var(--sea);border-right:0}
-  .claw-knob{position:absolute;top:8px;left:50%;width:80px;height:80px;margin-left:-40px;border-radius:50%;pointer-events:none;will-change:transform;
+  .claw-pad{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px}
+  .claw-stick{position:relative;flex-shrink:0;width:150px;height:150px;border-radius:50%;touch-action:none;cursor:grab;
+    background:radial-gradient(circle,#eef5f3 0 40%,#dce9e6 70%);box-shadow:inset 0 4px 10px rgba(11,61,82,.2),inset 0 -1px 0 rgba(255,255,255,.9)}
+  .claw-stick svg.marks{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;color:var(--sea);opacity:.38}
+  .claw-stick .lbl{position:absolute;left:0;right:0;font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-text);text-align:center;pointer-events:none}
+  .claw-stick .lbl.in{top:-16px} .claw-stick .lbl.out{bottom:-16px}
+  .claw-knob{position:absolute;top:50%;left:50%;width:72px;height:72px;margin:-36px 0 0 -36px;border-radius:50%;pointer-events:none;will-change:transform;
     background:radial-gradient(circle at 38% 32%,#2a7f92,#0b3d52 70%);box-shadow:0 8px 14px rgba(7,42,56,.35),inset 0 2px 2px rgba(255,255,255,.25);
     transition:transform .22s cubic-bezier(.16,1,.3,1)}
-  .claw-knob::after{content:'';position:absolute;top:22px;left:22px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,0) 70%);border:1.5px solid rgba(255,255,255,.18)}
+  .claw-knob::after{content:'';position:absolute;top:18px;left:18px;width:36px;height:36px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),rgba(255,255,255,0) 70%);border:1.5px solid rgba(255,255,255,.18)}
   .claw-stick.held .claw-knob{transition:none}
   .claw-drop{flex-shrink:0;width:112px;height:112px;border-radius:50%;border:none;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;
     font-family:var(--sans);font-size:15px;font-weight:800;letter-spacing:.08em;color:#1a2c33;
@@ -211,9 +211,10 @@
     body.claw-on .logo, body.claw-on .claw-hint, body.claw-on #screen-claw h1{display:none}
     body.claw-on .claw-status{min-height:20px;margin-bottom:8px}
     body.claw-on .claw-pad{margin-bottom:10px}
-    body.claw-on .claw-stick{max-width:300px;height:110px;border-radius:55px}
-    body.claw-on .claw-knob{width:94px;height:94px;margin-left:-47px}
-    body.claw-on .claw-knob::after{top:26px;left:26px;width:42px;height:42px}
+    body.claw-on .claw-stick{width:180px;height:180px}
+    body.claw-on .claw-knob{width:84px;height:84px;margin:-42px 0 0 -42px}
+    body.claw-on .claw-knob::after{top:22px;left:22px;width:40px;height:40px}
+    body.claw-on .claw-stick .lbl{display:none}
     body.claw-on .claw-drop{width:136px;height:136px}
   }
   /* ── MEMORY MATCH ── */
@@ -303,11 +304,16 @@
       </div>
       <p class="claw-status" id="clawStatus">&nbsp;</p>
       <div class="claw-pad">
-        <div class="claw-stick" id="clawStick" role="slider" aria-label="Move your claw left and right" aria-valuemin="-1" aria-valuemax="1" aria-valuenow="0"><div class="claw-knob" id="clawKnob"></div></div>
+        <div class="claw-stick" id="clawStick" role="application" aria-label="Joystick: move your claw left, right, further in and closer">
+          <span class="lbl in">Further in</span>
+          <svg class="marks" viewBox="0 0 150 150" aria-hidden="true" fill="currentColor"><path d="M75 9l7 9H68zM75 141l-7-9h14zM9 75l9-7v14zM141 75l-9 7V68z"/></svg>
+          <div class="claw-knob" id="clawKnob"></div>
+          <span class="lbl out">Closer</span>
+        </div>
         <button type="button" class="claw-drop" id="clawDropBtn">DROP</button>
       </div>
       <button type="button" class="btn primary" id="clawStartBtn" style="width:100%">Start a round</button>
-      <p class="claw-hint">Slide the stick to steer: push further to move faster. Let the claw stop swinging before you drop. Gold balls are worth 3 and pearls 5, but they slip out more easily.</p>
+      <p class="claw-hint">Steer with the joystick: up moves your claw further into the cabinet, down brings it closer, and pushing further goes faster. Line the ring in your colour up on a ball, let the claw stop swinging, then drop. Gold balls are worth 3 and pearls 5, but they slip out more easily.</p>
     </section>
 
     <section class="screen" id="screen-tictactoe">
@@ -946,45 +952,49 @@ async function clawKeepAwake(){ // a phone dimming mid-round is the worst kind o
 function clawEnter(){ if(clawWanted) return; clawWanted = true; document.body.classList.add('claw-on'); clawRenderMute(); clawConnect(); clawKeepAwake(); clawRenderMe(); }
 function clawExit(){
   if(!clawWanted) return;
-  clawWanted = false; document.body.classList.remove('claw-on'); clearTimeout(clawRetryTimer); clearInterval(clawPingTimer); clawStickTo(0, true);
+  clawWanted = false; document.body.classList.remove('claw-on'); clearTimeout(clawRetryTimer); clearInterval(clawPingTimer); clawStickTo(0, 0, true);
   if(clawWake){ try{ clawWake.release(); }catch(e){} clawWake = null; }
   if(clawWs){ const w = clawWs; clawSend({ type:'claw-leave' }); clawWs = null; clawSlot = null; try{ w.close(); }catch(e){} }
 }
 function clawRejoinIfNeeded(){ if(clawWanted && clawWs && clawSlot == null) clawSend({ type:'claw-join', token: playToken }); }
-// Sends the stick value: only on change, coalesced to one message per 25 ms, never dropping the final value.
+// Sends the stick: only on change, coalesced to one message per 25 ms, never dropping the final value.
+// dir = left/right, dz = up on the stick (+, further into the cabinet) / down (-, closer).
+let clawDz = 0, clawSentDz = 0;
 function clawFlushDir(){
   clawSendTimer = null;
-  if(clawDir === clawSentDir) return;
-  clawSentDir = clawDir; clawSendAt = performance.now(); clawSend({ type:'claw-move', dir: clawDir });
+  if(clawDir === clawSentDir && clawDz === clawSentDz) return;
+  clawSentDir = clawDir; clawSentDz = clawDz; clawSendAt = performance.now(); clawSend({ type:'claw-move', dir: clawDir, dz: clawDz });
 }
 function clawQueueDir(){
   const wait = 25 - (performance.now() - clawSendAt);
   if(wait <= 0){ clearTimeout(clawSendTimer); clawFlushDir(); }
   else if(!clawSendTimer) clawSendTimer = setTimeout(clawFlushDir, wait);
 }
-function clawStickTo(v, release){
-  const q = Math.round(v * 20) / 20; // 0.05 steps: smooth enough to feel analog, coarse enough not to flood
-  const knob = $('#clawKnob'), stick = $('#clawStick');
-  const travel = (stick.clientWidth - knob.offsetWidth) / 2 - 6;
-  knob.style.transform = 'translateX(' + (release ? 0 : v * travel) + 'px)';
-  stick.setAttribute('aria-valuenow', String(q));
-  if(q !== clawDir){
-    if((clawDir === 0) !== (q === 0)) clawTone('tick');
-    if(Math.abs(q) === 1 && Math.abs(clawDir) !== 1) clawBuzz(8); // a detent at full lock
-    clawDir = q; clawQueueDir();
+function clawStickTo(x, z, release){
+  if(z === undefined) z = 0;
+  const m = Math.hypot(x, z); if(m > 1){ x /= m; z /= m; } // a round gate, like a real stick
+  const dead = Math.hypot(x, z) < 0.12; // a small dead zone so a resting thumb doesn't creep
+  const qx = dead ? 0 : Math.round(x * 20) / 20, qz = dead ? 0 : Math.round(z * 20) / 20; // 0.05 steps
+  const knob = $('#clawKnob'), stick = $('#clawStick'), travel = (stick.clientWidth - knob.offsetWidth) / 2 - 4;
+  knob.style.transform = release ? 'translate(0,0)' : 'translate(' + (x * travel) + 'px,' + (-z * travel) + 'px)';
+  if(qx !== clawDir || qz !== clawDz){
+    const wasIdle = clawDir === 0 && clawDz === 0, nowIdle = qx === 0 && qz === 0;
+    if(wasIdle !== nowIdle) clawTone('tick');
+    if(Math.hypot(qx, qz) >= 0.98 && Math.hypot(clawDir, clawDz) < 0.98) clawBuzz(8); // a detent at the rim
+    clawDir = qx; clawDz = qz; clawQueueDir();
   }
 }
 (function clawStickInput(){
-  const stick = $('#clawStick'); let pid = null, cx = 0;
-  const read = e => { const r = stick.getBoundingClientRect(), half = (r.width - $('#clawKnob').offsetWidth) / 2 - 6; return Math.max(-1, Math.min(1, (e.clientX - cx) / half)); };
+  const stick = $('#clawStick'); let pid = null, cx = 0, cy = 0;
+  const read = e => { const half = (stick.clientWidth - $('#clawKnob').offsetWidth) / 2 - 4; return [(e.clientX - cx) / half, -(e.clientY - cy) / half]; };
   stick.addEventListener('pointerdown', e => {
     e.preventDefault(); clawRejoinIfNeeded(); clawKeepAwake();
     pid = e.pointerId; try{ stick.setPointerCapture(pid); }catch(x){}
-    const r = stick.getBoundingClientRect(); cx = r.left + r.width / 2; // centre-anchored: touching left of centre already steers left
-    stick.classList.add('held'); clawStickTo(read(e));
+    const r = stick.getBoundingClientRect(); cx = r.left + r.width / 2; cy = r.top + r.height / 2; // centre-anchored: where you touch is where it points
+    stick.classList.add('held'); const v = read(e); clawStickTo(v[0], v[1]);
   });
-  stick.addEventListener('pointermove', e => { if(e.pointerId === pid){ e.preventDefault(); clawStickTo(read(e)); } });
-  const end = e => { if(e.pointerId !== pid) return; pid = null; stick.classList.remove('held'); clawStickTo(0, true); };
+  stick.addEventListener('pointermove', e => { if(e.pointerId === pid){ e.preventDefault(); const v = read(e); clawStickTo(v[0], v[1]); } });
+  const end = e => { if(e.pointerId !== pid) return; pid = null; stick.classList.remove('held'); clawStickTo(0, 0, true); };
   ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(t => stick.addEventListener(t, end));
   stick.addEventListener('contextmenu', e => e.preventDefault());
 })();
@@ -999,11 +1009,16 @@ $('#clawStartBtn').addEventListener('click', () => { clawRejoinIfNeeded(); clawS
 $('#clawMute').addEventListener('click', () => { clawMuted = !clawMuted; try{ localStorage.setItem('ryst_claw_muted', clawMuted ? '1' : '0'); }catch(e){} clawRenderMute(); if(!clawMuted) clawTone('tick'); });
 document.addEventListener('keydown', e => {
   if(!clawWanted || e.repeat) return;
-  if(e.key === 'ArrowLeft') clawStickTo(-1); else if(e.key === 'ArrowRight') clawStickTo(1);
-  else if(e.key === ' ' || e.key === 'ArrowDown'){ e.preventDefault(); clawSend({ type:'claw-drop' }); clawTone('drop'); }
+  const k = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
+  if(k){ e.preventDefault(); clawStickTo(k[0] || clawDir, k[1] || clawDz); }
+  else if(e.key === ' '){ e.preventDefault(); clawSend({ type:'claw-drop' }); clawTone('drop'); }
 });
-document.addEventListener('keyup', e => { if(clawWanted && ((e.key === 'ArrowLeft' && clawDir < 0) || (e.key === 'ArrowRight' && clawDir > 0))) clawStickTo(0, true); });
-document.addEventListener('visibilitychange', () => { if(document.hidden) clawStickTo(0, true); else if(clawWanted) clawKeepAwake(); });
+document.addEventListener('keyup', e => {
+  if(!clawWanted) return;
+  if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') clawStickTo(0, clawDz, clawDz === 0);
+  if(e.key === 'ArrowUp' || e.key === 'ArrowDown') clawStickTo(clawDir, 0, clawDir === 0);
+});
+document.addEventListener('visibilitychange', () => { if(document.hidden) clawStickTo(0, 0, true); else if(clawWanted) clawKeepAwake(); });
 
 // Polls so this stays in sync with the pool screen and anyone else's phone —
 // including which activity is open, so every phone and the big screen are
