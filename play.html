@@ -201,7 +201,7 @@
     font-family:var(--sans);font-size:15px;font-weight:800;letter-spacing:.08em;color:#1a2c33;
     background:radial-gradient(circle at 35% 30%,#fff3cf,#e3c486 55%,#c79a52);box-shadow:0 9px 0 #8a6428,0 16px 28px rgba(20,40,50,.25);transition:transform .06s,box-shadow .06s}
   .claw-drop.on{transform:translateY(7px);box-shadow:0 2px 0 #8a6428,0 6px 12px rgba(20,40,50,.2)}
-  .claw-drop:disabled,.claw-stick.off{opacity:.4;pointer-events:none}
+  .claw-drop.off,.claw-stick.off{opacity:.45} /* dimmed while (re)joining, but still touchable: a touch is what rejoins */
   .claw-hint{font-size:12px;color:var(--muted-text);line-height:1.5;margin-top:12px}
   /* a phone held sideways, like a game controller: drop the chrome, keep the pad */
   @media (orientation:landscape) and (max-height:520px){
@@ -870,7 +870,7 @@ document.addEventListener('visibilitychange', () => { if(document.hidden && live
 // button press, haptics, sound) happens on the phone itself instantly.
 const CLAW_COLOURS = ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'];
 let clawWs = null, clawSlot = null, clawDir = 0, clawWanted = false, clawRetry = 0, clawRetryTimer = null, clawLastScore = 0;
-let clawSentDir = 0, clawSendAt = 0, clawSendTimer = null, clawPingTimer = null, clawWake = null, clawAudio = null;
+let clawSentDir = 0, clawSendAt = 0, clawSendTimer = null, clawPingTimer = null, clawWake = null, clawAudio = null, clawPongAt = 0;
 let clawMuted = false; try{ clawMuted = localStorage.getItem('ryst_claw_muted') === '1'; }catch(e){}
 let clawGame = { phase: 'lobby', timeLeft: 0, scores: [0, 0, 0, 0], winners: [] }, clawPrevPhase = 'lobby';
 function clawSend(m){ if(clawWs && clawWs.readyState === 1) clawWs.send(JSON.stringify(m)); }
@@ -902,7 +902,7 @@ function clawRenderMe(){
   const playing = g.phase === 'play' && g.timeLeft > 0;
   $('#clawTime').textContent = playing ? g.timeLeft : '–';
   $('#clawTimeWrap').classList.toggle('low', playing && g.timeLeft <= 10);
-  $('#clawStick').classList.toggle('off', !seated); $('#clawDropBtn').disabled = !seated;
+  $('#clawStick').classList.toggle('off', !seated); $('#clawDropBtn').classList.toggle('off', !seated);
   $('#clawStartBtn').style.display = seated && g.phase !== 'play' ? '' : 'none';
   if(!seated) return;
   if(g.phase === 'play') clawSetStatus(g.timeLeft > 0 ? 'Grab as many as you can' : 'Get ready…');
@@ -919,18 +919,21 @@ function clawConnect(){
   const sock = clawWs = new WebSocket(WS_URL);
   sock.addEventListener('open', () => {
     clawRetry = 0; sock.send(JSON.stringify({ type:'claw-join', token: playToken })); clawRenderMe();
-    clearInterval(clawPingTimer);
-    const ping = () => clawSend({ type:'claw-ping', t: Math.round(performance.now()) });
+    clearInterval(clawPingTimer); clawPongAt = performance.now();
+    // ping every 2 s; a connection that stops answering for 7 s is dead even if the browser hasn't noticed
+    // (phone slept, WiFi hopped) — drop it and reconnect instead of leaving a joystick that silently does nothing
+    const ping = () => { if(performance.now() - clawPongAt > 7000){ try{ sock.close(); }catch(e){} return; } clawSend({ type:'claw-ping', t: Math.round(performance.now()) }); };
     ping(); clawPingTimer = setInterval(ping, 2000);
   });
   sock.addEventListener('message', ev => {
     let m; try{ m = JSON.parse(ev.data); }catch(e){ return; }
     if(!m) return;
+    clawPongAt = performance.now(); // any message proves the line is alive
     if(m.type === 'claw-pong') clawSetSig(Math.max(1, Math.round(performance.now() - m.t)));
     else if(m.type === 'claw-you'){ clawSlot = m.slot; clawBuzz(30); clawRenderMe(); }
     else if(m.type === 'claw-full'){ clawSetStatus('All 4 claws are taken. You’ll get one as soon as someone leaves.', true); setTimeout(() => { if(clawWanted && clawSlot == null) clawSend({ type:'claw-join', token: playToken }); }, 5000); }
     else if(m.type === 'claw-denied'){ clawSetStatus('Your sign-in has expired. Go back and sign in again to play.', true); }
-    else if(m.type === 'claw-left'){ clawSlot = null; clawSetStatus('Your claw was idle for 3 minutes, so it went back. Touch the stick to rejoin.', true); clawRenderMe(); }
+    else if(m.type === 'claw-left'){ clawSlot = null; clawSetStatus('Your claw was idle for 3 minutes, so it went back. Touch the joystick to rejoin.', true); clawRenderMe(); }
     else if(m.type === 'claw-state'){
       clawGame = m; const mine = clawSlot != null ? (m.scores[clawSlot] || 0) : 0;
       if(mine > clawLastScore){ clawBuzz([35, 50, 35]); clawTone('catch'); }
@@ -942,7 +945,7 @@ function clawConnect(){
   sock.addEventListener('close', () => {
     if(clawWs !== sock) return;
     clawWs = null; clawSlot = null; clearInterval(clawPingTimer); clawSetSig(null); clawRenderMe();
-    if(clawWanted){ clawRetry = Math.min(clawRetry + 1, 5); clawSetStatus('Reconnecting…', true); clawRetryTimer = setTimeout(clawConnect, 600 * clawRetry); }
+    if(clawWanted){ clawRetry = Math.min(clawRetry + 1, 4); clawSetStatus('Reconnecting…', true); clearTimeout(clawRetryTimer); clawRetryTimer = setTimeout(clawConnect, 500 * clawRetry); }
   });
   sock.addEventListener('error', () => {});
 }
@@ -956,7 +959,12 @@ function clawExit(){
   if(clawWake){ try{ clawWake.release(); }catch(e){} clawWake = null; }
   if(clawWs){ const w = clawWs; clawSend({ type:'claw-leave' }); clawWs = null; clawSlot = null; try{ w.close(); }catch(e){} }
 }
-function clawRejoinIfNeeded(){ if(clawWanted && clawWs && clawSlot == null) clawSend({ type:'claw-join', token: playToken }); }
+// Any touch on the controls gets this phone back in: reconnect now if the line is down, or ask for a seat again if it lost one.
+function clawRejoinIfNeeded(){
+  if(!clawWanted) return;
+  if(!clawWs){ clearTimeout(clawRetryTimer); clawRetry = 0; clawSetStatus('Reconnecting…'); clawConnect(); return; }
+  if(clawSlot == null && clawWs.readyState === 1){ clawSend({ type:'claw-join', token: playToken }); clawSetStatus('Joining…'); }
+}
 // Sends the stick: only on change, coalesced to one message per 25 ms, never dropping the final value.
 // dir = left/right, dz = up on the stick (+, further into the cabinet) / down (-, closer).
 let clawDz = 0, clawSentDz = 0;
@@ -1000,6 +1008,7 @@ function clawStickTo(x, z, release){
 })();
 $('#clawDropBtn').addEventListener('pointerdown', e => {
   e.preventDefault(); clawRejoinIfNeeded();
+  if(clawSlot == null) return; // the touch above is getting this phone back in; nothing to drop yet
   clawSend({ type:'claw-drop' });
   const b = $('#clawDropBtn'); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 140);
   clawBuzz(25); clawTone('drop');
@@ -1018,7 +1027,11 @@ document.addEventListener('keyup', e => {
   if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') clawStickTo(0, clawDz, clawDz === 0);
   if(e.key === 'ArrowUp' || e.key === 'ArrowDown') clawStickTo(clawDir, 0, clawDir === 0);
 });
-document.addEventListener('visibilitychange', () => { if(document.hidden) clawStickTo(0, 0, true); else if(clawWanted) clawKeepAwake(); });
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden){ clawStickTo(0, 0, true); return; }
+  if(clawWanted){ clawKeepAwake(); clawRejoinIfNeeded(); if(clawWs && clawWs.readyState === 1) clawSend({ type:'claw-ping', t: Math.round(performance.now()) }); } // back from the lock screen: get going again at once
+});
+window.addEventListener('online', () => { if(clawWanted && clawWs){ try{ clawWs.close(); }catch(e){} } else clawRejoinIfNeeded(); }); // network changed: a fresh connection
 
 // Polls so this stays in sync with the pool screen and anyone else's phone —
 // including which activity is open, so every phone and the big screen are

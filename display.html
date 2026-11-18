@@ -1574,8 +1574,52 @@ const Claw3D = (function(){
       s.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.2; g.gain.value = vol;
       s.connect(f); f.connect(g); g.connect(master); s.start(t);
     }
+
+    // ── background music ── an easy island groove, composed on the fly: steel-drum lead over
+    // marimba off-beats, a round bass and a soft shaker, on a C–Am–F–G loop. A lookahead
+    // scheduler keeps it in time however busy the frame loop is. 'calm' in the lobby (no lead,
+    // no shaker), 'play' during a round, 'rush' for the last 10 seconds (a touch faster, brighter).
+    let mus = null;
+    const CHORDS = [[48, 52, 55], [45, 48, 52], [41, 45, 48], [43, 47, 50]]; // C, Am, F, G (MIDI)
+    const PENTA = [0, 2, 4, 7, 9];
+    const hz = n => 440 * Math.pow(2, (n - 69) / 12);
+    function voice(type, freq, t, dur, vol, out, partials){
+      const a = ac, g = a.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); g.connect(out);
+      (partials || [[1, 1]]).forEach(pt => { const o = a.createOscillator(), og = a.createGain(); o.type = type; o.frequency.setValueAtTime(freq * pt[0], t); og.gain.value = pt[1]; o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 0.05); });
+    }
+    function shaker(t, vol, out){
+      const a = ac, len = Math.floor(a.sampleRate * 0.05), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len);
+      const src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain(); src.buffer = buf; f.type = 'highpass'; f.frequency.value = 6000; g.gain.value = vol;
+      src.connect(f); f.connect(g); g.connect(out); src.start(t);
+    }
+    function step16(t, n){ // n = 16th-note index in the 4-bar loop
+      const bar = Math.floor(n / 16) % 4, s16 = n % 16, ch = CHORDS[bar], m = mus.mood, out = mus.bus;
+      if (s16 === 0 || s16 === 8 || s16 === 11) voice('triangle', hz(ch[0] - 12), t, 0.32, 0.22, out);                                // bass
+      if (s16 % 4 === 2) ch.forEach(k => voice('triangle', hz(k + 12), t, 0.12, 0.045, out));                                        // marimba skank on the off-beats
+      if (m !== 'calm' && s16 % 2 === 0) shaker(t, s16 % 4 === 2 ? 0.05 : 0.025, out);
+      if (m !== 'calm') {                                                                                                         // steel-drum lead: a seeded little pentatonic phrase per bar
+        const seed = (bar * 7 + Math.floor(n / 64) * 3) % 11, hits = [0, 3, 6, 8, 10, 12, 14];
+        if (hits.indexOf(s16) >= 0 && ((s16 * 5 + seed) % 7) < 5) {
+          const note = 72 + PENTA[(s16 + seed + bar) % 5] + (((s16 + seed) % 9) === 0 ? 12 : 0);
+          voice('sine', hz(note), t, 0.42, m === 'rush' ? 0.1 : 0.075, out, [[1, 1], [2, 0.32], [3.01, 0.12], [4.2, 0.05]]);
+        }
+      }
+    }
+    function musicTick(){
+      if (!mus || !ctx()) return;
+      const spb = 60 / (mus.mood === 'rush' ? 116 : 104) / 4; // seconds per 16th
+      while (mus.next < ac.currentTime + 0.15) { step16(mus.next, mus.n); mus.n = (mus.n + 1) % 64; mus.next += spb; }
+    }
     return {
       unlock: ctx,
+      music(on){
+        if (!on) { if (mus) { clearInterval(mus.timer); const b = mus.bus; if (ac) { b.gain.setTargetAtTime(0.0001, ac.currentTime, 0.4); setTimeout(() => { try { b.disconnect(); } catch (e) {} }, 2000); } mus = null; } return; }
+        if (mus || !ctx()) return;
+        const bus = ac.createGain(); bus.gain.setValueAtTime(0.0001, ac.currentTime); bus.gain.exponentialRampToValueAtTime(0.5, ac.currentTime + 1.5); bus.connect(master);
+        mus = { bus, n: 0, next: ac.currentTime + 0.1, mood: 'calm', timer: setInterval(musicTick, 30) };
+      },
+      mood(m){ if (mus) mus.mood = m; else if (ac && ac.state === 'running') { this.music(true); if (mus) mus.mood = m; } },
       motors(levels){ const a = ctx(); if (!a) return; levels.forEach((v, i) => { const h = hums[i]; h.g.gain.setTargetAtTime(Math.min(0.09, v * 0.09), a.currentTime, 0.06); h.o.frequency.setTargetAtTime(62 + i * 7 + v * 40, a.currentTime, 0.1); }); },
       drop(){ tone('square', 330, 160, 0.18, 0.05); },
       clack(){ noise(0.07, 2600, 0.5); tone('sine', 140, 70, 0.12, 0.18); },
@@ -2021,6 +2065,10 @@ const Claw3D = (function(){
   }
   let lastMotor = 0;
   function frame(now){
+    raf = requestAnimationFrame(frame); // schedule first: one bad frame must never freeze the game
+    try { frameBody(now); } catch (e) { console.error('Claw Catch frame', e); }
+  }
+  function frameBody(now){
     const dt = Math.min(0.1, (now - (lastT || now)) / 1000); lastT = now; acc += dt;
     while (acc >= STEP) { players.forEach((p, i) => { if (p.on) stepPlayer(p, i, STEP, now); }); physics(STEP); rollAndSquash(); acc -= STEP; }
     settle();
@@ -2034,8 +2082,10 @@ const Claw3D = (function(){
     syncMeshes();
     renderer.render(scene, camera);
     adapt(dt);
-    raf = requestAnimationFrame(frame);
+    const mood = phase === 'play' ? (secsLeft(now) <= 10 && secsLeft(now) <= C.roundSecs ? 'rush' : 'play') : 'calm';
+    if (mood !== lastMood || now - lastMoodAt > 2000) { lastMood = mood; lastMoodAt = now; SFX.mood(mood); } // also (re)starts the music once audio is allowed
   }
+  let lastMood = '', lastMoodAt = 0;
   function resize(){
     if (!renderer) return;
     const cv = renderer.domElement, w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
@@ -2082,8 +2132,14 @@ const Claw3D = (function(){
   function connect(){
     if (ws) return;
     const sock = ws = new WebSocket(AUDIO_WS_URL + '?role=listen');
-    sock.addEventListener('open', () => { wsRetry = 0; sock.send(JSON.stringify({ type: 'claw-hello' })); sendState(true); });
+    let heardAt = performance.now(), dog = null;
+    sock.addEventListener('open', () => {
+      wsRetry = 0; heardAt = performance.now(); sock.send(JSON.stringify({ type: 'claw-hello' })); sendState(true);
+      // a line that stops answering pings for 15 s is dead (WiFi blip, sleeping router): drop it and reconnect
+      dog = setInterval(() => { if (performance.now() - heardAt > 15000) { try { sock.close(); } catch (e) {} return; } if (sock.readyState === 1) sock.send(JSON.stringify({ type: 'claw-ping', t: 0 })); }, 5000);
+    });
     sock.addEventListener('message', ev => {
+      heardAt = performance.now();
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (!m || typeof m.type !== 'string') return;
       SFX.unlock();
@@ -2094,8 +2150,9 @@ const Claw3D = (function(){
       else if (m.type === 'claw-start') start();
     });
     sock.addEventListener('close', () => {
+      clearInterval(dog);
       if (ws !== sock) return; ws = null; players.forEach(p => { p.ix = p.iz = 0; });
-      if (raf) { wsRetry = Math.min(wsRetry + 1, 6); wsTimer = setTimeout(connect, 1000 * wsRetry); }
+      if (raf) { wsRetry = Math.min(wsRetry + 1, 4); wsTimer = setTimeout(connect, 800 * wsRetry); }
     });
     sock.addEventListener('error', () => {});
   }
@@ -2114,7 +2171,7 @@ const Claw3D = (function(){
       });
     },
     stop(){
-      if (raf) { cancelAnimationFrame(raf); raf = null; SFX.motors([0, 0, 0, 0]); }
+      if (raf) { cancelAnimationFrame(raf); raf = null; SFX.motors([0, 0, 0, 0]); SFX.music(false); lastMood = ''; }
       clearTimeout(wsTimer);
       if (ws) { const w = ws; ws = null; try { w.close(); } catch (e) { /* closed */ } }
     },
