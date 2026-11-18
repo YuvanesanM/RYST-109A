@@ -1676,8 +1676,8 @@ function stopClaw(){
 // chute at the front corners and lets go — and only a toy that actually
 // falls into a chute scores, for whoever grabbed it. Toys are soft beach
 // plushes (crab, starfish, turtle, octopus, clownfish) mixed with beach
-// balls. There is deliberately no aiming marker: judging the depth is the
-// game. The pit is restocked between rounds, not the moment a toy is won.
+// balls. A ring in each player's colour marks where their claw will land.
+// The pit is restocked between rounds, not the moment a toy is won.
 //
 // Sound is synthesized with Web Audio (trolley motors, the cable, the claw's
 // clack, the chute, round start/end). A screen with no audio permission
@@ -1980,7 +1980,7 @@ const Claw3D = (function(){
     scene.add(keyLight);
     const top = new T.PointLight(0xfff1d6, 0.4, 7); top.position.set(0, H - 0.2, 0.2); scene.add(top);
   }
-  // ── a claw: trolley, cable, hub and three jointed prongs (no shadow, no marker: judging depth is the game) ──
+  // ── a claw: trolley, cable, hub, three jointed prongs, and its aiming ring and beam ──
   function buildClaw(i){
     const col = new T.Color(C.colours[i]), steel = new T.MeshPhongMaterial({ color: 0xd5dde0, specular: 0xffffff, shininess: 110 }), dark = new T.MeshPhongMaterial({ color: 0x26333a });
     const o = { root: new T.Group() };
@@ -2003,7 +2003,11 @@ const Claw3D = (function(){
       elbow.add(new T.Mesh(new T.SphereGeometry(0.024, 10, 8), dark));
       o.prongs.push(pivot);
     }
-    [o.trolley, o.cable, o.head].forEach(m => o.root.add(m));
+    // the aiming aid: a ring in the player's colour on whatever the claw would land on, and a faint beam down to it
+    o.ring = new T.Mesh(new T.RingGeometry(0.15, 0.25, 40), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.95, depthTest: false, side: T.DoubleSide }));
+    o.ring.rotation.x = -Math.PI / 2; o.ring.renderOrder = 5;
+    o.beam = new T.Mesh(new T.CylinderGeometry(0.04, 0.04, 1, 12, 1, true), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.16, depthWrite: false }));
+    [o.trolley, o.cable, o.head, o.ring, o.beam].forEach(m => o.root.add(m));
     o.root.visible = false; scene.add(o.root);
     return o;
   }
@@ -2289,6 +2293,15 @@ const Claw3D = (function(){
       o.cable.position.copy(top).add(hv).multiplyScalar(0.5); o.cable.scale.set(1, len, 1); o.cable.lookAt(hv); o.cable.rotateX(Math.PI / 2);
       o.head.position.copy(hv); o.head.rotation.set(-p.thz, 0, p.thx); o.head.scale.setScalar(1.3);
       const open = 1 - p.grip; o.prongs.forEach(pv => { pv.rotation.z = 0.06 + open * 0.7; });
+      const t = tipPos(p), aim = p.state === 'idle';
+      o.ring.visible = o.beam.visible = aim;
+      if (aim) {
+        let y = 0.005; // the top of whatever is straight under the claw
+        for (const b of toys) { if (b.held !== -1 || b.chute) continue; const dx = b.x - t.x, dz = b.z - t.z, d2 = dx * dx + dz * dz; if (d2 < b.r * b.r) y = Math.max(y, b.y + Math.sqrt(b.r * b.r - d2)); }
+        const pulse = 1 + Math.sin(performance.now() / 260) * 0.06;
+        o.ring.position.set(t.x, y + 0.01, t.z); o.ring.scale.set(pulse, pulse, pulse);
+        const bl = Math.max(0.01, t.y - y); o.beam.position.set(t.x, y + bl / 2, t.z); o.beam.scale.set(1, bl, 1);
+      }
     });
   }
   function adapt(dt){ // drop shadows, then resolution, if the screen can't keep up
