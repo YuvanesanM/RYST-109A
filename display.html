@@ -286,6 +286,12 @@
     transition:transform .72s cubic-bezier(.5,0,.75,0),opacity .72s}
   .claw-token.gold{background:radial-gradient(circle at 35% 30%,#fff3c2,#e8b42c 60%,#9c7414)}
   .claw-token.pearl{background:radial-gradient(circle at 35% 30%,#ffffff,#e8ecff 60%,#a9b4d6)}
+  .claw-token.plush{border-radius:46%}
+  .claw-token.crab{background:radial-gradient(circle at 35% 30%,#ffb39f,#ff5a3c 60%,#b8341c)}
+  .claw-token.starfish{background:radial-gradient(circle at 35% 30%,#ffe2bd,#ffb15c 60%,#c47a2a)}
+  .claw-token.turtle{background:radial-gradient(circle at 35% 30%,#b8f0bf,#3aa06e 60%,#1f6b47)}
+  .claw-token.octopus{background:radial-gradient(circle at 35% 30%,#ecdcff,#b98aff 60%,#7a4fc4)}
+  .claw-token.fish{background:repeating-linear-gradient(90deg,#ff7f1e 0 22%,#fff 22% 30%)}
   .claw-hud{position:absolute;top:1.6vh;left:2.4vw;right:2.4vw;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
   .claw-title{font-family:var(--serif);font-weight:600;font-size:2.6vw;color:var(--sand);letter-spacing:.04em;text-shadow:0 3px 18px rgba(0,0,0,.45);white-space:nowrap}
   .claw-title em{font-style:italic;color:var(--white)}
@@ -1496,33 +1502,95 @@ function stopClaw(){
   };
 })();
 
-// ── CLAW CATCH 3D ── the same game as Claw2D above, in a real 3D cabinet:
-// each claw hangs from its own trolley on the ceiling and moves left/right
-// AND forward/back (the phone's stick sends both axes), swinging on its
-// cable in both directions. Depth is hard to judge on a flat screen, so
-// every claw casts a ring in its colour onto whatever it would land on,
-// plus a faint beam down to it — aim with the ring, not by eye.
-// three.js r128 is self-hosted and only loaded when the game first opens,
-// so the welcome signage never pays for it. If WebGL isn't available (the
-// LED wall's player), the 2D version runs instead — see clawEngine().
+// ── CLAW CATCH 3D ── a real claw machine on the pool screen: each claw hangs
+// from its own ceiling trolley and moves left/right and forward/back (the
+// phone's stick sends both axes), swinging on its cable in both directions.
+// A grab works like the real thing: drop, the fingers close on whatever is
+// under them, the claw lifts, carries its prize over to the nearest prize
+// chute at the front corners and lets go — and only a toy that actually
+// falls into a chute scores, for whoever grabbed it. Toys are soft beach
+// plushes (crab, starfish, turtle, octopus, clownfish) mixed with beach
+// balls. There is deliberately no aiming marker: judging the depth is the
+// game. The pit is restocked between rounds, not the moment a toy is won.
+//
+// Sound is synthesized with Web Audio (trolley motors, the cable, the claw's
+// clack, the chute, round start/end). A screen with no audio permission
+// simply stays silent. three.js r128 is self-hosted and only loaded when
+// the game first opens; without WebGL the 2D version runs (clawEngine()).
 const Claw3D = (function(){
   const C = {
-    X: 2.0, Z: 0.95, H: 3.0,                 // cabinet half-width, half-depth, height (world units ≈ metres)
-    ceil: 2.86, restLen: 0.42, tip: 0.66,    // trolley height; parked cable length; hub-to-fingertip (the claw is drawn at 1.3×)
-    maxSpeed: 1.35, accel: 7, dropSpeed: 1.7, liftSpeed: 1.25,
-    g: 9.8, swingDamp: 2.6, swingCouple: 0.28,
+    X: 2.0, Z: 0.95, H: 3.0,                  // cabinet half-width, half-depth, height (≈ metres)
+    ceil: 2.86, restLen: 0.42, tip: 0.66,     // trolley height; parked cable; hub-to-fingertip (claw drawn at 1.3×)
+    maxSpeed: 1.25, accel: 6.5, carrySpeed: 0.95, dropSpeed: 1.55, liftSpeed: 1.05,
+    g: 9.8, swingDamp: 2.4, swingCouple: 0.3,
+    chutes: [{ x: -1.52, z: 0.5 }, { x: 1.52, z: 0.5 }], chuteHalf: 0.34, chuteWall: 0.62,
+    grasp: 0.27,                              // how far off-centre the fingers can still close on a toy
+    fill: 62,                                 // toys in a full pit
     roundSecs: 60, countdownSecs: 3, overSecs: 10,
     colours: ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'], names: ['P1', 'P2', 'P3', 'P4'],
     solids: ['#ff5d8f', '#3f7cff', '#8fd14f', '#ffc53d', '#33c6d6', '#ff7a45', '#a77bff'],
     beach: [['#ff5d5d', '#ffd23f', '#3f9cff'], ['#ff7ab6', '#7ae0ff', '#ffe066'], ['#44d19a', '#ff8a3d', '#5c7cff']],
   };
-  const STEP = 1 / 120, TIP_R = 0.07;
-  let T = null, renderer = null, scene = null, camera = null, raf = null, lastT = 0, acc = 0, ready = false, loading = false;
-  let balls = [], respawn = [], flyers = [], geo = {}, mats = {};
+  const STEP = 1 / 120;
+  let T = null, renderer = null, scene = null, camera = null, raf = null, lastT = 0, acc = 0, ready = false, loading = false, keyLight = null;
+  let toys = [], flyers = [], geo = {}, mats = {}, protos = {}, restockQueue = [];
   let phase = 'lobby', phaseEnd = 0, winners = [], ws = null, wsRetry = 0, wsTimer = null, lastSent = 0, lastSecs = -1;
-  const home = i => -1.35 + i * 0.9;
-  function freshPlayer(i){ return { on: false, cx: home(i), cz: 0.35, vx: 0, vz: 0, ix: 0, iz: 0, len: C.restLen, thx: 0, omx: 0, thz: 0, omz: 0, state: 'idle', grip: 0, t: 0, ball: null, off: null, score: 0, obj: null }; }
+  let perf = { t: 0, n: 0, sum: 0, level: 2 }; // adaptive quality: 2 = shadows on, 1 = off, 0 = lower resolution too
+  const home = i => -1.0 + i * 0.66;
+  function freshPlayer(i){ return { on: false, cx: home(i), cz: -0.15, vx: 0, vz: 0, ix: 0, iz: 0, len: C.restLen, thx: 0, omx: 0, thz: 0, omz: 0,
+    state: 'idle', grip: 0, gripTo: 0, t: 0, toy: null, off: null, q: 0, score: 0, obj: null, target: null }; }
   const players = [0, 1, 2, 3].map(freshPlayer);
+
+  // ── sound ── tiny synthesized effects; nothing to download
+  const SFX = (function(){
+    let ac = null, master = null, hums = [];
+    function ctx(){
+      if (ac) { if (ac.state === 'suspended') ac.resume().catch(() => {}); return ac.state === 'running' ? ac : null; }
+      try {
+        ac = new (window.AudioContext || window.webkitAudioContext)();
+        const comp = ac.createDynamicsCompressor(); comp.connect(ac.destination);
+        master = ac.createGain(); master.gain.value = 0.55; master.connect(comp);
+        for (let i = 0; i < 4; i++) { // one motor hum per trolley: a filtered sawtooth whose level follows speed
+          const o = ac.createOscillator(), f = ac.createBiquadFilter(), g = ac.createGain();
+          o.type = 'sawtooth'; o.frequency.value = 62 + i * 7; f.type = 'lowpass'; f.frequency.value = 420; g.gain.value = 0;
+          o.connect(f); f.connect(g); g.connect(master); o.start(); hums.push({ o, g });
+        }
+        if (ac.state === 'suspended') ac.resume().catch(() => {});
+      } catch (e) { ac = null; }
+      return ac && ac.state === 'running' ? ac : null;
+    }
+    function tone(type, f0, f1, dur, vol, delay){
+      const a = ctx(); if (!a) return;
+      const t = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+      o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + 0.05);
+    }
+    function noise(dur, freq, vol, delay){
+      const a = ctx(); if (!a) return;
+      const t = a.currentTime + (delay || 0), len = Math.max(1, Math.floor(a.sampleRate * dur)), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2);
+      const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+      s.buffer = buf; f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 1.2; g.gain.value = vol;
+      s.connect(f); f.connect(g); g.connect(master); s.start(t);
+    }
+    return {
+      unlock: ctx,
+      motors(levels){ const a = ctx(); if (!a) return; levels.forEach((v, i) => { const h = hums[i]; h.g.gain.setTargetAtTime(Math.min(0.09, v * 0.09), a.currentTime, 0.06); h.o.frequency.setTargetAtTime(62 + i * 7 + v * 40, a.currentTime, 0.1); }); },
+      drop(){ tone('square', 330, 160, 0.18, 0.05); },
+      clack(){ noise(0.07, 2600, 0.5); tone('sine', 140, 70, 0.12, 0.18); },
+      grabbed(){ tone('triangle', 520, 780, 0.16, 0.08, 0.05); },
+      miss(){ tone('sine', 300, 180, 0.3, 0.07); },
+      slip(){ tone('sine', 620, 140, 0.45, 0.1); },
+      release(){ noise(0.05, 3000, 0.3); },
+      chute(){ noise(0.12, 500, 0.6); [784, 988, 1175, 1568].forEach((f, k) => tone('triangle', f, 0, 0.32, 0.11, 0.08 + k * 0.075)); },
+      tick(){ tone('square', 1200, 0, 0.05, 0.035); },
+      count(n){ tone('square', n ? 660 : 990, 0, n ? 0.14 : 0.5, 0.09); },
+      fanfare(){ [523, 659, 784, 1047, 784, 1047].forEach((f, k) => tone('triangle', f, 0, k === 5 ? 0.7 : 0.18, 0.12, k * 0.13)); },
+      join(){ tone('sine', 880, 1320, 0.12, 0.06); },
+      restock(){ noise(0.25, 300, 0.25); },
+    };
+  })();
 
   // ── loading ──
   function hasWebGL(){ try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl') || c.getContext('experimental-webgl'))); } catch (e) { return false; } }
@@ -1534,8 +1602,12 @@ const Claw3D = (function(){
     document.head.appendChild(s);
   }
 
-  // ── materials & textures ──
+  // ── materials ──
   function canvasTex(w, h, draw){ const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); t.anisotropy = 4; return t; }
+  function felt(hex, map){ // soft plush fabric: matte, with a fine fibrous bump
+    const key = 'felt' + hex + (map ? map.uuid : ''); if (mats[key]) return mats[key];
+    return (mats[key] = new T.MeshPhongMaterial({ color: new T.Color(hex), map: map || null, bumpMap: geo.fuzz, bumpScale: 0.012, shininess: 4, specular: 0x151515 }));
+  }
   function ballMat(kind, look){
     const key = kind + look; if (mats[key]) return mats[key];
     let m;
@@ -1547,111 +1619,175 @@ const Claw3D = (function(){
       const map = canvasTex(512, 256, (x, w, h) => { x.fillStyle = '#e8b42c'; x.fillRect(0, 0, w, h); x.fillStyle = '#fff0b0';
         [w * 0.25, w * 0.75].forEach(cx => { x.beginPath(); for (let k = 0; k < 10; k++) { const a = -Math.PI / 2 + k * Math.PI / 5, r = k % 2 ? 22 : 52; x.lineTo(cx + Math.cos(a) * r, h / 2 + Math.sin(a) * r); } x.closePath(); x.fill(); }); });
       m = new T.MeshPhongMaterial({ map, shininess: 120, specular: 0xffe7a0 });
-    } else if (kind === 'pearl') {
-      m = new T.MeshPhongMaterial({ color: 0xf4f2ff, emissive: 0x1a1830, shininess: 140, specular: 0xffffff });
-    } else {
-      m = new T.MeshPhongMaterial({ color: new T.Color(C.solids[look]), shininess: 90, specular: 0x555555 });
-    }
+    } else if (kind === 'pearl') m = new T.MeshPhongMaterial({ color: 0xf4f2ff, emissive: 0x1a1830, shininess: 140, specular: 0xffffff });
+    else m = new T.MeshPhongMaterial({ color: new T.Color(C.solids[look]), shininess: 90, specular: 0x555555 });
     return (mats[key] = m);
   }
-  function newBall(x, y, z){
+
+  // ── plush toys, built from soft primitives (body radius ≈ 1, scaled to the toy) ──
+  function part(g, m, x, y, z, sx, sy, sz, rx, ry, rz){ const o = new T.Mesh(g, m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.rotation.set(rx || 0, ry || 0, rz || 0); o.castShadow = true; o.receiveShadow = true; return o; }
+  function eyes(gr, y, z, spread, size){
+    const white = mats.eyeW, black = mats.eyeB;
+    [-1, 1].forEach(s => {
+      gr.add(part(geo.s, white, s * spread, y, z, size, size, size * 0.8));
+      gr.add(part(geo.s, black, s * spread, y + size * 0.05, z + size * 0.55, size * 0.55, size * 0.6, size * 0.4));
+      gr.add(part(geo.s, white, s * spread + size * 0.18, y + size * 0.28, z + size * 0.82, size * 0.16, size * 0.16, size * 0.1));
+    });
+  }
+  function buildProtos(){
+    mats.eyeW = new T.MeshPhongMaterial({ color: 0xffffff, shininess: 60 }); mats.eyeB = new T.MeshPhongMaterial({ color: 0x14171a, shininess: 120, specular: 0x888888 });
+    const s = geo.s;
+    // crab
+    let g = new T.Group(), m = felt('#ff5a3c'), m2 = felt('#ff8a6a');
+    g.add(part(s, m, 0, 0, 0, 1, 0.62, 0.82));
+    g.add(part(s, m2, 0, -0.25, 0.2, 0.7, 0.3, 0.55));
+    [-1, 1].forEach(k => {
+      g.add(part(geo.cyl, m, k * 0.3, 0.55, 0.35, 0.09, 0.32, 0.09));
+      g.add(part(s, m, k * 1.02, 0.12, 0.45, 0.42, 0.34, 0.36, 0, 0, k * 0.3));
+      g.add(part(s, m2, k * 1.25, 0.2, 0.62, 0.2, 0.16, 0.2));
+      [0, 1, 2].forEach(j => g.add(part(geo.cyl, m, k * 0.85, -0.3, -0.25 + j * 0.28, 0.08, 0.36, 0.08, 0, 0, k * 1.0)));
+    });
+    eyes(g, 0.82, 0.38, 0.3, 0.2);
+    protos.crab = { g, r: 0.25 };
+    // starfish
+    g = new T.Group(); m = felt('#ffb15c'); m2 = felt('#ffd29a');
+    g.add(part(s, m, 0, 0, 0, 0.5, 0.34, 0.5));
+    for (let k = 0; k < 5; k++) { const a = k * Math.PI * 2 / 5; g.add(part(s, m, Math.sin(a) * 0.58, 0, Math.cos(a) * 0.58, 0.3, 0.24, 0.62, 0, a, 0)); g.add(part(s, m2, Math.sin(a) * 0.72, 0.17, Math.cos(a) * 0.72, 0.07, 0.05, 0.07)); }
+    eyes(g, 0.25, 0.32, 0.16, 0.13);
+    protos.starfish = { g, r: 0.24 };
+    // turtle
+    g = new T.Group(); m = felt('#7fd68f');
+    const shellMap = canvasTex(256, 128, (x, w, h) => { x.fillStyle = '#2f8f62'; x.fillRect(0, 0, w, h); x.strokeStyle = '#a9e5a3'; x.lineWidth = 6;
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 9; c++) { const cx = c * 32 + (r % 2) * 16, cy = r * 34 + 10; x.beginPath(); for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; x.lineTo(cx + Math.cos(a) * 15, cy + Math.sin(a) * 15); } x.closePath(); x.stroke(); } });
+    g.add(part(s, felt('#3aa06e', shellMap), 0, 0.1, 0, 0.95, 0.55, 0.95));
+    g.add(part(s, felt('#d9f2c4'), 0, -0.12, 0, 0.88, 0.26, 0.88));
+    g.add(part(s, m, 0, 0.12, 1.0, 0.38, 0.34, 0.38));
+    [[-1, 0.6], [1, 0.6], [-1, -0.6], [1, -0.6]].forEach(p => g.add(part(s, m, p[0] * 0.78, -0.12, p[1], 0.36, 0.12, 0.22, 0, p[0] * p[1] * 0.6, 0)));
+    eyes(g, 0.3, 1.22, 0.14, 0.11);
+    protos.turtle = { g, r: 0.26 };
+    // octopus
+    g = new T.Group(); m = felt('#b98aff'); m2 = felt('#e0c8ff');
+    g.add(part(s, m, 0, 0.3, 0, 0.82, 0.86, 0.8));
+    for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; g.add(part(s, m, Math.sin(a) * 0.62, -0.42, Math.cos(a) * 0.62, 0.2, 0.18, 0.46, 0.5, a, 0)); g.add(part(s, m2, Math.sin(a) * 0.9, -0.5, Math.cos(a) * 0.9, 0.12, 0.08, 0.12)); }
+    eyes(g, 0.32, 0.66, 0.26, 0.2);
+    protos.octopus = { g, r: 0.25 };
+    // clownfish
+    g = new T.Group();
+    const stripes = canvasTex(256, 64, (x, w, h) => { x.fillStyle = '#ff7f1e'; x.fillRect(0, 0, w, h); x.fillStyle = '#ffffff'; [0.2, 0.5, 0.78].forEach(p => x.fillRect(p * w - 12, 0, 24, h)); x.fillStyle = '#1b1b1b'; [0.2, 0.5, 0.78].forEach(p => { x.fillRect(p * w - 15, 0, 3, h); x.fillRect(p * w + 12, 0, 3, h); }); });
+    g.add(part(s, felt('#ffffff', stripes), 0, 0, 0, 1.0, 0.66, 0.5, 0, Math.PI / 2, 0));
+    m = felt('#ff7f1e');
+    g.add(part(geo.cone, m, 0, 0, -1.05, 0.5, 0.5, 0.16, Math.PI / 2, 0, 0));
+    g.add(part(s, m, 0, 0.62, -0.1, 0.12, 0.3, 0.38));
+    [-1, 1].forEach(k => g.add(part(s, m, k * 0.46, -0.2, 0.25, 0.08, 0.2, 0.26, 0, 0, k * 0.5)));
+    eyes(g, 0.18, 0.62, 0.26, 0.15);
+    protos.fish = { g, r: 0.24 };
+  }
+  const PLUSH = ['crab', 'starfish', 'turtle', 'octopus', 'fish'];
+  function newToy(x, y, z){
     const roll = Math.random();
-    const kind = roll < 0.04 ? 'pearl' : roll < 0.15 ? 'gold' : roll < 0.55 ? 'beach' : 'solid';
-    const r = kind === 'pearl' ? 0.2 : 0.22 + Math.floor(Math.random() * 3) * 0.02;
-    const look = kind === 'solid' ? Math.floor(Math.random() * C.solids.length) : kind === 'beach' ? Math.floor(Math.random() * C.beach.length) : 0;
-    const mesh = new T.Mesh(geo.ball, ballMat(kind, look)); mesh.scale.setScalar(r);
-    mesh.quaternion.setFromEuler(new T.Euler(Math.random() * 6, Math.random() * 6, Math.random() * 6));
-    scene.add(mesh);
-    return { x, y, z, ox: x, oy: y, oz: z, r, kind, look, value: kind === 'pearl' ? 5 : kind === 'gold' ? 3 : 1, held: -1, mesh };
+    let kind, type = '', look = 0, r, value, body;
+    if (roll < 0.58) { kind = 'plush'; type = PLUSH[Math.floor(Math.random() * PLUSH.length)]; r = protos[type].r; value = 2; body = protos[type].g.clone(); body.scale.setScalar(r * 0.95); }
+    else {
+      const b = Math.random(); kind = b < 0.08 ? 'pearl' : b < 0.28 ? 'gold' : b < 0.68 ? 'beach' : 'solid';
+      look = kind === 'solid' ? Math.floor(Math.random() * C.solids.length) : kind === 'beach' ? Math.floor(Math.random() * C.beach.length) : 0;
+      r = kind === 'pearl' ? 0.19 : 0.21 + Math.random() * 0.03; value = kind === 'pearl' ? 5 : kind === 'gold' ? 3 : 1;
+      body = new T.Mesh(geo.ball, ballMat(kind, look)); body.scale.setScalar(r); body.castShadow = true; body.receiveShadow = true;
+    }
+    body.quaternion.setFromEuler(new T.Euler(kind === 'plush' ? (Math.random() - 0.5) * 0.8 : Math.random() * 6, Math.random() * 6, kind === 'plush' ? (Math.random() - 0.5) * 0.8 : Math.random() * 6));
+    const wrap = new T.Group(); wrap.add(body); scene.add(wrap); // wrap: position + squash (world-aligned); body: tumbling
+    return { x, y, z, ox: x, oy: y, oz: z, pvy: 0, r, kind, type, look, value, held: -1, by: -1, chute: false, sq: 0, wrap, body };
   }
 
   // ── the cabinet ──
   function buildCabinet(){
     const X = C.X, Z = C.Z, H = C.H, gold = new T.MeshPhongMaterial({ color: 0xd9bb7f, specular: 0xfff1c8, shininess: 80 });
-    const add = (g, m, x, y, z) => { const o = new T.Mesh(g, m); o.position.set(x, y, z); scene.add(o); return o; };
-    // floor and lit back wall
-    add(new T.BoxGeometry(2 * X, 0.06, 2 * Z), new T.MeshPhongMaterial({ color: 0x0b2c3a, shininess: 10 }), 0, -0.03, 0);
-    const wall = canvasTex(256, 512, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3d8496'); g.addColorStop(0.5, '#174d61'); g.addColorStop(1, '#0a2a38'); x.fillStyle = g; x.fillRect(0, 0, w, h);
-      const r = x.createRadialGradient(w / 2, 0, 10, w / 2, 60, w); r.addColorStop(0, 'rgba(255,240,210,.35)'); r.addColorStop(1, 'rgba(255,240,210,0)'); x.fillStyle = r; x.fillRect(0, 0, w, h); });
+    const add = (g, m, x, y, z, shadow) => { const o = new T.Mesh(g, m); o.position.set(x, y, z); if (shadow) o.receiveShadow = true; scene.add(o); return o; };
+    const floorTex = canvasTex(512, 256, (x, w, h) => { x.fillStyle = '#123a4a'; x.fillRect(0, 0, w, h); for (let i = 0; i < 2500; i++) { x.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`; x.fillRect(Math.random() * w, Math.random() * h, 2, 2); } });
+    add(new T.BoxGeometry(2 * X, 0.06, 2 * Z), new T.MeshPhongMaterial({ map: floorTex, shininess: 8 }), 0, -0.03, 0, true);
+    const wall = canvasTex(512, 512, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#3d8496'); g.addColorStop(0.5, '#174d61'); g.addColorStop(1, '#0a2a38'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+      const r = x.createRadialGradient(w / 2, 0, 10, w / 2, 80, w); r.addColorStop(0, 'rgba(255,240,210,.38)'); r.addColorStop(1, 'rgba(255,240,210,0)'); x.fillStyle = r; x.fillRect(0, 0, w, h);
+      x.strokeStyle = 'rgba(232,193,126,.18)'; x.lineWidth = 3; for (let k = 0; k < 7; k++) { x.beginPath(); x.moveTo(0, h * 0.55 + k * 26); for (let px = 0; px <= w; px += 16) x.lineTo(px, h * 0.55 + k * 26 + Math.sin(px / 40 + k) * 7); x.stroke(); } }); // gentle waves on the back wall
     add(new T.PlaneGeometry(2 * X, H), new T.MeshBasicMaterial({ map: wall }), 0, H / 2, -Z);
-    // side and front glass, barely there, plus streaks of reflection on the front pane
     const glass = new T.MeshPhongMaterial({ color: 0xbfe6ee, transparent: true, opacity: 0.07, shininess: 120, specular: 0xffffff, depthWrite: false, side: T.DoubleSide });
     const side = new T.PlaneGeometry(2 * Z, H);
-    const l = add(side, glass, -X, H / 2, 0); l.rotation.y = Math.PI / 2;
-    const r = add(side, glass, X, H / 2, 0); r.rotation.y = Math.PI / 2;
+    add(side, glass, -X, H / 2, 0).rotation.y = Math.PI / 2; add(side, glass, X, H / 2, 0).rotation.y = Math.PI / 2;
     add(new T.PlaneGeometry(2 * X, H), glass, 0, H / 2, Z);
-    const streak = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.06, depthWrite: false });
-    [[-1.3, 0.34], [-0.7, 0.12], [1.15, 0.22]].forEach(s => { const m = add(new T.PlaneGeometry(s[1], H * 1.1), streak, s[0], H / 2, Z + 0.005); m.rotation.z = -0.32; });
-    // gold frame on all twelve edges
+    const streak = new T.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.055, depthWrite: false });
+    [[-1.3, 0.34], [-0.7, 0.12], [1.15, 0.22]].forEach(s => { add(new T.PlaneGeometry(s[1], H * 1.1), streak, s[0], H / 2, Z + 0.005).rotation.z = -0.32; });
     const t = 0.07, bx = new T.BoxGeometry(2 * X + t, t, t), bz = new T.BoxGeometry(t, t, 2 * Z + t), by = new T.BoxGeometry(t, H, t);
     [[0, 0, Z], [0, 0, -Z], [0, H, Z], [0, H, -Z]].forEach(p => add(bx, gold, p[0], p[1], p[2]));
     [[-X, 0], [X, 0], [-X, H], [X, H]].forEach(p => add(bz, gold, p[0], p[1], 0));
     [[-X, Z], [X, Z], [-X, -Z], [X, -Z]].forEach(p => add(by, gold, p[0], H / 2, p[1]));
-    // ceiling: a dark panel with a light strip and the trolleys' rail grid
     add(new T.BoxGeometry(2 * X, 0.05, 2 * Z), new T.MeshPhongMaterial({ color: 0x18262d }), 0, H + 0.02, 0);
     add(new T.BoxGeometry(2 * X - 0.3, 0.02, 0.08), new T.MeshBasicMaterial({ color: 0xfff1d6 }), 0, H - 0.01, -Z + 0.12);
     const rail = new T.MeshPhongMaterial({ color: 0xb8c2c7, specular: 0xffffff, shininess: 90 });
     [-0.6, 0, 0.6].forEach(z => add(new T.BoxGeometry(2 * X, 0.03, 0.03), rail, 0, C.ceil + 0.1, z * Z));
-    // base and marquee
+    // prize chutes: clear acrylic walls with a gold rim, a dark hole, a "PRIZE" plate
+    const acr = new T.MeshPhongMaterial({ color: 0xd8f3ff, transparent: true, opacity: 0.22, shininess: 140, specular: 0xffffff, depthWrite: false, side: T.DoubleSide });
+    const hw = C.chuteHalf, wh = C.chuteWall;
+    const plate = canvasTex(256, 64, (x, w, h) => { x.fillStyle = '#e8c17e'; x.fillRect(0, 0, w, h); x.fillStyle = '#0b2430'; x.font = '700 34px "DM Sans", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('PRIZE', w / 2, h / 2 + 2); });
+    C.chutes.forEach(c => {
+      add(new T.BoxGeometry(2 * hw, 0.065, 2 * hw), new T.MeshBasicMaterial({ color: 0x03090c }), c.x, -0.025, c.z);
+      [[0, -hw, 2 * hw, 0.01], [0, hw, 2 * hw, 0.01], [-hw, 0, 0.01, 2 * hw], [hw, 0, 0.01, 2 * hw]].forEach(w => add(new T.BoxGeometry(w[2], wh, w[3]), acr, c.x + w[0], wh / 2, c.z + w[1]));
+      [[0, -hw, 2 * hw + 0.03, 0.03], [0, hw, 2 * hw + 0.03, 0.03], [-hw, 0, 0.03, 2 * hw], [hw, 0, 0.03, 2 * hw]].forEach(w => add(new T.BoxGeometry(w[2], 0.03, w[3]), gold, c.x + w[0], wh, c.z + w[1]));
+      add(new T.PlaneGeometry(0.4, 0.1), new T.MeshBasicMaterial({ map: plate }), c.x, 0.2, c.z + hw + 0.012);
+    });
     add(new T.BoxGeometry(2 * X + 0.2, 0.55, 2 * Z + 0.2), new T.MeshPhongMaterial({ color: 0x102631, shininess: 30 }), 0, -0.33, 0);
     add(new T.BoxGeometry(2 * X + 0.2, 0.04, 0.04), gold, 0, -0.06, Z + 0.1);
     const sign = canvasTex(1024, 160, (x, w, h) => { const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#123c4d'); g.addColorStop(1, '#0a2532'); x.fillStyle = g; x.fillRect(0, 0, w, h);
       x.fillStyle = '#e8c17e'; x.font = '600 96px "Cormorant Garamond", Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('Claw  Catch', w / 2, h / 2 + 4);
       x.fillStyle = 'rgba(232,193,126,.5)'; x.fillRect(40, h - 14, w - 80, 3); });
-    const mq = add(new T.BoxGeometry(2 * X + 0.2, 0.42, 0.16), [0, 0, 0, 0, new T.MeshBasicMaterial({ map: sign }), 0].map(m => m || new T.MeshPhongMaterial({ color: 0x0f2f3c })), 0, H + 0.26, Z - 0.02);
-    // light
+    add(new T.BoxGeometry(2 * X + 0.2, 0.42, 0.16), [0, 0, 0, 0, new T.MeshBasicMaterial({ map: sign }), 0].map(m => m || new T.MeshPhongMaterial({ color: 0x0f2f3c })), 0, H + 0.26, Z - 0.02);
     scene.add(new T.HemisphereLight(0xdff4ff, 0x16323f, 0.55));
-    const key = new T.DirectionalLight(0xfff3e0, 0.75); key.position.set(-2, 6, 4); scene.add(key);
-    const top = new T.PointLight(0xfff1d6, 0.45, 7); top.position.set(0, H - 0.2, 0.2); scene.add(top);
+    keyLight = new T.DirectionalLight(0xfff3e0, 0.75); keyLight.position.set(-0.6, 6, 2.2); keyLight.target.position.set(0, 0, 0); scene.add(keyLight.target);
+    keyLight.castShadow = true; keyLight.shadow.mapSize.set(1024, 1024); keyLight.shadow.bias = -0.0015; keyLight.shadow.radius = 3;
+    Object.assign(keyLight.shadow.camera, { left: -2.3, right: 2.3, top: 1.4, bottom: -1.4, near: 1, far: 10 }); keyLight.shadow.camera.updateProjectionMatrix();
+    scene.add(keyLight);
+    const top = new T.PointLight(0xfff1d6, 0.4, 7); top.position.set(0, H - 0.2, 0.2); scene.add(top);
   }
-  // ── a claw: trolley, cable, hub, three jointed prongs, the landing ring and beam ──
+  // ── a claw: trolley, cable, hub and three jointed prongs (no shadow, no marker: judging depth is the game) ──
   function buildClaw(i){
     const col = new T.Color(C.colours[i]), steel = new T.MeshPhongMaterial({ color: 0xd5dde0, specular: 0xffffff, shininess: 110 }), dark = new T.MeshPhongMaterial({ color: 0x26333a });
     const o = { root: new T.Group() };
     o.trolley = new T.Group();
-    const body = new T.Mesh(new T.BoxGeometry(0.3, 0.1, 0.3), dark); o.trolley.add(body);
+    o.trolley.add(new T.Mesh(new T.BoxGeometry(0.3, 0.1, 0.3), dark));
     const lamp = new T.Mesh(new T.BoxGeometry(0.31, 0.03, 0.31), new T.MeshBasicMaterial({ color: col })); lamp.position.y = 0.05; o.trolley.add(lamp);
-    o.label = makeLabel(C.names[i], C.colours[i]);
     o.cable = new T.Mesh(new T.CylinderGeometry(0.008, 0.008, 1, 6), new T.MeshPhongMaterial({ color: 0xe6ecef }));
     o.head = new T.Group();
     const hub = new T.Mesh(new T.CylinderGeometry(0.075, 0.09, 0.15, 20), steel); hub.position.y = -0.06; o.head.add(hub);
     const band = new T.Mesh(new T.CylinderGeometry(0.093, 0.093, 0.035, 20), new T.MeshPhongMaterial({ color: col, shininess: 60 })); band.position.y = -0.05; o.head.add(band);
-    o.label.position.set(0.17, 0.03, 0); o.label.scale.set(0.2, 0.1, 1); o.head.add(o.label); // the tag rides on the claw, not up on the ceiling
+    o.label = makeLabel(C.names[i], C.colours[i]); o.label.position.set(0.17, 0.03, 0); o.label.scale.set(0.2, 0.1, 1); o.head.add(o.label);
     o.prongs = [];
     for (let k = 0; k < 3; k++) {
       const yaw = new T.Group(); yaw.rotation.y = k * Math.PI * 2 / 3; yaw.position.y = -0.13; o.head.add(yaw);
-      const pivot = new T.Group(); pivot.position.x = 0.07; yaw.add(pivot);         // the knuckle opens and closes about this
+      const pivot = new T.Group(); pivot.position.x = 0.07; yaw.add(pivot);
       const upper = new T.Mesh(new T.CylinderGeometry(0.018, 0.016, 0.22, 8), steel); upper.position.y = -0.11; pivot.add(upper);
       const elbow = new T.Group(); elbow.position.y = -0.22; pivot.add(elbow);
       const finger = new T.Mesh(new T.CylinderGeometry(0.016, 0.01, 0.2, 8), steel); finger.position.y = -0.1; elbow.add(finger);
-      elbow.rotation.z = -0.95;                                                       // fingers curl inward, under the ball
-      const joint = new T.Mesh(new T.SphereGeometry(0.024, 10, 8), dark); elbow.add(joint);
+      elbow.rotation.z = -0.95;
+      elbow.add(new T.Mesh(new T.SphereGeometry(0.024, 10, 8), dark));
       o.prongs.push(pivot);
     }
-    o.ring = new T.Mesh(new T.RingGeometry(0.15, 0.2, 40), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.85, depthTest: false, side: T.DoubleSide }));
-    o.ring.rotation.x = -Math.PI / 2; o.ring.renderOrder = 5;
-    o.beam = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 1, 12, 1, true), new T.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.1, depthWrite: false }));
-    [o.trolley, o.cable, o.head, o.ring, o.beam].forEach(m => o.root.add(m));
+    [o.trolley, o.cable, o.head].forEach(m => o.root.add(m));
     o.root.visible = false; scene.add(o.root);
     return o;
   }
   function makeLabel(text, colour){
     const map = canvasTex(128, 64, (x, w, h) => { x.fillStyle = colour; x.beginPath(); x.moveTo(16, 6); x.arcTo(w - 6, 6, w - 6, h - 6, 14); x.arcTo(w - 6, h - 6, 6, h - 6, 14); x.arcTo(6, h - 6, 6, 6, 14); x.arcTo(6, 6, w - 6, 6, 14); x.fill();
       x.fillStyle = '#0b2430'; x.font = '700 34px "DM Sans", sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, w / 2, h / 2 + 2); });
-    const s = new T.Sprite(new T.SpriteMaterial({ map, depthTest: false })); s.scale.set(0.3, 0.15, 1); s.renderOrder = 6; return s;
+    const s = new T.Sprite(new T.SpriteMaterial({ map, depthTest: false })); s.renderOrder = 6; return s;
   }
 
   // ── physics ──
   function headPos(p){ return { x: p.cx + Math.sin(p.thx) * p.len, y: C.ceil - Math.cos(p.thx) * Math.cos(p.thz) * p.len, z: p.cz + Math.sin(p.thz) * p.len }; }
   function tipPos(p){ const h = headPos(p); return { x: h.x + Math.sin(p.thx) * C.tip, y: h.y - C.tip, z: h.z + Math.sin(p.thz) * C.tip }; }
+  const inChute = (b, pad) => C.chutes.find(c => Math.abs(b.x - c.x) < C.chuteHalf - pad && Math.abs(b.z - c.z) < C.chuteHalf - pad);
   function physics(dt){
     const g = C.g * dt * dt;
-    for (const b of balls) { if (b.held !== -1) continue;
-      const vx = (b.x - b.ox) * 0.996, vy = (b.y - b.oy) * 0.996, vz = (b.z - b.oz) * 0.996;
+    for (const b of toys) { if (b.held !== -1) continue;
+      const vx = (b.x - b.ox) * 0.995, vy = (b.y - b.oy) * 0.995, vz = (b.z - b.oz) * 0.995;
       b.ox = b.x; b.oy = b.y; b.oz = b.z; b.x += vx; b.y += vy - g; b.z += vz; }
-    const tips = []; players.forEach(p => { if (p.on && p.state !== 'idle') tips.push(tipPos(p)); });
-    // sweep-and-prune on x: only nearby pairs are ever compared
-    const live = balls.filter(b => b.held === -1).sort((a, b) => a.x - b.x);
+    const live = toys.filter(b => b.held === -1).sort((a, b) => a.x - b.x);
     for (let it = 0; it < 2; it++) {
       for (let i = 0; i < live.length; i++) {
         const a = live[i];
@@ -1659,79 +1795,125 @@ const Claw3D = (function(){
           const b = live[j], min = a.r + b.r, dx = b.x - a.x; if (dx > min) break;
           const dy = b.y - a.y, dz = b.z - a.z, d2 = dx * dx + dy * dy + dz * dz;
           if (d2 >= min * min || d2 === 0) continue;
-          const d = Math.sqrt(d2), push = (min - d) * 0.5 / d;
-          a.x -= dx * push; a.y -= dy * push; a.z -= dz * push; b.x += dx * push; b.y += dy * push; b.z += dz * push;
+          const d = Math.sqrt(d2), push = (min - d) * 0.5 / d, soft = (a.kind === 'plush' || b.kind === 'plush') ? 0.8 : 1; // plushes give a little
+          a.x -= dx * push * soft; a.y -= dy * push * soft; a.z -= dz * push * soft; b.x += dx * push * soft; b.y += dy * push * soft; b.z += dz * push * soft;
         }
-        for (const t of tips) { const dx = a.x - t.x, dy = a.y - t.y, dz = a.z - t.z, min = a.r + TIP_R, d2 = dx * dx + dy * dy + dz * dz;
-          if (d2 < min * min && d2 > 0) { const d = Math.sqrt(d2), k = (min - d) / d * 0.25; a.x += dx * k; a.y += dy * k; a.z += dz * k; } }
       }
       for (const b of live) {
-        if (b.y - b.r < 0) { b.y = b.r; b.oy = b.y + (b.y - b.oy) * 0.3; b.ox = b.x - (b.x - b.ox) * 0.9; b.oz = b.z - (b.z - b.oz) * 0.9; }
+        if (b.chute) { // inside a chute: falls through the floor, held in by the chute's walls
+          const c = b.chute, lim = C.chuteHalf - b.r * 0.6;
+          b.x = Math.max(c.x - lim, Math.min(c.x + lim, b.x)); b.z = Math.max(c.z - lim, Math.min(c.z + lim, b.z));
+          continue;
+        }
+        const c = inChute(b, 0);
+        if (c && b.y < C.chuteWall + b.r * 0.2) { b.chute = c; continue; } // dropped over the opening: it's going in
+        // the chutes' walls are solid to everything else in the pit
+        for (const ch of C.chutes) {
+          const hx = C.chuteHalf + b.r, dx = b.x - ch.x, dz = b.z - ch.z;
+          if (Math.abs(dx) < hx && Math.abs(dz) < hx && b.y - b.r < C.chuteWall) {
+            if (b.y > C.chuteWall - 0.05 && Math.abs(dx) < C.chuteHalf && Math.abs(dz) < C.chuteHalf) continue;
+            const px = hx - Math.abs(dx), pz = hx - Math.abs(dz);
+            if (px < pz) { b.x = ch.x + Math.sign(dx || 1) * hx; b.ox = b.x; } else { b.z = ch.z + Math.sign(dz || 1) * hx; b.oz = b.z; }
+          }
+        }
+        if (b.y - b.r < 0) { b.y = b.r; b.oy = b.y + (b.y - b.oy) * (b.kind === 'plush' ? 0.1 : 0.35); const fr = b.kind === 'plush' ? 0.75 : 0.92; b.ox = b.x - (b.x - b.ox) * fr; b.oz = b.z - (b.z - b.oz) * fr; }
         if (b.x - b.r < -C.X) { b.x = -C.X + b.r; b.ox = b.x + (b.x - b.ox) * 0.4; } if (b.x + b.r > C.X) { b.x = C.X - b.r; b.ox = b.x + (b.x - b.ox) * 0.4; }
         if (b.z - b.r < -C.Z) { b.z = -C.Z + b.r; b.oz = b.z + (b.z - b.oz) * 0.4; } if (b.z + b.r > C.Z) { b.z = C.Z - b.r; b.oz = b.z + (b.z - b.oz) * 0.4; }
       }
     }
   }
-  function rollBalls(){
-    if (!T) return;
+  function settle(){ // a quick rest pass: kills residual jitter so the pile sits still
+    for (const b of toys) if (b.held === -1 && !b.chute) { const vx = b.x - b.ox, vy = b.y - b.oy, vz = b.z - b.oz; if (vx * vx + vy * vy + vz * vz < 1e-8) { b.ox = b.x; b.oy = b.y; b.oz = b.z; } }
+  }
+  function rollAndSquash(){
     const q = new T.Quaternion(), axis = new T.Vector3();
-    for (const b of balls) {
+    for (const b of toys) {
       if (b.held !== -1) continue;
-      const vx = b.x - b.ox, vz = b.z - b.oz, dist = Math.sqrt(vx * vx + vz * vz);
+      const vx = b.x - b.ox, vz = b.z - b.oz, vy = b.y - b.oy, dist = Math.sqrt(vx * vx + vz * vz);
+      const impact = Math.abs(vy - b.pvy) / STEP; b.pvy = vy;            // a sudden change of vertical speed = it landed on something
+      if (impact > 1.2) b.sq = Math.min(b.kind === 'plush' ? 0.22 : 0.1, b.sq + impact * (b.kind === 'plush' ? 0.03 : 0.012));
       if (dist < 1e-5) continue;
-      axis.set(vz, 0, -vx).normalize(); q.setFromAxisAngle(axis, dist / b.r); b.mesh.quaternion.premultiply(q);
+      axis.set(vz, 0, -vx).normalize(); q.setFromAxisAngle(axis, dist / b.r * (b.kind === 'plush' ? 0.55 : 1)); b.body.quaternion.premultiply(q); // plushes drag rather than roll
     }
   }
+  function swingMag(p){ return Math.abs(p.thx) + Math.abs(p.thz) + (Math.abs(p.omx) + Math.abs(p.omz)) * 0.25; }
   function stepPlayer(p, i, dt, now){
-    const mx = C.X - 0.3, mz = C.Z - 0.25, idle = p.state === 'idle';
-    const pvx = p.vx, pvz = p.vz;
-    p.vx += ((idle ? p.ix * C.maxSpeed : 0) - p.vx) * Math.min(1, C.accel * dt);
-    p.vz += ((idle ? p.iz * C.maxSpeed : 0) - p.vz) * Math.min(1, C.accel * dt);
+    const mx = C.X - 0.3, mz = C.Z - 0.25, pvx = p.vx, pvz = p.vz;
+    let tx = 0, tz = 0, rate = C.accel;
+    if (p.state === 'idle') { tx = p.ix * C.maxSpeed; tz = p.iz * C.maxSpeed; }
+    else if (p.state === 'carry') { // the machine drives itself to the chute, easing in
+      const dx = p.target.x - p.cx, dz = p.target.z - p.cz, d = Math.hypot(dx, dz), sp = Math.min(C.carrySpeed, d * 2.4);
+      if (d > 0.002) { tx = dx / d * sp; tz = dz / d * sp; } rate = 5;
+      if (d < 0.07 && Math.abs(p.vx) + Math.abs(p.vz) < 0.12) { p.state = 'release'; p.t = 0; SFX.release(); } // over the opening and nearly still: let go
+    }
+    p.vx += (tx - p.vx) * Math.min(1, rate * dt); p.vz += (tz - p.vz) * Math.min(1, rate * dt);
     p.cx += p.vx * dt; p.cz += p.vz * dt;
     if (p.cx < -mx) { p.cx = -mx; p.vx = 0; } if (p.cx > mx) { p.cx = mx; p.vx = 0; }
     if (p.cz < -mz) { p.cz = -mz; p.vz = 0; } if (p.cz > mz) { p.cz = mz; p.vz = 0; }
-    // trolleys share one ceiling: keep them from passing through each other
-    players.forEach((q, j) => { if (j === i || !q.on) return; const dx = p.cx - q.cx, dz = p.cz - q.cz, d = Math.sqrt(dx * dx + dz * dz), min = 0.36;
+    // players' trolleys keep apart; a claw the machine is driving to a chute (or letting go over it) has right of way, so two prizes headed for one chute never deadlock
+    if (p.state === 'idle') players.forEach((q, j) => { if (j === i || !q.on || q.state === 'carry' || q.state === 'release') return; const dx = p.cx - q.cx, dz = p.cz - q.cz, d = Math.sqrt(dx * dx + dz * dz), min = 0.36;
       if (d < min && d > 0) { p.cx += dx / d * (min - d) * 0.5; p.cz += dz / d * (min - d) * 0.5; } });
-    // two damped pendulums, one per axis, driven by the trolley's acceleration
     const L = Math.max(0.3, p.len), ax = (p.vx - pvx) / dt, az = (p.vz - pvz) / dt;
     p.omx += (-(C.g / L) * Math.sin(p.thx) - (ax * C.swingCouple / L) * Math.cos(p.thx) - C.swingDamp * p.omx) * dt;
     p.omz += (-(C.g / L) * Math.sin(p.thz) - (az * C.swingCouple / L) * Math.cos(p.thz) - C.swingDamp * p.omz) * dt;
-    p.thx = Math.max(-0.45, Math.min(0.45, p.thx + p.omx * dt)); p.thz = Math.max(-0.45, Math.min(0.45, p.thz + p.omz * dt));
+    p.thx = Math.max(-0.4, Math.min(0.4, p.thx + p.omx * dt)); p.thz = Math.max(-0.4, Math.min(0.4, p.thz + p.omz * dt));
+    // fingers ease toward where they're meant to be (wide open on the way down, round the toy when holding)
+    p.grip += (p.gripTo - p.grip) * Math.min(1, dt * (p.state === 'grip' ? 9 : 5));
     const t = tipPos(p);
-    if (idle) p.grip = Math.max(0, p.grip - dt * 3);
+    if (p.state === 'idle') p.gripTo = 0.25;
     else if (p.state === 'down') {
-      p.len += C.dropSpeed * dt;
-      let blocked = t.y <= 0.06;
-      for (const b of balls) { if (b.held !== -1) continue; const dx = b.x - t.x, dz = b.z - t.z; if (dx * dx + dz * dz < (b.r * 0.85) * (b.r * 0.85) && t.y <= b.y + b.r * 0.75) { blocked = true; break; } }
-      if (blocked) { p.state = 'grip'; p.t = 0; }
+      p.gripTo = 0; p.len += C.dropSpeed * dt;
+      let blocked = t.y <= 0.05;
+      for (const b of toys) { if (b.held !== -1 || b.chute) continue; const dx = b.x - t.x, dz = b.z - t.z; if (dx * dx + dz * dz < (b.r * 0.9) * (b.r * 0.9) && t.y <= b.y + b.r * 0.55) { blocked = true; break; } }
+      for (const ch of C.chutes) if (Math.abs(t.x - ch.x) < C.chuteHalf + 0.05 && Math.abs(t.z - ch.z) < C.chuteHalf + 0.05 && t.y <= C.chuteWall + 0.02) blocked = true;
+      if (blocked) { p.state = 'grip'; p.t = 0; SFX.clack(); }
     } else if (p.state === 'grip') {
-      p.t += dt; p.grip = Math.min(1, p.t / 0.42);
-      if (p.t >= 0.42) {
-        let best = null, bestD = 1e9;
-        for (const b of balls) { if (b.held !== -1) continue; const d = Math.hypot(b.x - t.x, b.y - t.y, b.z - t.z); if (d < b.r + 0.16 && d < bestD) { bestD = d; best = b; } }
+      p.t += dt;
+      if (p.t < dt * 1.5) { // decide the grab the moment the fingers start to close
+        let best = null, bestOff = 1e9;
+        for (const b of toys) {
+          if (b.held !== -1 || b.chute) continue;
+          const off = Math.hypot(b.x - t.x, b.z - t.z);
+          if (off < C.grasp + b.r * 0.2 && b.y + b.r > t.y - 0.06 && b.y < t.y + 0.5 && off < bestOff) { bestOff = off; best = b; }
+        }
+        p.pending = null;
         if (best) {
-          const off = Math.hypot(best.x - t.x, best.z - t.z), centred = 1 - Math.min(1, off / (best.r + 0.06));
-          const steady = 1 - Math.min(0.55, (Math.abs(p.omx) + Math.abs(p.omz)) * 0.35 + (Math.abs(p.thx) + Math.abs(p.thz)) * 1.5);
-          const odds = (0.18 + 0.8 * centred) * steady * (best.kind === 'pearl' ? 0.75 : best.kind === 'gold' ? 0.88 : 1);
-          if (Math.random() < odds) { best.held = i; p.ball = best; p.off = { x: (best.x - t.x) * 0.5, z: (best.z - t.z) * 0.5 }; }
-          else { best.ox = best.x - (best.x - t.x) * 0.08; best.oz = best.z - (best.z - t.z) * 0.08; }
+          const centred = Math.max(0, 1 - bestOff / (C.grasp + best.r * 0.2)), steady = Math.max(0.35, 1 - swingMag(p) * 1.4);
+          const hold = best.kind === 'plush' ? 1.08 : best.kind === 'pearl' ? 0.78 : best.kind === 'gold' ? 0.9 : 0.94; // fabric grips; a glossy ball rolls out
+          const q = Math.min(1, centred * steady * hold);
+          if (Math.random() < 0.12 + 0.86 * q) p.pending = { b: best, q };
         }
-        p.state = 'up';
+        p.gripTo = p.pending ? 0.62 : 1; // fingers stop round a toy, close fully on nothing
       }
-    } else if (p.state === 'up') {
-      p.len = Math.max(C.restLen, p.len - C.liftSpeed * dt);
-      if (p.ball) {
-        const b = p.ball, wob = (Math.abs(p.omx) + Math.abs(p.omz)) * 0.12;
-        const slip = (b.kind === 'pearl' ? 0.3 : b.kind === 'gold' ? 0.18 : 0.07) + wob + Math.hypot(p.off.x, p.off.z) * 0.6;
+      if (p.t >= 0.45) {
+        if (p.pending) { const b = p.pending.b; b.held = i; b.by = i; p.toy = b; p.q = p.pending.q; p.off = { x: (b.x - t.x) * 0.6, z: (b.z - t.z) * 0.6 }; SFX.grabbed(); }
+        else SFX.miss();
+        p.pending = null; p.state = 'up';
+      }
+    } else if (p.state === 'up' || p.state === 'carry') {
+      if (p.state === 'up') { p.len = Math.max(C.restLen, p.len - C.liftSpeed * dt); }
+      const b = p.toy;
+      if (b) {
+        // a held toy settles toward the middle of the fingers, and can slip — more when off-centre, swinging, or round and glossy
+        p.off.x *= 1 - dt * 1.5; p.off.z *= 1 - dt * 1.5;
+        const base = b.kind === 'plush' ? 0.03 : b.kind === 'pearl' ? 0.2 : b.kind === 'gold' ? 0.12 : 0.08;
+        const slip = base + (1 - p.q) * 0.45 + swingMag(p) * 0.5;
         b.ox = b.x; b.oy = b.y; b.oz = b.z;
-        b.x = t.x + p.off.x; b.y = t.y + b.r * 0.55; b.z = t.z + p.off.z;
+        b.x = t.x + p.off.x; b.y = t.y + b.r * 0.4; b.z = t.z + p.off.z;
         if (Math.random() < slip * dt) {
-          b.held = -1; b.ox = b.x - p.vx * dt; b.oy = b.y + C.liftSpeed * dt * 0.5; b.oz = b.z - p.vz * dt; p.ball = null;
-          note(t, 'So close!', '#f6f1e6');
+          b.held = -1; b.ox = b.x - p.vx * dt; b.oz = b.z - p.vz * dt; b.oy = b.y + (p.state === 'up' ? C.liftSpeed * dt * 0.5 : 0);
+          p.toy = null; p.gripTo = 0.25; note(t, 'So close!', '#f6f1e6'); SFX.slip();
         }
       }
-      if (p.len <= C.restLen) { p.state = 'idle'; if (p.ball) deliver(p, i, p.ball, now); p.ball = null; }
+      if (p.state === 'up' && p.len <= C.restLen) {
+        if (p.toy) { p.state = 'carry'; const c = C.chutes.slice().sort((a, b) => Math.hypot(a.x - p.cx, a.z - p.cz) - Math.hypot(b.x - p.cx, b.z - p.cz))[0]; p.target = { x: c.x, z: c.z }; }
+        else p.state = 'idle';
+      }
+      if (p.state === 'carry' && !p.toy) p.state = 'idle'; // slipped on the way: control comes straight back
+    } else if (p.state === 'release') {
+      p.t += dt; p.gripTo = 0;
+      if (p.toy && p.t > 0.12) { const b = p.toy; b.held = -1; b.ox = b.x; b.oy = b.y; b.oz = b.z; p.toy = null; }
+      if (p.t > 0.5) p.state = 'idle';
     }
   }
 
@@ -1743,21 +1925,24 @@ const Claw3D = (function(){
     el.className = 'claw-note'; el.textContent = text; el.style.color = colour; el.style.left = s.x + 'px'; el.style.top = s.y + 'px';
     wrap().appendChild(el); setTimeout(() => el.remove(), 1400);
   }
-  // A catch leaves the cabinet as a coloured token that arcs into the player's chip; the point lands with it.
-  function deliver(p, i, b, now){
-    const counts = phase === 'play' && now < phaseEnd && secsLeft(now) <= C.roundSecs;
-    const from = toScreen(b), chip = document.querySelectorAll('#clawPlayers .claw-chip')[i], wr = wrap().getBoundingClientRect();
+  // A toy that drops all the way into a chute scores for whoever grabbed it: it leaves as a token that arcs into their chip.
+  function won(b, now){
+    const i = b.by, counts = i >= 0 && phase === 'play' && now < phaseEnd && secsLeft(now) <= C.roundSecs;
+    toys.splice(toys.indexOf(b), 1); scene.remove(b.wrap);
+    SFX.chute();
+    if (i < 0) return;
+    const from = toScreen({ x: b.chute.x, y: 0.1, z: b.chute.z }), chip = document.querySelectorAll('#clawPlayers .claw-chip')[i], wr = wrap().getBoundingClientRect();
     const cr = chip ? chip.getBoundingClientRect() : { left: wr.right - 100, top: wr.top + 20, width: 60, height: 30 };
     const el = document.createElement('div');
-    el.className = 'claw-token ' + b.kind;
-    el.style.background = b.kind === 'beach' ? `conic-gradient(${C.beach[b.look][0]} 0 60deg,#fbf8f2 0 120deg,${C.beach[b.look][1]} 0 180deg,#fbf8f2 0 240deg,${C.beach[b.look][2]} 0 300deg,#fbf8f2 0)` : b.kind === 'solid' ? C.solids[b.look] : '';
+    el.className = 'claw-token ' + (b.kind === 'plush' ? 'plush ' + b.type : b.kind);
+    if (b.kind === 'beach') el.style.background = `conic-gradient(${C.beach[b.look][0]} 0 60deg,#fbf8f2 0 120deg,${C.beach[b.look][1]} 0 180deg,#fbf8f2 0 240deg,${C.beach[b.look][2]} 0 300deg,#fbf8f2 0)`;
+    else if (b.kind === 'solid') el.style.background = C.solids[b.look];
     el.style.left = from.x + 'px'; el.style.top = from.y + 'px';
     wrap().appendChild(el);
     const dx = cr.left + cr.width * 0.75 - wr.left - from.x, dy = cr.top + cr.height / 2 - wr.top - from.y;
     requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transform = `translate(${dx}px, ${dy}px) scale(.35)`; el.style.opacity = '.9'; }));
-    scene.remove(b.mesh); balls.splice(balls.indexOf(b), 1);
     flyers.push({ el, i, value: b.value, counts, at: now + 720 });
-    respawn.push(now + 900);
+    note({ x: b.chute.x, y: 0.75, z: b.chute.z }, (counts ? '+' : 'Practice +') + b.value, C.colours[i]);
   }
   function land(f){
     f.el.remove();
@@ -1767,18 +1952,26 @@ const Claw3D = (function(){
     if (chip) { chip.classList.remove('pop'); void chip.offsetWidth; chip.classList.add('pop'); }
     sendState(true);
   }
+  // Restock between rounds only: missing toys tumble in from above, a few at a time.
+  function restock(){
+    const missing = C.fill - toys.length - restockQueue.length; if (missing <= 0) return;
+    const now = performance.now();
+    for (let k = 0; k < missing; k++) restockQueue.push(now + 300 + k * 70);
+    SFX.restock();
+  }
   function secsLeft(now){ return phase === 'play' ? Math.max(0, Math.ceil((phaseEnd - now) / 1000)) : 0; }
   function start(){
     if (phase === 'play') return;
+    restock();
     players.forEach(p => { p.score = 0; }); winners = []; phase = 'play';
-    phaseEnd = performance.now() + (C.countdownSecs + C.roundSecs) * 1000; renderHud(); sendState(true);
+    phaseEnd = performance.now() + (C.countdownSecs + C.roundSecs) * 1000; lastSecs = -1; renderHud(); sendState(true);
   }
   function tickPhase(now){
-    if (phase === 'play' && now >= phaseEnd && !flyers.some(f => f.counts)) {
+    if (phase === 'play' && now >= phaseEnd && !flyers.some(f => f.counts) && !toys.some(b => b.chute && b.by >= 0)) {
       const on = [0, 1, 2, 3].filter(i => players[i].on), top = Math.max.apply(null, on.map(i => players[i].score).concat([0]));
       winners = top > 0 ? on.filter(i => players[i].score === top) : [];
-      phase = 'over'; phaseEnd = now + C.overSecs * 1000; renderHud(); sendState(true);
-    } else if (phase === 'over' && now >= phaseEnd) { phase = 'lobby'; renderHud(); sendState(true); }
+      phase = 'over'; phaseEnd = now + C.overSecs * 1000; renderHud(); sendState(true); SFX.fanfare();
+    } else if (phase === 'over' && now >= phaseEnd) { phase = 'lobby'; restock(); renderHud(); sendState(true); }
   }
   function renderHud(){
     const now = performance.now(), left = secsLeft(now), counting = phase === 'play' && left > C.roundSecs;
@@ -1790,72 +1983,85 @@ const Claw3D = (function(){
     if (phase === 'play' && counting) { big = String(left - C.roundSecs); small = 'Get ready'; }
     else if (phase === 'over') {
       big = winners.length === 1 ? `<em>${C.names[winners[0]]}</em> wins` : winners.length > 1 ? 'A <em>tie</em>' : 'Time';
-      small = winners.length ? winners.map(i => C.names[i]).join(' & ') + ' · ' + players[winners[0]].score + ' points' : 'No catches this round. Press Start to try again.';
+      small = winners.length ? winners.map(i => C.names[i]).join(' & ') + ' · ' + players[winners[0]].score + ' points' : 'No prizes this round. Press Start to try again.';
     } else if (phase === 'lobby') {
       big = nOn ? 'Press <em>Start</em>' : 'Claw <em>Catch</em>';
-      small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in. Practise now, or press Start on your phone for a ${C.roundSecs}-second round.` : 'Scan the code with your phone to join. Up to 4 players.';
+      small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in. Drop a prize in a chute to score: plush 2, beach ball 1, gold 3, pearl 5.` : 'Scan the code with your phone to join. Up to 4 players.';
     }
     $('#clawBannerBig').innerHTML = big; $('#clawBannerSmall').textContent = small;
     const ban = $('#clawBanner'); ban.classList.toggle('hide', !big); ban.classList.toggle('count', phase === 'play' && counting); ban.classList.toggle('slim', phase === 'lobby' && nOn > 0);
   }
 
   // ── per-frame ──
-  function landingY(t, p){ // the top of whatever is directly under the claw — where its ring goes
-    let y = 0.005;
-    for (const b of balls) { if (b.held !== -1) continue; const dx = b.x - t.x, dz = b.z - t.z, d2 = dx * dx + dz * dz; if (d2 < b.r * b.r) y = Math.max(y, b.y + Math.sqrt(b.r * b.r - d2)); }
-    return y;
-  }
   function syncMeshes(){
-    for (const b of balls) b.mesh.position.set(b.x, b.y, b.z);
-    players.forEach((p, i) => {
+    for (const b of toys) {
+      b.sq *= 0.86;
+      b.wrap.position.set(b.x, b.y - b.r * b.sq * 0.5, b.z);
+      b.wrap.scale.set(1 + b.sq * 0.5, 1 - b.sq, 1 + b.sq * 0.5);
+    }
+    players.forEach(p => {
       const o = p.obj; if (!o) return; o.root.visible = p.on; if (!p.on) return;
-      const h = headPos(p), t = tipPos(p);
+      const h = headPos(p);
       o.trolley.position.set(p.cx, C.ceil + 0.06, p.cz);
-      const top = new T.Vector3(p.cx, C.ceil, p.cz), hv = new T.Vector3(h.x, h.y, h.z), mid = top.clone().add(hv).multiplyScalar(0.5), len = top.distanceTo(hv);
-      o.cable.position.copy(mid); o.cable.scale.set(1, len, 1); o.cable.lookAt(hv); o.cable.rotateX(Math.PI / 2);
+      const top = new T.Vector3(p.cx, C.ceil, p.cz), hv = new T.Vector3(h.x, h.y, h.z), len = top.distanceTo(hv);
+      o.cable.position.copy(top).add(hv).multiplyScalar(0.5); o.cable.scale.set(1, len, 1); o.cable.lookAt(hv); o.cable.rotateX(Math.PI / 2);
       o.head.position.copy(hv); o.head.rotation.set(-p.thz, 0, p.thx); o.head.scale.setScalar(1.3);
-      const open = 1 - p.grip; o.prongs.forEach(pv => { pv.rotation.z = 0.12 + open * 0.55; });
-      const y = landingY(t, p), showAim = p.state === 'idle';
-      o.ring.visible = o.beam.visible = showAim;
-      if (showAim) {
-        o.ring.position.set(t.x, y + 0.01, t.z);
-        const pulse = 1 + Math.sin(performance.now() / 260) * 0.06; o.ring.scale.set(pulse, pulse, pulse);
-        const bl = Math.max(0.01, t.y - y); o.beam.position.set(t.x, y + bl / 2, t.z); o.beam.scale.set(1, bl, 1);
-      }
+      const open = 1 - p.grip; o.prongs.forEach(pv => { pv.rotation.z = 0.06 + open * 0.7; });
     });
   }
+  function adapt(dt){ // drop shadows, then resolution, if the screen can't keep up
+    perf.sum += dt; perf.n++;
+    if (perf.sum < 2.5) return;
+    const avg = perf.sum / perf.n; perf.sum = 0; perf.n = 0;
+    if (avg > 0.03 && perf.level > 0) {
+      perf.level--;
+      if (perf.level === 1) { renderer.shadowMap.enabled = false; scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => { m.needsUpdate = true; }); }); }
+      if (perf.level === 0) { renderer.setPixelRatio(1); resize(); }
+    }
+  }
+  let lastMotor = 0;
   function frame(now){
     const dt = Math.min(0.1, (now - (lastT || now)) / 1000); lastT = now; acc += dt;
-    while (acc >= STEP) { players.forEach((p, i) => { if (p.on) stepPlayer(p, i, STEP, now); }); physics(STEP); rollBalls(); acc -= STEP; }
+    while (acc >= STEP) { players.forEach((p, i) => { if (p.on) stepPlayer(p, i, STEP, now); }); physics(STEP); rollAndSquash(); acc -= STEP; }
+    settle();
+    for (const b of toys.slice()) if (b.chute && b.y < -0.45) won(b, now);
     flyers = flyers.filter(f => { if (now >= f.at) { land(f); return false; } return true; });
-    while (respawn.length && respawn[0] <= now) { respawn.shift(); balls.push(newBall((Math.random() * 2 - 1) * (C.X - 0.4), C.ceil - 0.4, (Math.random() * 2 - 1) * (C.Z - 0.3))); }
+    while (restockQueue.length && restockQueue[0] <= now) { restockQueue.shift(); toys.push(newToy((Math.random() * 2 - 1) * (C.X - 0.8), C.ceil - 0.5, (Math.random() * 2 - 1) * (C.Z - 0.3) - 0.1)); }
     tickPhase(now);
-    if (phase === 'play') { const s = secsLeft(now); if (s !== lastSecs) { lastSecs = s; renderHud(); } }
+    if (phase === 'play') { const s = secsLeft(now); if (s !== lastSecs) { lastSecs = s; renderHud(); if (s > C.roundSecs) SFX.count(s - C.roundSecs); else if (s === C.roundSecs) SFX.count(0); else if (s <= 10 && s > 0) SFX.tick(); } }
+    if (now - lastMotor > 80) { lastMotor = now; SFX.motors(players.map(p => !p.on ? 0 : Math.min(1, (Math.abs(p.vx) + Math.abs(p.vz)) / C.maxSpeed + ((p.state === 'down' || p.state === 'up') ? 0.7 : 0)))); }
     sendState(false);
     syncMeshes();
     renderer.render(scene, camera);
+    adapt(dt);
     raf = requestAnimationFrame(frame);
   }
   function resize(){
     if (!renderer) return;
     const cv = renderer.domElement, w = cv.clientWidth, h = cv.clientHeight; if (!w || !h) return;
-    renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1)); renderer.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
+    if (perf.level > 0) renderer.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   }
   function init(){
     T = window.THREE;
-    const cv = $('#clawGl');
-    renderer = new T.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, powerPreference: 'high-performance' });
-    renderer.outputEncoding = T.LinearEncoding; renderer.toneMapping = T.NoToneMapping; // colours render exactly as authored (an sRGB pipeline washed the villa palette to pastels)
+    renderer = new T.WebGLRenderer({ canvas: $('#clawGl'), antialias: true, alpha: true, powerPreference: 'high-performance' });
+    renderer.outputEncoding = T.LinearEncoding; renderer.toneMapping = T.NoToneMapping; // colours exactly as authored
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = T.PCFSoftShadowMap;
     scene = new T.Scene();
     camera = new T.PerspectiveCamera(36, 16 / 9, 0.1, 50);
-    camera.position.set(1.05, 3.8, 7.5); camera.lookAt(1.05, 1.5, 0); // looking down into the cabinet, which sits left of centre (the join code is on the right)
-    geo.ball = new T.SphereGeometry(1, 28, 18);
-    buildCabinet();
+    camera.position.set(1.05, 3.8, 7.5); camera.lookAt(1.05, 1.5, 0);
+    geo.ball = new T.SphereGeometry(1, 28, 18); geo.s = new T.SphereGeometry(1, 20, 14); geo.cyl = new T.CylinderGeometry(1, 1, 1, 10); geo.cone = new T.ConeGeometry(1, 1, 16);
+    geo.fuzz = canvasTex(128, 128, (x, w, h) => { const d = x.createImageData(w, h); for (let i = 0; i < d.data.length; i += 4) { const v = 120 + Math.random() * 135; d.data[i] = d.data[i + 1] = d.data[i + 2] = v; d.data[i + 3] = 255; } x.putImageData(d, 0, 0); });
+    geo.fuzz.wrapS = geo.fuzz.wrapT = T.RepeatWrapping; geo.fuzz.repeat.set(3, 3);
+    buildCabinet(); buildProtos();
     players.forEach((p, i) => { p.obj = buildClaw(i); });
-    for (let i = 0; i < 64; i++) balls.push(newBall((Math.random() * 2 - 1) * (C.X - 0.3), 0.3 + Math.random() * 1.6, (Math.random() * 2 - 1) * (C.Z - 0.25)));
-    for (let k = 0; k < 700; k++) physics(STEP); // settle
-    for (const b of balls) { b.ox = b.x; b.oy = b.y; b.oz = b.z; }
+    for (let i = 0; i < C.fill; i++) {
+      let x, z; do { x = (Math.random() * 2 - 1) * (C.X - 0.3); z = (Math.random() * 2 - 1) * (C.Z - 0.25); } while (C.chutes.some(c => Math.abs(x - c.x) < C.chuteHalf + 0.3 && Math.abs(z - c.z) < C.chuteHalf + 0.3));
+      toys.push(newToy(x, 0.3 + Math.random() * 1.7, z));
+    }
+    for (let k = 0; k < 900; k++) physics(STEP);
+    toys = toys.filter(b => { if (b.chute) { scene.remove(b.wrap); return false; } return true; });
+    for (const b of toys) { b.ox = b.x; b.oy = b.y; b.oz = b.z; b.pvy = 0; }
     window.addEventListener('resize', resize);
     ready = true;
   }
@@ -1869,8 +2075,8 @@ const Claw3D = (function(){
   }
   function roster(slots){
     slots.forEach((on, i) => { const p = players[i];
-      if (on && !p.on) { const keep = phase === 'play' ? 0 : p.score, obj = p.obj; Object.assign(p, freshPlayer(i), { on: true, score: keep, obj }); }
-      if (!on && p.on) { if (p.ball) p.ball.held = -1; const obj = p.obj; Object.assign(p, freshPlayer(i), { obj }); } });
+      if (on && !p.on) { const keep = phase === 'play' ? 0 : p.score, obj = p.obj; Object.assign(p, freshPlayer(i), { on: true, score: keep, obj }); SFX.join(); }
+      if (!on && p.on) { if (p.toy) p.toy.held = -1; const obj = p.obj; Object.assign(p, freshPlayer(i), { obj }); } });
     renderHud();
   }
   function connect(){
@@ -1880,10 +2086,11 @@ const Claw3D = (function(){
     sock.addEventListener('message', ev => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (!m || typeof m.type !== 'string') return;
+      SFX.unlock();
       const ax = v => { const d = Number(v); return isFinite(d) ? Math.max(-1, Math.min(1, d)) : 0; };
       if (m.type === 'claw-roster' && Array.isArray(m.slots)) roster(m.slots);
       else if (m.type === 'claw-move' && players[m.slot]) { players[m.slot].ix = ax(m.dir); players[m.slot].iz = -ax(m.dz); } // stick up (+dz) = into the cabinet (-z)
-      else if (m.type === 'claw-drop') { const p = players[m.slot]; if (p && p.on && p.state === 'idle') { p.state = 'down'; p.ix = p.iz = 0; } }
+      else if (m.type === 'claw-drop') { const p = players[m.slot]; if (p && p.on && p.state === 'idle') { p.state = 'down'; p.ix = p.iz = 0; SFX.drop(); } }
       else if (m.type === 'claw-start') start();
     });
     sock.addEventListener('close', () => {
@@ -1892,6 +2099,7 @@ const Claw3D = (function(){
     });
     sock.addEventListener('error', () => {});
   }
+  ['pointerdown', 'keydown'].forEach(t => document.addEventListener(t, () => SFX.unlock())); // a remote or a tap lets audio start where the browser asks for one
   return {
     supported: hasWebGL,
     start(onFail){
@@ -1899,18 +2107,18 @@ const Claw3D = (function(){
       $('#clawGl').style.display = ''; $('#clawCanvas').style.display = 'none';
       load(ok => {
         if (!ok) { onFail(); return; }
-        if (!ready) { try { init(); } catch (e) { onFail(); return; } }
-        if (!$('#screen-claw').classList.contains('active')) return; // closed while loading
-        resize(); lastT = 0; acc = 0; renderHud();
+        if (!ready) { try { init(); } catch (e) { console.error(e); onFail(); return; } }
+        if (!$('#screen-claw').classList.contains('active')) return;
+        resize(); lastT = 0; acc = 0; renderHud(); SFX.unlock();
         raf = requestAnimationFrame(frame); connect();
       });
     },
     stop(){
-      if (raf) { cancelAnimationFrame(raf); raf = null; }
+      if (raf) { cancelAnimationFrame(raf); raf = null; SFX.motors([0, 0, 0, 0]); }
       clearTimeout(wsTimer);
       if (ws) { const w = ws; ws = null; try { w.close(); } catch (e) { /* closed */ } }
     },
-    debug: () => ({ players, balls, get phase(){ return phase; }, start }),
+    debug: () => ({ players, toys, C, tipPos, get phase(){ return phase; }, start, restock }),
   };
 })();
 // 3D where the screen can do WebGL, otherwise the 2D cabinet.
