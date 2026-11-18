@@ -43,7 +43,7 @@ roles at once and let each one veto weak work:
 10. **Visual QA Specialist** — nothing ships without real screenshots inspected critically.
 
 Project skills (in `.claude/skills/`, they load on demand when a task matches their description,
-or by name): `creative-art-direction`, `premium-ui-ux`, `game-ui-design`, `3d-game-graphics`,
+or by name): `art-direction`, `premium-ui-ux`, `game-ui-design`, `3d-game-graphics`,
 `motion-graphics`, `responsive-tv-design`, `visual-qa`. Also installed: `impeccable` (design
 critique/polish/audit commands) and `taste-skill`. Review agents (in `.claude/agents/`):
 `creative-director`, `game-graphics-specialist`, `visual-qa-reviewer` — they review and report;
@@ -59,6 +59,9 @@ the main session makes the changes.
 | Seafoam | `#7fe3d4` | Live status, secondary accents |
 | Neon (games only) | X cyan `#4fe7ff`, O pink `#ff5fa2` | Tic-Tac-Toe, party moments |
 | Player colours | P1 `#ff7a4d`, P2 `#ffd166`, P3 `#4dd0e1`, P4 `#a6e35a` (Claw); Ludo red `#ff6b5e` green `#34c79a` yellow `#ffc94d` blue `#3d8bfd` | Seats, chips, tokens |
+
+**Target brand palette.** Redesigned screens move to these values (via CSS custom properties); the table above is what the code uses today:
+Deep Teal `#07333B` · Champagne Gold `#D8B879` · Warm Ivory `#F6F3EC` · Seafoam `#A9CFC5`. Gold text only on teal, at large sizes.
 
 Type: **DM Sans** (700–800) for UI, titles and every number (tabular figures); **Cormorant
 Garamond italic** only as a brand accent ("RYST *Play*", party script). Never Cormorant for scores —
@@ -118,6 +121,10 @@ For every visual change:
 8. Re-test the affected multiplayer flow end to end (two phones + screen) before calling it done.
 
 Never declare a design complete because the code parses.
+
+Use the relevant project skills (`art-direction`, `premium-ui-ux`, `game-ui-design`, `3d-game-graphics`,
+`motion-graphics`, `responsive-tv-design`, `visual-qa`) during any game development or visual redesign;
+they are loaded by name, not as slash-command files.
 
 ## Working in this repo
 
