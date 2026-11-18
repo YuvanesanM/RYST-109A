@@ -503,6 +503,13 @@
   .ludo-win{position:absolute;left:50%;top:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);text-align:center;padding:4vh 4vw;border-radius:1.6vw;background:rgba(6,24,34,.82);border:1.5px solid rgba(242,198,109,.7);box-shadow:0 2vw 5vw rgba(0,0,0,.5),0 0 3vw rgba(242,198,109,.3)}
   .ludo-win .big{font-family:var(--sans);font-weight:800;font-size:5vw;color:#fbfaf8;letter-spacing:-.02em} .ludo-win .big em{font-style:normal}
   .ludo-win .small{font-family:var(--sans);font-weight:600;font-size:1.4vw;color:#bcd8d4;margin-top:1vh}
+
+  /* player avatars in the claw pills and Ludo seats */
+  .claw-chip .av{display:none;width:2.4vw;height:2.4vw;margin-right:.6vw;border-radius:50%;box-shadow:0 0 0 .2vw var(--pc)}
+  .claw-chip .av svg{width:100%;height:100%;display:block}
+  .claw-chip.named .av{display:block} .claw-chip.named .dot{display:none}
+  .claw-chip .lbl{max-width:9vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ludo-players .lp .lav{width:2.4vw;height:2.4vw;margin-right:.8vw;flex-shrink:0} .ludo-players .lp .lav svg{width:100%;height:100%}
   /* ── CHECKOUT / THANK YOU TAKEOVER ── */
   #checkoutScreen{
     display:none;position:fixed;top:0;right:0;bottom:0;left:0;inset:0;z-index:50;align-items:center;justify-content:center;padding:4vh 4vw;
@@ -2285,13 +2292,16 @@ const Claw3D = (function(){
   function renderHud(){
     const now = performance.now(), left = secsLeft(now), counting = phase === 'play' && left > C.roundSecs;
     const lead = Math.max.apply(null, players.map(p => p.on ? p.score : 0)), chips = $('#clawPlayers');
-    if (chips.children.length !== 4 || !chips.querySelector('.crown')) chips.innerHTML = players.map((p, i) => `<div class="claw-chip" style="--pc:${C.colours[i]}">${CROWN}<span class="dot" style="background:${C.colours[i]}"></span>${C.names[i]}<span class="sc">0</span></div>`).join('');
+    if (chips.children.length !== 4 || !chips.querySelector('.lbl')) chips.innerHTML = players.map((p, i) => `<div class="claw-chip" style="--pc:${C.colours[i]}">${CROWN}<span class="dot" style="background:${C.colours[i]}"></span><span class="av"></span><span class="lbl">${C.names[i]}</span><span class="sc">0</span></div>`).join('');
     players.forEach((p, i) => {
       const c = chips.children[i];
       c.classList.toggle('empty', !p.on); c.classList.toggle('joined', p.on);
       c.classList.toggle('lead', p.on && lead > 0 && p.score === lead && phase !== 'lobby');
       c.classList.toggle('win', phase === 'over' && winners.indexOf(i) >= 0);
       c.querySelector('.sc').textContent = p.score;
+      const av = (window.RYST_AVATARS || {})[p.who && p.who.avatar] || '';
+      c.classList.toggle('named', !!(p.on && p.who)); c.querySelector('.av').innerHTML = p.on && p.who ? av : '';
+      c.querySelector('.lbl').textContent = p.on && p.who ? p.who.name : C.names[i];
     });
     // the timer always shows something: the round length while waiting, the clock in a round, 0:00 at the end
     const pill = $('#clawTimerPill'), t = $('#clawTimer'), shown = phase === 'play' ? Math.min(left, C.roundSecs) : phase === 'over' ? 0 : C.roundSecs;
@@ -2304,8 +2314,9 @@ const Claw3D = (function(){
     const nOn = players.filter(p => p.on).length; let big = '', small = '';
     if (phase === 'play' && counting) { big = String(left - C.roundSecs); small = 'Get ready'; }
     else if (phase === 'over') {
-      big = winners.length === 1 ? `<em>${C.names[winners[0]]}</em> wins` : winners.length > 1 ? 'A <em>tie</em>' : 'Time';
-      small = winners.length ? winners.map(i => C.names[i]).join(' & ') + ' · ' + players[winners[0]].score + ' points' : 'No prizes this round. Press Start to try again.';
+      const nm = i => escHtml(players[i].who ? players[i].who.name : C.names[i]);
+      big = winners.length === 1 ? `<em>${nm(winners[0])}</em> wins` : winners.length > 1 ? 'A <em>tie</em>' : 'Time';
+      small = winners.length ? winners.map(i => (players[i].who ? players[i].who.name : C.names[i])).join(' & ') + ' · ' + players[winners[0]].score + ' points' : 'No prizes this round. Press Start to try again.'; // plain text (textContent)
     } else if (phase === 'lobby') {
       big = nOn ? 'Press <em>Start</em>' : 'Claw <em>Catch</em>';
       small = nOn ? `${nOn} player${nOn > 1 ? 's' : ''} in. Drop a prize in a chute to score: plush 2, beach ball 1, gold 3, pearl 5.` : 'Scan the code with your phone to join. Up to 4 players.';
@@ -2432,9 +2443,9 @@ const Claw3D = (function(){
     lastSent = now;
     ws.send(JSON.stringify({ type: 'claw-state', phase, timeLeft: Math.min(secsLeft(now), C.roundSecs), scores: players.map(p => p.score), winners }));
   }
-  function roster(slots){
-    slots.forEach((on, i) => { const p = players[i];
-      if (on && !p.on) { const keep = phase === 'play' ? 0 : p.score, obj = p.obj; Object.assign(p, freshPlayer(i), { on: true, score: keep, obj }); SFX.join(); }
+  function roster(slots, who){
+    slots.forEach((on, i) => { const p = players[i]; p.who = on && who && who[i] && typeof who[i].name === 'string' ? { name: who[i].name.slice(0, 16), avatar: who[i].avatar } : null;
+      if (on && !p.on) { const keep = phase === 'play' ? 0 : p.score, obj = p.obj, w = p.who; Object.assign(p, freshPlayer(i), { on: true, score: keep, obj, who: w }); SFX.join(); }
       if (!on && p.on) { if (p.toy) p.toy.held = -1; const obj = p.obj; Object.assign(p, freshPlayer(i), { obj }); } });
     renderHud();
   }
@@ -2453,7 +2464,7 @@ const Claw3D = (function(){
       if (!m || typeof m.type !== 'string') return;
       SFX.unlock();
       const ax = v => { const d = Number(v); return isFinite(d) ? Math.max(-1, Math.min(1, d)) : 0; };
-      if (m.type === 'claw-roster' && Array.isArray(m.slots)) roster(m.slots);
+      if (m.type === 'claw-roster' && Array.isArray(m.slots)) roster(m.slots, Array.isArray(m.who) ? m.who : []);
       else if (m.type === 'claw-move' && players[m.slot]) { const p = players[m.slot]; p.ix = ax(m.dir); p.iz = -ax(m.dz); if (p.ix || p.iz) p.activeAt = performance.now(); } // stick up (+dz) = into the cabinet (-z)
       else if (m.type === 'claw-drop') { const p = players[m.slot]; if (p && p.on && p.state === 'idle') { p.state = 'down'; p.ix = p.iz = 0; p.activeAt = performance.now(); SFX.drop(); } }
       else if (m.type === 'claw-start') start();
@@ -2601,7 +2612,8 @@ const LudoView = (function(){
     die.classList.toggle('blank', !L.dice);
     if (L.rollId !== lastRoll) { die.classList.remove('roll'); void die.offsetWidth; if (lastRoll) die.classList.add('roll'); lastRoll = L.rollId; }
     $('#ludoPlayers').innerHTML = [0, 1, 2, 3].map(c => { const s = L.seats[c], home = L.tokens[c].filter(p => p === HOME).length;
-      return `<div class="lp${s ? '' : ' empty'}${L.turn === c ? ' turn' : ''}" style="--lc:${COL[c]}"><span class="sw"></span><span class="nm">${s ? esc(s.name) : NAMES[c] + ' · free'}</span><span class="pp">${[0, 1, 2, 3].map(k => `<i${k < home ? ' class="on"' : ''}></i>`).join('')}</span></div>`; }).join('');
+      const av = s && s.avatar ? (window.RYST_AVATARS || {})[s.avatar] || '' : '';
+      return `<div class="lp${s ? '' : ' empty'}${L.turn === c ? ' turn' : ''}" style="--lc:${COL[c]}"><span class="sw"></span>${av ? '<span class="lav">' + av + '</span>' : ''}<span class="nm">${s ? esc(s.name) : NAMES[c] + ' · free'}</span><span class="pp">${[0, 1, 2, 3].map(k => `<i${k < home ? ' class="on"' : ''}></i>`).join('')}</span></div>`; }).join('');
     const last = L.last, nm = c => (L.seats[c] ? esc(L.seats[c].name) : NAMES[c]);
     $('#ludoLast').innerHTML = !last || L.phase !== 'play' ? '&nbsp;' : last.captured ? `${nm(last.c)} sent ${nm(last.captured.c)} home!` : last.pass ? `${nm(last.c)} rolled ${last.d}: no move` : last.forfeit ? `${nm(last.c)}: three 6s, turn lost` : last.skipped ? 'Turn skipped' : last.to === HOME ? `${nm(last.c)} brought a token home!` : '&nbsp;';
     const win = L.phase === 'over' && L.winner >= 0 && L.seats[L.winner];

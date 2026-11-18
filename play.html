@@ -443,6 +443,34 @@
   .ludo-token .bar{width:70px;height:6px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden} .ludo-token .bar i{display:block;height:100%;background:var(--lc)}
   .ludo-actions .btn[hidden],.ludo-join[hidden],.ludo-play[hidden],.ludo-roll[hidden],#ludoSub[hidden]{display:none !important}
   @media (prefers-reduced-motion:reduce){ .ludo-seat.turn,.ludo-die.roll{animation:none} }
+
+  /* ── profile, sheet, leaderboard ── */
+  .rp-me{display:inline-flex;align-items:center;gap:8px;padding:4px 14px 4px 4px;border-radius:100px;background:rgba(226,191,115,.12);border:1px solid rgba(226,191,115,.45);color:var(--ink);font-family:var(--sans);font-weight:700;font-size:12.5px;cursor:pointer}
+  .rp-me .av{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);color:var(--gold)}
+  .rp-me .av svg{width:100%;height:100%} .rp-me .av svg[stroke]{width:16px;height:16px}
+  .rp-sheet{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;background:rgba(2,12,16,.6);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding:16px}
+  .rp-sheet[hidden]{display:none}
+  .rp-sheet-card{width:100%;max-width:440px;border-radius:26px;padding:22px 18px 18px;background:linear-gradient(180deg,#0f3c4a,#082a36);border:1px solid var(--glass-edge);box-shadow:0 30px 70px rgba(0,0,0,.5);animation:rp-up .35s cubic-bezier(.16,1,.3,1)}
+  @keyframes rp-up{from{transform:translateY(30px);opacity:0}}
+  .rp-sheet-card h2{font-family:var(--sans);font-weight:800;font-size:22px;color:var(--gold-hi);margin-bottom:4px;text-align:center}
+  .rp-sheet-card input{width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);font-family:var(--sans);font-size:16px;outline:none;margin-bottom:14px}
+  .rp-sheet-card input:focus{border-color:var(--gold)}
+  .rp-avatars{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  .rp-av{aspect-ratio:1;border-radius:50%;padding:0;border:2.5px solid transparent;background:none;cursor:pointer;transition:transform .2s cubic-bezier(.16,1,.3,1)}
+  .rp-av svg{width:100%;height:100%;display:block}
+  .rp-av.on{border-color:var(--gold);transform:scale(1.08);box-shadow:0 0 16px rgba(226,191,115,.45)}
+  .rp-board{display:flex;flex-direction:column;gap:8px}
+  .rp-row{display:flex;align-items:center;gap:10px;text-align:left;padding:8px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-family:var(--sans)}
+  .rp-row.me{border-color:rgba(226,191,115,.6)}
+  .rp-row .rk{width:18px;text-align:center;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
+  .rp-row:first-child .rk{color:var(--gold-hi)}
+  .rp-row .av{width:30px;height:30px;flex-shrink:0} .rp-row .av svg{width:100%;height:100%}
+  .rp-row .nm{flex:1;min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rp-row .br{font-size:11px;color:var(--muted-text)}
+  .rp-row .wn{font-weight:800;font-size:18px;color:var(--gold-hi);font-variant-numeric:tabular-nums} .rp-row .wn small{font-size:10px;font-weight:600;color:var(--muted-text);margin-left:3px}
+  .rp-empty{font-size:13px;color:var(--muted-text);text-align:center;padding:12px;border:1px dashed var(--line);border-radius:14px}
+  .ludo-seat .lav{display:inline-block;width:20px;height:20px;vertical-align:-4px;margin-right:6px} .ludo-seat .lav svg{width:100%;height:100%}
+  .claw-badge i.has-av{width:24px;height:24px;background:none !important;box-shadow:none} .claw-badge i.has-av svg{width:100%;height:100%}
 </style>
 </head>
 <body>
@@ -450,6 +478,15 @@
   <div class="card">
     <img class="logo" alt="RYST 109A" src="/assets/stay-logo.webp">
     <div class="rp-toast" id="rpToast" role="status" aria-live="polite"></div>
+    <div class="rp-sheet" id="rpSheet" hidden role="dialog" aria-modal="true" aria-labelledby="rpSheetTitle">
+      <div class="rp-sheet-card">
+        <h2 id="rpSheetTitle">Who's playing?</h2>
+        <p class="sub">Your name and avatar show on the pool screen in every game.</p>
+        <input type="text" id="rpName" maxlength="16" placeholder="Your name" autocomplete="nickname">
+        <div class="rp-avatars" id="rpAvatars" role="radiogroup" aria-label="Avatar"></div>
+        <div class="actions"><button type="button" class="btn ghost" id="rpLater">Later</button><button type="button" class="btn primary" id="rpSave">Save</button></div>
+      </div>
+    </div>
 
     <section class="screen active" id="screen-signin">
       <h1>Sign in to play</h1>
@@ -462,9 +499,11 @@
       <div class="rp-brand"><span class="villa">RYST 109A</span><span class="villa-sub">Beach Villa</span></div>
       <h1 class="rp-title">RYST <em>Play</em></h1>
       <p class="rp-sub">Shared with the pool screen — everyone at the villa sees the same thing.</p>
-      <div class="rp-status"><span class="rp-pill on" id="rpSession"><i></i>Signed in</span><span class="rp-pill" id="rpScreen"><i></i>Pool screen</span></div>
+      <div class="rp-status"><button type="button" class="rp-me" id="rpMe"><span class="av" id="rpMeAv"></span><span id="rpMeName">Set your name</span></button><span class="rp-pill" id="rpScreen"><i></i>Pool screen</span></div>
       <div id="rpHero"></div>
       <div class="rp-grid" id="rpGrid"></div>
+      <div class="rp-section">Villa leaderboard</div>
+      <div class="rp-board" id="rpBoard"></div>
       <div class="rp-section">More fun at the villa</div>
       <div class="rp-more" id="rpMore"></div>
     </section>
@@ -815,7 +854,7 @@ async function handleGoogleLogin(credentialResponse){
       playToken = data.token;
       localStorage.setItem('ryst_play_token', playToken);
       errEl.textContent = '';
-      poll();
+      poll(); loadProfile();
     } else {
       errEl.textContent = data.error || 'Access denied.';
     }
@@ -943,6 +982,7 @@ function render(){
   showScreen(state.mode);
   renderHubState();
   renderLudo();
+  renderBoard();
   renderTicTacToe();
   renderScoreboard();
   renderMemory();
@@ -1207,8 +1247,9 @@ function clawRenderMute(){
 }
 function clawRenderMe(){
   const seated = clawSlot != null, g = clawGame;
-  $('#clawBadge').textContent = seated ? 'You’re P' + (clawSlot + 1) : clawWs ? 'Joining' : 'Not connected';
+  $('#clawBadge').textContent = seated ? (profile ? profile.name + ' · P' + (clawSlot + 1) : 'You’re P' + (clawSlot + 1)) : clawWs ? 'Joining' : 'Not connected';
   $('#clawDot').style.background = seated ? CLAW_COLOURS[clawSlot] : '';
+  $('#clawDot').innerHTML = seated && profile ? avatarSvg(profile.avatar) : ''; $('#clawDot').classList.toggle('has-av', !!(seated && profile));
   $('#clawMyScore').textContent = seated ? (g.scores[clawSlot] || 0) : 0;
   const playing = g.phase === 'play' && g.timeLeft > 0;
   $('#clawTime').textContent = playing ? g.timeLeft : '–';
@@ -1363,7 +1404,7 @@ function renderLudo(){
   $('#ludoSeats').innerHTML = [0, 1, 2, 3].map(c => {
     const s = L.seats[c], mine = ludoMine.indexOf(c) >= 0, home = L.tokens[c].filter(p => p === LUDO.HOME).length;
     return `<button type="button" class="ludo-seat${s ? ' taken' : ''}${mine ? ' mine' : ''}${L.turn === c ? ' turn' : ''}" style="--lc:${LUDO.colours[c]}" data-seat="${c}" ${s && !(mine && L.phase !== 'play') ? 'disabled' : ''}>
-      <span class="sw"></span><span class="nm">${s ? esc(s.name) : 'Join ' + LUDO.names[c]}</span>
+      <span class="sw"></span><span class="nm">${s && s.avatar ? '<span class="lav">' + avatarSvg(s.avatar) + '</span>' : ''}${s ? esc(s.name) : 'Join ' + LUDO.names[c]}</span>
       <span class="meta">${s ? (mine ? (L.phase === 'play' ? 'You' : 'You · tap to leave') : (L.phase === 'lobby' ? 'Ready' : home + ' of 4 home')) : 'Free seat'}</span>
       ${s && L.phase !== 'lobby' ? `<span class="pips">${[0, 1, 2, 3].map(k => `<i${k < home ? ' class="on"' : ''}></i>`).join('')}</span>` : ''}
     </button>`; }).join('');
@@ -1400,6 +1441,7 @@ $('#ludoSeats').addEventListener('click', e => {
   const b = e.target.closest('[data-seat]'); if (!b || b.disabled) return;
   const c = Number(b.dataset.seat), L = state.ludo;
   if (ludoMine.indexOf(c) >= 0) { if (L.phase !== 'play') ludoPost('/game/ludo/leave', { seat: c }); return; }
+  if (profile) { ludoPost('/game/ludo/join', { seat: c }); return; } // one tap: the profile is the name
   ludoJoinSeat = c; $('#ludoJoin').hidden = false; $('#ludoJoin').style.setProperty('--lc', LUDO.colours[c]);
   $('#ludoJoinBtn').textContent = 'Join as ' + LUDO.names[c];
   try { $('#ludoName').value = localStorage.getItem('ryst_ludo_name') || ''; } catch (x) {}
@@ -1417,6 +1459,42 @@ $('#ludoStart').addEventListener('click', () => ludoPost('/game/ludo/start'));
 $('#ludoSkip').addEventListener('click', () => ludoPost('/game/ludo/skip'));
 $('#ludoNew').addEventListener('click', () => ludoPost('/game/ludo/new'));
 
+
+// ── RYST PLAY profile ── a name and beach avatar per guest, kept by the proxy (POST /game/profile)
+// and used by every game; the villa leaderboard comes back with the shared state.
+const AV_KEYS = ['crab', 'turtle', 'fish', 'octopus', 'starfish', 'shell', 'sun', 'palm'];
+let profile = null, profileAsked = false, profilePick = 'crab';
+const avatarSvg = k => (window.RYST_AVATARS || {})[k] || '';
+function renderMe(){
+  $('#rpMeAv').innerHTML = profile ? avatarSvg(profile.avatar) : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="9" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>';
+  $('#rpMeName').textContent = profile ? 'Hi, ' + profile.name : 'Set your name';
+}
+function openSheet(){
+  let saved = ''; try { saved = localStorage.getItem('ryst_ludo_name') || ''; } catch (e) {}
+  $('#rpName').value = profile ? profile.name : saved;
+  profilePick = profile ? profile.avatar : profilePick;
+  $('#rpAvatars').innerHTML = AV_KEYS.map(k => `<button type="button" role="radio" aria-checked="${k === profilePick}" class="rp-av${k === profilePick ? ' on' : ''}" data-av="${k}" aria-label="${k}">${avatarSvg(k)}</button>`).join('');
+  $('#rpSheet').hidden = false; setTimeout(() => $('#rpName').focus(), 50);
+}
+function closeSheet(){ $('#rpSheet').hidden = true; }
+$('#rpAvatars').addEventListener('click', e => { const b = e.target.closest('[data-av]'); if (!b) return; profilePick = b.dataset.av; $('#rpAvatars').querySelectorAll('.rp-av').forEach(x => { const on = x === b; x.classList.toggle('on', on); x.setAttribute('aria-checked', on); }); });
+$('#rpSave').addEventListener('click', async () => {
+  const name = $('#rpName').value.trim(); if (!name) { $('#rpName').focus(); return; }
+  const j = await postJson('/game/profile', { name, avatar: profilePick }); if (j && j.profile) { profile = j.profile; state = j; } closeSheet(); renderMe(); render();
+});
+$('#rpLater').addEventListener('click', closeSheet);
+$('#rpName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#rpSave').click(); });
+$('#rpMe').addEventListener('click', openSheet);
+async function loadProfile(){
+  if (!playToken) return;
+  try { const j = await postJson('/game/profile', {}); if (j && 'profile' in j) { profile = j.profile || null; renderMe(); if (!profile && !profileAsked && !state.mode) { profileAsked = true; openSheet(); } } } catch (e) {}
+}
+function renderBoard(){
+  const L = (state.leaders || []).slice(0, 5), el = $('#rpBoard'); if (!el) return;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  el.innerHTML = L.length ? L.map((r, i) => `<div class="rp-row${profile && r.id === profile.id ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="av">${avatarSvg(r.avatar)}</span><span class="nm">${esc(r.name)}</span><span class="br">${[r.claw ? r.claw + ' Claw' : '', r.ludo ? r.ludo + ' Ludo' : ''].filter(Boolean).join(' · ')}</span><span class="wn">${r.wins}<small>${r.wins === 1 ? 'win' : 'wins'}</small></span></div>`).join('')
+    : '<p class="rp-empty">Win a round of Claw Catch or a game of Ludo to get on the board.</p>';
+}
 // Polls so this stays in sync with the pool screen and anyone else's phone —
 // including which activity is open, so every phone and the big screen are
 // always looking at the same thing.
@@ -1430,6 +1508,7 @@ async function poll(){
 }
 poll();
 setInterval(poll, 1200);
+renderMe(); loadProfile();
 
 // Lets display.html (the poolside screen) know someone actually has this
 // page open right now — a heartbeat, not a move, so it's sent on load and

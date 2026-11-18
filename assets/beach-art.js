@@ -12,4 +12,17 @@
   A['⛱️'] = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 8 25 42" stroke="#6b4a2b" stroke-width="2.4" stroke-linecap="round"/><path d="M5 22C8 12 16 7 24 7s16 5 19 15c-3-2-6-2-9 0-3-2-7-2-10 0-3-2-7-2-10 0-3-2-6-2-9 0z" fill="#ff5d5d"/><path d="M14 22c1-8 5-13 10-15M34 22c-1-8-5-13-10-15" stroke="#fff" stroke-width="3"/><path d="M4 42h40" stroke="#f2d39b" stroke-width="4" stroke-linecap="round"/></svg>';
   A['🐠'] = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M6 24c6-9 18-12 28-6l8-6v24l-8-6c-10 6-22 3-28-6z" fill="#ff7f1e"/><path d="M16 15c-2 6-2 12 0 18M25 14c-2 7-2 13 0 20" stroke="#fff" stroke-width="4"/><path d="M16 15c-2 6-2 12 0 18M25 14c-2 7-2 13 0 20" stroke="#1b1b1b" stroke-width="1" fill="none" transform="translate(2.2 0)"/><circle cx="11" cy="22" r="2.6" fill="#fff"/><circle cx="11.4" cy="22.2" r="1.4" fill="#14171a"/></svg>';
   window.RYST_BEACH_ART = A;
+  // player avatars for RYST Play profiles (round, so they sit well in chips and seats)
+  var V = {};
+  var disc = function (bg, inner) { return '<svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="23" fill="' + bg + '"/><g transform="translate(6 6) scale(.75)">' + inner + '</g></svg>'; };
+  var strip = function (svg) { return svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, ''); };
+  V.crab = disc('#ffe3d9', strip(A['🦀']));
+  V.fish = disc('#dff3ff', strip(A['🐠']));
+  V.shell = disc('#fff0e2', strip(A['🐚']));
+  V.palm = disc('#e4f7ec', strip(A['🌴']));
+  V.turtle = disc('#e2f6e6', '<ellipse cx="24" cy="27" rx="15" ry="11" fill="#3aa06e"/><path d="M14 27h20M18 19l3 8-3 8M30 19l-3 8 3 8" stroke="#a9e5a3" stroke-width="2" fill="none"/><circle cx="24" cy="12" r="6" fill="#7fd68f"/><circle cx="21.6" cy="11" r="1.4" fill="#14171a"/><circle cx="26.4" cy="11" r="1.4" fill="#14171a"/><ellipse cx="9" cy="22" rx="5" ry="3" fill="#7fd68f"/><ellipse cx="39" cy="22" rx="5" ry="3" fill="#7fd68f"/><ellipse cx="11" cy="36" rx="5" ry="3" fill="#7fd68f"/><ellipse cx="37" cy="36" rx="5" ry="3" fill="#7fd68f"/>');
+  V.octopus = disc('#efe4ff', '<path d="M10 28c0-11 6-20 14-20s14 9 14 20z" fill="#b98aff"/><path d="M11 27c-2 6-6 8-8 8M17 28c-1 6-3 10-6 12M23 28v13M29 28c1 6 3 10 6 12M35 27c2 6 6 8 8 8" stroke="#b98aff" stroke-width="4.5" stroke-linecap="round" fill="none"/><circle cx="19" cy="19" r="3.4" fill="#fff"/><circle cx="29" cy="19" r="3.4" fill="#fff"/><circle cx="19.5" cy="19.5" r="1.7" fill="#14171a"/><circle cx="28.5" cy="19.5" r="1.7" fill="#14171a"/>');
+  V.starfish = disc('#fff0dd', '<path d="M24 4l5.4 12.6L43 18l-10 9.4L36 41l-12-6.8L12 41l3-13.6L5 18l13.6-1.4z" fill="#ffb15c" stroke="#e8893a" stroke-width="1.5" stroke-linejoin="round"/><circle cx="20.5" cy="21" r="1.8" fill="#14171a"/><circle cx="27.5" cy="21" r="1.8" fill="#14171a"/><path d="M21 26q3 2.4 6 0" stroke="#7a3d12" stroke-width="1.6" fill="none" stroke-linecap="round"/>');
+  V.sun = disc('#fff6d6', '<circle cx="24" cy="24" r="10" fill="#ffc94d"/><g stroke="#ffb020" stroke-width="3" stroke-linecap="round"><path d="M24 4v6M24 38v6M4 24h6M38 24h6M10 10l4 4M34 34l4 4M38 10l-4 4M14 34l-4 4"/></g><circle cx="20.5" cy="22" r="1.5" fill="#7a4a12"/><circle cx="27.5" cy="22" r="1.5" fill="#7a4a12"/><path d="M20 27q4 3 8 0" stroke="#7a4a12" stroke-width="1.6" fill="none" stroke-linecap="round"/>');
+  window.RYST_AVATARS = V;
 })();
