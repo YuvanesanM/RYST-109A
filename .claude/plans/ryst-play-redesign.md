@@ -54,8 +54,8 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 | 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Done (see below) |
 | 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Done (see below) |
 | 8 | New games, one at a time (next): Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
-| 9 | Shared components + unified admin console (respecting guest.html/harbour architecture) | Planned |
-| 10 | Full regression (proxy suites, two-phone + screen e2e for every game, screenshots) | Planned |
+| 9 | Shared components + unified admin console (respecting guest.html/harbour architecture) | Done (see below) |
+| 10 | Full regression (proxy suites, two-phone + screen e2e for every game, screenshots) | Next |
 
 ### Stage 2 — Ludo Lounge (delivered)
 - Pool screen: lit 2.5D table in three.js (ivory lacquer board texture with raised tiles, enamel yards
@@ -208,6 +208,28 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
   checkout hint, game shot, new game, privacy). Full TV matrix audit (222 captures) clean apart from intended scenery.
 
 Next in Stage 8: Poolside Music (needs a licensed music source), Movie Night (authorised content only), Villa Photo Booth.
+
+### Stage 9 — Host console and shared screen components (delivered)
+- Where it lives: a staff-only view inside `play.html`, reached the way staff already reach the games (guest.html's admin
+  picker → "Screen games" hands over the session). guest.html is untouched (it stays synced from ryst-harbour). Opening
+  the console never changes what the pool screen shows; the entry card appears only after the proxy confirms staff.
+- Proxy (`host.js` pure module, unit tests; route suite `host`): `/game/admin/*`, checked on every request (any signed-in
+  role except guest; guests get 403): show any activity or the welcome screen; pause the screen with a message (60
+  characters) and resume; volume 0–100 and mute; reset any game (its private seat owners are cleared too; Claw frees all
+  four claws); clear the villa leaderboard for new guests. Each action is logged privately (staff sign-in, time, what);
+  the log and seat counts come back only on the staff routes, never in the public state.
+- Pool screen (shared components): a pause card over every game ("Back in a *moment*" + the message), a shared master
+  volume that both sound graphs (Claw, Ludo) register their output with, one QR loop for every join code, and one
+  shared HTML escaper for the Quiz and Darts views. Winner cards already share the `.s4-win` component.
+- Phones: Host console with what's on the screen now (and when a phone was last active), a grid to show any activity,
+  pause with presets, a volume slider and mute, each game's live status with Reset (confirmed), the leaderboard clear
+  (confirmed), and the recent staff actions.
+- Not yet shared (left for later): one identity-chip / connection-dot / countdown component across every game; each
+  game keeps its own today.
+- QA: fixtures (hub as staff, console, console paused, pause card 16:9 and 4:3; the QA stub refuses console routes
+  unless a fixture is staff) and a staff + guest + screen run (entry hidden for the guest, show, pause card, volume and
+  mute reaching the TV's audio, reset, leaderboard clear, resume, log, a direct guest call refused). Earlier end-to-end
+  runs (Quiz, Darts, Scoreboard/Backdrop, TTT/Memory) pass again.
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a

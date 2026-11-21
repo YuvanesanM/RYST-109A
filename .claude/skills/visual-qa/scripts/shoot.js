@@ -134,6 +134,11 @@ const SHOTS = [
   ['darts-phone-aim', 'play.html', PHONE, 'darts', DT({}), async p => { const b = await p.$('#dtAimCv'); const r = await b.boundingBox(); await p.mouse.move(r.x + r.width / 2, r.y + r.height * 0.32); await p.mouse.down(); await p.waitForTimeout(1100); }],
   ['darts-phone-pad', 'play.html', PHONE, 'darts', DT({ mode: 'board', visit: [{ seg: 20, mult: 3, pts: 60, label: 'T20' }] }), null],
   ['darts-phone-aim-landscape', 'play.html', { width: 844, height: 390 }, 'darts', DT({}), null],
+  ['hub-staff', 'play.html', PHONE, null, { staff: true }, p => p.waitForTimeout(600)],
+  ['host-phone', 'play.html', PHONE, 'quiz', { staff: true, screen: { paused: false, message: '', volume: 60, muted: false } }, async p => { await p.waitForTimeout(500); await p.evaluate(() => { hostOpen = true; render(); hostCall('/game/admin/state'); }); await p.waitForTimeout(700); }],
+  ['host-phone-paused', 'play.html', PHONE, 'darts', { staff: true, screen: { paused: true, message: 'Dinner is served', volume: 60, muted: true } }, async p => { await p.waitForTimeout(500); await p.evaluate(() => { hostOpen = true; render(); hostCall('/game/admin/state'); }); await p.waitForTimeout(700); }],
+  ['pause-tv', 'display.html', TV, 'quiz', { screen: { paused: true, message: 'Dinner is served on the deck', volume: 80, muted: false } }, p => p.waitForTimeout(900)],
+  ['pause-tv-4x3', 'display.html', FOUR3, 'ludo', { screen: { paused: true, message: '', volume: 80, muted: false } }, p => p.waitForTimeout(900)],
   ['viz-phone', 'play.html', PHONE, 'visualizer', { viz: Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, { preset: 'horizon', palette: 'ryst', title: 'DJ Arjun' }) }, null],
   ['backdrop-phone', 'play.html', PHONE, 'backdrop', {}, null],
   ['backdrop-phone-ocean', 'play.html', PHONE, 'backdrop', { backdrop: { template: 'congrats', name: 'Ananya', text: 'On your graduation', preset: 'ocean' } }, null],
@@ -167,9 +172,10 @@ const server = http.createServer((req, res) => {
     const state = Object.assign(base(), { mode }, extra);
     await p.route('https://data.ryst.in/**', async route => {
       const url = route.request().url();
+      if (/\/game\/admin\//.test(url) && !(extra && extra.staff)) return route.fulfill({ status: 403, contentType: 'application/json', body: '{"error":"Staff only"}', headers: { 'access-control-allow-origin': '*' } });
       const body = Object.assign({}, state, { serverNow: Date.now(), openedAt: Date.now() },
         /\/game\/profile/.test(url) ? { profile: profile ? { id: 'a', name: 'Asha', avatar: 'octopus' } : { id: 'a', name: 'Asha', avatar: 'octopus' }, avatars: [] } : {},
-        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/ttt\//.test(url) ? { tttMine: 'O' } : {}, /\/game\/darts\//.test(url) ? { dartsMine: [0] } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
+        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/ttt\//.test(url) ? { tttMine: 'O' } : {}, /\/game\/darts\//.test(url) ? { dartsMine: [0] } : {}, /\/game\/admin\//.test(url) ? { host: { seats: { tictactoe: 2, ludo: 3, quiz: 2, darts: 3, claw: 1 }, phonesAgo: 12000, log: [{ at: now - 60000, by: 'caretaker@example.com', action: 'show', detail: 'quiz' }, { at: now - 300000, by: 'owner@example.com', action: 'sound', detail: 'volume 60' }, { at: now - 900000, by: 'caretaker@example.com', action: 'reset', detail: 'darts' }] } } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body), headers: { 'access-control-allow-origin': '*' } });
     });
     await p.route(/open-meteo\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ current: { temperature_2m: 29, weather_code: 2, is_day: 1 } }) }));

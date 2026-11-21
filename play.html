@@ -692,6 +692,33 @@
   .dt-extra{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px} .dt-extra button:disabled{opacity:.45}
   #dtUndo{color:#a9cfc5}
   @media (orientation:landscape) and (max-height:520px) and (min-width:640px){ .ls-b .dt-aim canvas{max-width:min(100%,62vh)} .dt-nums button,.dt-extra button{padding:9px 0} }
+  /* ── Stage 9: Host console (staff) ── */
+  .rp-host-entry{display:flex;align-items:center;gap:12px;width:100%;margin:4px 0 14px;padding:12px 14px;border-radius:16px;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(169,207,197,.35);color:var(--ink);text-align:left;cursor:pointer}
+  .rp-host-entry[hidden]{display:none}
+  .rp-host-entry .ic{width:40px;height:40px;border-radius:12px;background:rgba(169,207,197,.14);color:#a9cfc5;display:flex;align-items:center;justify-content:center;flex-shrink:0} .rp-host-entry .ic svg{width:22px;height:22px}
+  .rp-host-entry .tx{flex:1;display:flex;flex-direction:column} .rp-host-entry small{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9cfc5} .rp-host-entry b{font-size:15px} .rp-host-entry .tx > span{font-size:12.5px;color:var(--muted-text)}
+  .rp-host-entry .go{font-size:26px;color:#d8b879;line-height:1}
+  .hc-now{padding:14px 16px;border-radius:16px;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(216,184,121,.45);text-align:left;margin-bottom:6px}
+  .hc-now small{display:block;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9cfc5} .hc-now b{display:block;font-family:var(--serif);font-weight:600;font-size:28px;color:var(--ink);line-height:1.15} .hc-now span{font-size:13px;color:var(--muted-text)}
+  .hc-now .pz{font-style:normal;font-weight:800;color:#07333b;background:#d8b879;border-radius:99px;padding:2px 8px;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase}
+  .hc-sec{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-text);text-align:left;margin:18px 0 8px}
+  .hc-modes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .hc-modes button{padding:11px 10px;border-radius:12px;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink);font:700 13px/1.2 var(--sans);text-align:left;cursor:pointer}
+  .hc-modes button.on{border-color:#d8b879;background:rgba(216,184,121,.14);color:#f7dfa4}
+  .hc-card{padding:12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+  .hc-card .bd-text{margin-bottom:8px}
+  .hc-presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px} .hc-presets button{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:var(--ink);border-radius:99px;padding:7px 11px;font:700 12px/1 var(--sans);cursor:pointer}
+  .hc-card .btn{width:100%}
+  .hc-sound{display:flex;align-items:center;gap:12px} .hc-sound input{flex:1;accent-color:#d8b879} .hc-sound b{min-width:52px;font-variant-numeric:tabular-nums;color:#f7dfa4} .hc-sound .btn{width:auto;padding:10px 14px}
+  .hc-games{display:flex;flex-direction:column;gap:6px}
+  .hc-g{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);text-align:left}
+  .hc-g.live{border-color:rgba(169,207,197,.5)} .hc-g > span{flex:1;display:flex;flex-direction:column;min-width:0} .hc-g b{font-size:14px} .hc-g small{font-size:12px;color:var(--muted-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .hc-g .btn,.hc-row .btn,.hc-sound .btn{flex:0 0 auto;width:auto;min-width:0;padding:8px 14px;font-size:12.5px}
+  .hc-row{display:flex;align-items:center;gap:10px;text-align:left} .hc-row span{flex:1;font-size:13px;color:var(--muted-text)} .hc-row .btn{width:auto;padding:9px 12px;font-size:12.5px}
+  .hc-log{list-style:none;padding:0;margin:0 0 8px;display:flex;flex-direction:column;gap:4px}
+  .hc-log li{display:flex;gap:10px;font-size:12.5px;color:var(--ink);padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.03);text-align:left} .hc-log time{color:var(--muted-text);font-variant-numeric:tabular-nums;min-width:58px} .hc-log span{flex:1} .hc-log em{font-style:normal;color:var(--muted-text)} .hc-log .none{color:var(--muted-text)}
+  #screen-host .host-back{position:absolute;top:14px;left:14px;margin:0;padding:7px 12px;border-radius:100px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);font-size:12px}
+  @media (max-width:639px){ #screen-host .ll-h1{margin-top:30px} }
 </style>
 </head>
 <body>
@@ -721,12 +748,36 @@
       <h1 class="rp-title">RYST <em>Play</em></h1>
       <p class="rp-sub">Shared with the pool screen — everyone at the villa sees the same thing.</p>
       <div class="rp-status"><button type="button" class="rp-me" id="rpMe"><span class="av" id="rpMeAv"></span><span id="rpMeName">Set your name</span></button><span class="rp-pill" id="rpScreen"><i></i>Pool screen</span></div>
+      <button type="button" class="rp-host-entry" id="rpHostEntry" hidden><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/><path d="M9 10l2 2 4-4"/></svg></span><span class="tx"><small>Staff</small><b>Host console</b><span>Run the pool screen: show, pause, sound, resets</span></span><span class="go">&rsaquo;</span></button>
       <div id="rpHero"></div>
       <div class="rp-grid" id="rpGrid"></div>
       <div class="rp-section">Villa leaderboard</div>
       <div class="rp-board" id="rpBoard"></div>
       <div class="rp-section">More fun at the villa</div>
       <div class="rp-more" id="rpMore"></div>
+    </section>
+
+    <section class="screen" id="screen-host">
+      <button type="button" class="back-btn host-back" id="hostBack">&larr; Back</button>
+      <h1 class="ll-h1">Host <em>console</em></h1>
+      <p class="sub">For staff. Everything here changes the pool screen for everyone at the villa.</p>
+      <div class="hc-now" id="hcNow"></div>
+      <div class="hc-sec">Show on the screen</div>
+      <div class="hc-modes" id="hcModes"></div>
+      <div class="hc-sec">Pause the screen</div>
+      <div class="hc-card">
+        <input type="text" id="hcMsg" class="bd-text" maxlength="60" placeholder="Message (optional), e.g. Dinner is served">
+        <div class="hc-presets" id="hcPresets"><button type="button">Dinner is served</button><button type="button">Back in 10 minutes</button><button type="button">Time to cut the cake</button></div>
+        <button type="button" class="btn primary" id="hcPause">Pause the screen</button>
+      </div>
+      <div class="hc-sec">Sound</div>
+      <div class="hc-card hc-sound"><input type="range" id="hcVol" min="0" max="100" step="5" aria-label="Pool screen volume"><b id="hcVolN">80</b><button type="button" class="btn ghost" id="hcMute">Mute</button></div>
+      <div class="hc-sec">Games</div>
+      <div class="hc-games" id="hcGames"></div>
+      <div class="hc-sec">Villa leaderboard</div>
+      <div class="hc-card hc-row"><span id="hcLeaders">No wins yet</span><button type="button" class="btn ghost" id="hcLeadersClear">Clear for new guests</button></div>
+      <div class="hc-sec">Recent staff actions</div>
+      <ol class="hc-log" id="hcLog"></ol>
     </section>
 
     <section class="screen" id="screen-claw">
@@ -1133,6 +1184,7 @@ let state = {
   backdrop: { template: 'custom', name: '', text: '', preset: 'party' },
   viz: { preset: 'spectrum', palette: 'neon', bpm: 120 },
 };
+let hostOpen = false, hostStaff = false, hostData = null, hostTimer = null, hostAsked = ''; // the staff host console (declared early: showScreen reads hostOpen)
 let busy = false; // guards every activity against double-taps firing two actions before the poll catches up
 
 // This screen is otherwise open to the whole internet (no per-guest room
@@ -1172,8 +1224,8 @@ async function postJson(path, body){
 }
 
 function showScreen(mode){
-  const screen = playToken ? mode : 'signin';
-  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw', 'ludo', 'quiz', 'darts'];
+  const screen = !playToken ? 'signin' : hostOpen ? 'host' : mode;
+  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw', 'ludo', 'quiz', 'darts', 'host'];
   $('#screen-signin').classList.toggle('active', screen === 'signin');
   $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && !activities.includes(screen));
   $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
@@ -1185,6 +1237,7 @@ function showScreen(mode){
   $('#screen-ludo').classList.toggle('active', screen === 'ludo');
   $('#screen-quiz').classList.toggle('active', screen === 'quiz');
   $('#screen-darts').classList.toggle('active', screen === 'darts');
+  $('#screen-host').classList.toggle('active', screen === 'host');
   if (screen === 'darts') dartsEnter(); else dartsEntered = false;
   if (screen === 'quiz') quizEnter(); else quizEntered = false;
   if (screen === 'ludo') ludoEnter(); else ludoEntered = false;
@@ -1426,6 +1479,7 @@ function render(){
   renderLudo();
   renderQuiz();
   renderDarts();
+  renderHost();
   renderBoard();
   renderTicTacToe();
   renderScoreboard();
@@ -2207,6 +2261,64 @@ $('#dtOut').addEventListener('click', e => { const b = e.target.closest('[data-o
 $('#dtStartBtn').addEventListener('click', () => dartsPost('/game/darts/start'));
 $('#dtNewBtn').addEventListener('click', () => dartsPost('/game/darts/new'));
 $('#dtEndBtn').addEventListener('click', () => { if (confirm('End this game? Scores go back to the start; the players stay.')) dartsPost('/game/darts/end'); });
+
+
+// ── HOST CONSOLE (staff) ── a local view on this phone (it never changes the pool screen's mode by being opened).
+// The proxy decides who is staff: /game/admin/state answers 403 for a guest, and the entry card stays hidden.
+const HOST_NAMES = { tictactoe: 'Tic-Tac-Toe', memory: 'Memory Match', scoreboard: 'Scoreboard', backdrop: 'Party Backdrop', visualizer: 'DJ Visuals', claw: 'Claw Catch', ludo: 'Ludo Lounge', quiz: 'Quiz Night', darts: 'Darts' };
+async function hostCall(path, body){
+  try {
+    const res = await fetch(PROXY_URL + path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Token': playToken }, body: JSON.stringify(body || {}), cache: 'no-store' });
+    if (res.status === 403 || res.status === 401) { hostStaff = false; hostOpen = false; renderHostEntry(); return null; }
+    if (!res.ok) return null;
+    const j = await res.json(); hostStaff = true; hostData = j.host || null; state = j; render(); return j;
+  } catch (e) { return null; }
+}
+function renderHostEntry(){ const b = $('#rpHostEntry'); if (b) b.hidden = !hostStaff; }
+function hostCheck(){ if (!playToken || hostAsked === playToken) return; hostAsked = playToken; hostCall('/game/admin/state'); }
+function hostStatus(g){
+  const S = state, h = (hostData && hostData.seats) || {};
+  if (g === 'ludo') return (S.ludo && S.ludo.phase === 'play' ? 'In play' : 'Waiting room') + ' · ' + (h.ludo || 0) + ' seated';
+  if (g === 'quiz') return ({ lobby: 'Lobby', question: 'Question ' + ((S.quiz && S.quiz.qIndex) + 1), reveal: 'Reveal', over: 'Finished' }[S.quiz && S.quiz.phase] || 'Lobby') + ' · ' + (h.quiz || 0) + ' on teams';
+  if (g === 'darts') return ({ lobby: 'Lobby', play: 'In play', over: 'Finished' }[S.darts && S.darts.phase] || 'Lobby') + ' · ' + ((S.darts && S.darts.players.length) || 0) + ' players';
+  if (g === 'tictactoe') return (h.tictactoe || 0) + ' of 2 seats taken · ' + (S.scoreX || 0) + '–' + (S.scoreO || 0);
+  if (g === 'claw') return (h.claw || 0) + ' of 4 claws in use';
+  if (g === 'memory') { const m = S.memory || {}; return m.winner ? 'Finished' : ((m.matched || []).filter(Boolean).length / 2) + ' pairs found'; }
+  if (g === 'scoreboard') { const sb = S.scoreboard || {}; return (sb.game || 'Game') + ' ' + (sb.round || 1) + ' · ' + ((sb.history || []).length) + ' finished'; }
+  if (g === 'backdrop') { const b = S.backdrop || {}; return ({ birthday: 'Birthday', anniversary: 'Anniversary', welcome: 'Welcome', congrats: 'Congrats' }[b.template] || 'Own words') + ' · ' + (b.preset || 'party'); }
+  if (g === 'visualizer') { const v = S.viz || {}; return (v.preset || 'spectrum') + ' · ' + (v.palette || 'neon'); }
+  return '';
+}
+function renderHost(){
+  hostCheck(); renderHostEntry();
+  if (!hostOpen) { clearInterval(hostTimer); hostTimer = null; return; }
+  if (!hostTimer) hostTimer = setInterval(() => hostCall('/game/admin/state'), 3000);
+  const S = state, sc = S.screen || { paused: false, message: '', volume: 80, muted: false }, esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ago = hostData ? Math.round(hostData.phonesAgo / 1000) : null;
+  $('#hcNow').innerHTML = `<small>On the screen now</small><b>${S.mode ? esc(HOST_NAMES[S.mode] || S.mode) : 'Welcome screen'}</b><span>${sc.paused ? '<i class="pz">Paused</i>' + (sc.message ? ' “' + esc(sc.message) + '”' : '') : ago == null ? '&nbsp;' : ago < 90 ? 'A phone was active ' + ago + ' s ago' : 'No phone active lately: the screen shows the welcome signage'}</span>`;
+  $('#hcNow').classList.toggle('paused', !!sc.paused);
+  if (!$('#hcModes').children.length) $('#hcModes').innerHTML = `<button type="button" data-m="">Welcome screen</button>` + Object.keys(HOST_NAMES).map(k => `<button type="button" data-m="${k}">${HOST_NAMES[k]}</button>`).join('');
+  $('#hcModes').querySelectorAll('[data-m]').forEach(b => b.classList.toggle('on', (b.dataset.m || null) === (S.mode || null)));
+  $('#hcPause').textContent = sc.paused ? 'Resume the screen' : 'Pause the screen';
+  $('#hcPause').classList.toggle('ghost', !!sc.paused); $('#hcPause').classList.toggle('primary', !sc.paused);
+  const vol = $('#hcVol'); if (document.activeElement !== vol) vol.value = sc.volume;
+  $('#hcVolN').textContent = sc.muted ? 'Muted' : sc.volume; $('#hcMute').textContent = sc.muted ? 'Unmute' : 'Mute';
+  $('#hcGames').innerHTML = Object.keys(HOST_NAMES).map(k => `<div class="hc-g${S.mode === k ? ' live' : ''}"><span><b>${HOST_NAMES[k]}</b><small>${esc(hostStatus(k))}</small></span><button type="button" class="btn ghost" data-reset="${k}">${k === 'claw' ? 'Free claws' : 'Reset'}</button></div>`).join('');
+  const L = S.leaders || []; $('#hcLeaders').textContent = L.length ? L.length + ' on the board · top: ' + L[0].name + ' (' + L[0].wins + ')' : 'No wins yet';
+  const log = (hostData && hostData.log) || [];
+  $('#hcLog').innerHTML = log.length ? log.map(e => `<li><time>${new Date(e.at).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' })}</time><span>${esc(({ show: 'Showed', pause: 'Paused', resume: 'Resumed', sound: 'Sound', reset: 'Reset', leaderboard: 'Leaderboard' }[e.action] || e.action) + (e.detail ? ': ' + (HOST_NAMES[e.detail] || e.detail) : ''))}</span><em>${esc(String(e.by).split('@')[0])}</em></li>`).join('') : '<li class="none">Nothing yet</li>';
+}
+$('#rpHostEntry').addEventListener('click', () => { hostOpen = true; render(); hostCall('/game/admin/state'); window.scrollTo(0, 0); });
+$('#hostBack').addEventListener('click', () => { hostOpen = false; render(); });
+$('#hcModes').addEventListener('click', e => { const b = e.target.closest('[data-m]'); if (b) hostCall('/game/admin/mode', { mode: b.dataset.m || null }); });
+$('#hcPresets').addEventListener('click', e => { const b = e.target.closest('button'); if (b) $('#hcMsg').value = b.textContent; });
+$('#hcPause').addEventListener('click', () => { const sc = state.screen || {}; hostCall('/game/admin/pause', sc.paused ? { paused: false } : { paused: true, message: $('#hcMsg').value }).then(() => { if (!(state.screen || {}).paused) $('#hcMsg').value = ''; }); });
+$('#hcVol').addEventListener('input', () => { $('#hcVolN').textContent = $('#hcVol').value; });
+$('#hcVol').addEventListener('change', () => hostCall('/game/admin/sound', { volume: Number($('#hcVol').value), muted: false }));
+$('#hcMute').addEventListener('click', () => hostCall('/game/admin/sound', { muted: !(state.screen || {}).muted }));
+$('#hcGames').addEventListener('click', e => { const b = e.target.closest('[data-reset]'); if (!b) return; const n = HOST_NAMES[b.dataset.reset];
+  if (confirm(b.dataset.reset === 'claw' ? 'Free all four claws? Anyone playing Claw Catch is sent back to the start.' : 'Reset ' + n + '? Any game in progress ends and its seats are freed.')) hostCall('/game/admin/reset', { game: b.dataset.reset }); });
+$('#hcLeadersClear').addEventListener('click', () => { if (confirm('Clear the villa leaderboard for new guests? This can’t be undone.')) hostCall('/game/admin/leaders-clear'); });
 
 async function quizPost(path, body){ if (busy) return; busy = true; try { state = await postJson(path, body || {}); render(); } catch (e) {} finally { busy = false; } }
 $('#quizTeams').addEventListener('click', e => { const b = e.target.closest('[data-team]'); if (!b || b.disabled) return; if (!profile) { openSheet(); return; } quizPost('/game/quiz/join', { team: Number(b.dataset.team) }); });

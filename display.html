@@ -1010,6 +1010,19 @@
     .dt-p .who small,.dt-join span{font-size:max(1vw,1.55vh)} .dt-join b{font-size:max(1.25vw,1.8vh)}
   }
   @media (max-aspect-ratio:3/2){ .dt-side{flex-basis:40vw;width:40vw} #dtBoard{width:52vw;height:52vw} }
+  /* ── Stage 9: shared pause card (host console) ── above every game, under the checkout takeover */
+  .rp-pause{position:fixed;top:0;right:0;bottom:0;left:0;z-index:40;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;background:radial-gradient(120% 130% at 50% 0%,#0a3b44 0%,#041f25 60%,#020d10 100%);-webkit-animation:s4-fade .6s ease;animation:s4-fade .6s ease}
+  .rp-pause[hidden]{display:none}
+  .rp-pause-card{text-align:center;padding:6vh 6vw;border-radius:2vw;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(246,243,236,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 3vw 6vw rgba(0,0,0,.4);max-width:70vw}
+  .rp-pause-h{font-family:var(--serif);font-weight:600;font-size:6.4vw;line-height:1.05;color:#F6F3EC;margin-top:1.4vh}
+  .rp-pause-h em{font-style:italic;color:var(--rp-gold)}
+  .rp-pause-msg{font-family:var(--sans);font-weight:700;font-size:2.4vw;color:#F6F3EC;opacity:.92;margin-top:2.4vh;min-height:1em}
+  .rp-pause-msg:empty{display:none}
+  .rp-pause-wave{display:block;width:16vw;height:3vh;margin:3.6vh auto 0;fill:none;stroke-width:2.5}
+  .rp-pause-wave .base{stroke:rgba(169,207,197,.28)}
+  .rp-pause-wave .run{stroke:#D8B879;stroke-dasharray:70 400;-webkit-animation:rp-wave 3.6s ease-in-out infinite;animation:rp-wave 3.6s ease-in-out infinite}
+  @-webkit-keyframes rp-wave{from{stroke-dashoffset:470}to{stroke-dashoffset:0}} @keyframes rp-wave{from{stroke-dashoffset:470}to{stroke-dashoffset:0}}
+  @media (prefers-reduced-motion:reduce){ .rp-pause-wave .run{-webkit-animation:none;animation:none} }
 </style>
 </head>
 <body>
@@ -1280,6 +1293,14 @@
   </section>
 </main>
 
+<div class="rp-pause" id="rpPause" hidden aria-live="polite">
+  <div class="rp-pause-card">
+    <div class="ll-kicker">RYST 109A &middot; RYST Play</div>
+    <div class="rp-pause-h">Back in a <em>moment</em></div>
+    <div class="rp-pause-msg" id="rpPauseMsg"></div>
+    <svg class="rp-pause-wave" viewBox="0 0 400 40" preserveAspectRatio="none" aria-hidden="true"><path class="base" d="M0 20C50 5 100 5 150 20S250 35 300 20 350 5 400 20"/><path class="run" d="M0 20C50 5 100 5 150 20S250 35 300 20 350 5 400 20"/></svg>
+  </div>
+</div>
 <div id="checkoutScreen">
   <div class="watermark" aria-hidden="true">RYST 109A</div>
   <div class="thanks-wrap">
@@ -1308,13 +1329,8 @@ const qr = (data, size) => `https://api.qrserver.com/v1/create-qr-code/?size=${s
 // of those pages, matching the "everything in one place" framing below it.
 $('#qrGuide').src = qr(SITE_URL + '/', 200);
 $('#qrCaretaker').src = qr(`https://api.whatsapp.com/send/?phone=${CARETAKER_WHATSAPP}&text=${encodeURIComponent('Hi Senthil! We are staying at RYST 109A and need some help.')}`, 200);
-$('#qrPlay').src = qr(SITE_URL + '/play.html', 200);
-$('#qrPlayMemory').src = qr(SITE_URL + '/play.html', 200);
-$('#qrPlayClaw').src = qr(SITE_URL + '/play.html', 200);
-$('#qrPlayLudo').src = qr(SITE_URL + '/play.html', 200);
-$('#qrPlayQuiz').src = qr(SITE_URL + '/play.html', 200);
-$('#qrPlayViz').src = qr(SITE_URL + '/play.html', 200);
-$('#qrPlayDarts').src = qr(SITE_URL + '/play.html', 200);
+// every game's join code is the same link to the phones' page: one loop over every img#qrPlay…
+Array.prototype.forEach.call(document.querySelectorAll('img[id^="qrPlay"]'), img => { img.src = qr(SITE_URL + '/play.html', 200); });
 
 // ── TOP BAR: CLOCK + DATE + WEATHER ──
 // Formatted with an explicit timeZone rather than trusting whatever the
@@ -1442,6 +1458,18 @@ setInterval(render, 60*1000);          // re-evaluate the checkout-time threshol
 // phone actually there right now) — there's no timed rotation here, unlike
 // the checkout takeover above.
 let currentGame = { mode: null, openedAt: 0, players: [], playerCount: 2 };
+// ── SHARED: the host console's screen settings (pause card, volume) ── every sound graph on this screen registers
+// its output gain here with its own base level; the console's volume and mute scale all of them together.
+const rpGains = [];
+let rpVol = 0.8;
+function rpGain(node, base){ rpGains.push({ node: node, base: base }); try { node.gain.value = base * rpVol; } catch (e) {} return node; }
+function rpScreen(g){
+  const sc = (g && g.screen) || { paused: false, message: '', volume: 80, muted: false };
+  const v = sc.muted ? 0 : Math.max(0, Math.min(100, Number(sc.volume) || 0)) / 100;
+  if (v !== rpVol) { rpVol = v; rpGains.forEach(r => { try { r.node.gain.setTargetAtTime(r.base * v, r.node.context.currentTime, 0.08); } catch (e) { try { r.node.gain.value = r.base * v; } catch (x) {} } }); }
+  const el = document.getElementById('rpPause');
+  if (el) { el.hidden = !sc.paused; document.getElementById('rpPauseMsg').textContent = sc.message || ''; }
+}
 const escHtml = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 function isGameActive(){
@@ -2514,7 +2542,7 @@ const Claw3D = (function(){
       try {
         ac = new (window.AudioContext || window.webkitAudioContext)();
         const comp = ac.createDynamicsCompressor(); comp.connect(ac.destination);
-        master = ac.createGain(); master.gain.value = 0.55; master.connect(comp);
+        master = rpGain(ac.createGain(), 0.55); master.connect(comp);
         // one gear-and-chain drive per trolley: a geared motor's whine, the gear teeth ticking (noise pulsed at the
         // tooth rate), a lighter chain rattle on top and a soft low body. Pitch and tick rate follow the claw's speed.
         const nb = ac.createBuffer(1, ac.sampleRate, ac.sampleRate), nd = nb.getChannelData(0);
@@ -3455,7 +3483,7 @@ const LudoView = (function(){
   // ── sound: small Web Audio synth, nothing to download ──
   const SFX = (function(){
     let ac = null, out = null;
-    function ctx(){ if (!ac) { try { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; ac = new A(); out = ac.createGain(); out.gain.value = 0.55; out.connect(ac.destination); } catch (e) { return null; } }
+    function ctx(){ if (!ac) { try { const A = window.AudioContext || window.webkitAudioContext; if (!A) return null; ac = new A(); out = rpGain(ac.createGain(), 0.55); out.connect(ac.destination); } catch (e) { return null; } }
       if (ac.state === 'suspended' && ac.resume) { try { ac.resume(); } catch (e) {} } return ac; }
     function tone(f, at, dur, type, vol, f2){ const a = ctx(); if (!a) return; const t = a.currentTime + at, o = a.createOscillator(), g = a.createGain(); o.type = type || 'sine'; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + 0.05); }
@@ -3759,7 +3787,7 @@ const QuizView = (function(){
         + (showLast && p.last > 0 ? '<span class="pl">+' + p.last + '</span>' : '') + '</div>'; }).join('');
   }
   let Q = null, on = false, timer = null, skew = 0, lastWin = -1, lastQ = -2;
-  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const esc = escHtml; // the shared escaper
   const av = k => (window.RYST_AVATARS || {})[k] || '';
   function clock(){
     if (!Q || !Q.endsAt) { $('#qzRing').style.visibility = 'hidden'; return; }
@@ -3817,7 +3845,7 @@ const DartsView = (function(){
   const R = { bull: 6.35 / 170, outer: 15.9 / 170, tIn: 99 / 170, tOut: 107 / 170, dIn: 162 / 170 };
   const COL = ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'];
   let G = null, on = false, raf = 0, cv = null, ctx = null, off = null, offKey = '', size = 0, darts = [], seenKey = '', popT = 0, lastWin = -1;
-  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const esc = escHtml; // the shared escaper
   const av = k => (window.RYST_AVATARS || {})[k] || '';
   // board-mode darts have no landing point: put them in the middle of their bed (with a little spread so three don't stack)
   function spot(d, k){
@@ -3938,6 +3966,7 @@ async function refreshGame(){
     LudoView.update(currentGame.ludo, currentGame.serverNow);
     QuizView.update(currentGame);
     DartsView.update(currentGame);
+    rpScreen(currentGame);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }
