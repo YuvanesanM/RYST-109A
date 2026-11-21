@@ -207,7 +207,24 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
   and-screen run in both modes (join, setup, virtual throws decided by the rules, TV visit, end, board taps, undo,
   checkout hint, game shot, new game, privacy). Full TV matrix audit (222 captures) clean apart from intended scenery.
 
-Next in Stage 8: Poolside Music (needs a licensed music source), Movie Night (authorised content only), Villa Photo Booth.
+### Stage 8c–e — Poolside Music, Movie Night, Photo Booth (delivered; approach chosen to keep to the brief's limits)
+The owner asked for these "as you'd suggest". All three avoid licensing and privacy problems by design:
+- Poolside Music is a request board, not a player: RYST PLAY plays and streams no audio. Guests request songs (title,
+  optional artist; three waiting each; a duplicate joins the existing request) and vote (one each, take it back by
+  voting again); the pool screen shows now playing on a turning RYST record and "Up next" by votes; staff play songs on
+  the villa's own music system and licensed account, then tap Play / Play the top song / Stop. `music.js`.
+- Movie Night is a vote and a countdown, not a player: staff shortlist up to six films the villa TV's own apps can play
+  (authorised content only), open a 3/5/10-minute vote, guests vote (one each, changeable), the vote closes itself (or
+  staff close it; a tie goes to the film added first; staff can choose another), then "Tonight's film" with a showtime
+  countdown. `movie.js`.
+- Photo Booth runs on the phone only: camera (front/back), three drawn frames (Gold, Polaroid, Seashell), a 3-2-1
+  countdown, and Save to phone (share sheet, else a download). Nothing is uploaded and nothing is shown on the pool
+  screen; the camera stops when the booth closes or the phone sleeps.
+- Proxy: `/game/music/*`, `/game/movie/*` (staff-only actions checked on every request; requesters and voters private),
+  both resettable from the host console. Unit tests and the `lounge` route suite.
+- QA: TV and phone fixtures (16:9, 4:3; staff and guest; the booth with Chromium's fake camera) and a staff + guest +
+  screen run (requests, votes, play, the TV board; shortlist, vote, close, showtime, the TV countdown; the booth takes,
+  frames and saves a photo with no upload and no outside requests).
 
 ### Stage 9 — Host console and shared screen components (delivered)
 - Where it lives: a staff-only view inside `play.html`, reached the way staff already reach the games (guest.html's admin

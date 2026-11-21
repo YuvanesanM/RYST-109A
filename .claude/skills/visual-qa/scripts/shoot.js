@@ -61,6 +61,10 @@ const QZ_BOARD = [{ id: 'b', name: 'Bala', avatar: 'sun', team: 3, score: 846, r
 const DT_P = [{ id: 'a', name: 'Asha', avatar: 'octopus', score: 121, darts: 9, scored: 380, best: 140, legs: 0 }, { id: 'b', name: 'Bala', avatar: 'sun', score: 186, darts: 9, scored: 315, best: 100, legs: 0 }, { id: 'm', name: 'Meera', avatar: 'turtle', score: 245, darts: 9, scored: 256, best: 85, legs: 0 }];
 const DT = (o) => ({ darts: Object.assign({ phase: 'play', mode: 'virtual', start: 501, doubleOut: true, players: DT_P, turn: 0, visit: [{ seg: 20, mult: 3, pts: 60, label: 'T20', x: 0.02, y: 0.61 }, { seg: 20, mult: 1, pts: 20, label: '20', x: -0.05, y: 0.42 }], visitStart: 201, bust: false, winner: -1,
   last: { player: 0, n: 2, seg: 20, mult: 1, pts: 20, label: '20', x: -0.05, y: 0.42, at: now }, history: [], round: 4, gameId: 1, hint: ['T20', 'T11', 'D14'] }, o) });
+const MU = { now: { id: 's1', title: 'Vaathi Coming', artist: 'Anirudh Ravichander', by: 'Asha', avatar: 'octopus', votes: 4, at: now - 400000, startedAt: now - 60000 }, queue: [
+  { id: 's2', title: 'Kesariya', artist: 'Arijit Singh', by: 'Meera', avatar: 'turtle', votes: 5, at: now - 300000 }, { id: 's3', title: 'Here Comes the Sun', artist: 'The Beatles', by: 'Bala', avatar: 'sun', votes: 3, at: now - 250000 },
+  { id: 's4', title: 'Arabic Kuthu', artist: 'Anirudh Ravichander', by: 'Kiran', avatar: 'crab', votes: 2, at: now - 200000 }, { id: 's5', title: 'Levitating', artist: 'Dua Lipa', by: 'Asha', avatar: 'octopus', votes: 1, at: now - 100000 }], played: [], seq: 5 };
+const MV = (o) => ({ movie: Object.assign({ phase: 'voting', options: [{ id: 'f1', title: 'Finding Nemo', note: '2003 · family', votes: 3 }, { id: 'f2', title: 'Moana', note: '2016 · family', votes: 5 }, { id: 'f3', title: 'Jailer', note: '2023 · Tamil', votes: 2 }, { id: 'f4', title: 'Life of Pi', note: '2012', votes: 1 }], closesAt: now + 222000, winner: null, startsAt: 0, seq: 4, total: 11 }, o) });
 const LUDO_WAIT = p => p.waitForTimeout(2500); // three.js loads and the pawns settle
 const SHOTS = [
   ['hub', 'play.html', PHONE, null, {}, null, true],
@@ -139,6 +143,19 @@ const SHOTS = [
   ['host-phone-paused', 'play.html', PHONE, 'darts', { staff: true, screen: { paused: true, message: 'Dinner is served', volume: 60, muted: true } }, async p => { await p.waitForTimeout(500); await p.evaluate(() => { hostOpen = true; render(); hostCall('/game/admin/state'); }); await p.waitForTimeout(700); }],
   ['pause-tv', 'display.html', TV, 'quiz', { screen: { paused: true, message: 'Dinner is served on the deck', volume: 80, muted: false } }, p => p.waitForTimeout(900)],
   ['pause-tv-4x3', 'display.html', FOUR3, 'ludo', { screen: { paused: true, message: '', volume: 80, muted: false } }, p => p.waitForTimeout(900)],
+  ['music-tv', 'display.html', TV, 'music', { music: MU }, p => p.waitForTimeout(700)],
+  ['music-tv-4x3', 'display.html', FOUR3, 'music', { music: MU }, p => p.waitForTimeout(700)],
+  ['music-tv-empty', 'display.html', TV, 'music', { music: { now: null, queue: [], played: [], seq: 0 } }, p => p.waitForTimeout(700)],
+  ['movie-tv-vote', 'display.html', TV, 'movie', MV({}), p => p.waitForTimeout(900)],
+  ['movie-tv-vote-4x3', 'display.html', FOUR3, 'movie', MV({}), p => p.waitForTimeout(900)],
+  ['movie-tv-chosen', 'display.html', TV, 'movie', MV({ phase: 'chosen', winner: 'f2', closesAt: 0, startsAt: now + 754000 }), p => p.waitForTimeout(900)],
+  ['movie-tv-setup', 'display.html', TV, 'movie', MV({ phase: 'setup', options: [], total: 0, closesAt: 0 }), p => p.waitForTimeout(700)],
+  ['music-phone', 'play.html', PHONE, 'music', { music: MU }, null],
+  ['music-phone-staff', 'play.html', PHONE, 'music', { music: MU, staff: true }, p => p.waitForTimeout(600)],
+  ['movie-phone-vote', 'play.html', PHONE, 'movie', MV({}), null],
+  ['movie-phone-staff', 'play.html', PHONE, 'movie', Object.assign(MV({ phase: 'chosen', winner: 'f2', closesAt: 0, startsAt: now + 754000 }), { staff: true }), p => p.waitForTimeout(600)],
+  ['photo-phone', 'play.html', PHONE, null, {}, async p => { await p.click('[data-local="photo"]'); await p.waitForTimeout(1500); }],
+  ['photo-phone-shot', 'play.html', PHONE, null, {}, async p => { await p.click('[data-local="photo"]'); await p.waitForTimeout(1500); await p.click('#phFrames [data-f="polaroid"]'); await p.click('#phTimer'); await p.click('#phSnap'); await p.waitForTimeout(700); }],
   ['viz-phone', 'play.html', PHONE, 'visualizer', { viz: Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, { preset: 'horizon', palette: 'ryst', title: 'DJ Arjun' }) }, null],
   ['backdrop-phone', 'play.html', PHONE, 'backdrop', {}, null],
   ['backdrop-phone-ocean', 'play.html', PHONE, 'backdrop', { backdrop: { template: 'congrats', name: 'Ananya', text: 'On your graduation', preset: 'ocean' } }, null],
@@ -159,7 +176,7 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': type }); fs.createReadStream(f).pipe(res);
 }).listen(0, async () => {
   const port = server.address().port, errors = [];
-  const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
+  const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist', '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] }); // a fake camera for the photo booth
   const audit = {}, runs = [];
   for (const shot of SHOTS) {
     if (ONLY && ONLY.indexOf(shot[0]) < 0) continue;
@@ -175,7 +192,7 @@ const server = http.createServer((req, res) => {
       if (/\/game\/admin\//.test(url) && !(extra && extra.staff)) return route.fulfill({ status: 403, contentType: 'application/json', body: '{"error":"Staff only"}', headers: { 'access-control-allow-origin': '*' } });
       const body = Object.assign({}, state, { serverNow: Date.now(), openedAt: Date.now() },
         /\/game\/profile/.test(url) ? { profile: profile ? { id: 'a', name: 'Asha', avatar: 'octopus' } : { id: 'a', name: 'Asha', avatar: 'octopus' }, avatars: [] } : {},
-        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/ttt\//.test(url) ? { tttMine: 'O' } : {}, /\/game\/darts\//.test(url) ? { dartsMine: [0] } : {}, /\/game\/admin\//.test(url) ? { host: { seats: { tictactoe: 2, ludo: 3, quiz: 2, darts: 3, claw: 1 }, phonesAgo: 12000, log: [{ at: now - 60000, by: 'caretaker@example.com', action: 'show', detail: 'quiz' }, { at: now - 300000, by: 'owner@example.com', action: 'sound', detail: 'volume 60' }, { at: now - 900000, by: 'caretaker@example.com', action: 'reset', detail: 'darts' }] } } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
+        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/ttt\//.test(url) ? { tttMine: 'O' } : {}, /\/game\/darts\//.test(url) ? { dartsMine: [0] } : {}, /\/game\/music\//.test(url) ? { musicMine: { voted: ['s3', 's5'], asked: ['s5'] } } : {}, /\/game\/movie\//.test(url) ? { movieMine: 'f2' } : {}, /\/game\/admin\//.test(url) ? { host: { seats: { tictactoe: 2, ludo: 3, quiz: 2, darts: 3, claw: 1 }, phonesAgo: 12000, log: [{ at: now - 60000, by: 'caretaker@example.com', action: 'show', detail: 'quiz' }, { at: now - 300000, by: 'owner@example.com', action: 'sound', detail: 'volume 60' }, { at: now - 900000, by: 'caretaker@example.com', action: 'reset', detail: 'darts' }] } } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body), headers: { 'access-control-allow-origin': '*' } });
     });
     await p.route(/open-meteo\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ current: { temperature_2m: 29, weather_code: 2, is_day: 1 } }) }));

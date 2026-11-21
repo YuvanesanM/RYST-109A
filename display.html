@@ -1023,6 +1023,57 @@
   .rp-pause-wave .run{stroke:#D8B879;stroke-dasharray:70 400;-webkit-animation:rp-wave 3.6s ease-in-out infinite;animation:rp-wave 3.6s ease-in-out infinite}
   @-webkit-keyframes rp-wave{from{stroke-dashoffset:470}to{stroke-dashoffset:0}} @keyframes rp-wave{from{stroke-dashoffset:470}to{stroke-dashoffset:0}}
   @media (prefers-reduced-motion:reduce){ .rp-pause-wave .run{-webkit-animation:none;animation:none} }
+  /* ── Stage 8c/8d: Poolside Music and Movie Night (boards; no audio or video plays here) ── */
+  .mu-frame{display:-webkit-box;display:flex;-webkit-box-orient:horizontal;flex-direction:row;-webkit-box-align:center;align-items:center;padding:4vh 4vw !important}
+  .mu-now{-webkit-box-flex:1;flex:1 1 0%;min-width:0;padding-right:3vw}
+  .rp-stage h2.mu-title,.rp-stage h2.mv-title{font-size:4.6vw !important;text-align:left;margin:.2vh 0 2.4vh !important}
+  .mu-disc{width:24vw;height:24vw;max-height:38vh;max-width:38vh;filter:drop-shadow(0 2vw 3vw rgba(0,0,0,.45))}
+  .mu-disc svg{width:100%;height:100%;display:block}
+  .mu-disc.spin svg{-webkit-animation:mu-spin 3.2s linear infinite;animation:mu-spin 3.2s linear infinite}
+  @-webkit-keyframes mu-spin{to{-webkit-transform:rotate(360deg)}} @keyframes mu-spin{to{transform:rotate(360deg)}}
+  .mu-np{margin-top:3vh}
+  .mu-np .k{font-family:var(--sans);font-weight:800;font-size:1.1vw;letter-spacing:.2em;text-transform:uppercase;color:#A9CFC5}
+  .mu-np .t{font-family:var(--serif);font-weight:600;font-size:4vw;line-height:1.05;color:#F6F3EC;margin-top:.6vh;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .mu-np .t.sm{font-size:2.6vw;font-style:italic;color:rgba(246,243,236,.85)}
+  .mu-np .a{font-family:var(--sans);font-weight:700;font-size:1.8vw;color:#F7DFA4;margin-top:.6vh}
+  .mu-np .by{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;margin-top:1.6vh;font-family:var(--sans);font-weight:600;font-size:1.3vw;color:#bcd8d4}
+  .mu-np .pav{width:2.4vw;height:2.4vw;border-radius:50%;overflow:hidden;margin-right:.7vw;box-shadow:0 0 0 .15vw #D8B879} .mu-np .pav svg{display:block;width:100%;height:100%}
+  .mu-side{-webkit-box-flex:0;flex:0 0 38vw;width:38vw;display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column}
+  .mu-h{font-family:var(--sans);font-weight:800;font-size:1.1vw;letter-spacing:.2em;text-transform:uppercase;color:#A9CFC5;margin-bottom:1.2vh}
+  .mu-q{list-style:none;margin:0 0 2vh;padding:0}
+  .mu-q li{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;padding:1.1vh 1.1vw;margin-bottom:.8vh;border-radius:1vw;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(246,243,236,.12)}
+  .mu-q li.top{border-color:rgba(216,184,121,.6)}
+  .mu-q .rk{width:2.2vw;font-family:var(--sans);font-weight:800;font-size:1.3vw;color:#bcd8d4;font-variant-numeric:tabular-nums} .mu-q li.top .rk{color:#D8B879}
+  .mu-q .tx{-webkit-box-flex:1;flex:1 1 auto;min-width:0;display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column}
+  .mu-q .t{font-family:var(--sans);font-weight:800;font-size:1.45vw;color:#F6F3EC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mu-q .a{font-family:var(--sans);font-weight:600;font-size:1.05vw;color:#bcd8d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mu-q .v{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;margin-left:1vw;padding:.4vh .8vw;border-radius:99px;background:rgba(216,184,121,.14);font-family:var(--sans);font-weight:800;font-size:1.3vw;color:#F7DFA4;font-variant-numeric:tabular-nums} .mu-q .v svg{width:1.1vw;height:1.1vw;fill:#D8B879;margin-right:.35vw}
+  .mu-q .empty,.mu-q .more{display:block;background:none;border:1px dashed rgba(246,243,236,.18);font-family:var(--sans);font-weight:700;font-size:1.25vw;color:#bcd8d4;text-align:center}
+  .mv-frame{padding:4vh 5vw !important}
+  .mv-frame .ll-kicker,.mv-frame .mv-title,.mv-sub{text-align:center !important}
+  .rp-stage h2.mv-title{text-align:center;margin-bottom:1vh !important}
+  .mv-sub{font-family:var(--sans);font-weight:700;font-size:1.6vw;color:#A9CFC5;margin-bottom:3vh;font-variant-numeric:tabular-nums}
+  .mv-opts{display:-webkit-box;display:flex;flex-wrap:wrap;-webkit-box-pack:center;justify-content:center;width:100%}
+  .mv-opts[hidden],.mv-win[hidden]{display:none}
+  .mv-o{width:24vw;margin:0 .8vw 1.8vh;padding:2.4vh 1.6vw;border-radius:1.3vw;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(246,243,236,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 1.4vw 3vw rgba(0,0,0,.3)}
+  .mv-o .t{font-family:var(--serif);font-weight:600;font-size:2.6vw;line-height:1.1;color:#F6F3EC}
+  .mv-o .n{font-family:var(--sans);font-weight:600;font-size:1.1vw;color:#bcd8d4;margin-top:.4vh}
+  .mv-o .bar{height:1vh;border-radius:99px;background:rgba(255,255,255,.08);margin-top:1.8vh;overflow:hidden} .mv-o .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#9C7536,#D8B879,#F7DFA4);-webkit-transition:width .8s ease;transition:width .8s ease}
+  .mv-o .c{font-family:var(--sans);font-weight:800;font-size:1.25vw;color:#F7DFA4;margin-top:.8vh;font-variant-numeric:tabular-nums}
+  .mv-win{text-align:center;margin-top:1vh}
+  .mv-win .reel{width:8vw;height:8vw;-webkit-animation:mu-spin 6s linear infinite;animation:mu-spin 6s linear infinite;opacity:.9}
+  .mv-win .k{font-family:var(--sans);font-weight:800;font-size:1.2vw;letter-spacing:.24em;text-transform:uppercase;color:#A9CFC5;margin-top:2vh}
+  .mv-win .t{font-family:var(--serif);font-weight:600;font-style:italic;font-size:7vw;line-height:1.02;color:#F6F3EC;margin-top:1vh;text-shadow:0 .4vw 3vw rgba(0,0,0,.5)}
+  .mv-win .n{font-family:var(--sans);font-weight:700;font-size:1.6vw;color:#bcd8d4;margin-top:1vh}
+  .mv-win .when{display:inline-block;margin-top:3vh;padding:1.4vh 2.4vw;border-radius:99px;border:1px solid rgba(216,184,121,.6);font-family:var(--sans);font-weight:700;font-size:2vw;color:#F6F3EC;font-variant-numeric:tabular-nums} .mv-win .when b{color:#F7DFA4}
+  .mv-join{position:absolute;right:2.4vw;bottom:3vh}
+  .mv-join[hidden]{display:none}
+  .mv-opts.c4 .mv-o{width:17.5vw;margin:0 .6vw 1.8vh}
+  .mv-opts.c2 .mv-o{width:30vw}
+  .mu-join .qr img,.mv-join .qr img{width:5.4vw;height:5.4vw}
+  @supports (font-size: max(1px, 1vh)) {
+    .mu-np .k,.mu-h{font-size:max(1.1vw,1.6vh)} .mu-np .by{font-size:max(1.3vw,1.8vh)} .mu-q .a{font-size:max(1.05vw,1.55vh)} .mv-o .n{font-size:max(1.1vw,1.6vh)} .mv-win .k{font-size:max(1.2vw,1.7vh)}
+  }
+  @media (max-aspect-ratio:3/2){ .mv-o{width:38vw} .mu-side{flex-basis:44vw;width:44vw} }
 </style>
 </head>
 <body>
@@ -1188,6 +1239,33 @@
         <div class="dt-join"><div class="qr"><img id="qrPlayDarts" alt="Scan to play"></div><div><b>Scan to play</b><span id="dtJoinText">up to 4 players</span></div></div>
       </div>
       <div class="s4-win" id="dtWin" hidden><div class="s4-win-card"><div class="s4-kicker" id="dtWinKicker">Game shot</div><div class="s4-win-av" id="dtWinAv"></div><div class="s4-big" id="dtWinBig"></div><div class="s4-meta" id="dtWinMeta"></div><div class="s4-small">New game from any player's phone</div></div></div>
+    </div>
+  </section>
+
+  <section class="screen rp-stage" id="screen-music">
+    <div class="rp-frame mu-frame">
+      <div class="mu-now">
+        <div class="ll-kicker">RYST Play &middot; Poolside</div>
+        <h2 class="s4-title mu-title">Poolside <em>Music</em></h2>
+        <div class="mu-disc" id="muDisc"><svg viewBox="0 0 200 200" aria-hidden="true"><defs><radialGradient id="muVin" cx=".5" cy=".5" r=".5"><stop offset=".3" stop-color="#1b1b1b"/><stop offset=".31" stop-color="#0c0c0c"/><stop offset="1" stop-color="#151515"/></radialGradient><linearGradient id="muSheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="rgba(255,255,255,.22)"/><stop offset=".5" stop-color="rgba(255,255,255,0)"/><stop offset="1" stop-color="rgba(255,255,255,.12)"/></linearGradient></defs><circle cx="100" cy="100" r="98" fill="url(#muVin)"/><g fill="none" stroke="rgba(255,255,255,.05)"><circle cx="100" cy="100" r="88"/><circle cx="100" cy="100" r="78"/><circle cx="100" cy="100" r="68"/><circle cx="100" cy="100" r="58"/><circle cx="100" cy="100" r="48"/></g><circle cx="100" cy="100" r="98" fill="url(#muSheen)"/><circle cx="100" cy="100" r="30" fill="#D8B879"/><circle cx="100" cy="100" r="30" fill="none" stroke="#9C7536" stroke-width="2"/><text x="100" y="97" text-anchor="middle" font-family="Cormorant Garamond, serif" font-style="italic" font-size="13" fill="#07333B">RYST</text><text x="100" y="111" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="6" letter-spacing="1.5" fill="#07333B">109A</text><circle cx="100" cy="100" r="3" fill="#07333B"/></svg></div>
+        <div class="mu-np" id="muNow"></div>
+      </div>
+      <div class="mu-side">
+        <div class="mu-h">Up next</div>
+        <ol class="mu-q" id="muQueue"></ol>
+        <div class="dt-join mu-join"><div class="qr"><img id="qrPlayMusic" alt="Scan to request a song"></div><div><b>Request a song</b><span>Vote for the next one · played on the villa's music system</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen rp-stage" id="screen-movie">
+    <div class="rp-frame mv-frame">
+      <div class="ll-kicker">RYST Play &middot; Tonight</div>
+      <h2 class="s4-title mv-title">Movie <em>Night</em></h2>
+      <div class="mv-sub" id="mvSub">&nbsp;</div>
+      <div class="mv-opts" id="mvOpts"></div>
+      <div class="mv-win" id="mvWin" hidden></div>
+      <div class="dt-join mv-join"><div class="qr"><img id="qrPlayMovie" alt="Scan to vote"></div><div><b>Vote from your phone</b><span>one vote each · change it until the vote closes</span></div></div>
     </div>
   </section>
 
@@ -2044,9 +2122,11 @@ function updateMainScreen(){
   // a round in progress, or players seated, keeps the game up even if no phone has checked in lately (players watch the TV and phones auto-lock)
   const showClaw = currentGame.mode === 'claw' && (active || Claw3D.busy());
   const showLudo = currentGame.mode === 'ludo' && (active || (currentGame.ludo && currentGame.ludo.phase === 'play') || LudoView.busy()); // a game in progress stays up while phones sleep
+  const showMusic = active && currentGame.mode === 'music';
+  const showMovie = currentGame.mode === 'movie' && (active || (currentGame.movie && currentGame.movie.phase !== 'setup')); // a running vote or a chosen film stays up
   const showDarts = currentGame.mode === 'darts' && (active || (currentGame.darts && currentGame.darts.phase === 'play')); // a game in progress stays up while phones sleep
   const showQuiz = currentGame.mode === 'quiz' && (active || (currentGame.quiz && (currentGame.quiz.phase === 'question' || currentGame.quiz.phase === 'reveal')));
-  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw && !showLudo && !showQuiz && !showDarts);
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw && !showLudo && !showQuiz && !showDarts && !showMusic && !showMovie);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
   $('#screen-memory').classList.toggle('active', showMemory);
@@ -2056,6 +2136,9 @@ function updateMainScreen(){
   $('#screen-ludo').classList.toggle('active', showLudo);
   $('#screen-quiz').classList.toggle('active', showQuiz);
   $('#screen-darts').classList.toggle('active', showDarts);
+  $('#screen-music').classList.toggle('active', showMusic);
+  $('#screen-movie').classList.toggle('active', showMovie);
+  if (showMovie) LoungeView.movieOn(); else LoungeView.movieOff();
   if (showDarts) DartsView.show(); else DartsView.hide();
   if (showQuiz) QuizView.show(); else QuizView.hide();
   if (showLudo) LudoView.show(); else LudoView.hide();
@@ -3955,6 +4038,43 @@ const DartsView = (function(){
   };
 })();
 
+// ── POOLSIDE MUSIC + MOVIE NIGHT ── boards only: no audio or video plays here (the villa uses its own licensed music
+// system and its TV's own apps). Guest-typed song titles and names go through escHtml.
+const LoungeView = (function(){
+  let G = null, timer = null;
+  const av = k => (window.RYST_AVATARS || {})[k] || '';
+  const mmss = ms => { const t = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(t / 60) + ':' + ('0' + (t % 60)).slice(-2); };
+  const skew = () => (G && G.serverNow ? G.serverNow - Date.now() : 0);
+  function music(){
+    const M = G.music || { now: null, queue: [] }, n = M.now;
+    $('#muDisc').classList.toggle('spin', !!n);
+    $('#muNow').innerHTML = n ? '<div class="k">Now playing</div><div class="t">' + escHtml(n.title) + '</div>' + (n.artist ? '<div class="a">' + escHtml(n.artist) + '</div>' : '') + '<div class="by"><span class="pav">' + av(n.avatar) + '</span>Requested by ' + escHtml(n.by) + '</div>'
+      : '<div class="k">Nothing requested yet</div><div class="t sm">Scan the code and ask for a song</div>';
+    const Q = (M.queue || []).slice(0, 7);
+    $('#muQueue').innerHTML = Q.length ? Q.map((r, i) => '<li class="' + (i === 0 ? 'top' : '') + '"><b class="rk">' + (i + 1) + '</b><span class="tx"><span class="t">' + escHtml(r.title) + '</span><span class="a">' + escHtml(r.artist || '') + (r.artist ? ' · ' : '') + escHtml(r.by) + '</span></span><span class="v"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l7 8h-4v8H9v-8H5z"/></svg>' + r.votes + '</span></li>').join('')
+      + ((M.queue || []).length > 7 ? '<li class="more">+' + ((M.queue || []).length - 7) + ' more on the list</li>' : '') : '<li class="empty">The list is empty: be the first to request</li>';
+  }
+  function movie(){
+    const V = G.movie || { phase: 'setup', options: [] }, now = Date.now() + skew(), max = Math.max.apply(null, V.options.map(o => o.votes).concat([1]));
+    const win = V.phase === 'chosen' && V.options.find(o => o.id === V.winner);
+    $('#mvSub').textContent = V.phase === 'voting' ? 'Vote closes in ' + mmss(V.closesAt - now) + ' · ' + V.total + (V.total === 1 ? ' vote' : ' votes') : V.phase === 'chosen' ? '' : 'Tonight’s shortlist is on its way';
+    $('#mvOpts').hidden = !!win; $('#mvOpts').className = 'mv-opts c' + V.options.length; $('#screen-movie .mv-join').hidden = !!win;
+    if (!win) { const h = V.options.map(o => '<div class="mv-o"><div class="t">' + escHtml(o.title) + '</div>' + (o.note ? '<div class="n">' + escHtml(o.note) + '</div>' : '') + (V.phase === 'voting' ? '<div class="bar"><i style="width:' + Math.round(o.votes / max * 100) + '%"></i></div><div class="c">' + o.votes + (o.votes === 1 ? ' vote' : ' votes') + '</div>' : '') + '</div>').join('');
+      if ($('#mvOpts').__h !== h) { $('#mvOpts').__h = h; $('#mvOpts').innerHTML = h; } }
+    $('#mvWin').hidden = !win;
+    if (win) { const left = V.startsAt ? V.startsAt - now : 0;
+      $('#mvWin').innerHTML = '<svg class="reel" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56" fill="none" stroke="#D8B879" stroke-width="4"/><circle cx="60" cy="60" r="10" fill="#D8B879"/><g fill="#D8B879">' + [0, 72, 144, 216, 288].map(a => '<circle cx="' + (60 + 30 * Math.sin(a * Math.PI / 180)).toFixed(1) + '" cy="' + (60 - 30 * Math.cos(a * Math.PI / 180)).toFixed(1) + '" r="13"/>').join('') + '</g></svg>'
+        + '<div class="k">Tonight’s film</div><div class="t">' + escHtml(win.title) + '</div>' + (win.note ? '<div class="n">' + escHtml(win.note) + '</div>' : '')
+        + '<div class="when">' + (V.startsAt ? (left > 0 ? 'Starts in <b>' + mmss(left) + '</b>' : '<b>Starting now</b>: settle in') : 'Starting soon') + '</div>'; }
+  }
+  function render(){ if (!G) return; if (G.music) music(); if (G.movie) movie(); } // cheap: drawn on every poll so the board is ready the moment its screen shows
+  return {
+    update(g){ G = g; render(); },
+    movieOn(){ if (!timer) timer = setInterval(() => { if (G) movie(); }, 1000); render(); },
+    movieOff(){ clearInterval(timer); timer = null; },
+  };
+})();
+
 async function refreshGame(){
   try{
     const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
@@ -3967,6 +4087,7 @@ async function refreshGame(){
     QuizView.update(currentGame);
     DartsView.update(currentGame);
     rpScreen(currentGame);
+    LoungeView.update(currentGame);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }

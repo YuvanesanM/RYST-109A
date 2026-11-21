@@ -719,6 +719,45 @@
   .hc-log li{display:flex;gap:10px;font-size:12.5px;color:var(--ink);padding:7px 10px;border-radius:10px;background:rgba(255,255,255,.03);text-align:left} .hc-log time{color:var(--muted-text);font-variant-numeric:tabular-nums;min-width:58px} .hc-log span{flex:1} .hc-log em{font-style:normal;color:var(--muted-text)} .hc-log .none{color:var(--muted-text)}
   #screen-host .host-back{position:absolute;top:14px;left:14px;margin:0;padding:7px 12px;border-radius:100px;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--ink);font-size:12px}
   @media (max-width:639px){ #screen-host .ll-h1{margin-top:30px} }
+  /* ── Stage 8c–e: Poolside Music, Movie Night, Photo Booth ── */
+  .mu-nowp{padding:14px 16px;border-radius:16px;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(216,184,121,.45);text-align:left;margin-bottom:12px}
+  .mu-nowp .k,.mv-statusp small{display:block;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9cfc5} .mu-nowp b{display:block;font-family:var(--serif);font-weight:600;font-size:24px;color:var(--ink);line-height:1.15} .mu-nowp span{font-size:13px;color:var(--muted-text)}
+  .mu-form .bd-text{margin-bottom:8px} .mu-form .btn{width:100%} .mu-form .viz-hint{margin:8px 0 0} .viz-hint.err{color:#ff9a7a}
+  .mu-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .mu-list li{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);text-align:left}
+  .mu-list li.top{border-color:rgba(216,184,121,.5)} .mu-list li.empty{color:var(--muted-text);justify-content:center}
+  .mu-list .tx{flex:1;min-width:0;display:flex;flex-direction:column} .mu-list .tx b{font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .mu-list .tx small{font-size:12px;color:var(--muted-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mu-list .vt{display:flex;align-items:center;gap:4px;min-width:56px;justify-content:center;padding:8px 10px;border-radius:99px;border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:var(--ink);font:800 14px/1 var(--sans);font-variant-numeric:tabular-nums;cursor:pointer}
+  .mu-list .vt svg{width:14px;height:14px;fill:currentColor} .mu-list .vt.on{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4} .mu-list .vt:disabled{opacity:.75;cursor:default}
+  .mu-list .x{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--muted-text);font-size:16px;line-height:1;cursor:pointer}
+  .mu-list .pl{padding:7px 10px;border-radius:99px;border:1px solid rgba(169,207,197,.45);background:none;color:#a9cfc5;font:800 12px/1 var(--sans);cursor:pointer}
+  .mu-staff[hidden],.mv-staffp[hidden]{display:none}
+  .mv-statusp{padding:14px 16px;border-radius:16px;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid var(--line);text-align:left;margin-bottom:12px}
+  .mv-statusp b{display:block;font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums} .mv-statusp span{font-size:13px;color:var(--muted-text)}
+  .mv-statusp.chosen{border-color:rgba(216,184,121,.55)} .mv-statusp .film{font-family:var(--serif);font-style:italic;font-weight:600;font-size:30px;line-height:1.1}
+  .mv-listp{display:flex;flex-direction:column;gap:8px}
+  .mv-op{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 14px;border-radius:14px;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink);text-align:left;cursor:pointer;font-family:var(--sans)}
+  .mv-op .t{font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.1} .mv-op .n{font-size:12.5px;color:var(--muted-text)}
+  .mv-op .bar{width:100%;height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;margin-top:4px} .mv-op .bar i{display:block;height:100%;background:linear-gradient(90deg,#9C7536,#D8B879,#F7DFA4);border-radius:99px;transition:width .6s ease}
+  .mv-op .c{font-size:12.5px;font-weight:800;color:#f7dfa4;font-variant-numeric:tabular-nums}
+  .mv-op.on{border-color:#d8b879;background:rgba(216,184,121,.1)} .mv-op.won{border-color:#d8b879;box-shadow:0 0 18px rgba(216,184,121,.25)} .mv-op:disabled{cursor:default}
+  .mv-op .rm{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted-text);font-size:15px}
+  .mv-op .pick{margin-top:6px;padding:6px 10px;border-radius:99px;border:1px solid rgba(169,207,197,.45);color:#a9cfc5;font-size:12px;font-weight:800}
+  .mv-staffp .viz-seg{margin-bottom:12px} .mv-staffp .hc-card .btn{width:100%}
+  .ph-stage{position:relative;width:100%;max-width:400px;aspect-ratio:4/5;margin:6px auto 12px;border-radius:18px;overflow:hidden;background:#041f25;box-shadow:0 18px 40px rgba(0,0,0,.4)}
+  .ph-stage video,.ph-stage canvas,.ph-frame{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;display:block}
+  .ph-stage video.mirror{transform:scaleX(-1)} .ph-stage [hidden]{display:none}
+  .ph-frame canvas{width:100%;height:100%}
+  .ph-count{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--serif);font-weight:600;font-size:120px;color:#F6F3EC;text-shadow:0 6px 30px rgba(0,0,0,.5)}
+  .ph-count.go{animation:ph-pop .9s ease} @keyframes ph-pop{0%{opacity:0;transform:translate(-50%,-50%) scale(1.6)}30%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:.2}}
+  .ph-msg{position:absolute;left:16px;right:16px;top:50%;transform:translateY(-50%);text-align:center;font-weight:700;font-size:14px;color:var(--ink)}
+  .ph-stage.flash::after{content:'';position:absolute;inset:0;background:#fff;animation:ph-flash .35s ease forwards} @keyframes ph-flash{to{opacity:0}}
+  .ph-frames{margin-bottom:12px} .ph-frames button.on{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4} .ph-frames[hidden],.ph-actions[hidden]{display:none}
+  .ph-actions{display:flex;align-items:center;justify-content:center;gap:16px}
+  .ph-actions .btn{flex:0 0 auto;width:auto;min-width:96px}
+  .ph-shutter{width:76px;height:76px;border-radius:50%;border:4px solid #F6F3EC;background:none;padding:5px;cursor:pointer} .ph-shutter i{display:block;width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,#F7DFA4,#D8B879 55%,#9C7536)}
+  .ph-shutter:active i{transform:scale(.9)}
+  #phDone .btn{min-width:130px}
 </style>
 </head>
 <body>
@@ -755,6 +794,59 @@
       <div class="rp-board" id="rpBoard"></div>
       <div class="rp-section">More fun at the villa</div>
       <div class="rp-more" id="rpMore"></div>
+    </section>
+
+    <section class="screen" id="screen-music">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1 class="ll-h1">Poolside <em>Music</em></h1>
+      <p class="sub">Ask for a song and vote for the next one. The villa plays them on its own music system.</p>
+      <div class="mu-nowp" id="muNowP"></div>
+      <div class="hc-card mu-form">
+        <input type="text" id="muTitle" class="bd-text" maxlength="60" placeholder="Song" autocomplete="off">
+        <input type="text" id="muArtist" class="bd-text" maxlength="60" placeholder="Artist (optional)" autocomplete="off">
+        <button type="button" class="btn primary" id="muAsk">Request this song</button>
+        <p class="viz-hint" id="muMsg">&nbsp;</p>
+      </div>
+      <div class="hc-sec">Up next</div>
+      <ol class="mu-list" id="muList"></ol>
+      <div class="mu-staff" id="muStaff" hidden><div class="hc-sec">Staff</div><div class="dt-joinrow"><button type="button" class="btn primary" id="muPlayNext">Play the top song</button><button type="button" class="btn ghost" id="muStop">Stop</button></div></div>
+    </section>
+
+    <section class="screen" id="screen-movie">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <h1 class="ll-h1">Movie <em>Night</em></h1>
+      <p class="sub">Vote for tonight’s film. It plays from the villa TV’s own apps.</p>
+      <div class="mv-statusp" id="mvStatusP"></div>
+      <div class="mv-listp" id="mvListP"></div>
+      <div class="mv-staffp" id="mvStaffP" hidden>
+        <div class="hc-sec">Staff</div>
+        <div class="hc-card">
+          <input type="text" id="mvAddTitle" class="bd-text" maxlength="60" placeholder="Film on the villa TV, e.g. Moana" autocomplete="off">
+          <input type="text" id="mvAddNote" class="bd-text" maxlength="40" placeholder="Note (optional), e.g. 2016 · family" autocomplete="off">
+          <button type="button" class="btn ghost" id="mvAdd">Add to the shortlist</button>
+        </div>
+        <label class="bd-label" style="margin-top:12px">Open the vote for</label>
+        <div class="viz-seg" id="mvOpen"><button type="button" data-min="3">3 min</button><button type="button" data-min="5">5 min</button><button type="button" data-min="10">10 min</button></div>
+        <button type="button" class="btn ghost" id="mvClose" style="width:100%;margin-bottom:12px">Close the vote now</button>
+        <label class="bd-label">Showtime</label>
+        <div class="viz-seg" id="mvShow"><button type="button" data-min="10">In 10</button><button type="button" data-min="15">In 15</button><button type="button" data-min="30">In 30</button><button type="button" data-min="0">Now</button></div>
+      </div>
+    </section>
+
+    <section class="screen" id="screen-photo">
+      <button type="button" class="back-btn host-back" id="phBack">&larr; Back</button>
+      <h1 class="ll-h1">Photo <em>Booth</em></h1>
+      <p class="sub">Frame a photo with the villa’s look. It stays on your phone: nothing is uploaded or shown on the pool screen.</p>
+      <div class="ph-stage" id="phStage">
+        <video id="phVideo" playsinline muted autoplay></video>
+        <canvas id="phShot" width="1080" height="1350" hidden aria-label="Your photo"></canvas>
+        <div class="ph-frame" id="phFrameOv"></div>
+        <div class="ph-count" id="phCount" hidden></div>
+        <p class="ph-msg" id="phMsg" hidden></p>
+      </div>
+      <div class="viz-seg ph-frames" id="phFrames" role="group" aria-label="Frame"><button type="button" data-f="gold" class="on">Gold</button><button type="button" data-f="polaroid">Polaroid</button><button type="button" data-f="shell">Seashell</button></div>
+      <div class="ph-actions" id="phLive"><button type="button" class="btn ghost" id="phFlip" aria-label="Switch camera">Flip</button><button type="button" class="ph-shutter" id="phSnap" aria-label="Take the photo"><i></i></button><button type="button" class="btn ghost" id="phTimer" aria-pressed="true">3 s</button></div>
+      <div class="ph-actions" id="phDone" hidden><button type="button" class="btn ghost" id="phRetake">Retake</button><button type="button" class="btn primary" id="phSave">Save to phone</button></div>
     </section>
 
     <section class="screen" id="screen-host">
@@ -1107,6 +1199,10 @@ const ART = {
     <path d="M47 64V54a28 28 0 0 1 56 0v10" fill="none" stroke="url(#aHp)" stroke-width="7" stroke-linecap="round"/><rect x="38" y="56" width="18" height="30" rx="7" fill="#5a3fd6"/><rect x="94" y="56" width="18" height="30" rx="7" fill="#3fb3d6"/>
     <g filter="url(#aGlow3)" fill="none" stroke-width="3.5" stroke-linecap="round"><path d="M28 56c-4 6-4 18 0 24M18 50c-8 10-8 30 0 40" stroke="#7b5cff"/><path d="M122 56c4 6 4 18 0 24M132 50c8 10 8 30 0 40" stroke="#4fe7ff"/></g></svg>`,
 };
+ART.music = `<svg viewBox="0 0 150 100" aria-hidden="true"><ellipse cx="75" cy="90" rx="44" ry="6" fill="rgba(0,0,0,.25)"/><circle cx="70" cy="50" r="38" fill="#141414"/><g fill="none" stroke="rgba(255,255,255,.07)"><circle cx="70" cy="50" r="31"/><circle cx="70" cy="50" r="24"/></g><path d="M44 30a34 34 0 0 1 22-14" stroke="rgba(255,255,255,.25)" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="70" cy="50" r="12" fill="#D8B879"/><circle cx="70" cy="50" r="2.4" fill="#07333B"/>
+    <path d="M110 18v42" stroke="#F6F3EC" stroke-width="4" stroke-linecap="round"/><path d="M110 18l18 6v10l-18-6z" fill="#F6F3EC"/><ellipse cx="102" cy="62" rx="9" ry="7" fill="#F6F3EC" transform="rotate(-20 102 62)"/></svg>`;
+ART.movie = `<svg viewBox="0 0 150 100" aria-hidden="true"><ellipse cx="75" cy="90" rx="46" ry="6" fill="rgba(0,0,0,.25)"/><rect x="26" y="24" width="98" height="58" rx="8" fill="#0c2a31" stroke="#D8B879" stroke-width="3"/><rect x="34" y="32" width="82" height="42" rx="4" fill="#123f48"/>
+    <path d="M62 42l22 11-22 11z" fill="#F7DFA4"/><g fill="#D8B879"><rect x="30" y="12" width="40" height="10" rx="3" transform="rotate(-8 50 17)"/></g><g fill="#07333B"><rect x="36" y="11" width="5" height="9" transform="rotate(-8 50 17)"/><rect x="48" y="9.5" width="5" height="9" transform="rotate(-8 50 17)"/><rect x="60" y="8" width="5" height="9" transform="rotate(-8 50 17)"/></g></svg>`;
 ART.darts = `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><radialGradient id="aDb" cx=".4" cy=".35"><stop offset="0" stop-color="#2a2622"/><stop offset="1" stop-color="#0e0d0c"/></radialGradient></defs>
     <ellipse cx="72" cy="88" rx="46" ry="7" fill="rgba(0,0,0,.25)"/><circle cx="72" cy="50" r="38" fill="url(#aDb)"/>
     <g transform="translate(72 50)">${Array.from({ length: 20 }, (_, i) => { const a0 = (i * 18 - 99) * Math.PI / 180, a1 = a0 + 18 * Math.PI / 180, P = (r, a) => (r * Math.cos(a)).toFixed(1) + ' ' + (r * Math.sin(a)).toFixed(1);
@@ -1130,10 +1226,12 @@ const ACTIVITIES = [
   { mode: 'visualizer', name: 'DJ Visuals', desc: 'A light show for the pool screen', cta: 'Play now' },
   { mode: 'ludo', name: 'Ludo Lounge', desc: '2 to 4 players: roll, race and send rivals home', cta: 'Play now' },
   { mode: 'quiz', name: 'Quiz Night', desc: 'Team trivia on the big screen, answered on your phone', cta: 'Play now' },
+  { mode: 'music', name: 'Poolside Music', desc: 'Request songs and vote for the next one', cta: 'Request' },
+  { mode: 'movie', name: 'Movie Night', desc: 'Vote for tonight’s film, countdown on the screen', cta: 'Vote' },
   { mode: 'darts', name: 'Darts', desc: '301 or 501 for up to 4: throw from your phone, or score the villa board', cta: 'Play now' },
 ];
 const MORE = [
-  { key: 'photo', name: 'Photo Booth', note: 'Coming soon', soon: true },
+  { key: 'photo', name: 'Photo Booth', note: 'Frames, on your phone', local: 'photo' },
   { key: 'family', name: 'Family Challenge', note: 'Coming soon', soon: true },
   { key: 'gallery', name: 'Villa gallery', note: 'Photos of the villa', href: '/#gallery' },
   { key: 'help', name: 'Need anything?', note: 'Requests and help', href: '/guest.html' },
@@ -1160,6 +1258,7 @@ const PLAY_ARROW = '<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 1l7 
     </button>`).join('');
   document.getElementById('rpMore').innerHTML = MORE.map(m => m.href
     ? `<a class="rp-tile" href="${m.href}">${ICON[m.key]}<b>${m.name}</b><span>${m.note}</span></a>`
+    : m.local ? `<button type="button" class="rp-tile" data-local="${m.local}">${ICON[m.key]}<b>${m.name}</b><span>${m.note}</span></button>`
     : `<button type="button" class="rp-tile soon" data-soon="${m.name}">${ICON[m.key]}<b>${m.name}</b><span>${m.note}</span></button>`).join('');
   let toastTimer = null;
   document.querySelectorAll('[data-soon]').forEach(b => b.addEventListener('click', () => {
@@ -1184,6 +1283,8 @@ let state = {
   backdrop: { template: 'custom', name: '', text: '', preset: 'party' },
   viz: { preset: 'spectrum', palette: 'neon', bpm: 120 },
 };
+let photoOpen = false; // the photo booth is a local view on this phone
+const ph = { stream: null, facing: 'user', frame: 'gold', timer: true, busy: false }; // photo booth camera state (early: showScreen stops the camera)
 let hostOpen = false, hostStaff = false, hostData = null, hostTimer = null, hostAsked = ''; // the staff host console (declared early: showScreen reads hostOpen)
 let busy = false; // guards every activity against double-taps firing two actions before the poll catches up
 
@@ -1216,6 +1317,9 @@ async function postJson(path, body){
   const j = await res.json();
   if (j && Array.isArray(j.ludoMine)) ludoMine = j.ludoMine;
   if (j && Array.isArray(j.dartsMine)) dartsMine = j.dartsMine;
+  if (j && j.musicMine) musicMine = j.musicMine;
+  if (j && 'movieMine' in j) movieMine = j.movieMine;
+  if (j && 'musicError' in j) musicErr = j.musicError;
   if (j && 'tttMine' in j) tttMine = j.tttMine;
   if (j && 'quizMe' in j) { quizMe = j.quizMe; quizMeKey = j.quiz ? j.quiz.gameId + ':' + j.quiz.qIndex : ''; }
   postGen++; // any poll that started before this reply is now stale
@@ -1224,8 +1328,8 @@ async function postJson(path, body){
 }
 
 function showScreen(mode){
-  const screen = !playToken ? 'signin' : hostOpen ? 'host' : mode;
-  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw', 'ludo', 'quiz', 'darts', 'host'];
+  const screen = !playToken ? 'signin' : photoOpen ? 'photo' : hostOpen ? 'host' : mode;
+  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw', 'ludo', 'quiz', 'darts', 'host', 'music', 'movie', 'photo'];
   $('#screen-signin').classList.toggle('active', screen === 'signin');
   $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && !activities.includes(screen));
   $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
@@ -1238,6 +1342,10 @@ function showScreen(mode){
   $('#screen-quiz').classList.toggle('active', screen === 'quiz');
   $('#screen-darts').classList.toggle('active', screen === 'darts');
   $('#screen-host').classList.toggle('active', screen === 'host');
+  $('#screen-music').classList.toggle('active', screen === 'music');
+  $('#screen-movie').classList.toggle('active', screen === 'movie');
+  $('#screen-photo').classList.toggle('active', screen === 'photo');
+  if (screen !== 'photo') phStop();
   if (screen === 'darts') dartsEnter(); else dartsEntered = false;
   if (screen === 'quiz') quizEnter(); else quizEntered = false;
   if (screen === 'ludo') ludoEnter(); else ludoEntered = false;
@@ -1480,6 +1588,8 @@ function render(){
   renderQuiz();
   renderDarts();
   renderHost();
+  renderMusic();
+  renderMovie();
   renderBoard();
   renderTicTacToe();
   renderScoreboard();
@@ -2319,6 +2429,122 @@ $('#hcMute').addEventListener('click', () => hostCall('/game/admin/sound', { mut
 $('#hcGames').addEventListener('click', e => { const b = e.target.closest('[data-reset]'); if (!b) return; const n = HOST_NAMES[b.dataset.reset];
   if (confirm(b.dataset.reset === 'claw' ? 'Free all four claws? Anyone playing Claw Catch is sent back to the start.' : 'Reset ' + n + '? Any game in progress ends and its seats are freed.')) hostCall('/game/admin/reset', { game: b.dataset.reset }); });
 $('#hcLeadersClear').addEventListener('click', () => { if (confirm('Clear the villa leaderboard for new guests? This can’t be undone.')) hostCall('/game/admin/leaders-clear'); });
+
+
+// ── POOLSIDE MUSIC ── request and vote; staff play from the villa's own music system (nothing plays here).
+let musicMine = { voted: [], asked: [] }, movieMine = null, musicErr = '';
+const escP = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+async function loungePost(path, body){ if (busy) return null; busy = true; try { musicErr = ''; state = await postJson(path, body || {}); render(); return state; } catch (e) { return null; } finally { busy = false; } }
+let loungeAsked = '';
+function renderMusic(){
+  const M = state.music; if (!M || state.mode !== 'music') return;
+  if (playToken && loungeAsked !== 'music') { loungeAsked = 'music'; postJson('/game/music/mine', {}).then(j => { if (j && j.music) { state = j; render(); } }).catch(() => {}); }
+  const n = M.now;
+  $('#muNowP').innerHTML = n ? `<div class="k">Now playing</div><b>${escP(n.title)}</b><span>${escP(n.artist || '')}${n.artist ? ' · ' : ''}asked by ${escP(n.by)}</span>` : '<div class="k">Now playing</div><span>Nothing yet: request the first song</span>';
+  $('#muMsg').textContent = musicErr || (profile ? 'Up to 3 of your songs can wait at once.' : 'Set your name first: your requests show under it.');
+  $('#muMsg').classList.toggle('err', !!musicErr);
+  const staff = hostStaff;
+  $('#muList').innerHTML = (M.queue || []).length ? M.queue.map((r, i) => { const v = musicMine.voted.indexOf(r.id) >= 0, mine = musicMine.asked.indexOf(r.id) >= 0;
+    return `<li class="${i === 0 ? 'top' : ''}"><span class="tx"><b>${escP(r.title)}</b><small>${escP(r.artist || '')}${r.artist ? ' · ' : ''}${mine ? 'you' : escP(r.by)}</small></span>`
+      + (staff ? `<button type="button" class="pl" data-play="${r.id}">Play</button>` : '')
+      + ((mine || staff) ? `<button type="button" class="x" data-remove="${r.id}" aria-label="Remove ${escP(r.title)}">&times;</button>` : '')
+      + `<button type="button" class="vt${v ? ' on' : ''}" data-vote="${r.id}" aria-pressed="${v}" ${mine ? 'disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l7 8h-4v8H9v-8H5z"/></svg>${r.votes}</button></li>`; }).join('') : '<li class="empty">No requests yet</li>';
+  $('#muStaff').hidden = !staff;
+}
+$('#muAsk').addEventListener('click', async () => { if (!profile) { openSheet(); return; } const t = $('#muTitle').value.trim(); if (!t) { $('#muTitle').focus(); return; }
+  const j = await loungePost('/game/music/request', { title: t, artist: $('#muArtist').value }); if (j && !j.musicError) { $('#muTitle').value = ''; $('#muArtist').value = ''; } });
+$('#muList').addEventListener('click', e => { const v = e.target.closest('[data-vote]'), x = e.target.closest('[data-remove]'), pl = e.target.closest('[data-play]');
+  if (v && !v.disabled) loungePost('/game/music/vote', { id: v.dataset.vote }); else if (x) loungePost('/game/music/remove', { id: x.dataset.remove }); else if (pl) loungePost('/game/music/play', { id: pl.dataset.play }); });
+$('#muPlayNext').addEventListener('click', () => loungePost('/game/music/play', {}));
+$('#muStop').addEventListener('click', () => loungePost('/game/music/stop', {}));
+
+// ── MOVIE NIGHT ── staff shortlist films the villa TV's apps can play; guests vote; the screen counts down.
+function renderMovie(){
+  const V = state.movie; if (!V || state.mode !== 'movie') return;
+  if (playToken && loungeAsked !== 'movie') { loungeAsked = 'movie'; postJson('/game/movie/mine', {}).then(j => { if (j && j.movie) { state = j; render(); } }).catch(() => {}); }
+  const now = Date.now() + serverSkew, mm = ms => { const t = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
+  const win = V.phase === 'chosen' && V.options.find(o => o.id === V.winner), max = Math.max(1, ...V.options.map(o => o.votes));
+  $('#mvStatusP').innerHTML = V.phase === 'voting' ? `<b>Vote closes in ${mm(V.closesAt - now)}</b><span>${V.total} ${V.total === 1 ? 'vote' : 'votes'} so far · you can change yours</span>`
+    : win ? `<small>Tonight</small><b class="film">${escP(win.title)}</b><span>${V.startsAt ? (V.startsAt > now ? 'Starts in ' + mm(V.startsAt - now) : 'Starting now') : 'Starting soon'}</span>` : '<span>The shortlist is on its way. Staff add the films the villa TV can play.</span>';
+  $('#mvStatusP').classList.toggle('chosen', !!win);
+  $('#mvListP').innerHTML = V.options.map(o => `<button type="button" class="mv-op${movieMine === o.id ? ' on' : ''}${win && win.id === o.id ? ' won' : ''}" data-film="${o.id}" ${V.phase !== 'voting' ? 'disabled' : ''}><span class="t">${escP(o.title)}</span>${o.note ? `<span class="n">${escP(o.note)}</span>` : ''}${V.phase !== 'setup' ? `<span class="bar"><i style="width:${Math.round(o.votes / max * 100)}%"></i></span><span class="c">${o.votes} ${o.votes === 1 ? 'vote' : 'votes'}${movieMine === o.id ? ' · yours' : ''}</span>` : ''}${hostStaff && V.phase !== 'chosen' ? `<span class="rm" data-rmfilm="${o.id}" role="button" aria-label="Remove ${escP(o.title)}">&times;</span>` : ''}${hostStaff && V.phase === 'chosen' && !(win && win.id === o.id) ? `<span class="pick" data-pick="${o.id}" role="button">Choose this</span>` : ''}</button>`).join('');
+  $('#mvStaffP').hidden = !hostStaff;
+  if (V.phase === 'voting' && !renderMovie.t) renderMovie.t = setInterval(() => { if (state.mode === 'movie') renderMovie(); else { clearInterval(renderMovie.t); renderMovie.t = null; } }, 1000);
+}
+$('#mvListP').addEventListener('click', e => { const rm = e.target.closest('[data-rmfilm]'), pk = e.target.closest('[data-pick]'), b = e.target.closest('[data-film]');
+  if (rm) { e.stopPropagation(); loungePost('/game/movie/remove', { id: rm.dataset.rmfilm }); return; }
+  if (pk) { e.stopPropagation(); loungePost('/game/movie/choose', { id: pk.dataset.pick }); return; }
+  if (b && !b.disabled) { if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) {} loungePost('/game/movie/vote', { id: b.dataset.film }); } });
+$('#mvAdd').addEventListener('click', () => { const t = $('#mvAddTitle').value.trim(); if (!t) return; loungePost('/game/movie/add', { title: t, note: $('#mvAddNote').value }).then(() => { $('#mvAddTitle').value = ''; $('#mvAddNote').value = ''; }); });
+$('#mvOpen').addEventListener('click', e => { const b = e.target.closest('[data-min]'); if (b) loungePost('/game/movie/open', { minutes: Number(b.dataset.min) }); });
+$('#mvClose').addEventListener('click', () => loungePost('/game/movie/close', {}));
+$('#mvShow').addEventListener('click', e => { const b = e.target.closest('[data-min]'); if (b) loungePost('/game/movie/showtime', { minutes: Number(b.dataset.min) }); });
+
+// ── PHOTO BOOTH ── the camera, a drawn RYST frame, a 3-2-1 countdown; the photo is composed on this phone and saved
+// to it (share sheet or download). Nothing is uploaded and nothing goes to the pool screen.
+function phStop(){ if (ph.stream) { ph.stream.getTracks().forEach(t => t.stop()); ph.stream = null; } const v = $('#phVideo'); if (v) v.srcObject = null; }
+async function phStart(){
+  phStop(); const msg = $('#phMsg'); msg.hidden = true;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { msg.textContent = 'This browser can’t open the camera.'; msg.hidden = false; return; }
+  try { ph.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: ph.facing, width: { ideal: 1440 }, height: { ideal: 1800 } }, audio: false }); }
+  catch (e) { msg.textContent = 'Camera access was declined. Allow the camera for this site to use the photo booth.'; msg.hidden = false; return; }
+  const v = $('#phVideo'); v.srcObject = ph.stream; v.classList.toggle('mirror', ph.facing === 'user'); try { await v.play(); } catch (e) {}
+}
+function phFrameDraw(c, W, H, f){
+  const d = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+  c.save(); c.textAlign = 'center';
+  if (f === 'gold') {
+    const g = c.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#F7DFA4'); g.addColorStop(0.5, '#D8B879'); g.addColorStop(1, '#9C7536');
+    c.strokeStyle = g; c.lineWidth = W * 0.022; c.strokeRect(W * 0.04, H * 0.035, W * 0.92, H * 0.93);
+    c.lineWidth = W * 0.004; c.strokeRect(W * 0.065, H * 0.055, W * 0.87, H * 0.89);
+    const band = c.createLinearGradient(0, H * 0.8, 0, H); band.addColorStop(0, 'rgba(7,51,59,0)'); band.addColorStop(0.45, 'rgba(7,51,59,.82)'); band.addColorStop(1, 'rgba(4,31,37,.95)');
+    c.fillStyle = band; c.fillRect(W * 0.04, H * 0.78, W * 0.92, H * 0.185);
+    c.fillStyle = '#F6F3EC'; c.font = 'italic 600 ' + Math.round(W * 0.075) + 'px "Cormorant Garamond", Georgia, serif'; c.fillText('RYST 109A', W / 2, H * 0.885);
+    c.fillStyle = '#D8B879'; c.font = '700 ' + Math.round(W * 0.026) + 'px Inter, system-ui, sans-serif'; c.fillText(('Beach Villa · Cheyyur · ' + d).toUpperCase(), W / 2, H * 0.93);
+  } else if (f === 'polaroid') {
+    c.fillStyle = '#FBF8F1'; const b = W * 0.05; c.fillRect(0, 0, W, b); c.fillRect(0, 0, b, H); c.fillRect(W - b, 0, b, H); c.fillRect(0, H * 0.8, W, H * 0.2);
+    c.fillStyle = 'rgba(0,0,0,.08)'; c.fillRect(b, H * 0.8, W - 2 * b, 3);
+    c.fillStyle = '#07333B'; c.font = 'italic 600 ' + Math.round(W * 0.07) + 'px "Cormorant Garamond", Georgia, serif'; c.fillText('Sun, sea and RYST 109A', W / 2, H * 0.89);
+    c.fillStyle = '#9C7536'; c.font = '600 ' + Math.round(W * 0.028) + 'px Inter, system-ui, sans-serif'; c.fillText(d, W / 2, H * 0.94);
+  } else {
+    const vg = c.createRadialGradient(W / 2, H / 2, W * 0.35, W / 2, H / 2, W * 0.85); vg.addColorStop(0, 'rgba(7,51,59,0)'); vg.addColorStop(1, 'rgba(7,51,59,.85)');
+    c.fillStyle = vg; c.fillRect(0, 0, W, H);
+    const shell = (x, y, s, rot) => { c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.fillStyle = '#F6F3EC'; c.beginPath(); c.moveTo(0, 40); c.bezierCurveTo(-46, 30, -44, -24, -22, -34); c.lineTo(0, -44); c.lineTo(22, -34); c.bezierCurveTo(44, -24, 46, 30, 0, 40); c.fill();
+      c.strokeStyle = '#D8B879'; c.lineWidth = 3; [-24, -12, 0, 12, 24].forEach(t => { c.beginPath(); c.moveTo(0, 38); c.lineTo(t, -36); c.stroke(); }); c.restore(); };
+    shell(W * 0.11, H * 0.09, W / 900, -0.5); shell(W * 0.89, H * 0.09, W / 900, 0.5); shell(W * 0.1, H * 0.92, W / 1100, -2.6); shell(W * 0.9, H * 0.92, W / 1100, 2.6);
+    c.fillStyle = '#F6F3EC'; c.font = 'italic 600 ' + Math.round(W * 0.07) + 'px "Cormorant Garamond", Georgia, serif'; c.fillText('By the sea', W / 2, H * 0.92);
+    c.fillStyle = '#A9CFC5'; c.font = '700 ' + Math.round(W * 0.026) + 'px Inter, system-ui, sans-serif'; c.fillText(('RYST 109A · ' + d).toUpperCase(), W / 2, H * 0.955);
+  }
+  c.restore();
+}
+function phPreview(){ // the frame over the live camera, drawn into a transparent canvas sized like the stage
+  const ov = $('#phFrameOv'); let cv = ov.querySelector('canvas'); if (!cv) { cv = document.createElement('canvas'); cv.width = 1080; cv.height = 1350; ov.appendChild(cv); }
+  const c = cv.getContext('2d'); c.clearRect(0, 0, 1080, 1350); phFrameDraw(c, 1080, 1350, ph.frame);
+}
+async function phSnap(){
+  const v = $('#phVideo'); if (ph.busy || !ph.stream || !v.videoWidth) return; ph.busy = true;
+  if (ph.timer) { const ct = $('#phCount'); for (let n = 3; n > 0; n--) { ct.textContent = n; ct.hidden = false; ct.classList.remove('go'); void ct.offsetWidth; ct.classList.add('go'); if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {} await new Promise(r => setTimeout(r, 900)); } ct.hidden = true; }
+  const cv = $('#phShot'), c = cv.getContext('2d'), W = cv.width, H = cv.height, vw = v.videoWidth, vh = v.videoHeight, sc = Math.max(W / vw, H / vh), dw = vw * sc, dh = vh * sc;
+  c.save(); if (ph.facing === 'user') { c.translate(W, 0); c.scale(-1, 1); } c.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh); c.restore();
+  phFrameDraw(c, W, H, ph.frame);
+  $('#phStage').classList.add('flash'); setTimeout(() => $('#phStage').classList.remove('flash'), 350);
+  cv.hidden = false; v.hidden = true; $('#phFrameOv').hidden = true; $('#phLive').hidden = true; $('#phDone').hidden = false; $('#phFrames').hidden = true; ph.busy = false;
+}
+function phRetake(){ $('#phShot').hidden = true; $('#phVideo').hidden = false; $('#phFrameOv').hidden = false; $('#phLive').hidden = false; $('#phDone').hidden = true; $('#phFrames').hidden = false; }
+async function phSave(){
+  const cv = $('#phShot'), name = 'RYST-109A-' + new Date().toISOString().slice(0, 10) + '.jpg';
+  const blob = await new Promise(r => cv.toBlob(r, 'image/jpeg', 0.92)); if (!blob) return;
+  const file = typeof File === 'function' ? new File([blob], name, { type: 'image/jpeg' }) : null;
+  if (file && navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: 'RYST 109A' }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  const url = URL.createObjectURL(blob), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+document.addEventListener('click', e => { const b = e.target.closest('[data-local="photo"]'); if (!b) return; photoOpen = true; render(); window.scrollTo(0, 0); phRetake(); phPreview(); phStart(); });
+$('#phBack').addEventListener('click', () => { photoOpen = false; phStop(); render(); });
+$('#phFrames').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; ph.frame = b.dataset.f; $('#phFrames').querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b)); phPreview(); });
+$('#phFlip').addEventListener('click', () => { ph.facing = ph.facing === 'user' ? 'environment' : 'user'; phStart(); });
+$('#phTimer').addEventListener('click', () => { ph.timer = !ph.timer; $('#phTimer').textContent = ph.timer ? '3 s' : 'No timer'; $('#phTimer').setAttribute('aria-pressed', String(ph.timer)); });
+$('#phSnap').addEventListener('click', phSnap); $('#phRetake').addEventListener('click', phRetake); $('#phSave').addEventListener('click', phSave);
+document.addEventListener('visibilitychange', () => { if (document.hidden) phStop(); else if (photoOpen && $('#phShot').hidden) phStart(); });
 
 async function quizPost(path, body){ if (busy) return; busy = true; try { state = await postJson(path, body || {}); render(); } catch (e) {} finally { busy = false; } }
 $('#quizTeams').addEventListener('click', e => { const b = e.target.closest('[data-team]'); if (!b || b.disabled) return; if (!profile) { openSheet(); return; } quizPost('/game/quiz/join', { team: Number(b.dataset.team) }); });
