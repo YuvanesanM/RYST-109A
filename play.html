@@ -659,6 +659,39 @@
   .qz-board li.me{border-color:rgba(216,184,121,.55)}
   .qz-board li.mvp{background:none;border:0;padding:4px 2px 0} .qz-board li.mvp .k{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#d8b879}
   .qz-board li.mvp .mn{font-family:var(--serif);font-style:italic;font-weight:600;font-size:22px;color:var(--ink)} .qz-board li.mvp .k.sub{color:var(--muted-text);margin-top:6px}
+  /* ── Stage 8b: Darts controller ── */
+  .dt-players{display:flex;flex-direction:column;gap:8px;margin:6px 0 12px}
+  .dt-pp{position:relative;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);box-shadow:inset 3px 0 0 var(--pc)}
+  .dt-pp .av{width:34px;height:34px;border-radius:50%;box-shadow:0 0 0 2px var(--pc);overflow:hidden;flex-shrink:0} .dt-pp .av svg{display:block;width:100%;height:100%}
+  .dt-pp .nm{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left;font-weight:800;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dt-pp .nm small{font-weight:600;font-size:12px;color:var(--muted-text)}
+  .dt-pp .sc{font:800 22px/1 var(--sans);color:var(--ink);font-variant-numeric:tabular-nums}
+  .dt-pp.on-turn{border-color:var(--pc);background:linear-gradient(90deg,rgba(255,255,255,.1),rgba(255,255,255,.03))}
+  .dt-pp.won{border-color:#d8b879} .dt-pp.won .sc{color:#f7dfa4}
+  .dt-pp .x{width:28px;height:28px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--muted-text);font-size:16px;line-height:1;cursor:pointer}
+  .dt-empty{color:var(--muted-text);font-size:13px;margin:4px 0}
+  .dt-joinrow{display:flex;gap:10px;margin-bottom:14px} .dt-joinrow .btn{flex:1} .dt-joinrow[hidden]{display:none}
+  .dt-setup .viz-seg{margin-bottom:12px} .dt-setup .viz-seg button.on,#dtMult button.on{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4}
+  .dt-setup .viz-seg button:disabled{opacity:.55}
+  .dt-visit{padding:12px 14px;border-radius:16px;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(216,184,121,.4);margin-bottom:12px}
+  .dt-visit[hidden],.dt-aim[hidden],.dt-pad[hidden]{display:none}
+  .dt-visit .who{display:flex;align-items:center;gap:10px} .dt-visit .who .av{width:36px;height:36px;border-radius:50%;box-shadow:0 0 0 2px var(--pc);overflow:hidden;flex-shrink:0} .dt-visit .who .av svg{display:block;width:100%;height:100%}
+  .dt-visit .who > span:nth-child(2){flex:1;display:flex;flex-direction:column;text-align:left} .dt-visit small{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#a9cfc5} .dt-visit b{font-size:16px;color:var(--ink)}
+  .dt-visit .left{font:800 32px/1 var(--sans);color:var(--ink);text-align:right;font-variant-numeric:tabular-nums} .dt-visit .left small{display:block;font-size:10px;margin-top:2px}
+  .dt-visit .slots{display:flex;align-items:center;gap:6px;margin-top:10px}
+  .dt-visit .slots span{flex:1;padding:8px 0;border-radius:10px;text-align:center;font:800 15px/1 var(--sans);color:var(--ink);background:rgba(255,255,255,.08);border:1px solid var(--line);min-height:33px}
+  .dt-visit .slots span.e{background:none;border-style:dashed} .dt-visit .slots span.t{background:#d8b879;color:#07333b;border-color:#d8b879} .dt-visit .slots span.d{background:#a9cfc5;color:#07333b;border-color:#a9cfc5} .dt-visit .slots span.m{color:var(--muted-text)}
+  .dt-visit .slots b{min-width:44px;text-align:right;font:800 18px/1 var(--sans);color:#f7dfa4;font-variant-numeric:tabular-nums}
+  .dt-visit .hint{margin-top:10px;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#d8b879;text-align:left} .dt-visit .hint i{font-style:normal;margin-left:6px;padding:3px 8px;border-radius:99px;border:1px solid rgba(216,184,121,.55);color:#f7dfa4;letter-spacing:0}
+  .dt-aim{text-align:center} .dt-aim canvas{width:100%;max-width:340px;aspect-ratio:1;touch-action:none;display:block;margin:0 auto;border-radius:50%;box-shadow:0 18px 40px rgba(0,0,0,.4)}
+  .dt-aimhint{font-weight:700;font-size:14px;color:var(--ink);margin:12px 0 4px;min-height:20px}
+  .dt-mult{margin-bottom:10px}
+  .dt-nums{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:6px}
+  .dt-nums button,.dt-extra button{padding:13px 0;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);font:800 16px/1 var(--sans);cursor:pointer;font-variant-numeric:tabular-nums}
+  .dt-nums button:active,.dt-extra button:active{background:rgba(216,184,121,.25)}
+  .dt-extra{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px} .dt-extra button:disabled{opacity:.45}
+  #dtUndo{color:#a9cfc5}
+  @media (orientation:landscape) and (max-height:520px) and (min-width:640px){ .ls-b .dt-aim canvas{max-width:min(100%,62vh)} .dt-nums button,.dt-extra button{padding:9px 0} }
 </style>
 </head>
 <body>
@@ -750,6 +783,50 @@
         <button type="button" class="btn ghost" id="ludoOther" hidden>Choose another game</button>
       </div>
       <p class="claw-hint">A 6 brings a token out and rolls again. Land on a rival to send them home, except on the star and start squares. You need the exact roll to get home. First to bring all four home wins.</p>
+      </div></div>
+    </section>
+
+    <section class="screen" id="screen-darts">
+      <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <div class="ls-grid"><div class="ls-a">
+      <h1 class="ll-h1">Darts <em id="dtTitleN">501</em></h1>
+      <p class="sub" id="dtSub">Up to four players. Throw from your phone, or score the villa's real dartboard.</p>
+      <div class="dt-players" id="dtPlayersP"></div>
+      <div class="dt-joinrow" id="dtJoinRow">
+        <button type="button" class="btn primary" id="dtJoinMe">Join</button>
+        <button type="button" class="btn ghost" id="dtAdd">Add a player</button>
+      </div>
+      <div class="ludo-join" id="dtAddRow" hidden>
+        <input type="text" id="dtAddName" maxlength="24" placeholder="Their name" autocomplete="off">
+        <button type="button" class="btn primary" id="dtAddOk">Add</button>
+        <button type="button" class="btn ghost" id="dtAddCancel">Cancel</button>
+      </div>
+      <div class="dt-setup" id="dtSetupP">
+        <label class="bd-label">How you play</label>
+        <div class="viz-seg" id="dtMode" role="group" aria-label="How you play"><button type="button" data-mode="virtual">Throw on phone</button><button type="button" data-mode="board">Real dartboard</button></div>
+        <label class="bd-label">Game</label>
+        <div class="viz-seg" id="dtStartSeg" role="group" aria-label="Starting score"><button type="button" data-start="301">301</button><button type="button" data-start="501">501</button></div>
+        <label class="bd-label">Finish</label>
+        <div class="viz-seg" id="dtOut" role="group" aria-label="Finish"><button type="button" data-out="1">Double out</button><button type="button" data-out="0">Straight out</button></div>
+      </div>
+      <p class="ludo-status" id="dtStatus" role="status" aria-live="polite">&nbsp;</p>
+      </div><div class="ls-b">
+      <div class="dt-visit" id="dtVisitP" hidden></div>
+      <div class="dt-aim" id="dtAim" hidden>
+        <canvas id="dtAimCv" width="600" height="600" aria-label="Aim: hold on the board, let go to throw"></canvas>
+        <p class="dt-aimhint" id="dtAimHint">Hold your finger on the board to aim · let go to throw</p>
+      </div>
+      <div class="dt-pad" id="dtPad" hidden>
+        <div class="viz-seg dt-mult" id="dtMult" role="group" aria-label="Ring"><button type="button" data-mult="1" class="on">Single</button><button type="button" data-mult="2">Double</button><button type="button" data-mult="3">Treble</button></div>
+        <div class="dt-nums" id="dtNums"></div>
+        <div class="dt-extra"><button type="button" data-seg="25" data-m="1">25</button><button type="button" data-seg="25" data-m="2">Bull</button><button type="button" data-seg="0" data-m="0">Miss</button><button type="button" id="dtUndo">Undo</button></div>
+      </div>
+      <div class="actions ludo-actions">
+        <button type="button" class="btn primary" id="dtStartBtn" hidden>Start game</button>
+        <button type="button" class="btn primary" id="dtNewBtn" hidden>New game</button>
+        <button type="button" class="btn ghost" id="dtEndBtn" hidden>End game</button>
+      </div>
+      <p class="claw-hint">Each visit is three darts; your score counts down to exactly zero. With double out, the last dart must land in a double (the bullseye counts). Going below zero, or leaving 1, is a bust: the visit doesn't count.</p>
       </div></div>
     </section>
 
@@ -979,6 +1056,12 @@ const ART = {
     <path d="M47 64V54a28 28 0 0 1 56 0v10" fill="none" stroke="url(#aHp)" stroke-width="7" stroke-linecap="round"/><rect x="38" y="56" width="18" height="30" rx="7" fill="#5a3fd6"/><rect x="94" y="56" width="18" height="30" rx="7" fill="#3fb3d6"/>
     <g filter="url(#aGlow3)" fill="none" stroke-width="3.5" stroke-linecap="round"><path d="M28 56c-4 6-4 18 0 24M18 50c-8 10-8 30 0 40" stroke="#7b5cff"/><path d="M122 56c4 6 4 18 0 24M132 50c8 10 8 30 0 40" stroke="#4fe7ff"/></g></svg>`,
 };
+ART.darts = `<svg viewBox="0 0 150 100" aria-hidden="true"><defs><radialGradient id="aDb" cx=".4" cy=".35"><stop offset="0" stop-color="#2a2622"/><stop offset="1" stop-color="#0e0d0c"/></radialGradient></defs>
+    <ellipse cx="72" cy="88" rx="46" ry="7" fill="rgba(0,0,0,.25)"/><circle cx="72" cy="50" r="38" fill="url(#aDb)"/>
+    <g transform="translate(72 50)">${Array.from({ length: 20 }, (_, i) => { const a0 = (i * 18 - 99) * Math.PI / 180, a1 = a0 + 18 * Math.PI / 180, P = (r, a) => (r * Math.cos(a)).toFixed(1) + ' ' + (r * Math.sin(a)).toFixed(1);
+      return '<path d="M' + P(4, a0) + 'L' + P(30, a0) + 'A30 30 0 0 1 ' + P(30, a1) + 'L' + P(4, a1) + 'Z" fill="' + (i % 2 ? '#efe3c8' : '#1c1a18') + '"/><path d="M' + P(30, a0) + 'L' + P(32.5, a0) + 'A32.5 32.5 0 0 1 ' + P(32.5, a1) + 'L' + P(30, a1) + 'Z" fill="' + (i % 2 ? '#1f8a5b' : '#c8323a') + '"/><path d="M' + P(17, a0) + 'L' + P(19.5, a0) + 'A19.5 19.5 0 0 1 ' + P(19.5, a1) + 'L' + P(17, a1) + 'Z" fill="' + (i % 2 ? '#1f8a5b' : '#c8323a') + '"/>'; }).join('')}
+    <circle r="4" fill="#1f8a5b"/><circle r="1.8" fill="#c8323a"/></g>
+    <g transform="translate(76 44) rotate(-38)"><rect x="0" y="-1" width="9" height="2" fill="#c9ced1"/><rect x="9" y="-3" width="16" height="6" rx="2" fill="#9aa5ab"/><rect x="25" y="-1.5" width="8" height="3" fill="#2b3236"/><path d="M31 0l12-9 2 9-2 9z" fill="#ff7a4d"/></g></svg>`;
 const ICON = {
   ludo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1.3" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1.3" fill="currentColor"/></svg>',
   quiz: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/><path d="M10.6 8.6a1.6 1.6 0 1 1 2.2 1.5c-.5.2-.8.6-.8 1.1"/></svg>',
@@ -996,6 +1079,7 @@ const ACTIVITIES = [
   { mode: 'visualizer', name: 'DJ Visuals', desc: 'A light show for the pool screen', cta: 'Play now' },
   { mode: 'ludo', name: 'Ludo Lounge', desc: '2 to 4 players: roll, race and send rivals home', cta: 'Play now' },
   { mode: 'quiz', name: 'Quiz Night', desc: 'Team trivia on the big screen, answered on your phone', cta: 'Play now' },
+  { mode: 'darts', name: 'Darts', desc: '301 or 501 for up to 4: throw from your phone, or score the villa board', cta: 'Play now' },
 ];
 const MORE = [
   { key: 'photo', name: 'Photo Booth', note: 'Coming soon', soon: true },
@@ -1079,6 +1163,7 @@ async function postJson(path, body){
   if(!res.ok) return state;
   const j = await res.json();
   if (j && Array.isArray(j.ludoMine)) ludoMine = j.ludoMine;
+  if (j && Array.isArray(j.dartsMine)) dartsMine = j.dartsMine;
   if (j && 'tttMine' in j) tttMine = j.tttMine;
   if (j && 'quizMe' in j) { quizMe = j.quizMe; quizMeKey = j.quiz ? j.quiz.gameId + ':' + j.quiz.qIndex : ''; }
   postGen++; // any poll that started before this reply is now stale
@@ -1088,7 +1173,7 @@ async function postJson(path, body){
 
 function showScreen(mode){
   const screen = playToken ? mode : 'signin';
-  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw', 'ludo', 'quiz'];
+  const activities = ['tictactoe', 'scoreboard', 'memory', 'backdrop', 'visualizer', 'claw', 'ludo', 'quiz', 'darts'];
   $('#screen-signin').classList.toggle('active', screen === 'signin');
   $('#screen-dashboard').classList.toggle('active', screen !== 'signin' && !activities.includes(screen));
   $('#screen-tictactoe').classList.toggle('active', screen === 'tictactoe');
@@ -1099,6 +1184,8 @@ function showScreen(mode){
   $('#screen-claw').classList.toggle('active', screen === 'claw');
   $('#screen-ludo').classList.toggle('active', screen === 'ludo');
   $('#screen-quiz').classList.toggle('active', screen === 'quiz');
+  $('#screen-darts').classList.toggle('active', screen === 'darts');
+  if (screen === 'darts') dartsEnter(); else dartsEntered = false;
   if (screen === 'quiz') quizEnter(); else quizEntered = false;
   if (screen === 'ludo') ludoEnter(); else ludoEntered = false;
   document.body.classList.toggle('hub', screen === 'dashboard' || (screen !== 'signin' && !activities.includes(screen)));
@@ -1338,6 +1425,7 @@ function render(){
   renderHubState();
   renderLudo();
   renderQuiz();
+  renderDarts();
   renderBoard();
   renderTicTacToe();
   renderScoreboard();
@@ -1940,7 +2028,7 @@ async function loadProfile(){
 function renderBoard(){
   const L = (state.leaders || []).slice(0, 5), el = $('#rpBoard'); if (!el) return;
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  el.innerHTML = L.length ? L.map((r, i) => `<div class="rp-row${profile && r.id === profile.id ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="av">${avatarSvg(r.avatar)}</span><span class="nm">${esc(r.name)}</span><span class="br">${[r.claw ? r.claw + ' Claw' : '', r.ludo ? r.ludo + ' Ludo' : ''].filter(Boolean).join(' · ')}</span><span class="wn">${r.wins}<small>${r.wins === 1 ? 'win' : 'wins'}</small></span></div>`).join('')
+  el.innerHTML = L.length ? L.map((r, i) => `<div class="rp-row${profile && r.id === profile.id ? ' me' : ''}"><span class="rk">${i + 1}</span><span class="av">${avatarSvg(r.avatar)}</span><span class="nm">${esc(r.name)}</span><span class="br">${[['claw', 'Claw'], ['ludo', 'Ludo'], ['quiz', 'Quiz'], ['darts', 'Darts'], ['ttt', 'Tic-Tac-Toe']].filter(g => r[g[0]]).map(g => r[g[0]] + ' ' + g[1]).join(' · ')}</span><span class="wn">${r.wins}<small>${r.wins === 1 ? 'win' : 'wins'}</small></span></div>`).join('')
     : '<p class="rp-empty">Win a round of Claw Catch or a game of Ludo to get on the board.</p>';
 }
 
@@ -2018,6 +2106,108 @@ const QUIZ_CAT_ICON = {
 const quizOrd = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
 $('#quizCats').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (b && !b.disabled) quizPost('/game/quiz/setup', { category: b.dataset.cat }); });
 $('#quizLen').addEventListener('click', e => { const b = e.target.closest('[data-len]'); if (b && !b.disabled) quizPost('/game/quiz/setup', { length: Number(b.dataset.len) }); });
+
+// ── DARTS ── this phone holds one or more player slots (dartsMine). Virtual: hold a finger on the board to aim (the
+// reticle sways like a real hand, steadiest after about a second), let go to throw; the proxy decides where it lands.
+// Board mode: tap where your dart landed on the real board.
+const DT_COL = ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'];
+const DT_ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+let dartsMine = [], dartsEntered = false, dtMult = 1, dtBuzzTurn = '';
+function dartsEnter(){ if (dartsEntered || !playToken) return; dartsEntered = true; postJson('/game/darts/mine', {}).then(j => { if (j && j.darts) { state = j; render(); } }).catch(() => {}); }
+async function dartsPost(path, body){ if (busy) return null; busy = true; try { state = await postJson(path, body || {}); render(); return state; } catch (e) { return null; } finally { busy = false; } }
+function renderDarts(){
+  const D = state.darts; if (!D || state.mode !== 'darts') return;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const P = D.players || [], playing = D.phase === 'play', mine = dartsMine.length > 0, myTurn = playing && dartsMine.indexOf(D.turn) >= 0 && !D.bust && (D.visit || []).length < 3;
+  const nextIsMine = playing && (D.bust || (D.visit || []).length === 3) && dartsMine.indexOf((D.turn + 1) % P.length) >= 0;
+  $('#dtTitleN').textContent = String(D.start || 501);
+  $('#dtSub').hidden = playing;
+  $('#dtPlayersP').innerHTML = P.map((p, i) => `<div class="dt-pp${playing && i === D.turn ? ' on-turn' : ''}${D.winner === i ? ' won' : ''}${dartsMine.indexOf(i) >= 0 ? ' mine' : ''}" style="--pc:${DT_COL[i % 4]}"><span class="av">${avatarSvg(p.avatar)}</span><span class="nm">${esc(p.name)}<small>${dartsMine.indexOf(i) >= 0 ? 'You' : p.darts ? 'avg ' + (Math.round(p.scored / p.darts * 30) / 10).toFixed(1) : 'Ready'}</small></span><span class="sc">${p.score}</span>${!playing && dartsMine.indexOf(i) >= 0 ? `<button type="button" class="x" data-leave="${i}" aria-label="Remove ${esc(p.name)}">&times;</button>` : ''}</div>`).join('') || '<p class="dt-empty">No players yet</p>';
+  const canJoin = !playing && P.length < 4;
+  $('#dtJoinRow').hidden = !canJoin || !$('#dtAddRow').hidden; $('#dtJoinMe').textContent = mine ? 'Join again' : 'Join';
+  $('#dtJoinMe').hidden = mine; // a second slot on this phone is "Add a player"
+  $('#dtSetupP').hidden = playing;
+  const set = (sel, attr, val) => document.querySelectorAll(sel).forEach(b => { b.classList.toggle('on', b.dataset[attr] === String(val)); b.disabled = !mine; });
+  set('#dtMode [data-mode]', 'mode', D.mode); set('#dtStartSeg [data-start]', 'start', D.start); set('#dtOut [data-out]', 'out', D.doubleOut ? 1 : 0);
+  // the visit in progress
+  const v = D.visit || [], turn = P[D.turn];
+  $('#dtVisitP').hidden = !playing && D.phase !== 'over';
+  if (turn && (playing || D.phase === 'over')) $('#dtVisitP').innerHTML = `<div class="who" style="--pc:${DT_COL[D.turn % 4]}"><span class="av">${avatarSvg(turn.avatar)}</span><span><small>${D.phase === 'over' ? 'Game shot' : D.bust ? 'Bust' : dartsMine.indexOf(D.turn) >= 0 ? 'Your throw' : 'To throw'}</small><b>${esc(turn.name)}</b></span><span class="left">${turn.score}<small>left</small></span></div>`
+    + `<div class="slots">${[0, 1, 2].map(k => `<span class="${v[k] ? (v[k].mult === 3 ? 't' : v[k].mult === 2 ? 'd' : v[k].seg ? 's' : 'm') : 'e'}">${v[k] ? esc(v[k].label) : ''}</span>`).join('')}<b>${v.length ? v.reduce((a, d) => a + d.pts, 0) : ''}</b></div>`
+    + (D.hint && playing && !D.bust ? `<div class="hint">Checkout ${D.hint.map(h => `<i>${esc(h)}</i>`).join('')}</div>` : '');
+  const throwing = myTurn || nextIsMine;
+  $('#dtAim').hidden = !(throwing && D.mode === 'virtual');
+  $('#dtPad').hidden = !(throwing && D.mode === 'board');
+  $('#dtUndo').disabled = !(myTurn && v.length > 0);
+  if (!$('#dtNums').children.length) $('#dtNums').innerHTML = Array.from({ length: 20 }, (_, i) => `<button type="button" data-seg="${i + 1}">${i + 1}</button>`).join('');
+  document.querySelectorAll('#dtMult [data-mult]').forEach(b => b.classList.toggle('on', Number(b.dataset.mult) === dtMult));
+  // a buzz when it becomes your turn
+  const tk = D.gameId + ':' + D.round + ':' + D.turn;
+  if (playing && dartsMine.indexOf(D.turn) >= 0 && dtBuzzTurn !== tk && !v.length) { dtBuzzTurn = tk; if (navigator.vibrate) try { navigator.vibrate([20, 60, 20]); } catch (e) {} }
+  let st = '';
+  if (D.phase === 'lobby') st = !P.length ? 'Join to play. Anyone else scans the pool screen.' : mine ? (P.length > 1 ? 'Start when everyone is in.' : 'Add players, or start a solo game.') : 'Join to play, or wait for the next game.';
+  else if (playing) st = D.bust ? esc(turn.name) + ' busts: back to ' + turn.score + '.' : myTurn ? (D.mode === 'virtual' ? 'Dart ' + (v.length + 1) + ' of 3' : 'Tap where dart ' + (v.length + 1) + ' landed') : nextIsMine ? 'Your turn next: throw when ready' : esc(turn.name) + ' is throwing';
+  else if (D.phase === 'over' && P[D.winner]) st = esc(P[D.winner].name) + ' wins! ' + (D.history && D.history[0] ? D.history[0].darts.join(' ') : '');
+  $('#dtStatus').innerHTML = st || '&nbsp;';
+  $('#dtStartBtn').hidden = !(mine && D.phase === 'lobby' && P.length);
+  $('#dtNewBtn').hidden = !(mine && D.phase === 'over');
+  $('#dtEndBtn').hidden = !(mine && playing);
+  if (!$('#dtAim').hidden) dtAimStart(); else dtAimStop();
+}
+// The aiming board: drawn on a canvas; the reticle sits a little above the finger so the finger doesn't hide it.
+const dtAim = { raf: 0, down: false, t0: 0, fx: 0, fy: 0, x: 0, y: 0, steady: 0 };
+function dtAimDraw(now){
+  const cv = $('#dtAimCv'), c = cv.getContext('2d'), S = cv.width, m = S / 2, Rb = S * 0.42;
+  c.clearRect(0, 0, S, S);
+  c.fillStyle = '#121110'; c.beginPath(); c.arc(m, m, Rb * 1.18, 0, Math.PI * 2); c.fill();
+  const wedge = (i, r0, r1, f) => { const a0 = (-99 + i * 18) * Math.PI / 180, a1 = a0 + Math.PI / 10; c.beginPath(); c.arc(m, m, r1, a0, a1); c.arc(m, m, r0, a1, a0, true); c.closePath(); c.fillStyle = f; c.fill(); };
+  for (let i = 0; i < 20; i++) { const d = i % 2 === 0; wedge(i, Rb * 0.094, Rb * 0.582, d ? '#1c1a18' : '#efe3c8'); wedge(i, Rb * 0.582, Rb * 0.629, d ? '#c8323a' : '#1f8a5b'); wedge(i, Rb * 0.629, Rb * 0.953, d ? '#1c1a18' : '#efe3c8'); wedge(i, Rb * 0.953, Rb, d ? '#c8323a' : '#1f8a5b'); }
+  c.fillStyle = '#1f8a5b'; c.beginPath(); c.arc(m, m, Rb * 0.094, 0, Math.PI * 2); c.fill(); c.fillStyle = '#c8323a'; c.beginPath(); c.arc(m, m, Rb * 0.037, 0, Math.PI * 2); c.fill();
+  c.fillStyle = '#F6F3EC'; c.font = '700 ' + Math.round(S * 0.045) + 'px Inter, system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (let i = 0; i < 20; i++) { const a = (-90 + i * 18) * Math.PI / 180; c.fillText(String(DT_ORDER[i]), m + Math.cos(a) * Rb * 1.09, m + Math.sin(a) * Rb * 1.09); }
+  if (dtAim.down) {
+    // the hand: a sway that settles over the first second, holds, then tires
+    const held = (now - dtAim.t0) / 1000, amp = held < 0.9 ? 0.16 - held * 0.13 : held < 2.2 ? 0.043 : Math.min(0.2, 0.043 + (held - 2.2) * 0.07);
+    dtAim.steady = Math.max(0, Math.min(1, 1 - (amp - 0.043) / 0.157));
+    const sx = Math.sin(now / 170) * amp + Math.sin(now / 97) * amp * 0.4, sy = Math.cos(now / 210) * amp + Math.sin(now / 131) * amp * 0.4;
+    dtAim.x = dtAim.fx + sx; dtAim.y = dtAim.fy + sy;
+    const X = m + dtAim.x * Rb, Y = m - dtAim.y * Rb, ring = Rb * (0.05 + amp * 0.6);
+    c.strokeStyle = dtAim.steady > 0.8 ? '#F7DFA4' : '#A9CFC5'; c.lineWidth = S * 0.008;
+    c.beginPath(); c.arc(X, Y, ring, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.moveTo(X - ring * 1.6, Y); c.lineTo(X - ring * 0.6, Y); c.moveTo(X + ring * 0.6, Y); c.lineTo(X + ring * 1.6, Y); c.moveTo(X, Y - ring * 1.6); c.lineTo(X, Y - ring * 0.6); c.moveTo(X, Y + ring * 0.6); c.lineTo(X, Y + ring * 1.6); c.stroke();
+    $('#dtAimHint').textContent = dtAim.steady > 0.8 ? 'Steady… let go to throw' : held > 2.2 ? 'Your arm is tiring: throw!' : 'Hold still to steady your aim';
+  }
+  dtAim.raf = requestAnimationFrame(dtAimDraw);
+}
+function dtAimStart(){ if (!dtAim.raf) dtAim.raf = requestAnimationFrame(dtAimDraw); }
+function dtAimStop(){ if (dtAim.raf) cancelAnimationFrame(dtAim.raf); dtAim.raf = 0; dtAim.down = false; }
+(function(){
+  const cv = $('#dtAimCv');
+  const toBoard = e => { const r = cv.getBoundingClientRect(), Rb = r.width * 0.42; return { x: (e.clientX - r.left - r.width / 2) / Rb, y: -(e.clientY - r.top - r.height / 2 - r.height * 0.09) / Rb }; }; // aim a little above the finger
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (x) {} const b = toBoard(e); dtAim.down = true; dtAim.t0 = performance.now(); dtAim.fx = b.x; dtAim.fy = b.y; if (navigator.vibrate) try { navigator.vibrate(8); } catch (x) {} });
+  cv.addEventListener('pointermove', e => { if (!dtAim.down) return; const b = toBoard(e); dtAim.fx = b.x; dtAim.fy = b.y; });
+  const release = async () => { if (!dtAim.down) return; dtAim.down = false; const aim = { x: Math.round(dtAim.x * 1000) / 1000, y: Math.round(dtAim.y * 1000) / 1000 }, steady = Math.round(dtAim.steady * 100) / 100;
+    $('#dtAimHint').textContent = 'Thrown!'; if (navigator.vibrate) try { navigator.vibrate(25); } catch (x) {}
+    const j = await dartsPost('/game/darts/throw', { aim, steady });
+    const L = j && j.darts && j.darts.last; if (L) $('#dtAimHint').textContent = (L.bust ? 'Bust · ' : '') + (L.label === 'Miss' ? 'Missed the board' : L.label + ' · ' + L.pts) + (j.darts.phase === 'over' ? ' · Game shot!' : ''); };
+  cv.addEventListener('pointerup', release); cv.addEventListener('pointercancel', () => { dtAim.down = false; });
+})();
+$('#dtMult').addEventListener('click', e => { const b = e.target.closest('[data-mult]'); if (!b) return; dtMult = Number(b.dataset.mult); renderDarts(); });
+$('#dtNums').addEventListener('click', e => { const b = e.target.closest('[data-seg]'); if (!b) return; if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) {} dartsPost('/game/darts/throw', { seg: Number(b.dataset.seg), mult: dtMult }).then(() => { dtMult = 1; renderDarts(); }); });
+document.querySelectorAll('#dtPad .dt-extra [data-seg]').forEach(b => b.addEventListener('click', () => { if (navigator.vibrate) try { navigator.vibrate(12); } catch (x) {} dartsPost('/game/darts/throw', { seg: Number(b.dataset.seg), mult: Number(b.dataset.m) }).then(() => { dtMult = 1; renderDarts(); }); }));
+$('#dtUndo').addEventListener('click', () => dartsPost('/game/darts/undo'));
+$('#dtJoinMe').addEventListener('click', () => { if (!profile) { openSheet(); return; } dartsPost('/game/darts/join', {}); });
+$('#dtAdd').addEventListener('click', () => { $('#dtAddRow').hidden = false; $('#dtJoinRow').hidden = true; $('#dtAddName').value = ''; $('#dtAddName').focus(); });
+$('#dtAddCancel').addEventListener('click', () => { $('#dtAddRow').hidden = true; renderDarts(); });
+$('#dtAddOk').addEventListener('click', () => { const n = $('#dtAddName').value.trim(); if (!n) return; $('#dtAddRow').hidden = true; dartsPost('/game/darts/join', { name: n }); });
+$('#dtPlayersP').addEventListener('click', e => { const b = e.target.closest('[data-leave]'); if (b) dartsPost('/game/darts/leave', { player: Number(b.dataset.leave) }); });
+$('#dtMode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b && !b.disabled) dartsPost('/game/darts/setup', { mode: b.dataset.mode }); });
+$('#dtStartSeg').addEventListener('click', e => { const b = e.target.closest('[data-start]'); if (b && !b.disabled) dartsPost('/game/darts/setup', { start: Number(b.dataset.start) }); });
+$('#dtOut').addEventListener('click', e => { const b = e.target.closest('[data-out]'); if (b && !b.disabled) dartsPost('/game/darts/setup', { doubleOut: b.dataset.out === '1' }); });
+$('#dtStartBtn').addEventListener('click', () => dartsPost('/game/darts/start'));
+$('#dtNewBtn').addEventListener('click', () => dartsPost('/game/darts/new'));
+$('#dtEndBtn').addEventListener('click', () => { if (confirm('End this game? Scores go back to the start; the players stay.')) dartsPost('/game/darts/end'); });
+
 async function quizPost(path, body){ if (busy) return; busy = true; try { state = await postJson(path, body || {}); render(); } catch (e) {} finally { busy = false; } }
 $('#quizTeams').addEventListener('click', e => { const b = e.target.closest('[data-team]'); if (!b || b.disabled) return; if (!profile) { openSheet(); return; } quizPost('/game/quiz/join', { team: Number(b.dataset.team) }); });
 $('#quizOpts').addEventListener('click', e => { const b = e.target.closest('[data-choice]'); if (!b || b.disabled) return; if (navigator.vibrate) try { navigator.vibrate(15); } catch (x) {} quizPost('/game/quiz/answer', { choice: Number(b.dataset.choice) }); });

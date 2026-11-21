@@ -920,6 +920,7 @@
     .claw-banner .small{font-size:max(1.4vw,1.9vh)} .claw-banner.slim .small{font-size:max(1.1vw,1.6vh)} .ll-results .small{font-size:max(1vw,1.6vh)}
     .h2-info-col p{font-size:max(.92vw,1.55vh)} .h2-info-col h4{font-size:max(1.05vw,1.55vh)}
     .h2-card p{font-size:max(.9vw,1.5vh)} .claw-conn{font-size:max(.95vw,1.6vh)} .viz-mark b{font-size:max(1vw,1.55vh)}
+    .ll-r-kicker{font-size:max(.85vw,1.5vh)} .ll-r-meta{font-size:max(1vw,1.6vh)} .ll-ranks .ct{font-size:max(.9vw,1.5vh)}
   }
   /* ── Stage 8: Quiz categories and the live player board ── */
   .qz-head h2.s4-title{font-size:3.4vw !important;margin:0 !important}
@@ -963,6 +964,52 @@
     .qz-cat{font-size:max(1.05vw,1.6vh)} .qz-bt{font-size:max(1vw,1.5vh)} .qz-p .pl{font-size:max(.95vw,1.5vh)} .qz-p .rk{font-size:max(1.1vw,1.6vh)}
     .qz-mvp .k{font-size:max(1vw,1.5vh)} .qz-mvp .m{font-size:max(1.2vw,1.7vh)} .qz-setup{font-size:max(1.5vw,2vh)}
   }
+  /* ── Stage 8b: Darts ── a lit board on the left, the turn and the players on a glass rail on the right */
+  .dt-frame{display:-webkit-box;display:flex;-webkit-box-orient:horizontal;flex-direction:row;-webkit-box-align:center;align-items:center;padding:3vh 3vw !important}
+  .dt-stage{position:relative;-webkit-box-flex:1;flex:1 1 auto;height:100%;min-width:0;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center}
+  #dtBoard{width:min(100%,78vh);height:min(100%,78vh);width:78vh;height:78vh;max-width:100%}
+  .dt-pop{position:absolute;left:50%;top:6%;-webkit-transform:translate(-50%,-1vh);transform:translate(-50%,-1vh);opacity:0;padding:1vh 1.6vw;border-radius:99px;background:rgba(4,20,26,.75);border:1px solid rgba(246,243,236,.18);font-family:var(--sans);font-weight:800;font-size:2.2vw;color:#F6F3EC;font-variant-numeric:tabular-nums;-webkit-transition:opacity .25s,-webkit-transform .25s;transition:opacity .25s,transform .25s;pointer-events:none}
+  .dt-pop.show{opacity:1;-webkit-transform:translate(-50%,0);transform:translate(-50%,0)}
+  .dt-pop.t{border-color:rgba(216,184,121,.8);color:#F7DFA4} .dt-pop.d{border-color:rgba(169,207,197,.8);color:#A9CFC5}
+  .dt-bust{position:absolute;left:50%;top:50%;-webkit-transform:translate(-50%,-50%) rotate(-8deg);transform:translate(-50%,-50%) rotate(-8deg);padding:1.4vh 3vw;border:.35vw solid #ff6b5e;border-radius:1vw;color:#ff6b5e;font-family:var(--sans);font-weight:800;font-size:5vw;letter-spacing:.06em;text-transform:uppercase;background:rgba(4,20,26,.6);-webkit-animation:dt-stamp .3s cubic-bezier(.16,1,.3,1);animation:dt-stamp .3s cubic-bezier(.16,1,.3,1)}
+  .dt-bust[hidden]{display:none}
+  @-webkit-keyframes dt-stamp{from{opacity:0;-webkit-transform:translate(-50%,-50%) rotate(-8deg) scale(1.6)}} @keyframes dt-stamp{from{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(1.6)}}
+  .dt-side{-webkit-box-flex:0;flex:0 0 34vw;width:34vw;display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;-webkit-box-pack:center;justify-content:center;height:100%;margin-left:2vw}
+  .rp-stage h2.dt-title{font-size:4.6vw !important;text-align:left;margin:.2vh 0 .4vh !important}
+  .dt-sub{font-family:var(--sans);font-weight:700;font-size:1.15vw;color:#bcd8d4;margin-bottom:2.4vh}
+  .dt-turn{position:relative;display:-webkit-box;display:flex;flex-wrap:wrap;-webkit-box-align:center;align-items:center;padding:2vh 1.4vw;border-radius:1.3vw;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(246,243,236,.12);margin-bottom:1.6vh;min-height:13vh}
+  .dt-turn.on{border-color:rgba(216,184,121,.6);box-shadow:0 0 2.4vw rgba(216,184,121,.18)}
+  .dt-wait{width:100%;text-align:center;font-family:var(--sans);font-weight:700;font-size:1.4vw;color:#bcd8d4}
+  .dt-tav{width:5vw;height:5vw;border-radius:50%;box-shadow:0 0 0 .25vw var(--pc);overflow:hidden;margin-right:1.1vw;-webkit-box-flex:0;flex:0 0 auto} .dt-tav svg,.dt-p .pav svg{display:block;width:100%;height:100%}
+  .dt-side > *{-webkit-flex-shrink:0;flex-shrink:0}
+  .dt-tmain{-webkit-box-flex:1;flex:1 1 0%;min-width:0}
+  .dt-tk{font-family:var(--sans);font-weight:800;font-size:1vw;letter-spacing:.2em;text-transform:uppercase;color:#A9CFC5}
+  .dt-tn{font-family:var(--sans);font-weight:800;font-size:2.1vw;color:#F6F3EC;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dt-slots{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;margin-top:.8vh}
+  .dt-slots span{display:inline-block;min-width:3.4vw;margin-right:.45vw;padding:.5vh .4vw;border-radius:.5vw;text-align:center;font-family:var(--sans);font-weight:800;font-size:1.2vw;color:#F6F3EC;background:rgba(255,255,255,.08);border:1px solid rgba(246,243,236,.14);font-variant-numeric:tabular-nums;min-height:1.6em}
+  .dt-slots span.e{background:none;border-style:dashed} .dt-slots span.t{color:#07333B;background:#D8B879;border-color:#D8B879} .dt-slots span.d{color:#07333B;background:#A9CFC5;border-color:#A9CFC5} .dt-slots span.m{color:rgba(246,243,236,.5)}
+  .dt-slots b{margin-left:.5vw;font-family:var(--sans);font-weight:800;font-size:1.4vw;color:#F7DFA4;font-variant-numeric:tabular-nums}
+  .dt-left{text-align:right;margin-left:1vw} .dt-left span{display:block;font-family:var(--sans);font-weight:800;font-size:5.2vw;line-height:1;color:#F6F3EC;font-variant-numeric:tabular-nums} .dt-left small{font-family:var(--sans);font-weight:700;font-size:1vw;color:#bcd8d4;letter-spacing:.14em;text-transform:uppercase}
+  .dt-hint{width:100%;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;margin-top:1.2vh;padding-top:1.2vh;border-top:1px solid rgba(246,243,236,.1)}
+  .dt-hint small{font-family:var(--sans);font-weight:800;font-size:.95vw;letter-spacing:.16em;text-transform:uppercase;color:#D8B879;margin-right:.8vw}
+  .dt-hint i{font-style:normal;margin-right:.45vw;padding:.4vh .7vw;border-radius:99px;border:1px solid rgba(216,184,121,.55);font-family:var(--sans);font-weight:800;font-size:1.2vw;color:#F7DFA4}
+  .dt-players{margin-bottom:1.6vh}
+  .dt-p{position:relative;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;padding:1vh 1vw 1vh 1.2vw;margin-bottom:.8vh;border-radius:1vw;background:rgba(255,255,255,.04);border:1px solid rgba(246,243,236,.1);overflow:hidden}
+  .dt-p .sw{position:absolute;left:0;top:18%;bottom:18%;width:.3vw;border-radius:0 .3vw .3vw 0;background:var(--pc)}
+  .dt-p .pav{width:2.8vw;height:2.8vw;border-radius:50%;box-shadow:0 0 0 .18vw var(--pc);overflow:hidden;margin-right:.9vw;-webkit-box-flex:0;flex:0 0 auto}
+  .dt-p .who{-webkit-box-flex:1;flex:1 1 auto;min-width:0} .dt-p .who b{display:block;font-family:var(--sans);font-weight:800;font-size:1.35vw;color:#F6F3EC;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .dt-p .who small{font-family:var(--sans);font-weight:600;font-size:1vw;color:#bcd8d4;font-variant-numeric:tabular-nums}
+  .dt-p .sc{font-family:var(--sans);font-weight:800;font-size:2.2vw;color:#F6F3EC;font-variant-numeric:tabular-nums}
+  .dt-p.turn{border-color:var(--pc);background:linear-gradient(90deg,rgba(255,255,255,.09),rgba(255,255,255,.02) 70%)}
+  .dt-p.won{border-color:#D8B879} .dt-p.won .sc{color:#F7DFA4}
+  .dt-join{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;padding:1vh 1vw;border-radius:1vw;background:rgba(4,20,26,.45);border:1px solid rgba(246,243,236,.12)}
+  .dt-join .qr{background:#fff;border-radius:.6vw;padding:.4vw;margin-right:1vw} .dt-join .qr img{display:block;width:5.6vw;height:5.6vw}
+  .dt-join b{display:block;font-family:var(--sans);font-weight:800;font-size:1.25vw;color:#F6F3EC} .dt-join span{font-family:var(--sans);font-weight:600;font-size:1vw;color:#bcd8d4}
+  .s4-win-av svg{width:100%;height:100%}
+  @supports (font-size: max(1px, 1vh)) {
+    .dt-sub{font-size:max(1.15vw,1.7vh)} .dt-tk,.dt-left small{font-size:max(1vw,1.55vh)} .dt-slots span{font-size:max(1.2vw,1.7vh)} .dt-hint small{font-size:max(.95vw,1.5vh)} .dt-hint i{font-size:max(1.2vw,1.7vh)}
+    .dt-p .who small,.dt-join span{font-size:max(1vw,1.55vh)} .dt-join b{font-size:max(1.25vw,1.8vh)}
+  }
+  @media (max-aspect-ratio:3/2){ .dt-side{flex-basis:40vw;width:40vw} #dtBoard{width:52vw;height:52vw} }
 </style>
 </head>
 <body>
@@ -1116,6 +1163,21 @@
     </div>
   </section>
 
+  <section class="screen rp-stage" id="screen-darts">
+    <div class="rp-frame dt-frame">
+      <div class="dt-stage"><canvas id="dtBoard" aria-label="Dartboard"></canvas><div class="dt-pop" id="dtPop"></div><div class="dt-bust" id="dtBust" hidden>Bust</div></div>
+      <div class="dt-side">
+        <div class="ll-kicker">RYST Play</div>
+        <h2 class="s4-title dt-title">Darts <em id="dtStart">501</em></h2>
+        <div class="dt-sub" id="dtSub">&nbsp;</div>
+        <div class="dt-turn" id="dtTurn"></div>
+        <div class="dt-players" id="dtPlayers"></div>
+        <div class="dt-join"><div class="qr"><img id="qrPlayDarts" alt="Scan to play"></div><div><b>Scan to play</b><span id="dtJoinText">up to 4 players</span></div></div>
+      </div>
+      <div class="s4-win" id="dtWin" hidden><div class="s4-win-card"><div class="s4-kicker" id="dtWinKicker">Game shot</div><div class="s4-win-av" id="dtWinAv"></div><div class="s4-big" id="dtWinBig"></div><div class="s4-meta" id="dtWinMeta"></div><div class="s4-small">New game from any player's phone</div></div></div>
+    </div>
+  </section>
+
   <section class="screen rp-stage" id="screen-scoreboard">
     <div class="rp-frame">
       <h2 class="s4-title">Score<em>board</em></h2>
@@ -1252,6 +1314,7 @@ $('#qrPlayClaw').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayLudo').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayQuiz').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayViz').src = qr(SITE_URL + '/play.html', 200);
+$('#qrPlayDarts').src = qr(SITE_URL + '/play.html', 200);
 
 // ── TOP BAR: CLOCK + DATE + WEATHER ──
 // Formatted with an explicit timeZone rather than trusting whatever the
@@ -1953,8 +2016,9 @@ function updateMainScreen(){
   // a round in progress, or players seated, keeps the game up even if no phone has checked in lately (players watch the TV and phones auto-lock)
   const showClaw = currentGame.mode === 'claw' && (active || Claw3D.busy());
   const showLudo = currentGame.mode === 'ludo' && (active || (currentGame.ludo && currentGame.ludo.phase === 'play') || LudoView.busy()); // a game in progress stays up while phones sleep
+  const showDarts = currentGame.mode === 'darts' && (active || (currentGame.darts && currentGame.darts.phase === 'play')); // a game in progress stays up while phones sleep
   const showQuiz = currentGame.mode === 'quiz' && (active || (currentGame.quiz && (currentGame.quiz.phase === 'question' || currentGame.quiz.phase === 'reveal')));
-  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw && !showLudo && !showQuiz);
+  $('#screen-home').classList.toggle('active', !showTTT && !showScoreboard && !showMemory && !showBackdrop && !showViz && !showClaw && !showLudo && !showQuiz && !showDarts);
   $('#screen-game').classList.toggle('active', showTTT);
   $('#screen-scoreboard').classList.toggle('active', showScoreboard);
   $('#screen-memory').classList.toggle('active', showMemory);
@@ -1963,6 +2027,8 @@ function updateMainScreen(){
   $('#screen-claw').classList.toggle('active', showClaw);
   $('#screen-ludo').classList.toggle('active', showLudo);
   $('#screen-quiz').classList.toggle('active', showQuiz);
+  $('#screen-darts').classList.toggle('active', showDarts);
+  if (showDarts) DartsView.show(); else DartsView.hide();
   if (showQuiz) QuizView.show(); else QuizView.hide();
   if (showLudo) LudoView.show(); else LudoView.hide();
   showViz ? startViz() : stopViz();
@@ -3743,6 +3809,124 @@ const QuizView = (function(){
   };
 })();
 
+
+// ── DARTS 301/501 ── a lit board drawn once per size into an offscreen canvas, darts thrown into it with the
+// player's colour on the flights, and the visit, scores and checkout hint beside it. Plain ES2017, Canvas 2D.
+const DartsView = (function(){
+  const ORDER = [20, 1, 18, 4, 13, 6, 10, 15, 2, 17, 3, 19, 7, 16, 8, 11, 14, 9, 12, 5];
+  const R = { bull: 6.35 / 170, outer: 15.9 / 170, tIn: 99 / 170, tOut: 107 / 170, dIn: 162 / 170 };
+  const COL = ['#ff7a4d', '#ffd166', '#4dd0e1', '#a6e35a'];
+  let G = null, on = false, raf = 0, cv = null, ctx = null, off = null, offKey = '', size = 0, darts = [], seenKey = '', popT = 0, lastWin = -1;
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const av = k => (window.RYST_AVATARS || {})[k] || '';
+  // board-mode darts have no landing point: put them in the middle of their bed (with a little spread so three don't stack)
+  function spot(d, k){
+    if (typeof d.x === 'number') return { x: d.x, y: d.y };
+    if (!d.seg) return { x: 1.12 * Math.sin(k * 2.1 + 0.5), y: 1.12 * Math.cos(k * 2.1 + 0.5) };
+    if (d.seg === 25) return { x: (k - 1) * 0.02, y: d.mult === 2 ? 0 : R.outer * 0.75 };
+    const a = (ORDER.indexOf(d.seg) * 18 + (k - 1) * 4) * Math.PI / 180, r = d.mult === 3 ? (R.tIn + R.tOut) / 2 : d.mult === 2 ? (R.dIn + 1) / 2 : 0.78 - k * 0.07;
+    return { x: r * Math.sin(a), y: r * Math.cos(a) };
+  }
+  function drawBoard(S){
+    off = document.createElement('canvas'); off.width = off.height = S; const c = off.getContext('2d'), m = S / 2, Rb = S * 0.36;
+    // the cabinet surround and a soft shadow behind the board
+    const sur = c.createRadialGradient(m, m, Rb * 1.05, m, m, m); sur.addColorStop(0, '#2a1a10'); sur.addColorStop(1, 'rgba(20,12,8,0)');
+    c.fillStyle = sur; c.beginPath(); c.arc(m, m, m, 0, Math.PI * 2); c.fill();
+    c.save(); c.shadowColor = 'rgba(0,0,0,.55)'; c.shadowBlur = S * 0.04; c.shadowOffsetY = S * 0.012;
+    c.fillStyle = '#141414'; c.beginPath(); c.arc(m, m, Rb * 1.26, 0, Math.PI * 2); c.fill(); c.restore();
+    const ring = (r0, r1, fill) => { c.beginPath(); c.arc(m, m, r1, 0, Math.PI * 2); c.arc(m, m, r0, 0, Math.PI * 2, true); c.fillStyle = fill; c.fill('evenodd'); };
+    const wedge = (i, r0, r1, fill) => { const a0 = (-90 - 9 + i * 18) * Math.PI / 180, a1 = a0 + 18 * Math.PI / 180;
+      c.beginPath(); c.arc(m, m, r1, a0, a1); c.arc(m, m, r0, a1, a0, true); c.closePath(); c.fillStyle = fill; c.fill(); };
+    for (let i = 0; i < 20; i++) {
+      const dark = i % 2 === 0, single = dark ? '#1c1a18' : '#efe3c8', bed = dark ? '#c8323a' : '#1f8a5b';
+      wedge(i, Rb * R.outer, Rb * R.tIn, single); wedge(i, Rb * R.tIn, Rb * R.tOut, bed); wedge(i, Rb * R.tOut, Rb * R.dIn, single); wedge(i, Rb * R.dIn, Rb, bed);
+    }
+    ring(0, Rb * R.outer, '#1f8a5b'); ring(0, Rb * R.bull, '#c8323a');
+    // sisal grain: a fine speckle, drawn once
+    c.save(); c.beginPath(); c.arc(m, m, Rb, 0, Math.PI * 2); c.clip();
+    for (let k = 0; k < S * 3; k++) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * Rb; c.fillStyle = Math.random() < 0.5 ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.08)'; c.fillRect(m + r * Math.cos(a), m + r * Math.sin(a), 1.2, 1.2); }
+    c.restore();
+    // the spider: silver wires on every edge
+    c.strokeStyle = 'rgba(214,218,220,.75)'; c.lineWidth = Math.max(1, S * 0.0022);
+    [R.bull, R.outer, R.tIn, R.tOut, R.dIn, 1].forEach(f => { c.beginPath(); c.arc(m, m, Rb * f, 0, Math.PI * 2); c.stroke(); });
+    for (let i = 0; i < 20; i++) { const a = (-90 - 9 + i * 18) * Math.PI / 180; c.beginPath(); c.moveTo(m + Math.cos(a) * Rb * R.outer, m + Math.sin(a) * Rb * R.outer); c.lineTo(m + Math.cos(a) * Rb, m + Math.sin(a) * Rb); c.stroke(); }
+    // the number ring
+    c.fillStyle = '#F6F3EC'; c.font = '700 ' + Math.round(S * 0.042) + 'px Inter, system-ui, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (let i = 0; i < 20; i++) { const a = (-90 + i * 18) * Math.PI / 180; c.fillText(String(ORDER[i]), m + Math.cos(a) * Rb * 1.13, m + Math.sin(a) * Rb * 1.13); }
+    // soft directional light from the top left, and a gentle falloff to the rim
+    const lit = c.createRadialGradient(m - Rb * 0.45, m - Rb * 0.55, Rb * 0.1, m, m, Rb * 1.3); lit.addColorStop(0, 'rgba(255,248,230,.16)'); lit.addColorStop(0.6, 'rgba(255,248,230,0)'); lit.addColorStop(1, 'rgba(0,0,0,.35)');
+    c.fillStyle = lit; c.beginPath(); c.arc(m, m, Rb * 1.26, 0, Math.PI * 2); c.fill();
+  }
+  function drawDart(c, X, Y, S, col, t){ // t: 0→1 flight progress
+    const k = 1 - Math.pow(1 - Math.min(1, t), 3), sc = 1 + (1 - k) * 2.2, ox = (1 - k) * S * 0.25, oy = (1 - k) * S * 0.18, wob = t >= 1 ? 0 : Math.sin(t * 20) * (1 - t) * 0.08;
+    const x = X + ox, y = Y + oy, L = S * 0.09 * sc, a = -0.75 + wob;
+    c.save(); c.globalAlpha = Math.min(1, 0.3 + k);
+    c.fillStyle = 'rgba(0,0,0,.35)'; c.beginPath(); c.ellipse(X + S * 0.012, Y + S * 0.016, S * 0.012 * sc, S * 0.006 * sc, 0, 0, Math.PI * 2); c.fill(); // shadow on the board
+    c.translate(x, y); c.rotate(a);
+    const barrel = c.createLinearGradient(0, -S * 0.006 * sc, 0, S * 0.006 * sc); barrel.addColorStop(0, '#f4f6f7'); barrel.addColorStop(0.5, '#8b969c'); barrel.addColorStop(1, '#3d464b');
+    c.fillStyle = '#c9ced1'; c.fillRect(0, -S * 0.0015 * sc, L * 0.25, S * 0.003 * sc); // the point
+    c.fillStyle = barrel; c.fillRect(L * 0.25, -S * 0.005 * sc, L * 0.45, S * 0.01 * sc); // the barrel
+    c.fillStyle = '#2b3236'; c.fillRect(L * 0.7, -S * 0.0025 * sc, L * 0.18, S * 0.005 * sc); // the shaft
+    c.fillStyle = col; c.beginPath(); c.moveTo(L * 0.82, 0); c.lineTo(L * 1.08, -S * 0.022 * sc); c.lineTo(L * 1.12, 0); c.lineTo(L * 1.08, S * 0.022 * sc); c.closePath(); c.fill(); // the flights
+    c.fillStyle = 'rgba(255,255,255,.35)'; c.beginPath(); c.moveTo(L * 0.82, 0); c.lineTo(L * 1.08, -S * 0.022 * sc); c.lineTo(L * 1.0, 0); c.closePath(); c.fill();
+    c.restore();
+  }
+  function frame(now){
+    if (!on) return;
+    const box = cv.parentNode, S = Math.round(Math.min(box.clientWidth, box.clientHeight) * Math.min(window.devicePixelRatio || 1, 1.5));
+    if (S > 0 && S !== size) { size = S; cv.width = cv.height = S; }
+    if (S > 0 && offKey !== String(S)) { offKey = String(S); drawBoard(S); }
+    if (S > 0 && off) {
+      ctx.clearRect(0, 0, S, S); ctx.drawImage(off, 0, 0);
+      const m = S / 2, Rb = S * 0.36;
+      darts.forEach(d => drawDart(ctx, m + d.p.x * Rb, m - d.p.y * Rb, S, d.col, (now - d.t0) / 380));
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function render(){
+    const D = G.darts; if (!D) return;
+    const P = D.players || [], turn = P[D.turn], playing = D.phase === 'play';
+    $('#dtStart').textContent = String(D.start || 501);
+    $('#dtSub').textContent = (D.doubleOut ? 'Double out' : 'Straight out') + ' · ' + (D.mode === 'board' ? 'scored on the villa dartboard' : 'thrown from your phones');
+    // the darts of the visit on show (the server keeps the finished visit up for a moment before the turn passes)
+    const key = D.gameId + ':' + D.turn + ':' + D.round + ':' + (D.visit || []).length + ':' + D.phase;
+    if (key !== seenKey) {
+      const now = performance.now(), sameVisit = seenKey.split(':').slice(0, 3).join() === key.split(':').slice(0, 3).join();
+      // darts already in the board keep their time; only a new one flies in
+      darts = (D.visit || []).map((d, k) => ({ p: spot(d, k + 1), col: COL[D.turn % 4], t0: sameVisit && darts[k] ? darts[k].t0 : (k < (D.visit.length - 1) ? now - 1000 : now) }));
+      if (D.last && D.visit && D.visit.length && key.split(':')[3] !== seenKey.split(':')[3]) { const pop = $('#dtPop'); pop.textContent = D.last.label + (D.last.pts ? ' · ' + D.last.pts : ''); pop.className = 'dt-pop show' + (D.last.mult === 3 ? ' t' : D.last.mult === 2 ? ' d' : ''); clearTimeout(popT); popT = setTimeout(() => { pop.className = 'dt-pop'; }, 1600); }
+      seenKey = key;
+    }
+    $('#dtBust').hidden = !(playing && D.bust);
+    // the player on turn: what's left, the three darts, and the way out
+    if (turn && (playing || D.phase === 'over')) {
+      const v = D.visit || [], tot = v.reduce((a, d) => a + d.pts, 0);
+      $('#dtTurn').innerHTML = '<div class="dt-tav" style="--pc:' + COL[D.turn % 4] + '">' + av(turn.avatar) + '</div><div class="dt-tmain"><div class="dt-tk">' + (playing ? (D.bust ? 'Bust · back to ' + turn.score : 'To throw') : 'Game shot') + '</div><div class="dt-tn">' + esc(turn.name) + '</div>'
+        + '<div class="dt-slots">' + [0, 1, 2].map(k => '<span class="' + (v[k] ? (v[k].mult === 3 ? 't' : v[k].mult === 2 ? 'd' : v[k].seg ? 's' : 'm') : 'e') + '">' + (v[k] ? esc(v[k].label) : '') + '</span>').join('') + '<b>' + (v.length ? tot : '') + '</b></div></div>'
+        + '<div class="dt-left"><span>' + turn.score + '</span><small>left</small></div>'
+        + (D.hint && playing && !D.bust ? '<div class="dt-hint"><small>Checkout</small>' + D.hint.map(h => '<i>' + esc(h) + '</i>').join('') + '</div>' : '');
+    } else $('#dtTurn').innerHTML = '<div class="dt-wait">' + (P.length ? 'Start from any player\'s phone' : 'Join from your phone: up to four players') + '</div>';
+    $('#dtTurn').classList.toggle('on', !!(turn && playing));
+    $('#dtPlayers').innerHTML = P.map((p, i) => { const avg = p.darts ? Math.round(p.scored / p.darts * 30) / 10 : 0;
+      return '<div class="dt-p' + (playing && i === D.turn ? ' turn' : '') + (D.winner === i ? ' won' : '') + '" style="--pc:' + COL[i % 4] + '"><span class="sw"></span><span class="pav">' + av(p.avatar) + '</span><span class="who"><b>' + esc(p.name) + '</b><small>' + (p.darts ? 'avg ' + avg.toFixed(1) + ' · best ' + p.best : 'ready') + '</small></span><span class="sc">' + p.score + '</span></div>'; }).join('');
+    $('#dtJoinText').textContent = P.length >= 4 ? 'four players in' : (4 - P.length) + ' seat' + (4 - P.length === 1 ? '' : 's') + ' free · up to 4 players';
+    // game shot: the winner's card
+    const w = D.phase === 'over' && P[D.winner], card = $('#dtWin');
+    if (w) {
+      $('#dtWinAv').innerHTML = av(w.avatar); $('#dtWinBig').innerHTML = esc(w.name) + ' <em>wins</em>';
+      const avg = w.darts ? Math.round(w.scored / w.darts * 30) / 10 : 0, h = (D.history || [])[0];
+      $('#dtWinKicker').textContent = 'Game shot' + (h ? ' · ' + h.darts.join(' ') : '');
+      $('#dtWinMeta').textContent = w.darts + ' darts · average ' + avg.toFixed(1) + ' · best visit ' + w.best;
+      if (card.hidden && lastWin !== D.gameId) { lastWin = D.gameId; setTimeout(() => { if (G.darts && G.darts.phase === 'over') card.hidden = false; }, 1300); }
+    } else { card.hidden = true; }
+  }
+  return {
+    update(g){ if (!g || !g.darts) return; G = g; if (on) render(); },
+    show(){ if (on) return; on = true; cv = $('#dtBoard'); ctx = cv.getContext('2d'); size = 0; offKey = ''; if (G) render(); raf = requestAnimationFrame(frame); },
+    hide(){ on = false; if (raf) cancelAnimationFrame(raf); raf = 0; },
+  };
+})();
+
 async function refreshGame(){
   try{
     const res = await fetch(PROXY_URL+'/game', { cache: 'no-store' });
@@ -3753,12 +3937,13 @@ async function refreshGame(){
     renderBackdropDisplay(currentGame);
     LudoView.update(currentGame.ludo, currentGame.serverNow);
     QuizView.update(currentGame);
+    DartsView.update(currentGame);
   }catch(e){ /* keep showing the last known board */ }
   updateMainScreen();
 }
 // every 4 s is fast enough for spectators — except a Ludo roll, which should land on the big screen within a second
 // turn-based games poll fast so a move, a winning line or a flipped card shows within a second
-(function gameLoop(){ refreshGame().then(() => setTimeout(gameLoop, ['ludo', 'quiz', 'tictactoe', 'memory'].indexOf(currentGame.mode) >= 0 ? 900 : 4000), () => setTimeout(gameLoop, 4000)); })();
+(function gameLoop(){ refreshGame().then(() => setTimeout(gameLoop, ['ludo', 'quiz', 'tictactoe', 'memory', 'darts'].indexOf(currentGame.mode) >= 0 ? 900 : 4000), () => setTimeout(gameLoop, 4000)); })();
 
 // ── SELF-UPDATE ──
 // This runs unattended on a screen nobody's going to walk over and refresh,

@@ -58,6 +58,9 @@ const base = () => ({
 // [name, page, viewport, game mode, extra state, after-load hook]
 const PHONE = { width: 390, height: 844 }, TAB = { width: 1000, height: 1100 }, TV = { width: 1600, height: 900 }, FHD = { width: 1920, height: 1080 }, FOUR3 = { width: 1440, height: 1080 };
 const QZ_BOARD = [{ id: 'b', name: 'Bala', avatar: 'sun', team: 3, score: 846, right: 6, last: 120 }, { id: 'a', name: 'Asha', avatar: 'octopus', team: 0, score: 712, right: 5, last: 162 }, { id: 'm', name: 'Meera', avatar: 'turtle', team: 0, score: 530, right: 4, last: 0 }, { id: 'k', name: 'Kiran', avatar: 'crab', team: 3, score: 318, right: 2, last: 0 }, { id: 'r', name: 'Ravi', avatar: 'fish', team: 1, score: 140, right: 1, last: 0 }];
+const DT_P = [{ id: 'a', name: 'Asha', avatar: 'octopus', score: 121, darts: 9, scored: 380, best: 140, legs: 0 }, { id: 'b', name: 'Bala', avatar: 'sun', score: 186, darts: 9, scored: 315, best: 100, legs: 0 }, { id: 'm', name: 'Meera', avatar: 'turtle', score: 245, darts: 9, scored: 256, best: 85, legs: 0 }];
+const DT = (o) => ({ darts: Object.assign({ phase: 'play', mode: 'virtual', start: 501, doubleOut: true, players: DT_P, turn: 0, visit: [{ seg: 20, mult: 3, pts: 60, label: 'T20', x: 0.02, y: 0.61 }, { seg: 20, mult: 1, pts: 20, label: '20', x: -0.05, y: 0.42 }], visitStart: 201, bust: false, winner: -1,
+  last: { player: 0, n: 2, seg: 20, mult: 1, pts: 20, label: '20', x: -0.05, y: 0.42, at: now }, history: [], round: 4, gameId: 1, hint: ['T20', 'T11', 'D14'] }, o) });
 const LUDO_WAIT = p => p.waitForTimeout(2500); // three.js loads and the pawns settle
 const SHOTS = [
   ['hub', 'play.html', PHONE, null, {}, null, true],
@@ -121,6 +124,16 @@ const SHOTS = [
   ['quiz-phone-lobby', 'play.html', PHONE, 'quiz', { quiz: Object.assign(base().quiz, { phase: 'lobby', question: null, endsAt: 0, category: 'local', length: 10, board: [] }) }, null],
   ['quiz-phone-reveal', 'play.html', PHONE, 'quiz', { quiz: Object.assign(base().quiz, { phase: 'reveal', question: { text: 'Which sea turtle comes ashore to nest on Tamil Nadu\'s beaches?', options: ['The leatherback', 'The olive ridley', 'The loggerhead', 'The snapping turtle'], category: 'nature' }, endsAt: now + 5000, reveal: { correct: 1, points: [162, 0, 0, 120], right: [1, 0, 0, 1], counts: [2, 0, 0, 2] }, board: QZ_BOARD }) }, null],
   ['quiz-phone-over', 'play.html', PHONE, 'quiz', { quiz: Object.assign(base().quiz, { phase: 'over', question: null, endsAt: 0, winners: [3], board: QZ_BOARD, mvp: Object.assign({}, QZ_BOARD[0]) }) }, null],
+  ['darts-tv', 'display.html', TV, 'darts', DT({}), p => p.waitForTimeout(1200)],
+  ['darts-tv-4x3', 'display.html', FOUR3, 'darts', DT({}), p => p.waitForTimeout(1200)],
+  ['darts-tv-fhd', 'display.html', FHD, 'darts', DT({}), p => p.waitForTimeout(1200)],
+  ['darts-tv-bust', 'display.html', TV, 'darts', DT({ mode: 'board', turn: 1, bust: true, visit: [{ seg: 20, mult: 3, pts: 60, label: 'T20' }, { seg: 19, mult: 3, pts: 57, label: 'T19' }, { seg: 20, mult: 3, pts: 60, label: 'T20' }], hint: null }), p => p.waitForTimeout(1200)],
+  ['darts-tv-lobby', 'display.html', TV, 'darts', DT({ phase: 'lobby', visit: [], hint: null, players: DT_P.slice(0, 2).map(p => Object.assign({}, p, { score: 501, darts: 0, scored: 0, best: 0 })) }), p => p.waitForTimeout(800)],
+  ['darts-tv-over', 'display.html', TV, 'darts', DT({ phase: 'over', winner: 0, visit: [{ seg: 20, mult: 3, pts: 60, label: 'T20', x: 0.01, y: 0.6 }, { seg: 11, mult: 3, pts: 33, label: 'T11', x: -0.58, y: 0.03 }, { seg: 14, mult: 2, pts: 28, label: 'D14', x: -0.9, y: 0.32 }], hint: null, players: [Object.assign({}, DT_P[0], { score: 0, darts: 12, scored: 501 })].concat(DT_P.slice(1)), history: [{ player: 0, darts: ['T20', 'T11', 'D14'], total: 121 }] }), p => p.waitForTimeout(2200)],
+  ['darts-phone-lobby', 'play.html', PHONE, 'darts', DT({ phase: 'lobby', visit: [], hint: null, players: DT_P.slice(0, 2).map(p => Object.assign({}, p, { score: 501, darts: 0, scored: 0, best: 0 })) }), null],
+  ['darts-phone-aim', 'play.html', PHONE, 'darts', DT({}), async p => { const b = await p.$('#dtAimCv'); const r = await b.boundingBox(); await p.mouse.move(r.x + r.width / 2, r.y + r.height * 0.32); await p.mouse.down(); await p.waitForTimeout(1100); }],
+  ['darts-phone-pad', 'play.html', PHONE, 'darts', DT({ mode: 'board', visit: [{ seg: 20, mult: 3, pts: 60, label: 'T20' }] }), null],
+  ['darts-phone-aim-landscape', 'play.html', { width: 844, height: 390 }, 'darts', DT({}), null],
   ['viz-phone', 'play.html', PHONE, 'visualizer', { viz: Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, { preset: 'horizon', palette: 'ryst', title: 'DJ Arjun' }) }, null],
   ['backdrop-phone', 'play.html', PHONE, 'backdrop', {}, null],
   ['backdrop-phone-ocean', 'play.html', PHONE, 'backdrop', { backdrop: { template: 'congrats', name: 'Ananya', text: 'On your graduation', preset: 'ocean' } }, null],
@@ -156,7 +169,7 @@ const server = http.createServer((req, res) => {
       const url = route.request().url();
       const body = Object.assign({}, state, { serverNow: Date.now(), openedAt: Date.now() },
         /\/game\/profile/.test(url) ? { profile: profile ? { id: 'a', name: 'Asha', avatar: 'octopus' } : { id: 'a', name: 'Asha', avatar: 'octopus' }, avatars: [] } : {},
-        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/ttt\//.test(url) ? { tttMine: 'O' } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
+        /\/game\/ludo\//.test(url) ? { ludoMine: [2, 3] } : {}, /\/game\/ttt\//.test(url) ? { tttMine: 'O' } : {}, /\/game\/darts\//.test(url) ? { dartsMine: [0] } : {}, /\/game\/quiz\//.test(url) ? { quizMe: { team: 0, answered: false, choice: -1 } } : {});
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body), headers: { 'access-control-allow-origin': '*' } });
     });
     await p.route(/open-meteo\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ current: { temperature_2m: 29, weather_code: 2, is_day: 1 } }) }));

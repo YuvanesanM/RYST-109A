@@ -186,7 +186,28 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 - QA: fixtures (lobby, reveal 16:9 and 4:3, over; phone lobby, reveal, over) and a two-phones-and-screen run against the
   real rules (setup, start, answers, board, ranks, end screen, rematch, privacy).
 
-Next in Stage 8: Darts 301/501.
+### Stage 8b — Darts 301/501 (delivered; both ways to play, as the owner chose)
+- Proxy (`darts.js`, unit tests, route suite `darts`): 301 or 501 for one to four players, double out or straight out,
+  three-dart visits, busts (below zero, leaving 1, or a non-double finish with double out), undo for a mis-tap (real-board
+  mode, within the visit), end game (back to the lobby, same players), new game (same players and settings), 3-dart
+  averages and best visit, and checkout routes that leave a good double (D20, D16 …). Virtual throws: the phone sends its
+  aim and steadiness and the proxy decides the landing with a scatter, so a phone can't claim a treble 20. Real-board
+  mode: the player taps single/double/treble and the number (or 25, Bull, Miss). Seat owners stay private; a phone can
+  hold more than one player (pass-and-play); the winner counts once on the villa leaderboard. The finished visit stays on
+  screen 2.5 s, or until the next player throws.
+- Pool screen: a lit Canvas 2D board (regulation proportions, spider wire, sisal grain, number ring, light from the top
+  left), darts that fly in with the player's colour on the flights, a hit label, a Bust stamp, the turn card (avatar, the
+  three darts, visit total, what's left, the checkout route), the player rail (average, best visit), a join QR, and a
+  game-shot card. Stays up while a game is in progress.
+- Phones: hub card with drawn art; Join / Add a player; How you play, 301/501, Double/Straight out; the visit card; the
+  aiming board (hold to aim; the reticle sways like a hand and steadies after about a second, then tires; let go to
+  throw; the reticle sits above the finger) or the keypad (Single/Double/Treble, 1–20, 25, Bull, Miss, Undo); a buzz on
+  your turn; landscape two-column layout. The villa leaderboard now names Quiz, Darts and Tic-Tac-Toe wins too.
+- QA: fixtures (TV play 16:9, 4:3, 1080p; bust; lobby; game shot; phone lobby, aim, keypad, landscape) and a two-phones-
+  and-screen run in both modes (join, setup, virtual throws decided by the rules, TV visit, end, board taps, undo,
+  checkout hint, game shot, new game, privacy). Full TV matrix audit (222 captures) clean apart from intended scenery.
+
+Next in Stage 8: Poolside Music (needs a licensed music source), Movie Night (authorised content only), Villa Photo Booth.
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a
