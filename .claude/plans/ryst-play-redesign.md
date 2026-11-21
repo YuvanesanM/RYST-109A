@@ -49,8 +49,8 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 | 1 | Audit, plan, design system v2 (palette, Inter, tokens in CLAUDE.md and skills) | Done |
 | 2 | Ludo Lounge flagship | Done (see below) |
 | 3 | Claw Catch v2 | Done (see below) |
-| 4 | Tic-Tac-Toe (best of three, winning line, draw, replay) + Memory Match (3D flips, difficulty, timer, moves) | Next |
-| 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Planned |
+| 4 | Tic-Tac-Toe (best of three, winning line, draw, replay) + Memory Match (3D flips, difficulty, timer, moves) | Done (see below) |
+| 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Next |
 | 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Planned |
 | 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Planned |
 | 8 | New games, one at a time: Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
@@ -91,6 +91,23 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 - Phones: after each round, "You came 2nd with 7 points" / "You win this round with 9 points!".
 - Unchanged: physics, grab odds, joystick and every `claw-*` message, scoring, restock, watchdogs.
   QA hook `display.html?qa=1` (window.__clawQA) stages results/reveal/rush for screenshots only.
+
+### Stage 4 — Tic-Tac-Toe and Memory Match (delivered)
+- Proxy: rules moved into pure modules with unit tests. `ttt.js` covers the winning line (`winLine`), draws, best of three
+  (`tttMatch`: round, wins, draws, results, champion), the other player opening each round, rematch and reset. `memory.js`
+  covers easy 4 × 3, classic 4 × 4 and hard 6 × 4 boards, the lazy mismatch rule, the bonus turn, moves per player, and the
+  clock from first flip to last pair. The match champion gets one leaderboard win (`ttt`) per match. The existing seat
+  privacy and move gating are unchanged.
+- Art: four more drawn tiles (sailboat, turtle, coconut, starfish) in `assets/beach-art.js` for the 12-pair board.
+- Pool screen: Cormorant titles with the gold italic accent, a round and best-of line, avatars and match pips, the side
+  on turn lit, the winning line drawn across the cells (measured from the real cells), non-winning cells dimmed, a draw
+  state, and a match-winner card (crown, avatar, score). Memory: a board sized to the difficulty, 3D card flips (the DOM is
+  kept between polls so they animate), moves, a live timer, a gold glow on a found pair, a shake on a miss, and a win card
+  with time and moves. Tic-Tac-Toe and Memory now poll every 0.9 s like Ludo and Quiz.
+- Phones: match line and pips, "Next round" / "Rematch" only once a round ends, winning cells highlighted, a buzz on
+  your turn, "You win the match 2–1!". Memory: Easy/Classic/Hard picker, 3D flips, moves, timer and pairs.
+- QA: new shoot.js fixtures (ttt-tv-win/-draw/-match/-4x3, ttt-phone-match, memory-tv-hard/-win, memory-phone-hard), plus a
+  two-phones-and-screen run against the real rules.
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a

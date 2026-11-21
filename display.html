@@ -765,6 +765,61 @@
     .mem-board{width:56vh}
     .mem-card{height:calc((56vh - 3vw) / 4)}
   }
+
+  /* ── Stage 4: Tic-Tac-Toe best of three, Memory Match 3D ── */
+  .rp-stage h2.s4-title{font-family:var(--serif) !important;font-weight:600 !important;letter-spacing:-.005em;color:#f6f3ec !important;font-size:4.4vw !important;line-height:1;margin-bottom:1vh !important;text-shadow:0 .3vw 2vw rgba(0,0,0,.35)}
+  .rp-stage h2.s4-title em{font-style:italic;color:var(--rp-gold)}
+  .s4-match{font-family:var(--sans);font-weight:700;font-size:1.25vw;font-size:clamp(11px,1.25vw,20px);letter-spacing:.14em;text-transform:uppercase;color:var(--rp-seafoam);margin-bottom:2.4vh;min-height:1.3em}
+  .s4-av{width:4.6vw;height:4.6vw;margin:0 auto 1vh;border-radius:50%;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .s4-av svg{width:78%;height:78%} .s4-av .ini{font-family:var(--sans);font-weight:800;font-size:1.8vw;color:#f6f3ec}
+  .game-score.x .s4-av{border-color:#4fe7ff} .game-score.o .s4-av{border-color:#ff5fa2}
+  .game-score.turn{box-shadow:0 0 0 2px currentColor,0 0 2.4vw rgba(79,231,255,.35)} .game-score.x.turn{color:#4fe7ff} .game-score.o.turn{color:#ff5fa2;box-shadow:0 0 0 2px currentColor,0 0 2.4vw rgba(255,95,162,.35)}
+  .game-score.turn .n{color:#f6f3ec}
+  .s4-pips{display:flex;justify-content:center;margin-top:1.2vh}
+  .s4-pips i{width:1vw;height:1vw;border-radius:50%;border:2px solid rgba(255,255,255,.3);margin:0 .3vw} .game-score.x .s4-pips i.on{background:#4fe7ff;border-color:#4fe7ff} .game-score.o .s4-pips i.on{background:#ff5fa2;border-color:#ff5fa2}
+  .ttt-wrap{position:relative}
+  .ttt-line{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+  .ttt-line line{stroke:#4fe7ff;stroke-width:.9vw;stroke-linecap:round;stroke-dasharray:440;stroke-dashoffset:440;opacity:0;-webkit-filter:drop-shadow(0 0 8px rgba(79,231,255,.95));filter:drop-shadow(0 0 8px rgba(79,231,255,.95))}
+  .ttt-line.o line{stroke:#ff5fa2;-webkit-filter:drop-shadow(0 0 8px rgba(255,95,162,.95));filter:drop-shadow(0 0 8px rgba(255,95,162,.95))}
+  .ttt-line.on line{opacity:1;-webkit-transition:stroke-dashoffset .55s cubic-bezier(.65,0,.35,1);transition:stroke-dashoffset .55s cubic-bezier(.65,0,.35,1);stroke-dashoffset:0}
+  .ttt-board.done .ttt-cell:not(.win){opacity:.35;-webkit-transition:opacity .4s;transition:opacity .4s}
+  .ttt-board.draw .ttt-cell{opacity:.45}
+  .ttt-cell.win{background:rgba(255,255,255,.14) !important}
+  .s4-win{position:absolute;top:0;right:0;bottom:0;left:0;display:flex;align-items:center;justify-content:center;background:rgba(3,20,25,.72);z-index:5;border-radius:1.6vw;-webkit-animation:s4-fade .5s ease;animation:s4-fade .5s ease}
+  .s4-win[hidden]{display:none}
+  @-webkit-keyframes s4-fade{from{opacity:0}} @keyframes s4-fade{from{opacity:0}}
+  .s4-win-card{text-align:center;padding:4vh 5vw;border-radius:1.6vw;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02)),#07333b;border:1px solid rgba(216,184,121,.45);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 3vw 6vw rgba(0,0,0,.45);min-width:34vw;
+    -webkit-animation:s4-pop .6s cubic-bezier(.16,1,.3,1);animation:s4-pop .6s cubic-bezier(.16,1,.3,1)}
+  @-webkit-keyframes s4-pop{from{-webkit-transform:scale(.85) translateY(2vh);opacity:0}} @keyframes s4-pop{from{transform:scale(.85) translateY(2vh);opacity:0}}
+  .s4-kicker{font-family:var(--sans);font-weight:800;font-size:1.1vw;letter-spacing:.2em;text-transform:uppercase;color:var(--rp-seafoam)}
+  .s4-crown svg{width:3.4vw;height:3.4vw;fill:var(--rp-gold);margin-top:1.4vh;-webkit-filter:drop-shadow(0 0 1vw rgba(216,184,121,.6));filter:drop-shadow(0 0 1vw rgba(216,184,121,.6))}
+  .s4-win-av{width:7vw;height:7vw;margin:1vh auto 0;border-radius:50%;border:3px solid var(--rp-gold);background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .s4-win-av svg{width:78%;height:78%} .s4-win-av .ini{font-family:var(--sans);font-weight:800;font-size:3vw;color:#f6f3ec}
+  .s4-big{font-family:var(--serif);font-weight:600;font-size:4vw;color:#f6f3ec;margin-top:1.4vh;line-height:1.05}
+  .s4-big em{font-style:italic;color:var(--rp-gold)}
+  .s4-meta{font-family:var(--sans);font-weight:700;font-size:1.5vw;color:#f6f3ec;opacity:.85;margin-top:1.2vh;font-variant-numeric:tabular-nums}
+  .s4-small{font-family:var(--sans);font-size:1.1vw;color:var(--rp-seafoam);margin-top:2.2vh}
+  .s4-sub{font-family:var(--sans);font-size:1vw;color:#bcd8d4;margin-top:.6vh;font-variant-numeric:tabular-nums}
+  .mem-score.turn{box-shadow:0 0 0 2px #4fe7ff,0 0 2.4vw rgba(79,231,255,.35)} .mem-score.p2.turn{box-shadow:0 0 0 2px #ff5fa2,0 0 2.4vw rgba(255,95,162,.35)}
+  /* 3D cards: a back and a face, turned with rotateY; the DOM stays between polls so the turn animates */
+  .mem-board{-webkit-perspective:1400px;perspective:1400px}
+  .mem-board .mc{position:relative;aspect-ratio:1;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;-webkit-transition:-webkit-transform .5s cubic-bezier(.3,.7,.2,1);transition:transform .5s cubic-bezier(.3,.7,.2,1)}
+  @supports not (aspect-ratio:1){ .mem-board .mc{height:0;padding-bottom:100%} }
+  .mem-board .mc.up,.mem-board .mc.matched{-webkit-transform:rotateY(180deg);transform:rotateY(180deg)}
+  .mem-board .mc > div{position:absolute;top:0;left:0;width:100%;height:100%;-webkit-backface-visibility:hidden;backface-visibility:hidden;border-radius:.9vw;display:flex;align-items:center;justify-content:center}
+  .mem-board .mc .bk{background:linear-gradient(160deg,#0f5560,#073640);border:1px solid rgba(216,184,121,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 .5vw 1vw rgba(0,0,0,.3)}
+  .mem-board .mc .bk::after{content:'';width:44%;height:44%;opacity:.7;background:no-repeat center/contain;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b879' stroke-width='1.3' stroke-linecap='round'%3E%3Cpath d='M12 20c-4.5 0-8-3.5-8-8 0-2 1-4 2.5-5.3L12 4l5.5 2.7C19 8 20 10 20 12c0 4.5-3.5 8-8 8z'/%3E%3Cpath d='M12 20V5M12 20 7 7M12 20l5-13M12 20 4.6 9.6M12 20l7.4-10.4'/%3E%3C/svg%3E")}
+  .mem-board .mc .fc{-webkit-transform:rotateY(180deg);transform:rotateY(180deg);background:linear-gradient(160deg,#fbf8f1,#ece3cf);border:1px solid rgba(216,184,121,.7);padding:13%;box-sizing:border-box}
+  .mem-board .mc .fc svg{width:100%;height:100%}
+  .mem-board .mc.matched .fc{box-shadow:0 0 1.2vw rgba(216,184,121,.55)} .mem-board .mc.matched.p2 .fc{border-color:#ff5fa2} .mem-board .mc.matched.p1 .fc{border-color:#4fe7ff}
+  .mem-board .mc.just .fc{-webkit-animation:s4-glow 1s ease;animation:s4-glow 1s ease}
+  @-webkit-keyframes s4-glow{40%{box-shadow:0 0 3vw rgba(247,223,164,.95)}} @keyframes s4-glow{40%{box-shadow:0 0 3vw rgba(247,223,164,.95)}}
+  .mem-board .mc.miss .fc{-webkit-animation:s4-shake .45s;animation:s4-shake .45s}
+  @-webkit-keyframes s4-shake{25%{margin-left:-.4vw}75%{margin-left:.4vw}} @keyframes s4-shake{25%{margin-left:-.4vw}75%{margin-left:.4vw}}
+  .mem-board.c6{width:min(64vh,52vw) !important;width:52vw}
+  .mem-board.c4.r3{width:min(56vh,40vw) !important;width:40vw}
+  @media (prefers-reduced-motion:reduce){ .mem-board .mc,.ttt-line.on line{-webkit-transition:none;transition:none} }
 </style>
 </head>
 <body>
@@ -858,13 +913,15 @@
 
   <section class="screen rp-stage" id="screen-game">
     <div class="rp-frame">
-      <h2>Tic-Tac-Toe</h2>
+      <h2 class="s4-title">Tic-Tac-<em>Toe</em></h2>
+      <div class="s4-match" id="tttMatch">&nbsp;</div>
       <div class="game-layout">
-        <div class="game-score x"><div class="mark"><b id="tttNameX">Player</b> <span>X</span></div><div class="n" id="gameScoreX">0</div></div>
-        <div class="ttt-board" id="tttBoard"></div>
-        <div class="game-score o"><div class="mark"><b id="tttNameO">Player</b> <span>O</span></div><div class="n" id="gameScoreO">0</div></div>
+        <div class="game-score x"><div class="s4-av" id="tttAvX"></div><div class="mark"><b id="tttNameX">Player</b> <span>X</span></div><div class="n" id="gameScoreX">0</div><div class="s4-pips" id="tttPipsX"></div></div>
+        <div class="ttt-wrap"><div class="ttt-board" id="tttBoard"></div><svg class="ttt-line" id="tttLine" viewBox="0 0 300 300" aria-hidden="true"><line id="tttLineEl" x1="0" y1="0" x2="0" y2="0"/></svg></div>
+        <div class="game-score o"><div class="s4-av" id="tttAvO"></div><div class="mark"><b id="tttNameO">Player</b> <span>O</span></div><div class="n" id="gameScoreO">0</div><div class="s4-pips" id="tttPipsO"></div></div>
       </div>
       <p class="game-turn" id="gameTurn">&nbsp;</p>
+      <div class="s4-win" id="tttWin" hidden><div class="s4-win-card"><div class="s4-kicker">Match winner</div><div class="s4-crown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div><div class="s4-win-av" id="tttWinAv"></div><div class="s4-big" id="tttWinBig"></div><div class="s4-meta" id="tttWinMeta"></div><div class="s4-small">Rematch from either phone</div></div></div>
       <div class="rp-join"><div class="qr"><img id="qrPlay" alt="Scan to play"></div><span class="qr-label">Scan to play<br>from your phone</span></div>
     </div>
   </section>
@@ -922,18 +979,21 @@
 
   <section class="screen rp-stage" id="screen-memory">
     <div class="rp-frame">
-      <h2>Memory Match</h2>
+      <h2 class="s4-title">Memory <em>Match</em></h2>
+      <div class="s4-match" id="memLevel">&nbsp;</div>
       <div class="mem-layout">
         <div class="mem-side left">
-          <div class="mem-score p1"><div class="mark">P1</div><div class="n" id="memScore1">0</div></div>
+          <div class="mem-score p1" id="memCard1"><div class="mark">P1</div><div class="n" id="memScore1">0</div><div class="s4-sub" id="memMoves1">0 moves</div></div>
           <div class="mem-pairs"><span>Pairs</span><b id="memPairs">0/8</b></div>
         </div>
         <div class="mem-board" id="memBoard"></div>
         <div class="mem-side">
-          <div class="mem-score p2"><div class="mark">P2</div><div class="n" id="memScore2">0</div></div>
+          <div class="mem-score p2" id="memCard2"><div class="mark">P2</div><div class="n" id="memScore2">0</div><div class="s4-sub" id="memMoves2">0 moves</div></div>
+          <div class="mem-pairs"><span>Time</span><b id="memClock">0:00</b></div>
         </div>
       </div>
       <p class="mem-turn" id="memTurn">&nbsp;</p>
+      <div class="s4-win" id="memWin" hidden><div class="s4-win-card"><div class="s4-kicker" id="memWinKicker">Board cleared</div><div class="s4-crown"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></div><div class="s4-big" id="memWinBig"></div><div class="s4-meta" id="memWinMeta"></div><div class="s4-small">New round from any phone</div></div></div>
       <div class="rp-join"><div class="qr"><img id="qrPlayMemory" alt="Scan to play"></div><span class="qr-label">Scan to play<br>from your phone</span></div>
     </div>
   </section>
@@ -1164,15 +1224,45 @@ function isGameActive(){
 }
 
 function renderGame(g){
-  $('#gameScoreX').textContent = g.scoreX;
-  $('#gameScoreO').textContent = g.scoreO;
   const seats = g.ttt || { X: null, O: null }, nm = m => seats[m] ? escHtml(seats[m].name) : '';
+  const match = g.tttMatch || { bestOf: 3, need: 2, round: 1, wins: { X: 0, O: 0 }, results: [], over: false };
+  const both = !!(seats.X && seats.O), av = m => { const st = seats[m]; const a = st && st.avatar ? (window.RYST_AVATARS || {})[st.avatar] || '' : ''; return a || (st ? '<span class="ini">' + escHtml(String(st.name || m).charAt(0).toUpperCase()) + '</span>' : '<span class="ini">' + m + '</span>'); };
+  $('#gameScoreX').textContent = g.scoreX; $('#gameScoreO').textContent = g.scoreO;
   $('#tttNameX').innerHTML = nm('X') || 'Open'; $('#tttNameO').innerHTML = nm('O') || 'Open';
-  $('#gameTurn').innerHTML = !(seats.X && seats.O) ? (seats.X || seats.O ? 'Waiting for a second player: scan to take ' + (seats.X ? 'O' : 'X') : 'Two players: scan and take X or O')
-    : g.winner === 'draw' ? "It's a draw!"
-    : g.winner ? `<span class="mark ${g.winner.toLowerCase()}">${g.winner}</span> ${nm(g.winner)} wins!`
+  $('#tttAvX').innerHTML = av('X'); $('#tttAvO').innerHTML = av('O');
+  ['X', 'O'].forEach(m => { let h = ''; for (let k = 0; k < match.need; k++) h += '<i class="' + (k < match.wins[m] ? 'on' : '') + '"></i>'; $('#tttPips' + m).innerHTML = h; });
+  // the side whose turn it is lights up
+  document.querySelector('#screen-game .game-score.x').classList.toggle('turn', both && !g.winner && g.turn === 'X');
+  document.querySelector('#screen-game .game-score.o').classList.toggle('turn', both && !g.winner && g.turn === 'O');
+  $('#tttMatch').textContent = match.over ? 'Match over' : 'Round ' + match.round + ' · best of ' + match.bestOf + (match.draws ? ' · ' + match.draws + ' draw' + (match.draws === 1 ? '' : 's') : '');
+  $('#gameTurn').innerHTML = !both ? (seats.X || seats.O ? 'Waiting for a second player: scan to take ' + (seats.X ? 'O' : 'X') : 'Two players: scan and take X or O')
+    : g.winner === 'draw' ? "A draw. Next round from a phone"
+    : g.winner ? `<span class="mark ${g.winner.toLowerCase()}">${g.winner}</span> ${nm(g.winner)} takes round ${match.round}`
     : `<span class="mark ${g.turn.toLowerCase()}">${g.turn}</span> ${nm(g.turn)}'s turn`;
-  $('#tttBoard').innerHTML = g.board.map(v => `<div class="ttt-cell ${v==='O'?'o':''}">${v === 'X' ? '<svg viewBox="0 0 40 40"><path d="M10 10l20 20M30 10 10 30"/></svg>' : v === 'O' ? '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="11"/></svg>' : ''}</div>`).join('');
+  const line = g.winLine || null, board = $('#tttBoard');
+  board.className = 'ttt-board' + (g.winner === 'draw' ? ' draw' : g.winner ? ' done' : '');
+  board.innerHTML = g.board.map((v, i) => `<div class="ttt-cell ${v==='O'?'o':''}${line && line.indexOf(i) >= 0 ? ' win' : ''}">${v === 'X' ? '<svg viewBox="0 0 40 40"><path d="M10 10l20 20M30 10 10 30"/></svg>' : v === 'O' ? '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="11"/></svg>' : ''}</div>`).join('');
+  // the winning line, drawn across the three cells once (centre of each cell on a 300 × 300 grid)
+  const svg = $('#tttLine'), el = $('#tttLineEl'), key = line ? line.join() + g.winner + match.id + match.round : '';
+  if (svg.dataset.k !== key) {
+    svg.dataset.k = key; svg.setAttribute('class', 'ttt-line' + (g.winner === 'O' ? ' o' : ''));
+    if (line) { // from the cells' real centres (the board has padding and gaps), in the wrap's own pixels
+      const wr = svg.parentNode.getBoundingClientRect(), cells = board.children;
+      if (!wr.width) { svg.dataset.k = ''; setTimeout(() => { if (currentGame && currentGame.winLine) renderGame(currentGame); }, 150); return; } // not on screen yet: measure once it shows
+      svg.setAttribute('viewBox', '0 0 ' + Math.round(wr.width) + ' ' + Math.round(wr.height));
+      const c = i => { const r = cells[i].getBoundingClientRect(); return [r.left - wr.left + r.width / 2, r.top - wr.top + r.height / 2]; }, a = c(line[0]), b = c(line[2]), dx = (b[0] - a[0]) * .18, dy = (b[1] - a[1]) * .18;
+      el.style.strokeDasharray = el.style.strokeDashoffset = String(Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) * 1.4));
+      el.setAttribute('x1', a[0] - dx); el.setAttribute('y1', a[1] - dy); el.setAttribute('x2', b[0] + dx); el.setAttribute('y2', b[1] + dy);
+      setTimeout(() => { svg.setAttribute('class', 'ttt-line on' + (g.winner === 'O' ? ' o' : '')); el.style.strokeDashoffset = '0'; }, 30); }
+  }
+  // the match winner, after the line has been drawn
+  const win = $('#tttWin');
+  if (match.over && match.champion) {
+    const c = match.champion, lost = c === 'X' ? 'O' : 'X';
+    $('#tttWinAv').innerHTML = av(c); $('#tttWinBig').innerHTML = (nm(c) || c) + ' <em>wins</em>';
+    $('#tttWinMeta').textContent = match.wins[c] + '–' + match.wins[lost] + (match.draws ? ' · ' + match.draws + ' draw' + (match.draws === 1 ? '' : 's') : '') + ' · best of ' + match.bestOf;
+    if (win.hidden && win.dataset.id !== match.id) { win.dataset.id = match.id; setTimeout(() => { if ((currentGame.tttMatch || {}).id === match.id && currentGame.tttMatch.over) win.hidden = false; }, 1100); }
+  } else { win.hidden = true; win.dataset.id = ''; }
 }
 
 // Player names are arbitrary guest-typed text going into innerHTML, so they
@@ -1194,25 +1284,47 @@ function renderScoreboard(g){
 // /game/memory/flip comment), so this checks mismatchAt itself rather than
 // waiting for the server to have already hidden it.
 const MEM_MISMATCH_REVEAL_MS = 900;
+const MEM_LEVEL = { easy: 'Easy · 4 × 3', normal: 'Classic · 4 × 4', hard: 'Hard · 6 × 4' };
+function memClock(m){ if (!m.startedAt) return '0:00'; const s = Math.max(0, Math.floor(((m.endedAt || Date.now()) - m.startedAt) / 1000)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
 function renderMemoryDisplay(g){
   const m = g.memory;
   if(!m) return;
-  $('#memScore1').textContent = m.scores[0];
-  $('#memScore2').textContent = m.scores[1];
+  const cols = m.cols || 4, rows = m.rows || Math.ceil(m.cards.length / cols), moves = m.moves || [0, 0];
+  $('#memScore1').textContent = m.scores[0]; $('#memScore2').textContent = m.scores[1];
+  $('#memMoves1').textContent = moves[0] + ' move' + (moves[0] === 1 ? '' : 's'); $('#memMoves2').textContent = moves[1] + ' move' + (moves[1] === 1 ? '' : 's');
+  $('#memCard1').classList.toggle('turn', !m.winner && m.turn === 1); $('#memCard2').classList.toggle('turn', !m.winner && m.turn === 2);
+  $('#memLevel').textContent = MEM_LEVEL[m.difficulty || 'normal'] || '';
+  $('#memClock').textContent = memClock(m);
   const showMismatch = m.flipped.length === 2 && (Date.now() - m.mismatchAt) < MEM_MISMATCH_REVEAL_MS;
-  $('#memTurn').textContent = m.winner
-    ? (m.winner === 'tie' ? "It's a tie!" : `Player ${m.winner} wins!`)
-    : `Player ${m.turn}'s turn`;
-  $('#memBoard').innerHTML = m.cards.map((c, i) => {
-    const faceUp = m.matched[i] || (m.flipped.includes(i) && (m.flipped.length === 1 || showMismatch));
-    return `<div class="mem-card ${m.matched[i] ? 'matched' : faceUp ? 'up' : ''}">${faceUp ? ((window.RYST_BEACH_ART || {})[c] || c) : ''}</div>`;
-  }).join('');
+  $('#memTurn').textContent = m.winner ? (m.winner === 'tie' ? "It's a tie!" : `Player ${m.winner} wins!`)
+    : m.flipped.length === 2 && showMismatch ? 'Not a pair. Player ' + (m.turn === 1 ? 2 : 1) + ' is next'
+    : `Player ${m.turn}'s turn` + (m.flipped.length === 1 ? ': find its pair' : '');
+  // build the cards once per board, then only turn them (so the flip animates)
+  const board = $('#memBoard'), key = m.cards.join('') + cols;
+  if (board.dataset.k !== key) {
+    board.dataset.k = key; board.className = 'mem-board c' + cols + ' r' + rows; board.style.gridTemplateColumns = 'repeat(' + cols + ',1fr)';
+    board.innerHTML = m.cards.map(c => `<div class="mc"><div class="bk"></div><div class="fc">${(window.RYST_BEACH_ART || {})[c] || ''}</div></div>`).join('');
+  }
+  const just = m.lastMatch && Date.now() - m.lastMatch.at < 1500 ? m.lastMatch.cards : [];
+  Array.prototype.forEach.call(board.children, (el, i) => {
+    const faceUp = m.matched[i] || (m.flipped.indexOf(i) >= 0 && (m.flipped.length === 1 || showMismatch));
+    el.className = 'mc' + (m.matched[i] ? ' matched' : faceUp ? ' up' : '') + (just.indexOf(i) >= 0 ? ' just p' + m.lastMatch.player : '') + (showMismatch && m.flipped.indexOf(i) >= 0 ? ' miss' : '');
+  });
   const pe = $('#memPairs'); if (pe) pe.textContent = (m.matched.filter(Boolean).length / 2) + '/' + (m.cards.length / 2);
+  const win = $('#memWin');
+  if (m.winner) {
+    $('#memWinKicker').textContent = 'Board cleared in ' + memClock(m);
+    $('#memWinBig').innerHTML = m.winner === 'tie' ? 'A <em>tie</em>' : 'Player ' + m.winner + ' <em>wins</em>';
+    $('#memWinMeta').textContent = m.scores[0] + '–' + m.scores[1] + ' pairs · ' + (moves[0] + moves[1]) + ' moves';
+    if (win.hidden && win.dataset.k !== key) { win.dataset.k = key; setTimeout(() => { if (currentGame.memory && currentGame.memory.winner) win.hidden = false; }, 900); }
+  } else { win.hidden = true; win.dataset.k = ''; }
   if(m.flipped.length === 2 && !m.matched[m.flipped[0]]){
     const remaining = MEM_MISMATCH_REVEAL_MS - (Date.now() - m.mismatchAt);
     if(remaining > 0) setTimeout(() => renderMemoryDisplay(currentGame), remaining + 50);
   }
 }
+// the clock ticks between polls while a board is in play
+setInterval(() => { const m = currentGame && currentGame.memory, el = document.getElementById('memClock'); if (m && el && m.startedAt && !m.endedAt && document.getElementById('screen-memory').classList.contains('active')) el.textContent = memClock(m); }, 1000);
 
 // Guest-typed free text, so it goes through textContent (never innerHTML)
 // — same safety property escHtml gives the other screens, without needing
@@ -3296,7 +3408,8 @@ async function refreshGame(){
   updateMainScreen();
 }
 // every 4 s is fast enough for spectators — except a Ludo roll, which should land on the big screen within a second
-(function gameLoop(){ refreshGame().then(() => setTimeout(gameLoop, currentGame.mode === 'ludo' || currentGame.mode === 'quiz' ? 900 : 4000), () => setTimeout(gameLoop, 4000)); })();
+// turn-based games poll fast so a move, a winning line or a flipped card shows within a second
+(function gameLoop(){ refreshGame().then(() => setTimeout(gameLoop, ['ludo', 'quiz', 'tictactoe', 'memory'].indexOf(currentGame.mode) >= 0 ? 900 : 4000), () => setTimeout(gameLoop, 4000)); })();
 
 // ── SELF-UPDATE ──
 // This runs unattended on a screen nobody's going to walk over and refresh,

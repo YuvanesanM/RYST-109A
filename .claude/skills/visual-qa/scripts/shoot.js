@@ -17,8 +17,9 @@ const now = Date.now();
 const base = () => ({
   mode: null, openedAt: now, updatedAt: now, serverNow: now,
   board: ['X', 'O', null, null, 'X', null, 'O', null, 'X'], turn: 'O', winner: null, scoreX: 2, scoreO: 1, ttt: { X: { name: 'Asha', avatar: 'octopus', seen: now }, O: { name: 'Ravi', avatar: 'crab', seen: now } },
+  winLine: null, tttMatch: { bestOf: 3, need: 2, round: 2, wins: { X: 1, O: 0 }, draws: 0, starter: 'O', results: ['X'], over: false, champion: null, id: 'm1' },
   players: [{ name: 'Asha', score: 7 }, { name: 'Ravi', score: 4 }, { name: 'Meera', score: 9 }, { name: 'Kiran', score: 2 }], playerCount: 4,
-  memory: { cards: ['🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠','🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠'], matched: [true,false,false,false,false,false,true,false,true,false,false,false,false,false,true,false], flipped: [3], mismatchAt: 0, scores: [2, 1], turn: 1, winner: null },
+  memory: { cards: ['🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠','🌊','🏖️','🐚','🦀','🌴','🍹','⛱️','🐠'], matched: [true,false,false,false,false,false,true,false,true,false,false,false,false,false,true,false], flipped: [3], mismatchAt: 0, scores: [2, 1], turn: 1, winner: null, difficulty: 'normal', cols: 4, rows: 4, moves: [5, 4], startedAt: now - 83000, endedAt: 0 },
   backdrop: { text: 'Happy Birthday, Asha', preset: 'party' }, viz: { preset: 'spectrum', palette: 'neon', bpm: 120 },
   leaders: [{ id: 'm', name: 'Meera', avatar: 'sun', wins: 3, claw: 2, ludo: 1 }, { id: 'a', name: 'Asha', avatar: 'octopus', wins: 1, claw: 1, ludo: 0 }],
   ludo: { phase: 'play', seats: [{ name: 'Asha', avatar: 'octopus', seen: now }, null, { name: 'Ravi', avatar: 'crab', seen: now }, { name: 'Kiran', avatar: 'sun', seen: now - 90000 }],
@@ -55,6 +56,15 @@ const SHOTS = [
   ['quiz-tv', 'display.html', TV, 'quiz', {}, null],
   ['ttt-tv', 'display.html', TV, 'tictactoe', {}, null],
   ['memory-tv', 'display.html', TV, 'memory', {}, null],
+  // Stage 4
+  ['ttt-tv-win', 'display.html', TV, 'tictactoe', { board: ['X', 'O', null, 'X', 'O', null, 'X', null, null], winner: 'X', winLine: [0, 3, 6], tttMatch: { bestOf: 3, need: 2, round: 2, wins: { X: 1, O: 1 }, draws: 0, results: ['O', 'X'], over: false, id: 'm1' } }, p => p.waitForTimeout(900)],
+  ['ttt-tv-draw', 'display.html', TV, 'tictactoe', { board: ['X', 'O', 'X', 'X', 'O', 'O', 'O', 'X', 'X'], winner: 'draw', tttMatch: { bestOf: 3, need: 2, round: 3, wins: { X: 1, O: 1 }, draws: 1, results: ['O', 'X', 'draw'], over: false, id: 'm1' } }, null],
+  ['ttt-tv-match', 'display.html', TV, 'tictactoe', { board: ['O', 'X', 'X', null, 'O', 'X', null, null, 'O'], winner: 'O', winLine: [0, 4, 8], tttMatch: { bestOf: 3, need: 2, round: 3, wins: { X: 1, O: 2 }, draws: 0, results: ['O', 'X', 'O'], over: true, champion: 'O', id: 'm1' } }, p => p.waitForTimeout(1900)],
+  ['ttt-tv-4x3', 'display.html', FOUR3, 'tictactoe', { board: ['X', 'O', null, 'X', 'O', null, 'X', null, null], winner: 'X', winLine: [0, 3, 6] }, p => p.waitForTimeout(900)],
+  ['ttt-phone-match', 'play.html', PHONE, 'tictactoe', { board: ['O', 'X', 'X', null, 'O', 'X', null, null, 'O'], winner: 'O', winLine: [0, 4, 8], tttMatch: { bestOf: 3, need: 2, round: 3, wins: { X: 1, O: 2 }, draws: 0, over: true, champion: 'O', id: 'm1' } }, null],
+  ['memory-tv-hard', 'display.html', TV, 'memory', { memory: { difficulty: 'hard', cols: 6, rows: 4, cards: ['🌊','⛵','🐚','🦀','🐢','🍹','⛱️','🐠','🥥','⭐','🏖️','🌴','⭐','🏖️','🐚','⛵','🌴','🍹','🐢','🐠','🥥','🦀','🌊','⛱️'], matched: [false,true,false,false,true,false,false,false,true,false,false,false,false,false,false,true,false,false,true,false,true,false,false,false], flipped: [3], mismatchAt: 0, scores: [1, 2], turn: 2, moves: [6, 7], startedAt: now - 142000, endedAt: 0, winner: null } }, p => p.waitForTimeout(700)],
+  ['memory-tv-win', 'display.html', TV, 'memory', { memory: { difficulty: 'easy', cols: 4, rows: 3, cards: ['🌊','🏖️','🐚','🦀','🌴','🍹','🌊','🏖️','🐚','🦀','🌴','🍹'], matched: Array(12).fill(true), flipped: [], mismatchAt: 0, scores: [4, 2], turn: 1, moves: [7, 5], startedAt: now - 96000, endedAt: now - 1000, winner: 1 } }, p => p.waitForTimeout(1600)],
+  ['memory-phone-hard', 'play.html', PHONE, 'memory', { memory: { difficulty: 'hard', cols: 6, rows: 4, cards: ['🌊','⛵','🐚','🦀','🐢','🍹','⛱️','🐠','🥥','⭐','🏖️','🌴','⭐','🏖️','🐚','⛵','🌴','🍹','🐢','🐠','🥥','🦀','🌊','⛱️'], matched: [false,true,false,false,true,false,false,false,true,false,false,false,false,false,false,true,false,false,true,false,true,false,false,false], flipped: [3], mismatchAt: 0, scores: [1, 2], turn: 2, moves: [6, 7], startedAt: now - 142000, endedAt: 0, winner: null } }, p => p.waitForTimeout(700)],
   ['scoreboard-tv', 'display.html', TV, 'scoreboard', {}, null],
   ['backdrop-tv', 'display.html', TV, 'backdrop', {}, null],
 ];

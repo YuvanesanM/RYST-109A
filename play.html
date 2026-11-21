@@ -521,6 +521,29 @@
   .quiz-opt.wrong{border-color:var(--coral);background:rgba(255,154,122,.12);opacity:1}
   .quiz-opt:disabled{cursor:default}
   #quizSub[hidden]{display:none !important}
+
+  /* ── Stage 4: match pips, winning line, 3D memory cards ── */
+  .s4-matchline{text-align:center;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--rp-seafoam,#a9cfc5);margin:-4px 0 10px;min-height:16px}
+  .s4-pips{display:flex;justify-content:center;gap:5px;margin-top:6px} .s4-pips i{width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35)}
+  .score.x .s4-pips i.on{background:var(--neon-x);border-color:var(--neon-x)} .score.o .s4-pips i.on{background:var(--neon-o);border-color:var(--neon-o)}
+  .s4-sub{font-size:11.5px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+  .board.done .cell:not(.win){opacity:.35} .board.draw .cell{opacity:.5} .cell.win{background:rgba(255,255,255,.14);border-color:currentColor}
+  .board .cell.win.x-w{color:var(--neon-x)} .board .cell.win.o-w{color:var(--neon-o)}
+  .s4-levels{display:flex;gap:6px;margin:0 0 14px} .s4-levels button{flex:1;border:1.5px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:inherit;border-radius:12px;padding:8px 4px;font:700 13px/1.15 Inter,system-ui,sans-serif}
+  .s4-levels button small{display:block;font-weight:600;font-size:11px;opacity:.7;margin-top:2px} .s4-levels button.on{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4}
+  .s4-clock{text-align:center;font-size:13px;color:var(--muted);margin:-10px 0 16px;font-variant-numeric:tabular-nums}
+  .mem-board{perspective:900px}
+  .mem-board.c6{max-width:340px}
+  .mem-board .mc{position:relative;aspect-ratio:1;border:0;padding:0;background:none;transform-style:preserve-3d;transition:transform .45s cubic-bezier(.3,.7,.2,1);cursor:pointer}
+  .mem-board .mc.up,.mem-board .mc.matched{transform:rotateY(180deg)}
+  .mem-board .mc > span{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:10px;display:flex;align-items:center;justify-content:center}
+  .mem-board .mc .bk{background:linear-gradient(160deg,#0f5560,#073640);border:1px solid rgba(216,184,121,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 4px 10px rgba(0,0,0,.25)}
+  .mem-board .mc .bk::after{content:'';width:42%;height:42%;opacity:.7;background:no-repeat center/contain;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d8b879' stroke-width='1.3' stroke-linecap='round'%3E%3Cpath d='M12 20c-4.5 0-8-3.5-8-8 0-2 1-4 2.5-5.3L12 4l5.5 2.7C19 8 20 10 20 12c0 4.5-3.5 8-8 8z'/%3E%3Cpath d='M12 20V5M12 20 7 7M12 20l5-13M12 20 4.6 9.6M12 20l7.4-10.4'/%3E%3C/svg%3E")}
+  .mem-board .mc .fc{transform:rotateY(180deg);background:linear-gradient(160deg,#fbf8f1,#ece3cf);border:1px solid rgba(216,184,121,.7);padding:14%}
+  .mem-board .mc .fc svg{width:100%;height:100%}
+  .mem-board .mc.matched .fc{box-shadow:0 0 12px rgba(216,184,121,.5)}
+  .mem-board .mc:disabled{cursor:default}
+  @media (prefers-reduced-motion:reduce){ .mem-board .mc{transition:none} }
 </style>
 </head>
 <body>
@@ -637,14 +660,15 @@
       <h1>Tic-Tac-Toe</h1>
       <p class="sub">Two players, one phone each. Take X or O, then play on the pool screen.</p>
       <div class="ttt-seats" id="tttSeats"></div>
+      <p class="s4-matchline" id="tttMatchLine">&nbsp;</p>
       <div class="scoreboard">
-        <div class="score x"><div class="mark">X</div><div class="n" id="scoreX">0</div></div>
-        <div class="score o"><div class="mark">O</div><div class="n" id="scoreO">0</div></div>
+        <div class="score x"><div class="mark">X</div><div class="n" id="scoreX">0</div><div class="s4-pips" id="pipsX"></div></div>
+        <div class="score o"><div class="mark">O</div><div class="n" id="scoreO">0</div><div class="s4-pips" id="pipsO"></div></div>
       </div>
       <p class="turn" id="turnLabel">&nbsp;</p>
       <div class="board" id="board"></div>
       <div class="actions">
-        <button type="button" class="btn primary" id="newRoundBtn">New round</button>
+        <button type="button" class="btn primary" id="newRoundBtn">Next round</button>
         <button type="button" class="btn ghost" id="resetScoresBtn">Reset scores</button>
         <button type="button" class="btn ghost" id="tttLeave" hidden>Leave seat</button>
       </div>
@@ -679,13 +703,15 @@
     <section class="screen" id="screen-memory">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
       <h1>Memory Match</h1>
-      <p class="sub">Find the pairs — a match earns another turn.</p>
+      <p class="sub">Find the pairs: a match earns another turn.</p>
+      <div class="s4-levels" role="group" aria-label="Board size"><button type="button" data-lvl="easy">Easy<small>4 × 3</small></button><button type="button" data-lvl="normal">Classic<small>4 × 4</small></button><button type="button" data-lvl="hard">Hard<small>6 × 4</small></button></div>
       <div class="scoreboard">
-        <div class="score x"><div class="mark">P1</div><div class="n" id="memScore1">0</div></div>
-        <div class="score o"><div class="mark">P2</div><div class="n" id="memScore2">0</div></div>
+        <div class="score x"><div class="mark">P1</div><div class="n" id="memScore1">0</div><div class="s4-sub" id="memMv1">0 moves</div></div>
+        <div class="score o"><div class="mark">P2</div><div class="n" id="memScore2">0</div><div class="s4-sub" id="memMv2">0 moves</div></div>
       </div>
       <p class="turn" id="memTurnLabel">&nbsp;</p>
       <div class="mem-board" id="memBoard"></div>
+      <p class="s4-clock"><span id="memClockP">0:00</span> · <span id="memPairsP">0/8 pairs</span></p>
       <div class="actions">
         <button type="button" class="btn primary" id="memNewRoundBtn">New round</button>
       </div>
@@ -981,19 +1007,29 @@ function renderTicTacToe(){
   const seats = state.ttt || { X: null, O: null }, both = !!(seats.X && seats.O), myTurn = both && !state.winner && tttMine === state.turn;
   $('#scoreX').textContent = state.scoreX;
   $('#scoreO').textContent = state.scoreO;
+  const match = state.tttMatch || { bestOf: 3, need: 2, round: 1, wins: { X: 0, O: 0 }, over: false };
+  ['X', 'O'].forEach(m => { let h = ''; for (let k = 0; k < match.need; k++) h += `<i class="${k < match.wins[m] ? 'on' : ''}"></i>`; $('#pips' + m).innerHTML = h; });
+  $('#tttMatchLine').textContent = match.over ? 'Match over' : `Round ${match.round} · best of ${match.bestOf}`;
   $('#tttSeats').innerHTML = ['X', 'O'].map(m => { const st = seats[m], mine = tttMine === m;
     return `<button type="button" class="ttt-seat ${m.toLowerCase()}${st ? ' taken' : ''}${mine ? ' mine' : ''}${both && !state.winner && state.turn === m ? ' turn' : ''}" data-mark="${m}" ${st || tttMine ? 'disabled' : ''}>
       <span class="mk">${m === 'X' ? NEON_X : NEON_O}</span><span class="tx"><b>${st ? esc(st.name) : 'Play as ' + m}</b><span>${mine ? 'You' : st ? 'Taken' : tttMine ? 'Waiting for a player' : 'Tap to take this seat'}</span></span></button>`; }).join('');
   const nameOf = m => seats[m] ? esc(seats[m].name) : m;
   if (!both) $('#turnLabel').innerHTML = tttMine ? 'Waiting for someone to take ' + (tttMine === 'X' ? 'O' : 'X') : 'Take X or O to play';
-  else if(state.winner === 'draw') $('#turnLabel').innerHTML = "It's a draw!";
-  else if(state.winner) $('#turnLabel').innerHTML = `<span class="mark ${state.winner.toLowerCase()}">${state.winner}</span> ${nameOf(state.winner)} wins!`;
+  else if(state.winner === 'draw') $('#turnLabel').innerHTML = "It's a draw. Play the next round";
+  else if(match.over) $('#turnLabel').innerHTML = tttMine === match.champion ? `You win the match ${match.wins[match.champion]}–${match.wins[match.champion === 'X' ? 'O' : 'X']}!` : `<span class="mark ${match.champion.toLowerCase()}">${match.champion}</span> ${nameOf(match.champion)} wins the match`;
+  else if(state.winner) $('#turnLabel').innerHTML = tttMine === state.winner ? 'You take this round!' : `<span class="mark ${state.winner.toLowerCase()}">${state.winner}</span> ${nameOf(state.winner)} takes the round`;
   else $('#turnLabel').innerHTML = myTurn ? `Your turn: tap a square for <span class="mark ${state.turn.toLowerCase()}">${state.turn}</span>` : `<span class="mark ${state.turn.toLowerCase()}">${state.turn}</span> ${nameOf(state.turn)}'s turn`;
+  const line = state.winLine || [];
+  $('#board').className = 'board' + (state.winner === 'draw' ? ' draw' : state.winner ? ' done' : '');
   $('#board').innerHTML = state.board.map((v,i) =>
-    `<button type="button" class="cell ${v==='O'?'o':''}" data-i="${i}" aria-label="${v ? v : 'Empty square ' + (i + 1)}" ${v||state.winner||!myTurn?'disabled':''}>${v === 'X' ? NEON_X : v === 'O' ? NEON_O : ''}</button>`
+    `<button type="button" class="cell ${v==='O'?'o':''}${line.indexOf(i) >= 0 ? ' win ' + (state.winner === 'O' ? 'o-w' : 'x-w') : ''}" data-i="${i}" aria-label="${v ? v : 'Empty square ' + (i + 1)}" ${v||state.winner||!myTurn?'disabled':''}>${v === 'X' ? NEON_X : v === 'O' ? NEON_O : ''}</button>`
   ).join('');
+  // your turn: a short buzz, once per turn
+  const tk = myTurn ? (match.id || '') + match.round + state.board.filter(Boolean).length : '';
+  if (tk && tk !== renderTicTacToe._buzz && navigator.vibrate) { try { navigator.vibrate(30); } catch (e) {} } renderTicTacToe._buzz = tk;
   const seated = !!tttMine, may = seated || (!seats.X && !seats.O);
-  $('#newRoundBtn').hidden = !may; $('#resetScoresBtn').hidden = !may; $('#tttLeave').hidden = !seated;
+  $('#newRoundBtn').hidden = !may || !state.winner; $('#newRoundBtn').textContent = match.over ? 'Rematch' : 'Next round';
+  $('#resetScoresBtn').hidden = !may; $('#tttLeave').hidden = !seated;
   $('#board').querySelectorAll('.cell').forEach(btn => btn.addEventListener('click', () => move(Number(btn.dataset.i))));
 }
 
@@ -1017,30 +1053,40 @@ function renderScoreboard(){
 // itself to decide when to stop showing an unmatched pair face up, rather
 // than waiting for the server to have already hidden it.
 const MEM_MISMATCH_REVEAL_MS = 900;
+function memClockOf(m){ if (!m.startedAt) return '0:00'; const sec = Math.max(0, Math.floor(((m.endedAt || Date.now()) - m.startedAt) / 1000)); return Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'); }
 function renderMemory(){
-  const m = state.memory;
+  const m = state.memory, cols = m.cols || 4, mv = m.moves || [0, 0];
   $('#memScore1').textContent = m.scores[0];
   $('#memScore2').textContent = m.scores[1];
+  $('#memMv1').textContent = mv[0] + (mv[0] === 1 ? ' move' : ' moves'); $('#memMv2').textContent = mv[1] + (mv[1] === 1 ? ' move' : ' moves');
+  document.querySelectorAll('.s4-levels [data-lvl]').forEach(b => b.classList.toggle('on', b.dataset.lvl === (m.difficulty || 'normal')));
+  $('#memClockP').textContent = memClockOf(m); $('#memPairsP').textContent = (m.matched.filter(Boolean).length / 2) + '/' + (m.cards.length / 2) + ' pairs';
   const showMismatch = m.flipped.length === 2 && (Date.now() - m.mismatchAt) < MEM_MISMATCH_REVEAL_MS;
   $('#memTurnLabel').textContent = m.winner
-    ? (m.winner === 'tie' ? "It's a tie!" : `Player ${m.winner} wins!`)
-    : `Player ${m.turn}'s turn`;
-  $('#memBoard').innerHTML = m.cards.map((c, i) => {
+    ? (m.winner === 'tie' ? `It's a tie! Cleared in ${memClockOf(m)}` : `Player ${m.winner} wins! Cleared in ${memClockOf(m)}`)
+    : showMismatch ? `Not a pair. Player ${m.turn === 1 ? 2 : 1} is next` : `Player ${m.turn}'s turn`;
+  // the cards are built once per board and only turned afterwards, so each flip animates
+  const board = $('#memBoard'), key = m.cards.join('') + cols;
+  if (board.dataset.k !== key) {
+    board.dataset.k = key; board.className = 'mem-board c' + cols; board.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+    board.innerHTML = m.cards.map((c, i) => `<button type="button" class="mc" data-i="${i}" aria-label="Hidden card ${i + 1}"><span class="bk"></span><span class="fc">${(window.RYST_BEACH_ART || {})[c] || ''}</span></button>`).join('');
+  }
+  Array.prototype.forEach.call(board.children, (btn, i) => {
     const faceUp = m.matched[i] || (m.flipped.includes(i) && (m.flipped.length === 1 || showMismatch));
-    const cls = m.matched[i] ? 'matched' : (faceUp ? 'up' : '');
-    const disabled = m.matched[i] || m.winner ? 'disabled' : '';
-    const art = (window.RYST_BEACH_ART || {})[c] || c;
-    return `<button type="button" class="mem-card ${cls}" data-i="${i}" aria-label="${faceUp ? 'Card' : 'Hidden card'} ${i + 1}" ${disabled}>${faceUp ? art : ''}</button>`;
-  }).join('');
-  $('#memBoard').querySelectorAll('.mem-card').forEach(btn => btn.addEventListener('click', () => memFlip(Number(btn.dataset.i))));
-  // A pending mismatch is only visible for MEM_MISMATCH_REVEAL_MS — re-render
-  // once that window closes so the pair flips back down on its own, without
-  // waiting for the next poll (which could be up to 1.2s later).
+    btn.className = 'mc' + (m.matched[i] ? ' matched' : faceUp ? ' up' : '');
+    btn.disabled = !!(m.matched[i] || m.winner); btn.setAttribute('aria-label', (faceUp ? 'Card ' : 'Hidden card ') + (i + 1));
+  });
   if(m.flipped.length === 2 && !m.matched[m.flipped[0]]){
     const remaining = MEM_MISMATCH_REVEAL_MS - (Date.now() - m.mismatchAt);
     if(remaining > 0) setTimeout(renderMemory, remaining + 50);
   }
 }
+$('#memBoard').addEventListener('click', e => { const b = e.target.closest('.mc'); if (b && !b.disabled) memFlip(Number(b.dataset.i)); });
+document.querySelector('.s4-levels').addEventListener('click', async e => { const b = e.target.closest('[data-lvl]'); if (!b) return;
+  const m = state.memory, playing = m.startedAt && !m.winner;
+  if (playing && !confirm('Start a new ' + b.textContent.replace(/\d.*/, '').trim() + ' board? This one ends.')) return;
+  try { state = await postJson('/game/memory/new-round', { difficulty: b.dataset.lvl }); render(); } catch (x) {} });
+setInterval(() => { if (state && state.mode === 'memory' && state.memory && state.memory.startedAt && !state.memory.endedAt) { const el = $('#memClockP'); if (el) el.textContent = memClockOf(state.memory); } }, 1000);
 
 async function memFlip(i){
   const m = state.memory;
