@@ -341,7 +341,7 @@
   /* party backdrop + DJ visuals */
   .bd-label,.viz-tempo .lbl{color:var(--muted-text)}
   .bd-text{background:rgba(255,255,255,.05);border-color:var(--line);color:var(--ink)}
-  .bd-text::placeholder{color:rgba(244,239,228,.4)}
+  .bd-text::placeholder{color:rgba(244,239,228,.62)}
   .bd-preset,.viz-preset{background:rgba(255,255,255,.05);color:var(--ink);border-color:transparent}
   .bd-preset.active,.viz-preset.active{border-color:var(--gold)}
   .viz-pal.active{border-color:var(--gold)}
@@ -596,6 +596,34 @@
   .bd-preview.t-balloons{background:radial-gradient(circle at 10% 70%,rgba(255,95,162,.8) 0 10px,transparent 11px),radial-gradient(circle at 90% 35%,rgba(216,184,121,.85) 0 12px,transparent 13px),radial-gradient(120% 130% at 50% 0,#1d5866,#041f25)}
   .bd-preview.t-stars{background:radial-gradient(circle at 12% 20%,#fff 0 1px,transparent 2px),radial-gradient(circle at 80% 15%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 65% 80%,#fff 0 1px,transparent 2px),radial-gradient(circle at 25% 85%,#fff 0 1px,transparent 2px),radial-gradient(ellipse at 50% 120%,#0d4450,#020d12 70%)} .bd-preview.t-stars .h{color:#f6f3ec;text-shadow:0 0 10px #7fd8ff}
   .bd-preview.t-ocean{background:linear-gradient(#041f25,#0a3b44 40%,#2a7680 70%,#d9b77c 82%,#0d5560 84%,#07333b)} .bd-preview.t-ocean .h{color:#f6f3ec;text-shadow:0 2px 12px rgba(2,30,36,.7)} .bd-preview.t-ocean .h em{color:#f7dfa4}
+  /* ── Stage 6: DJ Visuals controller ── */
+  .viz-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .viz-grid .viz-preset{flex-direction:column;align-items:flex-start;gap:8px;padding:12px;font-size:13px}
+  .viz-th{width:56px;height:40px;color:var(--rp-seafoam,#a9cfc5)}
+  .viz-preset.active .viz-th{color:#f7dfa4}
+  .viz-grid .viz-preset.active{border-color:#d8b879;background:rgba(216,184,121,.1)}
+  .viz-pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .viz-pgrid .viz-pal{height:auto;display:flex;flex-direction:column;gap:6px;padding:6px 6px 8px;background:rgba(255,255,255,.04);border:1.5px solid transparent;color:var(--ink);font:700 12px/1 var(--sans)}
+  .viz-pgrid .viz-pal i{display:block;height:28px;border-radius:8px}
+  .viz-pgrid .viz-pal.active{border-color:#d8b879}
+  .viz-pal-ryst{background:linear-gradient(90deg,#0a3b44,#a9cfc5,#f6f3ec,#f7dfa4,#d8b879)}
+  .viz-pal-lagoon{background:linear-gradient(90deg,#06343f,#2fd3b5,#4fe7ff,#a9cfc5,#fff)}
+  .viz-seg{display:flex;gap:6px;margin-bottom:16px}
+  .viz-seg button{flex:1;border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:var(--ink);border-radius:12px;padding:10px 4px;font:700 13px/1 var(--sans);cursor:pointer}
+  .viz-seg button.on{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4}
+  .viz-bpm{float:right;font-weight:700;color:var(--muted-text);font-variant-numeric:tabular-nums} .viz-bpm b{color:#f7dfa4;font-size:14px}
+  .viz-tempo-seg{margin-bottom:6px} .viz-tempo-seg .viz-tempo-btn{width:auto;height:auto;flex:1;border-radius:12px;padding:10px 4px;font:700 13px/1 var(--sans)}
+  .viz-tempo-seg .viz-tempo-btn.active{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4}
+  .viz-live-title{font-family:var(--sans) !important;font-weight:800;font-size:15px}
+  .viz-live-desc{text-align:left}
+  .viz-tap{border-style:dashed !important}
+  .viz-tap.hit{animation:viz-hit .25s ease} @keyframes viz-hit{40%{transform:scale(.9);background:rgba(216,184,121,.3)}}
+  .viz-hint{font-size:12.5px;color:var(--muted-text);margin:4px 0 16px;text-align:left;min-height:15px}
+  .viz-meter{display:flex;gap:3px;height:22px;align-items:flex-end;margin:0 0 10px}
+  .viz-meter i{flex:1;height:30%;border-radius:2px;background:rgba(255,255,255,.1);transition:height .08s,background .08s}
+  .viz-meter i.on{background:#a9cfc5;height:100%} .viz-meter i.on:nth-child(n+9){background:#d8b879}
+  .viz-meter.beat{animation:viz-beat .2s ease} @keyframes viz-beat{50%{filter:brightness(1.6)}}
+  .viz-live-status.ok{color:#a9cfc5}
 </style>
 </head>
 <body>
@@ -807,38 +835,42 @@
     <section class="screen" id="screen-visualizer">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
       <h1>DJ Visuals</h1>
-      <p class="sub">A live light-show on the pool screen. Pick a style, colours and tempo — it plays on the big screen, not here.</p>
+      <p class="sub">A light-show on the pool screen. Pick the style and colours here; it plays on the big screen, not on your phone.</p>
       <label class="bd-label">Style</label>
-      <div class="viz-presets" id="vizPresets">
-        <button type="button" class="viz-preset" data-preset="spectrum">
-          <span class="viz-ic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="12" width="3" height="9" rx="1"/><rect x="8" y="7" width="3" height="14" rx="1"/><rect x="13" y="10" width="3" height="11" rx="1"/><rect x="18" y="4" width="3" height="17" rx="1"/></svg></span><span>Spectrum Bars</span>
-        </button>
-        <button type="button" class="viz-preset" data-preset="waveform">
-          <span class="viz-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0 2 3 2 3"/></svg></span><span>Waveform</span>
-        </button>
-        <button type="button" class="viz-preset" data-preset="bass">
-          <span class="viz-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="10" opacity=".5"/></svg></span><span>Bass Pulse</span>
-        </button>
+      <div class="viz-presets viz-grid" id="vizPresets">
+        <button type="button" class="viz-preset" data-preset="spectrum"><svg class="viz-th" viewBox="0 0 56 40" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true"><rect x="4" y="22" width="5" height="12" rx="1"/><rect x="12" y="14" width="5" height="20" rx="1"/><rect x="20" y="18" width="5" height="16" rx="1"/><rect x="28" y="9" width="5" height="25" rx="1"/><rect x="36" y="16" width="5" height="18" rx="1"/><rect x="44" y="24" width="5" height="10" rx="1"/></svg><span>Spectrum</span></button>
+        <button type="button" class="viz-preset" data-preset="waveform"><svg class="viz-th" viewBox="0 0 56 40" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true"><path d="M2 22c5-12 9-12 14 0s9 12 14 0 9-12 14 0 5 6 8 4" fill="none" stroke-width="3" stroke-linecap="round"/><path d="M2 22c5-6 9-6 14 0s9 6 14 0 9-6 14 0" fill="none" stroke-width="2" opacity=".45"/></svg><span>Waveform</span></button>
+        <button type="button" class="viz-preset" data-preset="bass"><svg class="viz-th" viewBox="0 0 56 40" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true"><circle cx="28" cy="20" r="6"/><circle cx="28" cy="20" r="11" fill="none" stroke-width="2.5"/><circle cx="28" cy="20" r="16" fill="none" stroke-width="2" opacity=".45"/></svg><span>Bass Pulse</span></button>
+        <button type="button" class="viz-preset" data-preset="horizon"><svg class="viz-th" viewBox="0 0 56 40" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true"><path d="M14 26a14 14 0 0 1 28 0z"/><rect x="2" y="26" width="52" height="2" rx="1"/><rect x="20" y="31" width="16" height="2" rx="1" opacity=".7"/><rect x="23" y="35" width="10" height="2" rx="1" opacity=".45"/></svg><span>Horizon</span></button>
+        <button type="button" class="viz-preset" data-preset="orbit"><svg class="viz-th" viewBox="0 0 56 40" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true"><circle cx="28" cy="20" r="7" fill="none" stroke-width="2.5"/><path d="M28 9v-5M28 36v-5M17 20h-6M45 20h-6M20 12l-3-3M36 28l3 3M36 12l3-3M20 28l-3 3" stroke-width="2.5" stroke-linecap="round"/><circle cx="46" cy="8" r="2"/><circle cx="10" cy="33" r="2"/></svg><span>Orbit</span></button>
+        <button type="button" class="viz-preset" data-preset="ambient"><svg class="viz-th" viewBox="0 0 56 40" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true"><path d="M2 18c10-8 18 6 28-2s16-4 24 2v6c-8-5-14-6-24 1S12 18 2 26z" opacity=".75"/><circle cx="12" cy="33" r="2.5" opacity=".6"/><circle cx="40" cy="8" r="2" opacity=".6"/><circle cx="46" cy="32" r="3" opacity=".4"/></svg><span>Ambient</span></button>
       </div>
       <label class="bd-label">Colours</label>
-      <div class="viz-palettes" id="vizPalettes">
-        <button type="button" class="viz-pal viz-pal-neon" data-palette="neon" aria-label="Neon"></button>
-        <button type="button" class="viz-pal viz-pal-sunset" data-palette="sunset" aria-label="Sunset"></button>
-        <button type="button" class="viz-pal viz-pal-aurora" data-palette="aurora" aria-label="Aurora"></button>
-        <button type="button" class="viz-pal viz-pal-rainbow" data-palette="rainbow" aria-label="Rainbow"></button>
+      <div class="viz-palettes viz-pgrid" id="vizPalettes">
+        <button type="button" class="viz-pal" data-palette="neon"><i class="viz-pal-neon"></i><span>Neon</span></button>
+        <button type="button" class="viz-pal" data-palette="sunset"><i class="viz-pal-sunset"></i><span>Sunset</span></button>
+        <button type="button" class="viz-pal" data-palette="aurora"><i class="viz-pal-aurora"></i><span>Aurora</span></button>
+        <button type="button" class="viz-pal" data-palette="rainbow"><i class="viz-pal-rainbow"></i><span>Rainbow</span></button>
+        <button type="button" class="viz-pal" data-palette="ryst"><i class="viz-pal-ryst"></i><span>RYST Gold</span></button>
+        <button type="button" class="viz-pal" data-palette="lagoon"><i class="viz-pal-lagoon"></i><span>Lagoon</span></button>
       </div>
-      <div class="viz-tempo">
-        <span class="lbl">Tempo</span>
-        <div class="viz-tempo-btns" id="vizTempo">
-          <button type="button" class="viz-tempo-btn" data-bpm="80">Slow</button>
-          <button type="button" class="viz-tempo-btn" data-bpm="120">Medium</button>
-          <button type="button" class="viz-tempo-btn" data-bpm="160">Fast</button>
-        </div>
+      <label class="bd-label">Energy</label>
+      <div class="viz-seg" id="vizEnergy" role="group" aria-label="Energy"><button type="button" data-energy="calm">Calm</button><button type="button" data-energy="lively">Lively</button><button type="button" data-energy="wild">Wild</button></div>
+      <label class="bd-label">Tempo <span class="viz-bpm"><b id="vizBpm">120</b> BPM</span></label>
+      <div class="viz-seg viz-tempo-seg" id="vizTempo" role="group" aria-label="Tempo">
+        <button type="button" class="viz-tempo-btn" data-bpm="80">Slow</button>
+        <button type="button" class="viz-tempo-btn" data-bpm="120">Medium</button>
+        <button type="button" class="viz-tempo-btn" data-bpm="160">Fast</button>
+        <button type="button" class="viz-tempo-btn viz-tap" id="vizTap" aria-label="Tap along to the beat to set the tempo">Tap</button>
       </div>
+      <p class="viz-hint" id="vizTapHint">Tap along to the beat four times to match the music.</p>
+      <label class="bd-label" for="vizTitle">On the decks (optional)</label>
+      <input type="text" id="vizTitle" class="bd-text" maxlength="28" placeholder="DJ Arjun">
 
       <div class="viz-live-card">
         <div class="viz-live-head"><span class="viz-live-dot" id="vizLiveDot"></span><span class="viz-live-title">Live Audio</span></div>
         <p class="viz-live-desc">Use this phone's microphone so the visuals react to the actual music instead of the tempo above. Only one phone can be live at a time — hold it near the speaker for the best result.</p>
+        <div class="viz-meter" id="vizMeter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
         <p class="viz-live-status" id="vizLiveStatus">&nbsp;</p>
         <button type="button" class="btn primary" id="vizGoLiveBtn"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="vertical-align:-2px;margin-right:6px" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>Go Live</button>
         <button type="button" class="btn ghost" id="vizStopLiveBtn" style="display:none">Stop</button>
@@ -1230,12 +1262,15 @@ function renderBackdrop(){
 }
 
 function renderViz(){
-  const v = state.viz || { preset: 'spectrum', palette: 'neon', bpm: 120 };
+  const v = Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, state.viz || {});
+  document.querySelectorAll('#vizEnergy [data-energy]').forEach(b => b.classList.toggle('on', b.dataset.energy === v.energy));
+  $('#vizBpm').textContent = v.bpm;
+  const ti = $('#vizTitle'); if (document.activeElement !== ti) ti.value = v.title || '';
   document.querySelectorAll('.viz-preset').forEach(b => b.classList.toggle('active', b.dataset.preset === v.preset));
   document.querySelectorAll('.viz-pal').forEach(b => b.classList.toggle('active', b.dataset.palette === v.palette));
   // Highlight whichever tempo band the current bpm falls in, so a value that
   // came from another phone still lights the right button.
-  document.querySelectorAll('.viz-tempo-btn').forEach(b => {
+  document.querySelectorAll('.viz-tempo-btn:not(.viz-tap)').forEach(b => {
     const bpm = Number(b.dataset.bpm);
     const active = (bpm === 80 && v.bpm < 100) || (bpm === 120 && v.bpm >= 100 && v.bpm < 140) || (bpm === 160 && v.bpm >= 140);
     b.classList.toggle('active', active);
@@ -1369,7 +1404,27 @@ document.querySelectorAll('.viz-pal').forEach(btn => {
     try{ state = await postJson('/game/viz/set', { palette: btn.dataset.palette }); render(); }catch(e){}
   });
 });
-document.querySelectorAll('.viz-tempo-btn').forEach(btn => {
+document.querySelectorAll('#vizEnergy [data-energy]').forEach(btn => btn.addEventListener('click', async () => {
+  try{ state = await postJson('/game/viz/set', { energy: btn.dataset.energy }); render(); }catch(e){}
+}));
+$('#vizTitle').addEventListener('change', async () => {
+  try{ state = await postJson('/game/viz/set', { title: $('#vizTitle').value }); render(); }catch(e){}
+});
+// tap tempo: the average gap of the last few taps (a pause of 2 s starts over); sent after the fourth tap
+let vizTaps = [];
+$('#vizTap').addEventListener('click', async () => {
+  const now = performance.now();
+  if (vizTaps.length && now - vizTaps[vizTaps.length - 1] > 2000) vizTaps = [];
+  vizTaps.push(now); vizTaps = vizTaps.slice(-6);
+  const btn = $('#vizTap'); btn.classList.remove('hit'); void btn.offsetWidth; btn.classList.add('hit');
+  if (navigator.vibrate) try{ navigator.vibrate(12); }catch(e){}
+  if (vizTaps.length < 4) { $('#vizTapHint').textContent = (4 - vizTaps.length) + ' more tap' + (vizTaps.length === 3 ? '' : 's') + '…'; return; }
+  const gaps = vizTaps.slice(1).map((x, i) => x - vizTaps[i]), bpm = Math.round(60000 / (gaps.reduce((a, b) => a + b, 0) / gaps.length));
+  const clamped = Math.min(180, Math.max(60, bpm));
+  $('#vizTapHint').textContent = 'Set to ' + clamped + ' BPM. Keep tapping to fine-tune.'; $('#vizBpm').textContent = clamped;
+  try{ state = await postJson('/game/viz/set', { bpm: clamped }); render(); }catch(e){}
+});
+document.querySelectorAll('.viz-tempo-btn:not(.viz-tap)').forEach(btn => {
   btn.addEventListener('click', async () => {
     try{ state = await postJson('/game/viz/set', { bpm: Number(btn.dataset.bpm) }); render(); }catch(e){}
   });
@@ -1418,7 +1473,13 @@ function downsampleBins(data, outCount){
   return out;
 }
 
+function vizMeterShow(level, beat){ // this phone's own feedback that the mic hears the music
+  const bars = document.querySelectorAll('#vizMeter i'), on = Math.round(Math.min(1, level * 2.4) * bars.length);
+  bars.forEach((b, i) => b.classList.toggle('on', i < on));
+  if (beat) { const m = $('#vizMeter'); m.classList.remove('beat'); void m.offsetWidth; m.classList.add('beat'); }
+}
 function stopLiveAudio(){
+  vizMeterShow(0, false);
   if(liveRaf){ cancelAnimationFrame(liveRaf); liveRaf = null; }
   if(liveWs){
     try{ if(liveWs.readyState === WebSocket.OPEN) liveWs.send(JSON.stringify({type:'release'})); }catch(e){}
@@ -1458,6 +1519,7 @@ function liveAnalysisLoop(){
     beat = true; liveLastBeatAt = now;
   }
   liveAvgBass = liveAvgBass*0.92 + bass*0.08;
+  vizMeterShow(level, beat);
 
   if(now - liveLastSendAt >= AUDIO_SEND_INTERVAL_MS && liveWs && liveWs.readyState === WebSocket.OPEN){
     liveLastSendAt = now;
@@ -1484,7 +1546,7 @@ async function goLive(){
   liveWs = new WebSocket(WS_URL);
   liveWs.addEventListener('open', () => {
     liveWs.send(JSON.stringify({ type:'claim', token: playToken }));
-    setLiveStatus('🔴 You\'re live — the pool screen is following this phone\'s mic.', 'ok');
+    setLiveStatus('You\'re live: the pool screen is following this phone\'s microphone.', 'ok');
     setLiveUI(true);
     liveAvgBass = 0; liveLastBeatAt = 0; liveLastSendAt = 0;
     liveRaf = requestAnimationFrame(liveAnalysisLoop);

@@ -270,6 +270,7 @@
   #screen-visualizer{padding:0;top:0;right:0;bottom:0;left:0;inset:0}
   .viz-wrap{position:relative;width:100%;height:100%;overflow:hidden}
   #vizCanvas{position:absolute;top:0;right:0;bottom:0;left:0;inset:0;width:100%;height:100%;display:block}
+  .viz-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;left:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(0,0,0,.55) 100%)}
 
   /* ── CLAW CATCH SCREEN ── a premium arcade cabinet on the pool screen.
      Layers, back to front: ambience (palm silhouettes, floor glow) → the
@@ -887,6 +888,22 @@
   .wave.w3{height:16vh;fill:#06303a;-webkit-animation-duration:12s;animation-duration:12s}
   @-webkit-keyframes oc-roll{to{-webkit-transform:translateX(-50%)}} @keyframes oc-roll{to{transform:translateX(-50%)}}
   @media (prefers-reduced-motion:reduce){ .bl-rise,.bl-sway,.st,.shoot,.wave,#oceanField .sun,.scoreboard-col .p-score.pop{-webkit-animation:none;animation:none} }
+  /* ── Stage 6: DJ Visuals — quiet corner captions over the light-show ── */
+  .viz-hud{position:absolute;left:0;right:0;bottom:0;display:-webkit-box;display:flex;-webkit-box-pack:justify;justify-content:space-between;-webkit-box-align:end;align-items:flex-end;padding:0 2.6vw 3.2vh;pointer-events:none;z-index:2}
+  .viz-dj{font-family:var(--serif);font-style:italic;font-weight:600;font-size:3vw;color:#F6F3EC;line-height:1.05;margin-bottom:.8vh;text-shadow:0 .3vw 2vw rgba(0,0,0,.6);max-width:48vw}
+  .viz-dj[hidden]{display:none}
+  .viz-mark{font-family:var(--serif);font-weight:600;font-size:1.7vw;color:rgba(246,243,236,.85);text-shadow:0 .2vw 1vw rgba(0,0,0,.6)}
+  .viz-mark em{font-style:italic;color:var(--rp-gold)} .viz-mark span{opacity:.5;margin:0 .3vw}
+  .viz-mark b{font-family:var(--sans);font-weight:700;font-size:1vw;letter-spacing:.18em;text-transform:uppercase;color:var(--rp-seafoam)}
+  .viz-side{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;-webkit-box-align:end;align-items:flex-end}
+  .viz-qr{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;padding:.8vh .8vw;border-radius:.9vw;background:rgba(4,20,26,.55);border:1px solid rgba(246,243,236,.12);margin-bottom:1.2vh;opacity:.88}
+  .viz-qr .qr{background:#fff;border-radius:.5vw;padding:.4vw;margin-right:.8vw}
+  .viz-qr .qr img{display:block;width:5.4vw;height:5.4vw}
+  .viz-qr span{font-family:var(--sans);font-weight:700;font-size:.95vw;line-height:1.3;color:#F6F3EC}
+  .viz-state{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;padding:.7vh 1vw;border-radius:99px;background:rgba(4,20,26,.55);border:1px solid rgba(246,243,236,.12);font-family:var(--sans);font-weight:700;font-size:1vw;color:#F6F3EC;font-variant-numeric:tabular-nums}
+  .viz-state i{width:.6vw;height:.6vw;border-radius:50%;background:rgba(246,243,236,.5);margin-right:.6vw}
+  .viz-state.live i{background:#A9CFC5;box-shadow:0 0 .8vw #A9CFC5;-webkit-animation:viz-dot 1.2s ease-in-out infinite;animation:viz-dot 1.2s ease-in-out infinite}
+  @-webkit-keyframes viz-dot{50%{opacity:.35}} @keyframes viz-dot{50%{opacity:.35}}
 </style>
 </head>
 <body>
@@ -1092,6 +1109,10 @@
   <section class="screen" id="screen-visualizer">
     <div class="viz-wrap">
       <canvas id="vizCanvas"></canvas>
+      <div class="viz-hud">
+        <div class="viz-id"><div class="viz-dj" id="vizDj" hidden></div><div class="viz-mark">RYST <em>Play</em> <span>&middot;</span> <b id="vizStyle">Spectrum</b></div></div>
+        <div class="viz-side"><div class="viz-qr"><div class="qr"><img id="qrPlayViz" alt="Scan to change the visuals"></div><span>Scan to<br>DJ the screen</span></div><div class="viz-state" id="vizState"><i></i><span id="vizStateText">120 BPM</span></div></div>
+      </div>
     </div>
   </section>
 
@@ -1168,6 +1189,7 @@ $('#qrPlayMemory').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayClaw').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayLudo').src = qr(SITE_URL + '/play.html', 200);
 $('#qrPlayQuiz').src = qr(SITE_URL + '/play.html', 200);
+$('#qrPlayViz').src = qr(SITE_URL + '/play.html', 200);
 
 // ── TOP BAR: CLOCK + DATE + WEATHER ──
 // Formatted with an explicit timeZone rather than trusting whatever the
@@ -1536,26 +1558,29 @@ function renderBackdropDisplay(g){
   field.innerHTML = html;
 })();
 
-// ── DJ VISUALIZER (procedural canvas light-show) ──
-// The pool screen has no audio input, so this doesn't react to real music —
-// it's a procedurally-animated visualizer whose style/palette/tempo are set
-// from a phone (play.html). A simulated beat pulse every 60/bpm seconds
-// drives the bar bounce / bass hits so it still reads as music-driven from a
-// sun lounger. Runs a requestAnimationFrame loop only while its screen is
-// showing (started/stopped from updateMainScreen) so it costs nothing the
-// rest of the time.
+// ── DJ VISUALS (Stage 6) ── a canvas light-show for the pool screen in six styles: spectrum, waveform, bass pulse,
+// horizon (a sun setting on the sea, the skyline drawn by the music), orbit and ambient (slow aurora for dinner).
+// Every style reads the same smoothed spectrum: the real one when a phone is live (audio relay below), otherwise a
+// synthesised one that breathes on the chosen tempo, so switching source never changes a style's shape. Energy
+// (calm / lively / wild) scales the motion. A frame-time watchdog drops the glow passes and particle counts if the
+// LED wall's player can't keep up. The loop runs only while this screen shows (startViz/stopViz).
 const VIZ_PALETTES = {
-  neon:    { bg:'#0a0618', stops:['#17e6d4','#7a5cff','#ff2e97'] },
-  sunset:  { bg:'#160a12', stops:['#ffcf4d','#ff6b3d','#d6318f'] },
-  aurora:  { bg:'#04120f', stops:['#38ffb0','#17c0e6','#6a5cff'] },
-  // Full-range — every hue in order, not a curated 2-3 colour blend like the
-  // others, for a classic "whole spectrum" rainbow look.
-  rainbow: { bg:'#050510', stops:['#ff3b3b','#ff9d3b','#ffe93b','#4dff5a','#3bd6ff','#4d6bff','#b13bff','#ff3bd6'] },
+  neon:    { bg:['#140a2e','#05030c'], stops:['#17e6d4','#7a5cff','#ff2e97'] },
+  sunset:  { bg:['#2a0f1c','#0a0408'], stops:['#ffcf4d','#ff6b3d','#d6318f'] },
+  aurora:  { bg:['#062a26','#020a08'], stops:['#38ffb0','#17c0e6','#6a5cff'] },
+  // every hue in order, for the classic whole-spectrum look
+  rainbow: { bg:['#0b0b22','#030308'], stops:['#ff3b3b','#ff9d3b','#ffe93b','#4dff5a','#3bd6ff','#4d6bff','#b13bff','#ff3bd6'] },
+  ryst:    { bg:['#0a3b44','#03161a'], stops:['#A9CFC5','#F6F3EC','#F7DFA4','#D8B879'] },
+  lagoon:  { bg:['#06343f','#021216'], stops:['#2fd3b5','#4fe7ff','#A9CFC5','#ffffff'] },
 };
-const VIZ_PRESETS = ['spectrum','waveform','bass'];
+const VIZ_PRESETS = ['spectrum','waveform','bass','horizon','orbit','ambient'];
+const VIZ_ENERGY = { calm: 0.6, lively: 1, wild: 1.4 };
+const VIZ_TRAIL = { spectrum: 1, horizon: 1, ambient: 1, waveform: 0.32, bass: 0.24, orbit: 0.3 };
+const VIZ_N = 48;
 const vizCanvas = $('#vizCanvas');
 const vizCtx = vizCanvas.getContext('2d');
-let vizRaf = null, vizStart = 0, vizBarSeed = [], vizParticles = [];
+let vizRaf = null, vizStart = 0, vizLastNow = 0, vizSeed = [], vizSm = [], vizPeak = [], vizParticles = [], vizRings = [], vizBokeh = [];
+let vizLevel = 0, vizBass = 0, vizTreble = 0, vizLow = false, vizSlowFrames = 0, vizFastFrames = 0, vizBgKey = '', vizBgGrad = null;
 
 // ── LIVE AUDIO (a phone's microphone, relayed over WebSocket) ──
 // A guest can "go live" from play.html so this screen reacts to the actual
@@ -1592,189 +1617,260 @@ function disconnectAudioListener(){
   if(audioWs){ try{ audioWs.close(); }catch(e){} audioWs = null; }
 }
 
-function vizGradient(w, pal){
-  const g = vizCtx.createLinearGradient(0, 0, w, 0);
-  pal.stops.forEach((c, i) => g.addColorStop(i / (pal.stops.length - 1), c));
+function vizHex(c, a){ // '#rrggbb' + alpha → rgba()
+  const n = parseInt(c.slice(1), 16);
+  return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+}
+function vizStop(pal, k){ // colour at 0..1 along the palette (nearest stop)
+  const st = pal.stops; return st[Math.min(st.length - 1, Math.max(0, Math.round(k * (st.length - 1))))];
+}
+function vizGradient(x0, y0, x1, y1, pal, a){
+  const g = vizCtx.createLinearGradient(x0, y0, x1, y1);
+  pal.stops.forEach((c, i) => g.addColorStop(i / (pal.stops.length - 1), a == null ? c : vizHex(c, a)));
   return g;
 }
 
-// `live` (when present) is this frame's real mic data — { bins, level }.
-// Each draw function uses live.bins/level in place of its own simulated
-// motion whenever it's there, but keeps the exact same visual structure
-// either way, so switching in/out of live audio never changes the *shape*
-// of a preset, only what's driving it.
-// A rounded segment; falls back to a plain rect on the rare browser without
-// CanvasRenderingContext2D.roundRect (this whole feature already assumes a
-// fairly modern browser — fetch/WebSocket/Web Audio — so this is a safety
-// net, not the expected path).
-function drawSpectrumSeg(x, y, w, h){
-  if(vizCtx.roundRect){ vizCtx.beginPath(); vizCtx.roundRect(x, y, w, h, Math.min(2, h/2)); vizCtx.fill(); }
-  else vizCtx.fillRect(x, y, w, h);
+// This frame's spectrum (0..1 per band), smoothed with a fast attack and slow release so it flows rather than flickers
+function vizSpectrum(t, beat, energy, live){
+  const targets = new Array(VIZ_N);
+  if (live && live.bins && live.bins.length) {
+    const src = live.bins, m = src.length;
+    for (let i = 0; i < VIZ_N; i++) { const f = i / (VIZ_N - 1) * (m - 1), j = Math.floor(f), r = f - j; targets[i] = ((src[j] || 0) * (1 - r) + (src[Math.min(m - 1, j + 1)] || 0) * r) / 255; }
+  } else {
+    const tt = t * energy;
+    for (let i = 0; i < VIZ_N; i++) {
+      const k = i / VIZ_N, sd = vizSeed[i] || 0;
+      const tilt = 1 - k * 0.55; // music leans to the low end
+      const wob = 0.5 + 0.5 * Math.sin(tt * 0.0021 * (1 + sd * 0.8) + i * 0.47 + sd * 6) * Math.sin(tt * 0.0009 + i * 0.13);
+      const kick = Math.max(0, 1 - k * 3.2) * beat; // the beat hits the bass bands hardest
+      targets[i] = Math.min(1, (0.16 + wob * 0.5) * tilt * (0.55 + beat * 0.55) * energy + kick * 0.55);
+    }
+  }
+  let sum = 0, bass = 0, tre = 0;
+  for (let i = 0; i < VIZ_N; i++) {
+    const cur = vizSm[i] || 0, tg = targets[i];
+    vizSm[i] = cur + (tg - cur) * (tg > cur ? 0.5 : 0.11);
+    vizPeak[i] = Math.max((vizPeak[i] || 0) - 0.008, vizSm[i]);
+    sum += vizSm[i]; if (i < 8) bass += vizSm[i]; if (i >= VIZ_N - 16) tre += vizSm[i];
+  }
+  vizLevel += (sum / VIZ_N - vizLevel) * 0.2; vizBass += (bass / 8 - vizBass) * 0.3; vizTreble += (tre / 16 - vizTreble) * 0.2;
 }
 
-// Classic segmented LED-equalizer look: discrete glowing blocks stacked
-// outward from a centre line in both directions, rather than one solid bar
-// growing from a baseline. Each bar's amplitude is otherwise computed
-// exactly as before (live bin or procedural sine blend) — only how it's
-// drawn changed.
-function drawSpectrum(t, w, h, pal, beat, live){
-  const N = (live && live.bins) ? live.bins.length : 48, gap = w / N, barW = gap * 0.62;
-  const midY = h * 0.5;
-  const segH = Math.max(3, h * 0.016), segGap = segH * 0.55, segStep = segH + segGap;
-  const grad = vizGradient(w, pal); // one gradient across the whole canvas — each bar's x position samples its own colour from it, same as before
+function vizBackground(w, h, pal, alpha, t){
+  const key = pal.bg.join() + w + 'x' + h;
+  if (key !== vizBgKey) {
+    vizBgKey = key; vizBgGrad = vizCtx.createLinearGradient(0, 0, 0, h); vizBgGrad.addColorStop(0, pal.bg[0]); vizBgGrad.addColorStop(1, pal.bg[1]);
+  }
+  vizCtx.globalAlpha = alpha; vizCtx.fillStyle = vizBgGrad; vizCtx.fillRect(0, 0, w, h); vizCtx.globalAlpha = 1;
+  // three slow pools of coloured light that swell with the bass
+  if (vizLow && alpha < 1) return;
+  vizCtx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 3; i++) {
+    const x = w * (0.2 + 0.3 * i + 0.08 * Math.sin(t * 0.00011 * (i + 1) + i)), y = h * (0.45 + 0.18 * Math.sin(t * 0.00008 * (i + 2) + i * 2)), r = Math.max(w, h) * (0.32 + vizBass * 0.12);
+    const g = vizCtx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, vizHex(pal.stops[i % pal.stops.length], (0.07 + vizBass * 0.1) * alpha)); g.addColorStop(1, 'rgba(0,0,0,0)');
+    vizCtx.fillStyle = g; vizCtx.fillRect(x - r, y - r, r * 2, r * 2); // only the pool's own square, not the whole screen
+  }
+  vizCtx.globalCompositeOperation = 'source-over';
+}
 
-  for(let i = 0; i < N; i++){
-    let v;
-    if(live && live.bins) v = Math.max(0.03, live.bins[i] / 255);
-    else {
-      const s = vizBarSeed[i] || 0;
-      const slow = 0.5 + 0.5 * Math.sin(t * 0.0022 * (1 + s * 0.7) + i * 0.5 + s * 6);
-      const fast = 0.5 + 0.5 * Math.sin(t * 0.006 + i * 0.9);
-      v = Math.max(0.04, Math.min(1, (slow * 0.7 + fast * 0.3) * (0.5 + beat * 0.7)));
-    }
-    const x = i * gap + (gap - barW) / 2;
-    const halfExtent = v * h * 0.44;
-
-    // Soft glow halo — one blurred rect per bar (cheap: cost scales with bar
-    // count, not with how many LED segments are lit), sitting behind the
-    // crisp segments drawn on top of it.
-    vizCtx.save();
+// Spectrum: LED columns rising from a glowing floor line, ivory peak caps that fall slowly, a soft reflection below
+function drawSpectrum(t, w, h, pal){
+  const base = h * 0.66, gap = w * 0.84 / VIZ_N, x0 = w * 0.08, bw = gap * 0.64, segH = Math.max(3, h * 0.013), step = segH * 1.55, maxH = h * 0.5;
+  const grad = vizGradient(x0, 0, x0 + gap * VIZ_N, 0, pal);
+  for (let i = 0; i < VIZ_N; i++) {
+    const v = Math.max(0.02, vizSm[i]), x = x0 + i * gap + (gap - bw) / 2, bh = v * maxH, n = Math.max(1, Math.floor(bh / step));
     vizCtx.fillStyle = grad;
-    vizCtx.globalAlpha = 0.4;
-    vizCtx.filter = 'blur(5px)';
-    vizCtx.fillRect(x, midY - halfExtent, barW, halfExtent * 2);
-    vizCtx.restore();
-
-    vizCtx.fillStyle = grad;
-    vizCtx.globalAlpha = 1;
-    const segCount = Math.max(1, Math.floor(halfExtent / segStep));
-    for(let s = 0; s < segCount; s++){
-      const dy = s * segStep;
-      drawSpectrumSeg(x, midY - dy - segH / 2, barW, segH);
-      if(s > 0) drawSpectrumSeg(x, midY + dy - segH / 2, barW, segH); // s=0 is the shared centre segment — don't draw it twice
-    }
+    for (let k = 0; k < n; k++) vizCtx.fillRect(x, base - (k + 1) * step + (step - segH), bw, segH);
+    vizCtx.globalAlpha = 0.18; vizCtx.fillRect(x, base + segH, bw, bh * 0.45); vizCtx.globalAlpha = 1;
+    const py = base - vizPeak[i] * maxH - segH * 1.6;
+    vizCtx.fillStyle = '#F6F3EC'; vizCtx.fillRect(x, py, bw, Math.max(2, segH * 0.5));
   }
-  vizCtx.globalAlpha = 1;
+  vizCtx.fillStyle = vizGradient(x0, 0, x0 + gap * VIZ_N, 0, pal, 0.9); vizCtx.fillRect(x0, base + 1, gap * VIZ_N, 2);
+  const fade = vizCtx.createLinearGradient(0, base, 0, h); fade.addColorStop(0, 'rgba(0,0,0,0)'); fade.addColorStop(1, pal.bg[1]);
+  vizCtx.fillStyle = fade; vizCtx.fillRect(0, base + 3, w, h - base);
 }
 
-function drawWaveform(t, w, h, pal, beat, live){
-  const grad = vizGradient(w, pal), yc = h * 0.5, layers = 3;
-  const ampBase = live ? (0.35 + live.level * 1.3) : (0.5 + beat * 0.75);
-  for(let L = 0; L < layers; L++){
-    const amp = h * 0.16 * ampBase * (1 - L * 0.22), phase = t * 0.004 + L * 1.3;
-    vizCtx.beginPath();
-    for(let x = 0; x <= w; x += 6){
-      const k = x / w;
-      const y = yc + Math.sin(k * Math.PI * 6 + phase) * amp * Math.sin(k * Math.PI)
-                   + Math.sin(k * Math.PI * 13 - phase * 1.4) * amp * 0.35;
-      x === 0 ? vizCtx.moveTo(x, y) : vizCtx.lineTo(x, y);
-    }
-    vizCtx.strokeStyle = grad;
-    vizCtx.globalAlpha = 1 - L * 0.28;
-    vizCtx.lineWidth = Math.max(2, h * 0.006);
-    vizCtx.stroke();
+// Waveform: three translucent ribbons whose height at each point follows that part of the spectrum
+function drawWaveform(t, w, h, pal, energy){
+  const yc = h * 0.5;
+  vizCtx.globalCompositeOperation = 'lighter';
+  for (let L = 0; L < 3; L++) {
+    const ph = t * 0.0016 * energy + L * 2.1, amp = h * (0.34 - L * 0.07);
+    const pts = [];
+    for (let x = 0; x <= w; x += 12) { const k = x / w, f = k * (VIZ_N - 1), j = Math.floor(f), r = f - j, v = (vizSm[j] || 0) * (1 - r) + (vizSm[Math.min(VIZ_N - 1, j + 1)] || 0) * r, env = Math.sin(k * Math.PI);
+      pts.push([x, Math.sin(k * Math.PI * (3 + L) + ph) * amp * (0.15 + v) * env + Math.sin(k * Math.PI * 11 - ph * 1.6) * amp * 0.08 * v]); }
+    vizCtx.beginPath(); pts.forEach((p, i) => i ? vizCtx.lineTo(p[0], yc + p[1]) : vizCtx.moveTo(p[0], yc + p[1]));
+    for (let i = pts.length - 1; i >= 0; i--) vizCtx.lineTo(pts[i][0], yc - pts[i][1] * 0.35);
+    vizCtx.closePath(); if (L < 2 && !vizLow) { vizCtx.fillStyle = vizGradient(0, 0, w, 0, pal, 0.1 + (2 - L) * 0.03); vizCtx.fill(); }
+    vizCtx.beginPath(); pts.forEach((p, i) => i ? vizCtx.lineTo(p[0], yc + p[1]) : vizCtx.moveTo(p[0], yc + p[1]));
+    vizCtx.strokeStyle = vizGradient(0, 0, w, 0, pal, 0.95 - L * 0.25); vizCtx.lineWidth = Math.max(2, h * (0.005 - L * 0.001)); vizCtx.stroke();
   }
-  vizCtx.globalAlpha = 1;
+  vizCtx.globalCompositeOperation = 'source-over';
 }
 
-function drawBass(t, w, h, pal, beat, isBeat){
-  const cx = w / 2, cy = h / 2, maxR = Math.min(w, h) * 0.55;
-  for(let i = 0; i < 4; i++){
-    const phase = (t * 0.00025 + i / 4) % 1, r = phase * maxR;
-    vizCtx.beginPath();
-    vizCtx.arc(cx, cy, r, 0, Math.PI * 2);
-    vizCtx.strokeStyle = pal.stops[i % pal.stops.length];
-    vizCtx.globalAlpha = (1 - phase) * 0.5;
-    vizCtx.lineWidth = 2 + beat * 10;
-    vizCtx.stroke();
-  }
-  vizCtx.globalAlpha = 1;
-  const r = Math.min(w, h) * (0.11 + beat * 0.11);
-  const g = vizCtx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  g.addColorStop(0, pal.stops[0]); g.addColorStop(1, 'transparent');
-  vizCtx.fillStyle = g;
-  vizCtx.beginPath(); vizCtx.arc(cx, cy, r, 0, Math.PI * 2); vizCtx.fill();
-  // spawn a burst of particles on each beat, let them fly out and fade
-  if(isBeat){
-    for(let i = 0; i < 18; i++){
-      const a = Math.random() * Math.PI * 2, sp = 2 + Math.random() * 5;
-      vizParticles.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, col: pal.stops[i % pal.stops.length] });
-    }
-  }
-  vizParticles = vizParticles.filter(p => p.life > 0);
-  for(const p of vizParticles){
-    p.x += p.vx; p.y += p.vy; p.life -= 0.018;
-    vizCtx.globalAlpha = Math.max(0, p.life);
-    vizCtx.fillStyle = p.col;
-    vizCtx.beginPath(); vizCtx.arc(p.x, p.y, 3 + (1 - p.life) * 3, 0, Math.PI * 2); vizCtx.fill();
-  }
-  vizCtx.globalAlpha = 1;
+// Bass pulse: a core that swells with the low end, a ring of spectrum ticks, a ripple and a spark burst per beat
+function drawBass(t, w, h, pal, energy, isBeat){
+  const cx = w / 2, cy = h / 2, m = Math.min(w, h), R = m * (0.1 + vizBass * 0.07 * energy);
+  if (isBeat) { vizRings.push({ r: R, life: 1, c: vizStop(pal, Math.random()) });
+    const n = vizLow ? 10 : 22; for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, sp = (2 + Math.random() * 5) * energy; vizParticles.push({ x: cx, y: cy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 1, c: pal.stops[i % pal.stops.length] }); } }
+  vizRings = vizRings.filter(r => r.life > 0).slice(-8);
+  vizRings.forEach(r => { r.r += m * 0.012 * energy; r.life -= 0.016; vizCtx.beginPath(); vizCtx.arc(cx, cy, r.r, 0, Math.PI * 2); vizCtx.strokeStyle = vizHex(r.c, r.life * 0.6); vizCtx.lineWidth = 2 + r.life * 8; vizCtx.stroke(); });
+  vizCtx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < VIZ_N * 2; i++) { const v = vizSm[i < VIZ_N ? i : VIZ_N * 2 - 1 - i], a = i / (VIZ_N * 2) * Math.PI * 2 - Math.PI / 2, r0 = R * 1.5, r1 = r0 + v * m * 0.16;
+    vizCtx.beginPath(); vizCtx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); vizCtx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1); vizCtx.strokeStyle = vizHex(vizStop(pal, i / (VIZ_N * 2)), 0.85); vizCtx.lineWidth = Math.max(2, m * 0.006); vizCtx.stroke(); }
+  vizCtx.globalCompositeOperation = 'source-over';
+  const g = vizCtx.createRadialGradient(cx, cy, 0, cx, cy, R * 1.3); g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(0.12, vizHex(pal.stops[0], 0.9)); g.addColorStop(0.55, vizHex(pal.stops[pal.stops.length - 1], 0.35)); g.addColorStop(1, vizHex(pal.stops[pal.stops.length - 1], 0));
+  vizCtx.fillStyle = g; vizCtx.beginPath(); vizCtx.arc(cx, cy, R * 1.3, 0, Math.PI * 2); vizCtx.fill();
+  vizCtx.globalCompositeOperation = 'lighter';
+  vizParticles = vizParticles.filter(p => p.life > 0).slice(vizLow ? -80 : -220);
+  vizParticles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vx *= 0.99; p.vy *= 0.99; p.life -= 0.014; vizCtx.globalAlpha = Math.max(0, p.life); vizCtx.fillStyle = p.c; vizCtx.beginPath(); vizCtx.arc(p.x, p.y, 2 + (1 - p.life) * 4, 0, Math.PI * 2); vizCtx.fill(); });
+  vizCtx.globalAlpha = 1; vizCtx.globalCompositeOperation = 'source-over';
 }
 
-let vizLastBeatIdx = -1;
+// Horizon: a banded sun on the sea at dusk; the skyline along the horizon is the spectrum (bass in the middle),
+// the water below shimmers with the sun's reflection in lines that lengthen with the music
+function drawHorizon(t, w, h, pal, energy){
+  const hy = h * 0.62, cx = w / 2, m = Math.min(w, h), sr = m * (0.2 + vizBass * 0.025 * energy), last = pal.stops[pal.stops.length - 1];
+  const sky = vizCtx.createLinearGradient(0, 0, 0, hy); sky.addColorStop(0, pal.bg[1]); sky.addColorStop(0.6, pal.bg[0]); sky.addColorStop(1, vizHex(pal.stops[0], 0.55));
+  vizCtx.fillStyle = sky; vizCtx.fillRect(0, 0, w, hy);
+  if (!vizLow) { const halo = vizCtx.createRadialGradient(cx, hy, sr * 0.6, cx, hy, sr * 3.2); halo.addColorStop(0, vizHex(pal.stops[0], 0.35 + vizLevel * 0.3)); halo.addColorStop(1, vizHex(pal.stops[0], 0));
+    vizCtx.fillStyle = halo; vizCtx.fillRect(0, 0, w, hy); }
+  // the sun, cut by bands that thicken toward the horizon
+  vizCtx.save(); vizCtx.beginPath(); vizCtx.rect(0, 0, w, hy); vizCtx.clip();
+  const sy = hy - sr * 0.3;
+  const sg = vizCtx.createLinearGradient(0, sy - sr, 0, sy + sr); sg.addColorStop(0, '#fff6dc'); sg.addColorStop(0.5, pal.stops[0]); sg.addColorStop(1, last);
+  vizCtx.save(); vizCtx.beginPath(); vizCtx.arc(cx, sy, sr, 0, Math.PI * 2); vizCtx.clip();
+  vizCtx.fillStyle = sg; vizCtx.fillRect(cx - sr, sy - sr, sr * 2, sr * 2);
+  const drift = (t * 0.00004 * energy) % 1;
+  for (let k = 0; k < 7; k++) { const f = (k + drift) / 7, y = hy - 2 - f * sr * 0.8, th = (1 - f) * sr * 0.075 + 1; vizCtx.fillStyle = pal.bg[0]; vizCtx.fillRect(cx - sr, y, sr * 2, th); }
+  vizCtx.restore();
+  // skyline: the spectrum mirrored from the middle
+  const cols = VIZ_N * 2, cw = w / cols;
+  vizCtx.beginPath(); vizCtx.moveTo(0, hy);
+  for (let i = 0; i < cols; i++) { const d = 1 - Math.abs(i - cols / 2 + 0.5) / (cols / 2), v = vizSm[Math.min(VIZ_N - 1, Math.floor(d * VIZ_N))] || 0, bh = v * h * 0.16 * (0.45 + (1 - d) * 0.75);
+    vizCtx.lineTo(i * cw, hy - bh); vizCtx.lineTo((i + 1) * cw, hy - bh); }
+  vizCtx.lineTo(w, hy); vizCtx.closePath(); vizCtx.fillStyle = vizHex(pal.bg[1], 0.82); vizCtx.fill();
+  vizCtx.strokeStyle = vizGradient(0, 0, w, 0, pal, 0.85); vizCtx.lineWidth = 2; vizCtx.stroke();
+  vizCtx.restore();
+  // the sea
+  const sea = vizCtx.createLinearGradient(0, hy, 0, h); sea.addColorStop(0, vizHex(pal.bg[0], 1)); sea.addColorStop(1, pal.bg[1]);
+  vizCtx.fillStyle = sea; vizCtx.fillRect(0, hy, w, h - hy);
+  vizCtx.fillStyle = vizHex(pal.stops[0], 0.8); vizCtx.fillRect(0, hy, w, 1.5);
+  vizCtx.globalCompositeOperation = 'lighter';
+  for (let r = 0, y = hy + 4; y < h; r++, y += 3 + r * 1.6) {
+    const d = (y - hy) / (h - hy), v = vizSm[Math.min(VIZ_N - 1, r % VIZ_N)] || 0;
+    const len = sr * (1.1 - d * 0.3) * (0.55 + v * 0.9) * (0.75 + 0.25 * Math.sin(t * 0.003 * energy + r * 1.7));
+    const off = Math.sin(t * 0.0012 + r) * sr * 0.08;
+    vizCtx.fillStyle = vizHex(r % 3 ? pal.stops[0] : last, (1 - d) * 0.55); vizCtx.fillRect(cx - len / 2 + off, y, len, 1.5 + d * 3);
+    if (!vizLow && vizTreble > 0.12 && r % 2) { const sx = ((Math.sin(r * 12.9898 + Math.floor(t / 400)) * 43758.5) % 1 + 1) % 1; vizCtx.fillStyle = vizHex('#ffffff', vizTreble * (1 - d) * 0.8); vizCtx.fillRect(sx * w, y, 3 + d * 6, 1.5); }
+  }
+  vizCtx.globalCompositeOperation = 'source-over';
+}
+
+// Orbit: the spectrum as rays around a slowly turning ring, with satellites riding the outer orbit
+function drawOrbit(t, w, h, pal, energy, isBeat){
+  const cx = w / 2, cy = h / 2, m = Math.min(w, h), R = m * 0.2, rot = t * 0.00012 * energy, n = VIZ_N * 2;
+  if (isBeat) vizRings.push({ r: R, life: 1, c: pal.stops[0] });
+  vizRings = vizRings.filter(r => r.life > 0).slice(-6);
+  vizRings.forEach(r => { r.r += m * 0.008 * energy; r.life -= 0.02; vizCtx.beginPath(); vizCtx.arc(cx, cy, r.r, 0, Math.PI * 2); vizCtx.strokeStyle = vizHex(r.c, r.life * 0.4); vizCtx.lineWidth = 2; vizCtx.stroke(); });
+  vizCtx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < n; i++) { const v = vizSm[i < VIZ_N ? i : n - 1 - i], a = rot + i / n * Math.PI * 2, r0 = R, r1 = R + m * (0.02 + v * 0.24);
+    vizCtx.beginPath(); vizCtx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0); vizCtx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+    vizCtx.strokeStyle = vizHex(vizStop(pal, i / n), 0.9); vizCtx.lineWidth = Math.max(2, (Math.PI * 2 * R / n) * 0.55); vizCtx.lineCap = 'round'; vizCtx.stroke(); }
+  vizCtx.lineCap = 'butt';
+  vizCtx.beginPath(); vizCtx.arc(cx, cy, R * 0.92, 0, Math.PI * 2); vizCtx.strokeStyle = vizHex('#F6F3EC', 0.35 + vizBass * 0.5); vizCtx.lineWidth = 2; vizCtx.stroke();
+  const core = vizCtx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.85); core.addColorStop(0, vizHex(pal.stops[0], 0.18 + vizBass * 0.35)); core.addColorStop(1, vizHex(pal.stops[0], 0));
+  vizCtx.fillStyle = core; vizCtx.beginPath(); vizCtx.arc(cx, cy, R * 0.85, 0, Math.PI * 2); vizCtx.fill();
+  const sats = vizLow ? 10 : 18;
+  for (let i = 0; i < sats; i++) { const a = -rot * 2.2 + i / sats * Math.PI * 2, rr = R * (2.05 + 0.12 * Math.sin(t * 0.002 + i)) + vizLevel * m * 0.08;
+    vizCtx.fillStyle = vizHex(pal.stops[i % pal.stops.length], 0.9); vizCtx.beginPath(); vizCtx.arc(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, m * (0.005 + vizSm[i] * 0.008), 0, Math.PI * 2); vizCtx.fill(); }
+  vizCtx.globalCompositeOperation = 'source-over';
+}
+
+// Ambient: slow aurora curtains and drifting bokeh — for dinner and the late, quiet hours; it listens but barely sways
+function drawAmbient(t, w, h, pal){
+  const tt = t * 0.3;
+  vizCtx.globalCompositeOperation = 'lighter';
+  for (let L = 0; L < 4; L++) {
+    const top = h * (0.18 + L * 0.07), band = h * (0.42 - L * 0.04), col = pal.stops[L % pal.stops.length];
+    vizCtx.beginPath(); vizCtx.moveTo(0, top + band);
+    for (let x = 0; x <= w; x += 24) { const k = x / w; vizCtx.lineTo(x, top + Math.sin(k * Math.PI * (1.4 + L * 0.5) + tt * 0.0007 * (L + 1) + L) * h * (0.05 + vizLevel * 0.04) + Math.sin(k * 9 + tt * 0.0011) * h * 0.012); }
+    vizCtx.lineTo(w, top + band); vizCtx.closePath();
+    const g = vizCtx.createLinearGradient(0, top - h * 0.08, 0, top + band); g.addColorStop(0, vizHex(col, 0)); g.addColorStop(0.25, vizHex(col, 0.09 + vizLevel * 0.08)); g.addColorStop(1, vizHex(col, 0));
+    vizCtx.fillStyle = g; vizCtx.fill();
+  }
+  if (!vizBokeh.length) for (let i = 0; i < 34; i++) vizBokeh.push({ x: Math.random(), y: Math.random(), r: 0.004 + Math.random() * 0.022, s: 0.00002 + Math.random() * 0.00005, ph: Math.random() * 6, c: i % 4 });
+  vizBokeh.forEach(b => { const y = ((b.y - tt * b.s) % 1 + 1) % 1, r = b.r * Math.min(w, h) * (1 + vizBass * 0.4), a = (0.08 + 0.1 * (0.5 + 0.5 * Math.sin(tt * 0.001 + b.ph))) * (vizLow ? 0.8 : 1);
+    vizCtx.fillStyle = vizHex(pal.stops[b.c % pal.stops.length], a); vizCtx.beginPath(); vizCtx.arc(b.x * w + Math.sin(tt * 0.0004 + b.ph) * 20, y * h, r, 0, Math.PI * 2); vizCtx.fill(); });
+  vizCtx.globalCompositeOperation = 'source-over';
+}
+
+let vizLastBeatIdx = -1, vizHudKey = '';
 function vizFrame(now){
   if(!vizStart) vizStart = now;
-  const t = now - vizStart;
+  const t = now - vizStart, dt = vizLastNow ? now - vizLastNow : 16; vizLastNow = now;
+  // watchdog: sustained slow frames drop the glow passes; sustained fast frames bring them back
+  if (dt > 30) { vizSlowFrames++; vizFastFrames = 0; } else if (dt < 20) { vizFastFrames++; vizSlowFrames = Math.max(0, vizSlowFrames - 1); }
+  if (!vizLow && vizSlowFrames > 90) { vizLow = true; vizSlowFrames = 0; }
+  if (vizLow && vizFastFrames > 600) { vizLow = false; vizFastFrames = 0; }
   const g = currentGame.viz || {};
   const pal = VIZ_PALETTES[g.palette] || VIZ_PALETTES.neon;
-  const preset = VIZ_PRESETS.includes(g.preset) ? g.preset : 'spectrum';
+  const preset = VIZ_PRESETS.indexOf(g.preset) >= 0 ? g.preset : 'spectrum';
+  const energy = (VIZ_ENERGY[g.energy] || 1) * (preset === 'ambient' ? 0.6 : 1);
 
   const isLive = (Date.now() - liveAudio.at) < LIVE_AUDIO_STALE_MS;
   let beat, isBeat, live = null;
   if(isLive){
-    // A one-shot decay per detected beat rather than a fixed-period cycle —
-    // there's no "wraparound" to go wrong here (unlike the procedural
-    // pulse), since each real beat just restarts the same smooth ease-out
-    // from 1, however soon after the last one it arrives.
+    // a one-shot decay per detected beat: each real beat restarts the same smooth ease-out from 1
     const sinceBeat = performance.now() - liveLastBeatAt;
     beat = Math.pow(Math.max(0, 1 - sinceBeat / LIVE_BEAT_DECAY_MS), 1.4);
     isBeat = liveBeatPending; liveBeatPending = false;
     live = { bins: liveAudio.bins, level: liveAudio.level };
   } else {
     const bpm = Math.min(180, Math.max(60, g.bpm || 120));
-    const spb = 60000 / bpm, beatIdx = Math.floor(t / spb);
-    const cyc = (t % spb) / spb;
-    // A cosine-based envelope rather than a sawtooth decay — cos(cyc*2π) is
-    // exactly periodic, so its value AND slope both match perfectly at
-    // cyc=0/cyc=1 (a full period apart), with no possible jump at the beat
-    // boundary. The old version decayed smoothly across the beat but then
-    // snapped straight back to full brightness at the next one — that instant
-    // reset was the "abrupt" pop. Raising it to a power keeps the peakier,
-    // punchier shape (bright near the beat, quiet in between) without
-    // reintroducing any discontinuity, since pow() of a smooth periodic
-    // function that touches its minimum tangentially stays smooth.
+    const spb = 60000 / bpm, beatIdx = Math.floor(t / spb), cyc = (t % spb) / spb;
+    // a cosine envelope is exactly periodic (value and slope match at the beat), so there's no pop at the boundary
     beat = Math.pow(0.5 + 0.5 * Math.cos(cyc * Math.PI * 2), 1.6);
     isBeat = beatIdx !== vizLastBeatIdx; vizLastBeatIdx = beatIdx;
   }
+  vizSpectrum(t, beat, energy, live);
 
-  // Keep the backing store matched to the displayed size (also does the
-  // initial size); cheap to check each frame and handles the screen's
-  // resolution without a separate resize listener.
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  // keep the backing store matched to the displayed size (capped so a 4K wall doesn't draw 4× the pixels)
+  const dpr = Math.min(window.devicePixelRatio || 1, vizLow ? 1 : 1.5);
   const cw = vizCanvas.clientWidth, ch = vizCanvas.clientHeight;
   if(cw && ch && (vizCanvas.width !== Math.round(cw * dpr) || vizCanvas.height !== Math.round(ch * dpr))){
     vizCanvas.width = Math.round(cw * dpr); vizCanvas.height = Math.round(ch * dpr);
-    vizCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    vizCtx.setTransform(dpr, 0, 0, dpr, 0, 0); vizBgKey = '';
   }
-
-  // Full clear for the crisp spectrum bars; a translucent fill for the other
-  // two leaves motion trails (the glowing DJ look).
-  vizCtx.globalAlpha = preset === 'spectrum' ? 1 : (preset === 'waveform' ? 0.26 : 0.2);
-  vizCtx.fillStyle = pal.bg;
-  vizCtx.fillRect(0, 0, cw, ch);
-  vizCtx.globalAlpha = 1;
-
-  if(preset === 'spectrum') drawSpectrum(t, cw, ch, pal, beat, live);
-  else if(preset === 'waveform') drawWaveform(t, cw, ch, pal, beat, live);
-  else drawBass(t, cw, ch, pal, beat, isBeat);
-
+  if (cw && ch) {
+    vizBackground(cw, ch, pal, VIZ_TRAIL[preset], t);
+    if(preset === 'spectrum') drawSpectrum(t, cw, ch, pal);
+    else if(preset === 'waveform') drawWaveform(t, cw, ch, pal, energy);
+    else if(preset === 'bass') drawBass(t, cw, ch, pal, energy, isBeat);
+    else if(preset === 'horizon') drawHorizon(t, cw, ch, pal, energy);
+    else if(preset === 'orbit') drawOrbit(t, cw, ch, pal, energy, isBeat);
+    else drawAmbient(t, cw, ch, pal);
+    // a soft flash on the beat when the energy is wild
+    if (g.energy === 'wild' && preset !== 'ambient' && beat > 0.6) { vizCtx.fillStyle = 'rgba(255,255,255,' + ((beat - 0.6) * 0.09) + ')'; vizCtx.fillRect(0, 0, cw, ch); }
+  }
+  // the corner captions only change when the settings or the source do
+  const hk = [isLive, g.bpm, g.energy, g.title, preset].join('|');
+  if (hk !== vizHudKey) { vizHudKey = hk; vizHud(g, isLive); }
   vizRaf = requestAnimationFrame(vizFrame);
+}
+const VIZ_NAMES = { spectrum: 'Spectrum', waveform: 'Waveform', bass: 'Bass Pulse', horizon: 'Horizon', orbit: 'Orbit', ambient: 'Ambient' };
+function vizHud(g, isLive){
+  const dj = $('#vizDj'), title = (g.title || '').trim();
+  dj.textContent = title; dj.hidden = !title;
+  $('#vizState').classList.toggle('live', isLive);
+  $('#vizStateText').textContent = isLive ? 'Live · following the music' : (Math.min(180, Math.max(60, g.bpm || 120)) + ' BPM · ' + ({ calm: 'Calm', lively: 'Lively', wild: 'Wild' }[g.energy] || 'Lively'));
+  $('#vizStyle').textContent = VIZ_NAMES[g.preset] || 'Spectrum';
 }
 
 function startViz(){
   if(vizRaf) return;
-  vizStart = 0; vizLastBeatIdx = -1; vizParticles = [];
-  vizBarSeed = Array.from({ length: 64 }, () => Math.random());
+  vizStart = 0; vizLastNow = 0; vizLastBeatIdx = -1; vizParticles = []; vizRings = []; vizHudKey = ''; vizSlowFrames = 0; vizFastFrames = 0;
+  vizSeed = []; vizSm = []; vizPeak = []; for (let i = 0; i < VIZ_N; i++) { vizSeed.push(Math.random()); vizSm.push(0); vizPeak.push(0); }
   liveAudio = { bins: null, level: 0, bass: 0, mid: 0, treble: 0, at: 0 }; // stale by construction until a real frame arrives
   connectAudioListener();
   vizRaf = requestAnimationFrame(vizFrame);

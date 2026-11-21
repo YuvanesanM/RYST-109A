@@ -51,8 +51,8 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 | 3 | Claw Catch v2 | Done (see below) |
 | 4 | Tic-Tac-Toe (best of three, winning line, draw, replay) + Memory Match (3D flips, difficulty, timer, moves) | Done (see below) |
 | 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Done (see below) |
-| 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Next |
-| 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Planned |
+| 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Done (see below) |
+| 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Next |
 | 8 | New games, one at a time: Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
 | 9 | Shared components + unified admin console (respecting guest.html/harbour architecture) | Planned |
 | 10 | Full regression (proxy suites, two-phone + screen e2e for every game, screenshots) | Planned |
@@ -128,6 +128,29 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
   preview that follows typing (the screen updates on change), and a 2 × 3 theme grid.
 - QA: shoot.js fixtures (scoreboard-tv/-fhd/-4x3/-two, scoreboard-phone-picker, backdrop-tv/-4x3/-balloons/-stars/-ocean/
   -glow-custom/-confetti-long, backdrop-phone/-ocean) and a two-phones-and-screen run against the real rules.
+
+### Stage 6 — DJ Visuals (delivered)
+- Proxy: settings rules in the pure module `viz.js` (unit tests, plus route checks in `play-party`): six styles
+  (spectrum, waveform, bass, horizon, orbit, ambient), six palettes (adds RYST Gold and Lagoon), energy (calm, lively,
+  wild), tempo clamped 60–180, and an optional "on the decks" line (28 characters, plain text). The `/game/audio` relay is
+  unchanged.
+- Pool screen: one renderer for every style, fed by a smoothed spectrum (fast attack, slow release) from the live phone
+  or, without one, a synthesised spectrum that breathes on the tempo, so a style keeps its shape either way. Spectrum: LED
+  columns with falling peak caps and a reflection. Waveform: three ribbons shaped by the spectrum. Bass Pulse: a core that
+  swells with the low end, a ring of spectrum ticks, a ripple and sparks per beat. Horizon: a banded sun setting on the
+  sea, the skyline drawn by the music, the reflection shimmering with it. Orbit: spectrum rays round a turning ring with
+  satellites. Ambient: slow aurora and drifting bokeh for dinner. Pools of light that swell with the bass, a CSS vignette,
+  a soft beat flash on Wild. Corner captions: the DJ line (Cormorant italic), "RYST Play · style", a join QR and a
+  status pill (tempo and energy, or "Live · following the music"). The old per-bar blur filter (about 1.5 s per frame
+  in software rendering) is gone; every style holds 60 fps in headless software rendering at 1080p, and a frame-time watchdog
+  drops the glow passes and particle counts on a slow player (and restores them when it catches up). The backing store is
+  capped at 1.5× pixel ratio. Plain ES2017.
+- Phones: style cards with drawn thumbnails, named palette swatches, Calm/Lively/Wild, Slow/Medium/Fast plus tap tempo
+  (average of the last taps, after four), the DJ line, and a live microphone level meter on the Live Audio card (no
+  emoji in the status).
+- QA: shoot.js fixtures for every style (16:9, 4:3, 1080p), live audio frames injected, the phone controller; a frame-time
+  check per style, normal and with the CPU throttled; and a two-phones-and-screen run with a fake microphone through a
+  stand-in relay (settings merge, tap tempo, live, displacement, fallback).
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a
