@@ -42,7 +42,7 @@ const srv = http.createServer((q, r) => { const f = path.join(ROOT, q.url.split(
   await tv.waitForTimeout(2600); await tv.screenshot({ path: OUT + '/e2e-tv-match.png' }); await asha.screenshot({ path: OUT + '/e2e-asha-match.png', fullPage: true });
   ok('X takes the match 2–0; Rematch shows; the TV shows the match card', st.tttMatch.over && st.tttMatch.champion === 'X' && /Rematch/.test(await asha.textContent('#newRoundBtn')) && await tv.isVisible('#tttWin'));
   await asha.click('#newRoundBtn'); await tv.waitForTimeout(1800);
-  console.log('rematch: over', st.tttMatch.over, 'wins', JSON.stringify(st.tttMatch.wins), 'tv card hidden:', !(await tv.isVisible('#tttWin')));
+  ok('rematch resets the match and hides the card', !st.tttMatch.over && st.tttMatch.wins.X === 0 && st.tttMatch.wins.O === 0 && !(await tv.isVisible('#tttWin')));
   // memory on the same phones
   st.mode = 'memory'; for (const p of [asha, ravi]) { await p.evaluate(() => { const b = document.querySelector('[data-activity="memory"],[data-mode="memory"]'); if (b) b.click(); }); await p.waitForTimeout(800); }
   await asha.click('.s4-levels [data-lvl="hard"]'); await asha.waitForTimeout(1200);
