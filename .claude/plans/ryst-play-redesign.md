@@ -170,6 +170,24 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
   board, which stays in view); portrait is unchanged. Phone matrix: no overflow or clipping at any size.
 - Regression: the Stage 4–6 two-phones-and-screen runs pass again, plus Ludo and Quiz landscape tap smoke tests.
 
+### Stage 8a — Quiz categories and the live leaderboard (delivered)
+- Proxy (`quiz.js`, unit and route tests): every question carries a category — Tamil Nadu & the Coast (16), Sea & Nature
+  (19), World & Science (19), or a mix of all 54. Thirteen new questions, well-established facts only; no new facts
+  about the villa. Any player on a team picks the category and 5, 10 or 15 questions in the lobby (`/game/quiz/setup`);
+  a rematch keeps them. Each player's own points (the same points their team averages, so team scoring is unchanged)
+  build a public board (profile name, avatar, team, points, right answers, last question) and a Player of the night at
+  the end. Sign-ins stay private.
+- Pool screen: Cormorant "Quiz *Night*", the category with a drawn mark beside the question number, "Tonight · category ·
+  N questions" in the lobby, the top four players on one line at each reveal (three on 4:3) with what the question earned
+  them, and an end screen in the main area: the winning team, a Player of the night card, and the full standings. The
+  board is only re-written when it changes, so its entrance plays once.
+- Phones: category tiles and 5/10/15 in the lobby (locked until you join a team), your rank card at each reveal ("2nd ·
+  712 pts · +162"), and the final standings with the Player of the night.
+- QA: fixtures (lobby, reveal 16:9 and 4:3, over; phone lobby, reveal, over) and a two-phones-and-screen run against the
+  real rules (setup, start, answers, board, ranks, end screen, rematch, privacy).
+
+Next in Stage 8: Darts 301/501.
+
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a
 persistent store on the proxy), spectator replay of the last move.

@@ -636,6 +636,29 @@
     .ls-b .mem-board:not(.c6){max-width:min(100%,70vh);margin-left:auto;margin-right:auto}
     .ls-b .ludo-play{margin-top:0}
   }
+  /* ── Stage 8: Quiz categories, your rank, the final board ── */
+  .qz-setup{margin:6px 0 4px}
+  .qz-cats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+  .qz-cats button{display:flex;align-items:center;gap:10px;text-align:left;padding:11px 12px;border-radius:14px;border:1.5px solid rgba(255,255,255,.14);background:rgba(255,255,255,.05);color:var(--ink);font:700 13px/1.2 var(--sans);cursor:pointer}
+  .qz-cats button .ic{width:28px;height:28px;flex-shrink:0;color:#a9cfc5} .qz-cats button .ic svg{width:100%;height:100%}
+  .qz-cats button.on{border-color:#d8b879;background:rgba(216,184,121,.12)} .qz-cats button.on .ic{color:#f7dfa4}
+  .qz-cats button:disabled,#quizLen button:disabled{opacity:.55;cursor:default}
+  #quizLen button.on{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4}
+  .qz-mecard{display:flex;align-items:center;gap:12px;margin:12px 0 4px;padding:12px 14px;border-radius:16px;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(216,184,121,.4)}
+  .qz-mecard .rk{font:800 24px/1 var(--sans);color:#f7dfa4;min-width:48px;font-variant-numeric:tabular-nums}
+  .qz-mecard .tx{flex:1;display:flex;flex-direction:column;text-align:left} .qz-mecard b{font:800 15px/1.2 var(--sans);color:var(--ink)} .qz-mecard small{font-size:12.5px;color:var(--muted-text)}
+  .qz-mecard .pl{padding:4px 10px;border-radius:99px;background:rgba(169,207,197,.18);color:#a9cfc5;font:800 14px/1 var(--sans);font-variant-numeric:tabular-nums}
+  .qz-mecard[hidden],.qz-board[hidden],.qz-setup[hidden]{display:none}
+  .qz-board{list-style:none;margin:10px 0 16px;padding:0;display:flex;flex-direction:column;gap:6px}
+  .qz-board li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:14px}
+  .qz-board li b{width:20px;font-weight:800;color:var(--muted-text);font-variant-numeric:tabular-nums}
+  .qz-board li.top b{color:#f7dfa4}
+  .qz-board li .av{width:28px;height:28px;border-radius:50%;box-shadow:0 0 0 2px var(--tc);overflow:hidden;flex-shrink:0} .qz-board li .av svg{display:block;width:100%;height:100%}
+  .qz-board li .nm{flex:1;font-weight:700;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qz-board li .sc{font-weight:800;color:#f7dfa4;font-variant-numeric:tabular-nums}
+  .qz-board li.me{border-color:rgba(216,184,121,.55)}
+  .qz-board li.mvp{background:none;border:0;padding:4px 2px 0} .qz-board li.mvp .k{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#d8b879}
+  .qz-board li.mvp .mn{font-family:var(--serif);font-style:italic;font-weight:600;font-size:22px;color:var(--ink)} .qz-board li.mvp .k.sub{color:var(--muted-text);margin-top:6px}
 </style>
 </head>
 <body>
@@ -736,6 +759,13 @@
       <h1 class="ll-h1">Quiz <em>Night</em></h1>
       <p class="sub" id="quizSub">Pick a team. You play under your name and avatar; the questions are on the pool screen and here.</p>
       <div class="quiz-teams" id="quizTeams"></div>
+      <div class="qz-setup" id="quizSetup" hidden>
+        <label class="bd-label">Category</label>
+        <div class="qz-cats" id="quizCats"></div>
+        <label class="bd-label">Questions</label>
+        <div class="viz-seg" id="quizLen" role="group" aria-label="Number of questions"><button type="button" data-len="5">5</button><button type="button" data-len="10">10</button><button type="button" data-len="15">15</button></div>
+        <p class="viz-hint" id="quizSetupHint">&nbsp;</p>
+      </div>
       </div><div class="ls-b">
       <div class="quiz-q" id="quizQ" hidden>
         <div class="quiz-top"><span id="quizNum"></span><span class="quiz-clock" id="quizClock"></span></div>
@@ -743,7 +773,9 @@
         <p class="quiz-text" id="quizText"></p>
         <div class="quiz-opts" id="quizOpts"></div>
       </div>
+      <div class="qz-mecard" id="quizMeCard" hidden></div>
       <p class="ludo-status" id="quizStatus" role="status" aria-live="polite">&nbsp;</p>
+      <ol class="qz-board" id="quizBoardP" hidden></ol>
       <div class="actions ludo-actions">
         <button type="button" class="btn primary" id="quizStart" hidden>Start the quiz</button>
         <button type="button" class="btn ghost" id="quizLeave" hidden>Leave team</button>
@@ -1950,6 +1982,20 @@ function renderQuiz(){
   else if (Q.phase === 'reveal') { const rv = Q.reveal; st = myTeam < 0 ? '' : (quizMe.choice === rv.correct ? 'Correct! ' : quizMe.answered ? 'Not this time. ' : 'Out of time. ') + esc(Q.teams[myTeam].name) + ' +' + rv.points[myTeam]; }
   else if (Q.phase === 'over') st = (Q.winners || []).length ? (Q.winners.map(i => esc(Q.teams[i].name)).join(' & ') + ' win' + (Q.winners.length > 1 ? '' : 's') + '!') : 'Quiz over';
   $('#quizStatus').innerHTML = st || '&nbsp;';
+  // category and length: any player on a team sets them before the game (or for the rematch)
+  const canSet = myTeam >= 0 && (Q.phase === 'lobby' || Q.phase === 'over');
+  $('#quizSetup').hidden = !(Q.phase === 'lobby' || (Q.phase === 'over' && myTeam >= 0));
+  if (!$('#quizCats').children.length) $('#quizCats').innerHTML = QUIZ_CATS.map(c => `<button type="button" data-cat="${c[0]}"><span class="ic">${QUIZ_CAT_ICON[c[0]]}</span><span>${c[1]}</span></button>`).join('');
+  $('#quizCats').querySelectorAll('[data-cat]').forEach(b => { b.classList.toggle('on', b.dataset.cat === (Q.category || 'mixed')); b.disabled = !canSet; });
+  $('#quizLen').querySelectorAll('[data-len]').forEach(b => { b.classList.toggle('on', Number(b.dataset.len) === (Q.length || 10)); b.disabled = !canSet; });
+  $('#quizSetupHint').textContent = canSet ? 'Anyone on a team can change these before the start.' : 'Join a team to pick the category.';
+  // you on the live board: your rank, points and what the last question earned you
+  const brd = Q.board || [], meIdx = profile ? brd.findIndex(p => p.id === profile.id) : -1, me = meIdx >= 0 ? brd[meIdx] : null;
+  const showMe = me && (Q.phase === 'reveal' || Q.phase === 'over') && brd.length > 1;
+  $('#quizMeCard').hidden = !showMe;
+  if (showMe) $('#quizMeCard').innerHTML = `<span class="rk">${quizOrd(meIdx + 1)}</span><span class="tx"><b>You · ${me.score} pts</b><small>of ${brd.length} players · ${me.right} right</small></span>` + (Q.phase === 'reveal' && me.last > 0 ? `<span class="pl">+${me.last}</span>` : '');
+  const bp = $('#quizBoardP'); bp.hidden = !(Q.phase === 'over' && brd.length > 1);
+  if (!bp.hidden) bp.innerHTML = (Q.mvp ? `<li class="mvp"><span class="k">Player of the night</span><span class="mn">${esc(Q.mvp.name)}</span></li>` : '') + `<li class="mvp"><span class="k sub">Final standings</span></li>` + brd.slice(0, 8).map((p, k) => `<li class="${p.id === (profile && profile.id) ? 'me' : ''}${k === 0 ? ' top' : ''}" style="--tc:${(Q.teams[p.team] || {}).colour}"><b>${k + 1}</b><span class="av">${avatarSvg(p.avatar)}</span><span class="nm">${esc(p.name)}</span><span class="sc">${p.score}</span></li>`).join('');
   $('#quizStart').hidden = !(myTeam >= 0 && (Q.phase === 'lobby'));
   $('#quizLeave').hidden = !(myTeam >= 0 && Q.phase === 'lobby');
   $('#quizNew').hidden = !(myTeam >= 0 && Q.phase === 'over');
@@ -1962,6 +2008,16 @@ function tickQuizClock(){
   $('#quizBar').classList.toggle('low', Q.phase === 'question' && left < 5000);
   if (left === 0 && Q.phase === 'question') poll(); // the server moves to the reveal; fetch it now rather than at the next poll
 }
+const QUIZ_CATS = [['mixed', 'A bit of everything'], ['local', 'Tamil Nadu & the Coast'], ['nature', 'Sea & Nature'], ['world', 'World & Science']];
+const QUIZ_CAT_ICON = {
+  mixed: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2" opacity=".7"/><rect x="3" y="13" width="8" height="8" rx="2" opacity=".7"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>',
+  local: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 3h6l1 4H8zM7.5 8h9l1 5h-11zM6 14h12l1.5 7h-15z"/></svg>',
+  nature: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 12c3-5 9-6 13-3l4-3v12l-4-3c-4 3-10 2-13-3z"/></svg>',
+  world: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+};
+const quizOrd = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
+$('#quizCats').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (b && !b.disabled) quizPost('/game/quiz/setup', { category: b.dataset.cat }); });
+$('#quizLen').addEventListener('click', e => { const b = e.target.closest('[data-len]'); if (b && !b.disabled) quizPost('/game/quiz/setup', { length: Number(b.dataset.len) }); });
 async function quizPost(path, body){ if (busy) return; busy = true; try { state = await postJson(path, body || {}); render(); } catch (e) {} finally { busy = false; } }
 $('#quizTeams').addEventListener('click', e => { const b = e.target.closest('[data-team]'); if (!b || b.disabled) return; if (!profile) { openSheet(); return; } quizPost('/game/quiz/join', { team: Number(b.dataset.team) }); });
 $('#quizOpts').addEventListener('click', e => { const b = e.target.closest('[data-choice]'); if (!b || b.disabled) return; if (navigator.vibrate) try { navigator.vibrate(15); } catch (x) {} quizPost('/game/quiz/answer', { choice: Number(b.dataset.choice) }); });

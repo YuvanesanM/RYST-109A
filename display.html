@@ -921,6 +921,48 @@
     .h2-info-col p{font-size:max(.92vw,1.55vh)} .h2-info-col h4{font-size:max(1.05vw,1.55vh)}
     .h2-card p{font-size:max(.9vw,1.5vh)} .claw-conn{font-size:max(.95vw,1.6vh)} .viz-mark b{font-size:max(1vw,1.55vh)}
   }
+  /* ── Stage 8: Quiz categories and the live player board ── */
+  .qz-head h2.s4-title{font-size:3.4vw !important;margin:0 !important}
+  .qz-num{display:-webkit-box;display:flex;-webkit-box-pack:center;justify-content:center;-webkit-box-align:center;align-items:center}
+  .qz-num .qn{margin-left:1.2vw}
+  .qz-cat{display:-webkit-inline-box;display:inline-flex;-webkit-box-align:center;align-items:center;padding:.7vh 1vw;border-radius:99px;background:rgba(169,207,197,.12);border:1px solid rgba(169,207,197,.3);color:#A9CFC5;font-family:var(--sans);font-weight:800;font-size:1.05vw;letter-spacing:.08em;text-transform:uppercase;vertical-align:middle}
+  .qz-cat svg{width:1.3vw;height:1.3vw;fill:#A9CFC5;margin-right:.6vw}
+  .qz-setup{text-align:center;font-family:var(--sans);font-weight:700;font-size:1.5vw;color:#bcd8d4;margin-top:-1vh}
+  .qz-setup .qz-cat{margin:0 .6vw;font-size:1.2vw} .qz-setup .qz-cat svg{width:1.5vw;height:1.5vw}
+  .qz-setup:empty{display:none}
+  .qz-text.final{font-family:var(--serif);font-weight:600;font-size:5.4vw;letter-spacing:0}
+  .qz-text.final em{font-style:italic}
+  .qz-board{display:-webkit-box;display:flex;-webkit-box-pack:center;justify-content:center;-webkit-box-align:center;align-items:center;flex-wrap:nowrap;overflow:hidden;margin-top:.4vh}
+  .qz-board.final{flex-wrap:wrap;max-width:80vw;margin-left:auto;margin-right:auto}
+  @media (max-aspect-ratio:3/2){ .qz-board:not(.final) .qz-p:nth-of-type(4){display:none} }
+  .qz-board:empty{display:none}
+  .quiz-frame.rv .qz-text{font-size:3vw;margin-bottom:2vh}
+  .quiz-frame.rv .qz-opt{padding:1.4vh 1.4vw;margin-bottom:1.2vh}
+  .quiz-frame.rv .qz-team .tav{display:none}
+  .quiz-frame.rv .qz-team{padding:1.2vh 1.4vw}
+  .qz-bt{font-family:var(--sans);font-weight:800;font-size:1vw;letter-spacing:.2em;text-transform:uppercase;color:#A9CFC5;margin-right:1vw}
+  .qz-p{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;margin:.5vh .45vw;padding:.7vh 1vw .7vh .6vw;border-radius:99px;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(246,243,236,.12);font-family:var(--sans);color:#F6F3EC;-webkit-animation:qz-pin .45s ease both;animation:qz-pin .45s ease both}
+  .qz-p:nth-child(2){-webkit-animation-delay:.05s;animation-delay:.05s} .qz-p:nth-child(3){-webkit-animation-delay:.1s;animation-delay:.1s} .qz-p:nth-child(4){-webkit-animation-delay:.15s;animation-delay:.15s} .qz-p:nth-child(5){-webkit-animation-delay:.2s;animation-delay:.2s} .qz-p:nth-child(6){-webkit-animation-delay:.25s;animation-delay:.25s}
+  @-webkit-keyframes qz-pin{from{opacity:0;-webkit-transform:translateY(1vh)}} @keyframes qz-pin{from{opacity:0;transform:translateY(1vh)}}
+  .qz-p .rk{width:1.8vw;text-align:center;font-weight:800;font-size:1.1vw;color:#bcd8d4;font-variant-numeric:tabular-nums}
+  .qz-p.top{border-color:rgba(216,184,121,.6)} .qz-p.top .rk{color:#D8B879}
+  .qz-p .pav,.qz-mvp .pav{display:block;width:2.4vw;height:2.4vw;border-radius:50%;box-shadow:0 0 0 .18vw var(--tc);margin:0 .7vw 0 .2vw;overflow:hidden}
+  .qz-p .pav svg,.qz-mvp .pav svg{display:block;width:100%;height:100%}
+  .qz-p .pn{font-weight:800;font-size:1.25vw;max-width:12vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qz-p .ps{font-weight:800;font-size:1.25vw;margin-left:.8vw;color:#F7DFA4;font-variant-numeric:tabular-nums}
+  .qz-p .pl{margin-left:.6vw;padding:.2vh .5vw;border-radius:99px;background:rgba(169,207,197,.18);color:#A9CFC5;font-weight:800;font-size:.95vw;font-variant-numeric:tabular-nums}
+  .qz-board.final .qz-p{padding:1vh 1.3vw 1vh .8vw}
+  .qz-mvp{display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;-webkit-box-pack:center;justify-content:center;margin:2.4vh auto 1.6vh;padding:1.6vh 2.2vw;border-radius:1.4vw;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02)),#07333b;border:1px solid rgba(216,184,121,.5);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 1.6vw 3vw rgba(0,0,0,.35)}
+  .qz-mvp[hidden]{display:none}
+  .qz-mvp .pav{width:5vw;height:5vw;margin-right:1.4vw;box-shadow:0 0 0 .25vw #D8B879,0 0 2vw rgba(216,184,121,.45)}
+  .qz-mvp .mt{display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;text-align:left}
+  .qz-mvp .k{font-family:var(--sans);font-weight:800;font-size:1vw;letter-spacing:.2em;text-transform:uppercase;color:#D8B879}
+  .qz-mvp .n{font-family:var(--serif);font-weight:600;font-style:italic;font-size:3vw;color:#F6F3EC;line-height:1.05}
+  .qz-mvp .m{font-family:var(--sans);font-weight:700;font-size:1.2vw;color:#bcd8d4;font-variant-numeric:tabular-nums}
+  @supports (font-size: max(1px, 1vh)) {
+    .qz-cat{font-size:max(1.05vw,1.6vh)} .qz-bt{font-size:max(1vw,1.5vh)} .qz-p .pl{font-size:max(.95vw,1.5vh)} .qz-p .rk{font-size:max(1.1vw,1.6vh)}
+    .qz-mvp .k{font-size:max(1vw,1.5vh)} .qz-mvp .m{font-size:max(1.2vw,1.7vh)} .qz-setup{font-size:max(1.5vw,2vh)}
+  }
 </style>
 </head>
 <body>
@@ -1059,11 +1101,14 @@
 
   <section class="screen rp-stage" id="screen-quiz">
     <div class="rp-frame quiz-frame">
-      <div class="qz-head"><h2>Quiz Night</h2><div class="qz-num" id="qzNum"></div>
+      <div class="qz-head"><h2 class="s4-title">Quiz <em>Night</em></h2><div class="qz-num" id="qzNum"></div>
         <div class="qz-ring" id="qzRing"><svg viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="19" class="bg"/><circle cx="22" cy="22" r="19" class="fg" id="qzArc"/></svg><span id="qzSecs"></span></div></div>
       <div class="qz-body">
         <div class="qz-text" id="qzText"></div>
+        <div class="qz-setup" id="qzSetup"></div>
+        <div class="qz-mvp" id="qzMvp" hidden></div>
         <div class="qz-opts" id="qzOpts"></div>
+        <div class="qz-board" id="qzBoard"></div>
       </div>
       <div class="qz-teams" id="qzTeams"></div>
       <div class="ludo-join-card qz-join" id="qzJoin"><div class="qr"><img id="qrPlayQuiz" alt="Scan to play"></div><span>Scan to join a team<br><small>answer on your phone</small></span></div>
@@ -3631,6 +3676,22 @@ window.addEventListener('resize', () => LudoView.resize());
 // have answered, then the reveal and the scores. Plain ES2017.
 const QuizView = (function(){
   const L = ['A', 'B', 'C', 'D'], HUES = ['#4fd1c5', '#ffb85c', '#ff7aa8', '#8c9bff'];
+  // the category a host picked, with a small drawn mark (shared shapes with the phones)
+  const CAT = { mixed: 'A bit of everything', local: 'Tamil Nadu & the Coast', nature: 'Sea & Nature', world: 'World & Science' };
+  const CAT_ICON = {
+    mixed: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2" opacity=".7"/><rect x="3" y="13" width="8" height="8" rx="2" opacity=".7"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>',
+    local: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l1 4H8zM7.5 8h9l1 5h-11zM6 14h12l1.5 7h-15z"/><rect x="11" y="17" width="2" height="4" fill="#07333b"/></svg>',
+    nature: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-5 9-6 13-3l4-3v12l-4-3c-4 3-10 2-13-3z"/><circle cx="8" cy="11" r="1.2" fill="#07333b"/></svg>',
+    world: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+  };
+  const catTag = c => '<span class="qz-cat">' + (CAT_ICON[c] || CAT_ICON.mixed) + '<span>' + (CAT[c] || CAT.mixed) + '</span></span>';
+  const ORD = n => n + (n % 10 === 1 && n % 100 !== 11 ? 'st' : n % 10 === 2 && n % 100 !== 12 ? 'nd' : n % 10 === 3 && n % 100 !== 13 ? 'rd' : 'th');
+  // the live player board: the top players by their own points, each in their team's colour
+  function boardHtml(rows, showLast){
+    return rows.map((p, k) => { const t = Q.teams[p.team] || { colour: '#A9CFC5' };
+      return '<div class="qz-p' + (k === 0 && p.score > 0 ? ' top' : '') + '" style="--tc:' + t.colour + '"><b class="rk">' + (k + 1) + '</b><span class="pav">' + av(p.avatar) + '</span><span class="pn">' + esc(p.name) + '</span><span class="ps">' + p.score + '</span>'
+        + (showLast && p.last > 0 ? '<span class="pl">+' + p.last + '</span>' : '') + '</div>'; }).join('');
+  }
   let Q = null, on = false, timer = null, skew = 0, lastWin = -1, lastQ = -2;
   const esc = t => String(t == null ? '' : t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const av = k => (window.RYST_AVATARS || {})[k] || '';
@@ -3644,9 +3705,22 @@ const QuizView = (function(){
   }
   function render(){
     const inGame = Q.phase === 'question' || Q.phase === 'reveal', rv = Q.phase === 'reveal' ? Q.reveal : null;
-    $('#qzNum').textContent = inGame ? 'Question ' + (Q.qIndex + 1) + ' of ' + Q.total : '';
-    $('#qzText').innerHTML = inGame && Q.question ? esc(Q.question.text) : Q.phase === 'over' ? 'Final scores' : 'Pick a team on your phone, then start the quiz';
-    $('#qzText').classList.toggle('lobby', !inGame);
+    $('#qzNum').innerHTML = inGame ? (Q.question ? catTag(Q.question.category) : '') + '<span class="qn">Question ' + (Q.qIndex + 1) + ' of ' + Q.total + '</span>' : '';
+    const over = Q.phase === 'over', won = over && (Q.winners || []).length;
+    $('#qzText').innerHTML = inGame && Q.question ? esc(Q.question.text)
+      : won ? Q.winners.map(i => '<em style="color:' + Q.teams[i].colour + '">' + esc(Q.teams[i].name) + '</em>').join(' & ') + (Q.winners.length > 1 ? ' tie' : ' win')
+      : over ? 'Quiz over' : 'Pick a team on your phone, then start the quiz';
+    $('#qzText').classList.toggle('lobby', !inGame && !over);
+    $('#qzText').classList.toggle('final', over);
+    $('#qzSetup').innerHTML = Q.phase === 'lobby' ? 'Tonight ' + catTag(Q.category) + '<span class="qn">' + (Q.length || 10) + ' questions</span>'
+      : over ? (won ? Q.teams[Q.winners[0]].score + ' points' : '') + ' · ' + (CAT[Q.category] || CAT.mixed) + ' · play again from any phone' : '';
+    const mv = Q.mvp, mvEl = $('#qzMvp'); mvEl.hidden = !(over && mv);
+    const setHtml = (el, h) => { if (el.__h !== h) { el.__h = h; el.innerHTML = h; } }; // re-write only on change, so entrance motion plays once
+    if (over && mv) setHtml(mvEl, '<span class="pav" style="--tc:' + (Q.teams[mv.team] || {}).colour + '">' + av(mv.avatar) + '</span><span class="mt"><span class="k">Player of the night</span><span class="n">' + esc(mv.name) + '</span><span class="m">' + mv.right + ' right · ' + mv.score + ' points</span></span>');
+    const brd = Q.board || [];
+    setHtml($('#qzBoard'), rv && brd.length > 1 ? '<span class="qz-bt">Top players</span>' + boardHtml(brd.slice(0, 4), true) : over && brd.length > 1 ? boardHtml(brd.slice(0, 8), false) : '');
+    $('#qzBoard').classList.toggle('final', over);
+    $('#screen-quiz .quiz-frame').classList.toggle('rv', !!(rv && brd.length > 1)); // the reveal makes room for the player board
     if (inGame && Q.qIndex !== lastQ) { lastQ = Q.qIndex; const el = $('#qzText'); el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); }
     $('#qzOpts').innerHTML = inGame && Q.question ? Q.question.options.map((o, i) => `<div class="qz-opt${rv ? (i === rv.correct ? ' right' : ' dim') : ''}" style="--oc:${HUES[i]}"><b>${L[i]}</b><span>${esc(o)}</span></div>`).join('') : '';
     const lead = Math.max.apply(null, Q.teams.map(t => t.score));
@@ -3655,11 +3729,8 @@ const QuizView = (function(){
       return `<div class="qz-team${Q.phase === 'question' && n && Q.answered[i] >= n ? ' done' : ''}${rv && rv.points[i] > 0 ? ' scored' : ''}${Q.phase === 'over' && (Q.winners || []).indexOf(i) >= 0 ? ' won' : ''}${lead > 0 && t.score === lead && Q.phase !== 'lobby' ? ' lead' : ''}" style="--tc:${t.colour}">
         <div class="tn">${esc(t.name)}</div><div class="tsc">${t.score}</div><div class="tst">${status}</div><div class="tav">${t.members.slice(0, 7).map(m => `<span>${av(m.avatar)}</span>`).join('')}</div></div>`; }).join('');
     $('#qzJoin').style.display = inGame ? 'none' : '';
-    const won = Q.phase === 'over' && (Q.winners || []).length;
-    $('#qzWin').hidden = !won;
+    $('#qzWin').hidden = true; // the result now sits in the main area (headline, player of the night, the full board)
     if (won) {
-      $('#qzWinBig').innerHTML = Q.winners.map(i => `<em style="color:${Q.teams[i].colour}">${esc(Q.teams[i].name)}</em>`).join(' & ') + (Q.winners.length > 1 ? ' tie' : ' win');
-      $('#qzWinSmall').textContent = Q.teams[Q.winners[0]].score + ' points · play again from any phone';
       if (lastWin !== Q.gameId) { lastWin = Q.gameId; for (let k = 0; k < 60; k++) { const el = document.createElement('div'); el.className = 'claw-confetti'; el.style.left = (Math.random() * 100) + '%'; el.style.background = Q.teams[Q.winners[0]].colour;
         el.style.setProperty('--dx', ((Math.random() - 0.5) * 30) + 'vw'); el.style.animationDuration = (2.4 + Math.random() * 2) + 's'; el.style.animationDelay = (Math.random() * 0.8) + 's'; $('#screen-quiz .rp-frame').appendChild(el); setTimeout(() => el.remove(), 5500); } }
     }
