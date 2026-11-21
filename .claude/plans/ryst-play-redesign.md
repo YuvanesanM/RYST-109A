@@ -53,9 +53,9 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 | 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Done (see below) |
 | 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Done (see below) |
 | 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Done (see below) |
-| 8 | New games, one at a time (next): Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
+| 8 | New games, one at a time (all delivered): Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
 | 9 | Shared components + unified admin console (respecting guest.html/harbour architecture) | Done (see below) |
-| 10 | Full regression (proxy suites, two-phone + screen e2e for every game, screenshots) | Next |
+| 10 | Full regression (proxy suites, two-phone + screen e2e for every game, screenshots) | Done (see below) |
 
 ### Stage 2 — Ludo Lounge (delivered)
 - Pool screen: lit 2.5D table in three.js (ivory lacquer board texture with raised tiles, enamel yards
@@ -247,6 +247,18 @@ The owner asked for these "as you'd suggest". All three avoid licensing and priv
   unless a fixture is staff) and a staff + guest + screen run (entry hidden for the guest, show, pause card, volume and
   mute reaching the TV's audio, reset, leaderboard clear, resume, log, a direct guest call refused). Earlier end-to-end
   runs (Quiz, Darts, Scoreboard/Backdrop, TTT/Memory) pass again.
+
+### Stage 10 — Full regression (delivered, 21 Nov 2026)
+- Proxy: the full suite (`node test/run.js`) — 1,682 checks, all passing; 24 unit test groups.
+- Phones + pool screen: `.claude/skills/visual-qa/scripts/e2e/run-all.js` runs one end-to-end script per game, each with
+  two phones and the pool screen in Chromium against a stand-in /game that uses the proxy's real rule modules (Claw over
+  a relay mirroring the proxy's claw protocol). All nine pass: TTT + Memory 6, Scoreboard + Backdrop 13, DJ Visuals 9,
+  Quiz 13, Darts 17, Ludo 7, Claw 9, Host console 15, Music + Movie Night + Photo Booth 19 (108 checks), no page errors.
+  Repeat with `node .claude/skills/visual-qa/scripts/e2e/run-all.js` (proxy checked out beside the repo, or RYST_PROXY).
+- Screenshots: `shoot.js --sizes=matrix --audit` over every phone screen (5 sizes) and every pool-screen state added
+  since the Stage 7 sweep (6 sizes): 245 captures, no page errors. Fixed: the Quiz join caption's floor on 4:3 walls.
+  Left as intended: the record label's tiny "109A" (drawn art), long song titles ending in an ellipsis on the staff list.
+- Fixed during the regression (test side): the Claw stand-in now follows mode changes; the TTT rematch is a real check.
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a
