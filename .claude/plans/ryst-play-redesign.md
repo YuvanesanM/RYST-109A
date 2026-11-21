@@ -52,8 +52,8 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 | 4 | Tic-Tac-Toe (best of three, winning line, draw, replay) + Memory Match (3D flips, difficulty, timer, moves) | Done (see below) |
 | 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Done (see below) |
 | 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Done (see below) |
-| 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Next |
-| 8 | New games, one at a time: Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
+| 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Done (see below) |
+| 8 | New games, one at a time (next): Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
 | 9 | Shared components + unified admin console (respecting guest.html/harbour architecture) | Planned |
 | 10 | Full regression (proxy suites, two-phone + screen e2e for every game, screenshots) | Planned |
 
@@ -151,6 +151,24 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 - QA: shoot.js fixtures for every style (16:9, 4:3, 1080p), live audio frames injected, the phone controller; a frame-time
   check per style, normal and with the CPU throttled; and a two-phones-and-screen run with a fake microphone through a
   stand-in relay (settings merge, tap tempo, live, displacement, fallback).
+
+### Stage 7 — Phone controller and TV pass (delivered)
+- Tooling: `shoot.js --sizes=matrix --audit` re-shoots every state at six TV sizes (720p, 900p, 1080p, 4K, 4:3 at
+  1440×1080 and 1024×768) and five phone sizes (360×640, 390×844, 430×932, 844×390 landscape, tablet), and reports
+  horizontal scroll, off-screen content, clipped text and TV text under 1.5% of the screen height. `-tap` smoke shots.
+- Pool screen, 4K: every `clamp(min, vw, max px)` cap is now the same size in vh (identical at 1080p, doubles at 2160p),
+  so the top bar, home screen and round lines scale on a 3840-wide player instead of staying at 1080p pixel sizes.
+- Pool screen, 4:3 and small walls: small labels (kickers, turn labels, hints, seat status, QR captions, moves, pairs,
+  ranks, history, captions) get a floor tied to the screen height via `max()` inside `@supports`; players without
+  `max()` keep the vw size. Audit clean across all sizes (the Claw palm crossing the left edge is intended).
+- Fixed a Stage 5 regression: the backdrop's star class `.st` collided with Ludo's seat status line `.st` and drew a
+  white twinkling blur over it on the pool screen. Stars are now `#starField .bd-star`; the shooting stars and ocean waves
+  are scoped to their scenes too.
+- Phones: every game title is now Cormorant with the gold italic accent (Claw *Catch*, Quiz *Night*, Tic-Tac-*Toe*,
+  Score*board*, Memory *Match*, Party *Backdrop*, DJ *Visuals*), starting below the Back pill on narrow phones. Held
+  sideways, Ludo, Quiz, Tic-Tac-Toe and Memory split into two columns (seats and scores beside the die, question or
+  board, which stays in view); portrait is unchanged. Phone matrix: no overflow or clipping at any size.
+- Regression: the Stage 4–6 two-phones-and-screen runs pass again, plus Ludo and Quiz landscape tap smoke tests.
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a

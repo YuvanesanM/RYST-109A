@@ -624,6 +624,18 @@
   .viz-meter i.on{background:#a9cfc5;height:100%} .viz-meter i.on:nth-child(n+9){background:#d8b879}
   .viz-meter.beat{animation:viz-beat .2s ease} @keyframes viz-beat{50%{filter:brightness(1.6)}}
   .viz-live-status.ok{color:#a9cfc5}
+  /* ── Stage 7: phone held sideways — the turn-based games split into two columns so the board, die or question sits
+     beside the seats instead of below the fold. Portrait is untouched (the column blocks are plain blocks there). */
+  /* the Back pill floats top-left; on a narrow phone the display title starts just below it rather than under it */
+  @media (max-width:639px){ .screen:not(#screen-dashboard):not(#screen-signin):not(#screen-claw) .ll-h1{margin-top:30px} }
+  @media (orientation:landscape) and (max-height:520px) and (min-width:640px){
+    body:not(.hub):not(.claw-on) .wrap{max-width:880px}
+    .ls-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px;align-items:start}
+    .ls-b{position:sticky;top:12px}
+    .ls-b .board{max-width:min(100%,74vh);margin-left:auto;margin-right:auto}
+    .ls-b .mem-board:not(.c6){max-width:min(100%,70vh);margin-left:auto;margin-right:auto}
+    .ls-b .ludo-play{margin-top:0}
+  }
 </style>
 </head>
 <body>
@@ -669,7 +681,7 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path class="on" d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/><path class="off" d="m22 9-6 6M16 9l6 6" style="display:none"/></svg>
         </button>
       </div>
-      <h1>Claw Catch</h1>
+      <h1 class="ll-h1">Claw <em>Catch</em></h1>
       <div class="claw-me">
         <span class="claw-badge"><i id="clawDot"></i><span id="clawBadge">Joining</span></span>
         <span class="claw-nums"><span class="time" id="clawTimeWrap"><b id="clawTime">–</b><span>sec</span></span><span><b id="clawMyScore">0</b><span>pts</span></span></span>
@@ -690,6 +702,7 @@
 
     <section class="screen" id="screen-ludo">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
+      <div class="ls-grid"><div class="ls-a">
       <h1 class="ll-h1">Ludo <em>Lounge</em></h1>
       <p class="ll-tag">A classic for family &amp; friends.</p>
       <p class="sub" id="ludoSub">Pick a colour to join. One phone can play more than one colour.</p>
@@ -700,6 +713,7 @@
         <button type="button" class="btn ghost" id="ludoJoinCancel">Cancel</button>
       </div>
       <p class="ludo-status" id="ludoStatus" role="status" aria-live="polite">&nbsp;</p>
+      </div><div class="ls-b">
       <div class="ludo-play" id="ludoPlay" hidden>
         <div class="ludo-die" id="ludoDie" aria-label="Die"></div>
         <button type="button" class="btn primary ludo-roll" id="ludoRoll">Roll the die</button>
@@ -713,13 +727,16 @@
         <button type="button" class="btn ghost" id="ludoOther" hidden>Choose another game</button>
       </div>
       <p class="claw-hint">A 6 brings a token out and rolls again. Land on a rival to send them home, except on the star and start squares. You need the exact roll to get home. First to bring all four home wins.</p>
+      </div></div>
     </section>
 
     <section class="screen" id="screen-quiz">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1>Quiz Night</h1>
+      <div class="ls-grid"><div class="ls-a">
+      <h1 class="ll-h1">Quiz <em>Night</em></h1>
       <p class="sub" id="quizSub">Pick a team. You play under your name and avatar; the questions are on the pool screen and here.</p>
       <div class="quiz-teams" id="quizTeams"></div>
+      </div><div class="ls-b">
       <div class="quiz-q" id="quizQ" hidden>
         <div class="quiz-top"><span id="quizNum"></span><span class="quiz-clock" id="quizClock"></span></div>
         <div class="quiz-bar"><i id="quizBar"></i></div>
@@ -733,11 +750,13 @@
         <button type="button" class="btn primary" id="quizNew" hidden>Play again</button>
       </div>
       <p class="claw-hint">10 questions, 20 seconds each. A right answer scores 100, plus up to 100 more for speed. Your team scores its players' average, so small teams can win too.</p>
+      </div></div>
     </section>
 
     <section class="screen" id="screen-tictactoe">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1>Tic-Tac-Toe</h1>
+      <div class="ls-grid"><div class="ls-a">
+      <h1 class="ll-h1">Tic-Tac-<em>Toe</em></h1>
       <p class="sub">Two players, one phone each. Take X or O, then play on the pool screen.</p>
       <div class="ttt-seats" id="tttSeats"></div>
       <p class="s4-matchline" id="tttMatchLine">&nbsp;</p>
@@ -746,17 +765,19 @@
         <div class="score o"><div class="mark">O</div><div class="n" id="scoreO">0</div><div class="s4-pips" id="pipsO"></div></div>
       </div>
       <p class="turn" id="turnLabel">&nbsp;</p>
+      </div><div class="ls-b">
       <div class="board" id="board"></div>
       <div class="actions">
         <button type="button" class="btn primary" id="newRoundBtn">Next round</button>
         <button type="button" class="btn ghost" id="resetScoresBtn">Reset scores</button>
         <button type="button" class="btn ghost" id="tttLeave" hidden>Leave seat</button>
       </div>
+      </div></div>
     </section>
 
     <section class="screen" id="screen-scoreboard">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1>Scoreboard</h1>
+      <h1 class="ll-h1">Score<em>board</em></h1>
       <p class="sub">Keep score for any game by the pool. It shows live on the big screen.</p>
       <label class="bd-label" for="sbGameName">What are you playing?</label>
       <input type="text" id="sbGameName" class="bd-text" maxlength="28" placeholder="Carrom, cards, pool volleyball">
@@ -795,7 +816,8 @@
 
     <section class="screen" id="screen-memory">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1>Memory Match</h1>
+      <div class="ls-grid"><div class="ls-a">
+      <h1 class="ll-h1">Memory <em>Match</em></h1>
       <p class="sub">Find the pairs: a match earns another turn.</p>
       <div class="s4-levels" role="group" aria-label="Board size"><button type="button" data-lvl="easy">Easy<small>4 × 3</small></button><button type="button" data-lvl="normal">Classic<small>4 × 4</small></button><button type="button" data-lvl="hard">Hard<small>6 × 4</small></button></div>
       <div class="scoreboard">
@@ -803,16 +825,18 @@
         <div class="score o"><div class="mark">P2</div><div class="n" id="memScore2">0</div><div class="s4-sub" id="memMv2">0 moves</div></div>
       </div>
       <p class="turn" id="memTurnLabel">&nbsp;</p>
+      </div><div class="ls-b">
       <div class="mem-board" id="memBoard"></div>
       <p class="s4-clock"><span id="memClockP">0:00</span> · <span id="memPairsP">0/8 pairs</span></p>
       <div class="actions">
         <button type="button" class="btn primary" id="memNewRoundBtn">New round</button>
       </div>
+      </div></div>
     </section>
 
     <section class="screen" id="screen-backdrop">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1>Party Backdrop</h1>
+      <h1 class="ll-h1">Party <em>Backdrop</em></h1>
       <p class="sub">Turn the pool screen into a custom backdrop for a birthday, anniversary or celebration.</p>
       <div class="bd-preview" id="bdPreview" aria-hidden="true"><div class="k">RYST 109A</div><div class="h" id="bdPvHead"></div><div class="n" id="bdPvName"></div><div class="s" id="bdPvSub"></div></div>
       <label class="bd-label">Occasion</label>
@@ -834,7 +858,7 @@
 
     <section class="screen" id="screen-visualizer">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
-      <h1>DJ Visuals</h1>
+      <h1 class="ll-h1">DJ <em>Visuals</em></h1>
       <p class="sub">A light-show on the pool screen. Pick the style and colours here; it plays on the big screen, not on your phone.</p>
       <label class="bd-label">Style</label>
       <div class="viz-presets viz-grid" id="vizPresets">

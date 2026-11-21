@@ -3,6 +3,11 @@
 // fixture states, and captures every RYST PLAY screen on phone, tablet and TV sizes.
 //   node .claude/skills/visual-qa/scripts/shoot.js                 all shots → <tmp>/ryst-qa-shots
 //   node .claude/skills/visual-qa/scripts/shoot.js --out=/tmp/qa --only=hub,ludo-tv,quiz-tv
+//   … --sizes=matrix   re-shoots each selected shot at every size for its page (name@WxH.png):
+//                      TV 1280×720, 1600×900, 1920×1080, 3840×2160 (4K), 1440×1080 and 1024×768 (4:3);
+//                      phone 360×640, 390×844, 430×932, 844×390 (landscape) and tablet 1000×1100
+//   … --audit          prints layout findings per shot (also <out>/audit.json): horizontal scroll, content
+//                      past the screen edge, clipped text, and on the TV text under 1.5% of the screen height
 // Needs Playwright (pre-installed in Claude Code cloud sessions: require('playwright')).
 // Headless Chromium renders WebGL in software: judge visuals, not frame rates.
 const http = require('http'), fs = require('fs'), path = require('path');
@@ -11,6 +16,26 @@ const ROOT = path.resolve(__dirname, '../../../..');
 const arg = k => { const a = process.argv.find(x => x.startsWith('--' + k + '=')); return a ? a.split('=')[1] : null; };
 const OUT = path.resolve(arg('out') || path.join(require('os').tmpdir(), 'ryst-qa-shots'));
 const ONLY = arg('only') ? arg('only').split(',') : null;
+const MATRIX = arg('sizes') === 'matrix', AUDIT = process.argv.indexOf('--audit') >= 0;
+const TV_SIZES = [[1280, 720], [1600, 900], [1920, 1080], [3840, 2160], [1440, 1080], [1024, 768]];
+const PHONE_SIZES = [[360, 640], [390, 844], [430, 932], [844, 390], [1000, 1100]];
+// Runs in the page: what a person would notice from the sofa or in the hand
+const AUDIT_FN = tv => {
+  const W = innerWidth, H = innerHeight, out = { hscroll: document.documentElement.scrollWidth > W + 1, offscreen: [], clipped: [], tiny: [] }, seen = {};
+  const tag = el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.classList.length ? '.' + Array.prototype.slice.call(el.classList, 0, 2).join('.') : '');
+  const add = (k, el, extra) => { const key = k + tag(el); if (seen[key] || out[k].length > 12) return; seen[key] = 1; out[k].push(tag(el) + (extra ? ' ' + extra : '')); };
+  document.querySelectorAll('body *').forEach(el => {
+    const r = el.getBoundingClientRect(); if (!r.width || !r.height) return;
+    const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || +cs.opacity === 0) return;
+    let op = el, gone = false; while (op && op !== document.body) { if (+getComputedStyle(op).opacity === 0) { gone = true; break; } op = op.parentElement; } if (gone) return;
+    const text = Array.prototype.some.call(el.childNodes, n => n.nodeType === 3 && n.textContent.trim());
+    const media = /^(IMG|SVG|CANVAS|BUTTON|INPUT)$/i.test(el.tagName);
+    if ((text || media) && (r.left < -2 || r.right > W + 2 || (tv && (r.top < -2 || r.bottom > H + 2)))) add('offscreen', el, Math.round(r.left) + ',' + Math.round(r.top) + ' ' + Math.round(r.width) + '×' + Math.round(r.height));
+    if (text && (el.scrollWidth > el.clientWidth + 2) && /hidden|clip/.test(cs.overflow + cs.overflowX)) add('clipped', el, JSON.stringify(el.textContent.trim().slice(0, 30)));
+    if (text && tv && parseFloat(cs.fontSize) < H * (window.__tinyAt || 0.015)) add('tiny', el, cs.fontSize + ' ' + JSON.stringify(el.textContent.trim().slice(0, 24)));
+  });
+  return out;
+};
 fs.mkdirSync(OUT, { recursive: true });
 
 const now = Date.now();
@@ -86,6 +111,8 @@ const SHOTS = [
   ['viz-tv-orbit', 'display.html', TV, 'visualizer', { viz: Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, { preset: 'orbit', palette: 'lagoon' }) }, p => p.waitForTimeout(2600)],
   ['viz-tv-ambient', 'display.html', FHD, 'visualizer', { viz: Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, { preset: 'ambient', palette: 'ryst', energy: 'calm' }) }, p => p.waitForTimeout(2600)],
   ['viz-tv-live', 'display.html', TV, 'visualizer', { viz: Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, { preset: 'spectrum', palette: 'rainbow' }) }, async p => { await p.waitForTimeout(800); for (let k = 0; k < 40; k++) { await p.evaluate(k => window.__in({ type: 'audio', bins: Array.from({ length: 32 }, (_, i) => Math.round(Math.max(0, 230 - i * 6 + 30 * Math.sin(i * 0.9 + k)))), level: 0.55, bass: 0.8, mid: 0.5, treble: 0.3, beat: k % 8 === 0 }), k); await p.waitForTimeout(50); } }],
+  ['ludo-phone-tap', 'play.html', { width: 844, height: 390 }, 'ludo', {}, async p => { await p.click('#ludoTokens [data-token]:not([disabled])'); await p.waitForTimeout(400); const sent = await p.evaluate(() => window.__posts || []); console.log('      posts: ' + JSON.stringify(sent)); }],
+  ['quiz-phone-tap', 'play.html', { width: 844, height: 390 }, 'quiz', {}, async p => { await p.click('#quizOpts [data-choice="1"]'); await p.waitForTimeout(400); const sent = await p.evaluate(() => window.__posts || []); console.log('      posts: ' + JSON.stringify(sent)); }],
   ['viz-phone', 'play.html', PHONE, 'visualizer', { viz: Object.assign({ preset: 'spectrum', palette: 'neon', bpm: 120, energy: 'lively', title: '' }, { preset: 'horizon', palette: 'ryst', title: 'DJ Arjun' }) }, null],
   ['backdrop-phone', 'play.html', PHONE, 'backdrop', {}, null],
   ['backdrop-phone-ocean', 'play.html', PHONE, 'backdrop', { backdrop: { template: 'congrats', name: 'Ananya', text: 'On your graduation', preset: 'ocean' } }, null],
@@ -96,7 +123,8 @@ const INIT = `
     addEventListener(t, f){ (this.l[t] = this.l[t] || []).push(f); } emit(t, e){ (this.l[t] || []).forEach(f => f(e)); } send(d){ try { window.__sent.push(JSON.parse(d)); } catch (e) {} } close(){ this.readyState = 3; this.emit('close', {}); } }
   window.WebSocket = FakeWS;
   window.__in = m => window.__socks.forEach(s => s.readyState === 1 && s.emit('message', { data: JSON.stringify(m) }));
-  try { localStorage.setItem('ryst_play_token', 'qa-token'); } catch (e) {}`;
+  try { localStorage.setItem('ryst_play_token', 'qa-token'); } catch (e) {}
+  window.__posts = []; const _f = window.fetch; window.fetch = function (u, o) { if (o && o.method === 'POST') window.__posts.push(String(u).replace(/^https?:\\/\\/[^/]+/, '')); return _f.apply(this, arguments); };`;
 
 const server = http.createServer((req, res) => {
   const f = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '') || 'index.html');
@@ -106,8 +134,13 @@ const server = http.createServer((req, res) => {
 }).listen(0, async () => {
   const port = server.address().port, errors = [];
   const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--enable-webgl', '--ignore-gpu-blocklist'] });
-  for (const [name, page, vp, mode, extra, after, profile, noGL] of SHOTS) {
-    if (ONLY && ONLY.indexOf(name) < 0) continue;
+  const audit = {}, runs = [];
+  for (const shot of SHOTS) {
+    if (ONLY && ONLY.indexOf(shot[0]) < 0) continue;
+    if (!MATRIX) { runs.push(shot); continue; }
+    (shot[1] === 'display.html' ? TV_SIZES : PHONE_SIZES).forEach(([w, h]) => { const c = shot.slice(); c[0] = shot[0] + '@' + w + 'x' + h; c[2] = { width: w, height: h }; runs.push(c); });
+  }
+  for (const [name, page, vp, mode, extra, after, profile, noGL] of runs) {
     const p = await browser.newPage({ viewport: vp });
     p.on('pageerror', e => errors.push(name + ': ' + e.message));
     const state = Object.assign(base(), { mode }, extra);
@@ -126,8 +159,14 @@ const server = http.createServer((req, res) => {
     const file = path.join(OUT, name + '.png');
     await p.screenshot({ path: file, fullPage: page === 'play.html' });
     console.log('  ' + name.padEnd(26) + vp.width + '×' + vp.height + '  ' + file);
+    if (AUDIT) {
+      const a = await p.evaluate(AUDIT_FN, page === 'display.html'); audit[name] = a;
+      const lines = [a.hscroll ? 'horizontal scroll' : ''].concat(a.offscreen.map(x => 'off-screen ' + x), a.clipped.map(x => 'clipped ' + x), a.tiny.map(x => 'tiny ' + x)).filter(Boolean);
+      lines.forEach(l => console.log('      ! ' + l));
+    }
     await p.close();
   }
+  if (AUDIT) fs.writeFileSync(path.join(OUT, 'audit.json'), JSON.stringify(audit, null, 1));
   await browser.close(); server.close();
   console.log(errors.length ? 'Page errors:\n  ' + errors.join('\n  ') : 'No page errors.');
   process.exitCode = errors.length ? 1 : 0;

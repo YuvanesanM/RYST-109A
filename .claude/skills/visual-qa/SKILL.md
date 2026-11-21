@@ -10,6 +10,10 @@ You are the Visual QA Specialist. A design is not done until real screenshots sa
 ## Capture
 - Every RYST PLAY screen, phone/tablet/TV, with fixture game states and the proxy stubbed:
   `node .claude/skills/visual-qa/scripts/shoot.js --out=<dir>` (add `--only=hub,ludo-tv,…`).
+  Add `--sizes=matrix` to repeat each shot at every size for its page (TV 1280×720 … 3840×2160 and 4:3 1440×1080,
+  1024×768; phone 360×640 … 844×390 landscape and tablet), and `--audit` to print what a viewer would notice: horizontal
+  scroll, content past the screen edge, clipped text, and TV text under 1.5% of the screen height (`<out>/audit.json`).
+  Shots ending in `-tap` are smoke tests that tap a control and print the POSTs it sent.
   Shot names: hub, hub-tablet, claw-phone, claw-controller-landscape, ludo-phone, quiz-phone, ttt-phone, memory-phone, scoreboard-phone, home-tv, claw-tv, claw-tv-4x3, ludo-tv, ludo-tv-fhd, quiz-tv, ttt-tv, memory-tv, scoreboard-tv, backdrop-tv. Write outputs to the session scratchpad, not the repo.
 - For a specific state, write a short Playwright script: stub `https://data.ryst.in/**` with `page.route` (return the `/game` state JSON you want, plus `serverNow`), replace `WebSocket` with a fake via `addInitScript` and inject `claw-*` messages, set `localStorage.ryst_play_token`.
 - For multiplayer flows, run the real rules: require the proxy's `ludo.js`/`quiz.js` in the test and implement the routes in the `page.route` handler with per-phone identities (two phone pages + the display page). This is how Ludo and Quiz Night were verified end to end.
