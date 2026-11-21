@@ -534,7 +534,7 @@
   @-webkit-keyframes bd-chase{50%{opacity:.75}} @keyframes bd-chase{50%{opacity:.75}}
   .bd-palm{position:absolute;bottom:0;width:16vw;height:70vh;z-index:1;color:rgba(2,10,14,.85);pointer-events:none}
   .bd-palm.l{left:-1vw} .bd-palm.r{right:-1vw;-webkit-transform:scaleX(-1);transform:scaleX(-1)}
-  .backdrop-bg.glow ~ .backdrop-text{color:#fff7e0 !important;text-shadow:0 0 .4vw #fff,0 0 1.4vw #ffd27a,0 0 3vw #f2a63c !important}
+  .backdrop-wrap.t-glow .backdrop-text{color:#fff7e0 !important;text-shadow:0 0 .4vw #fff,0 0 1.4vw #ffd27a,0 0 3vw #f2a63c !important}
   @media (prefers-reduced-motion:reduce){ .backdrop-text,.bd-bulbs,.ttt-cell svg,.mem-card svg{-webkit-animation:none;animation:none} }
 
   /* ── Ludo Lounge on the pool screen ── a lit 2.5D board (three.js, canvas fallback) beside a glass
@@ -820,6 +820,73 @@
   .mem-board.c6{width:min(64vh,52vw) !important;width:52vw}
   .mem-board.c4.r3{width:min(56vh,40vw) !important;width:40vw}
   @media (prefers-reduced-motion:reduce){ .mem-board .mc,.ttt-line.on line{-webkit-transition:none;transition:none} }
+  /* ── Stage 5: Scoreboard (avatars, ranks, game history) and Party Backdrop (templates, themes) ── */
+  .scoreboard-layout{position:relative;-webkit-box-align:end;align-items:flex-end}
+  .scoreboard-col{min-width:15vw !important;padding:3.6vh 2.2vw 3vh !important;will-change:transform}
+  .scoreboard-col .sb-rank{font-family:var(--sans);font-weight:800;font-size:1.05vw;letter-spacing:.16em;text-transform:uppercase;color:var(--rp-seafoam);min-height:1.3em;margin-bottom:1.2vh}
+  .scoreboard-col.lead .sb-rank{color:var(--rp-gold)}
+  .scoreboard-col .sb-av{width:6.4vw;height:6.4vw;margin:0 auto 1.6vh;border-radius:50%;box-shadow:0 0 0 .3vw var(--pc,#f2c66d),0 1vw 2vw rgba(0,0,0,.35)}
+  .scoreboard-col .sb-av svg{display:block;width:100%;height:100%}
+  .scoreboard-col.lead .sb-av{box-shadow:0 0 0 .3vw var(--rp-gold),0 0 2.4vw rgba(216,184,121,.55)}
+  .scoreboard-col .p-name{max-width:15vw;margin-left:auto;margin-right:auto;margin-bottom:1.2vh !important;font-size:2vw !important;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .scoreboard-col .p-score{font-size:7.4vw !important}
+  .scoreboard-col .p-score.pop{-webkit-animation:sb-pop .55s cubic-bezier(.2,1.6,.4,1);animation:sb-pop .55s cubic-bezier(.2,1.6,.4,1)}
+  @-webkit-keyframes sb-pop{0%{-webkit-transform:scale(1)}35%{-webkit-transform:scale(1.18)}100%{-webkit-transform:scale(1)}}
+  @keyframes sb-pop{0%{transform:scale(1)}35%{transform:scale(1.18)}100%{transform:scale(1)}}
+  .scoreboard-col .sb-wins{font-family:var(--sans);font-weight:700;font-size:1.1vw;color:#f6f3ec;opacity:.78;margin-top:1.4vh;min-height:1.3em;font-variant-numeric:tabular-nums}
+  .scoreboard-col .sb-wins svg{width:1vw;height:1vw;fill:var(--rp-gold);vertical-align:-.1vw;margin-right:.3vw}
+  .scoreboard-col.lead{-webkit-transform:translateY(-1.4vh);transform:translateY(-1.4vh)}
+  .sb-history{display:-webkit-box;display:flex;-webkit-box-pack:center;justify-content:center;flex-wrap:wrap;margin-top:4vh;max-width:84vw}
+  .sb-history:empty{display:none}
+  .sb-history .sb-h{margin:0 .6vw .8vh;padding:1.1vh 1.4vw;border-radius:.9vw;background:linear-gradient(rgba(255,255,255,.075),rgba(255,255,255,.02));border:1px solid rgba(246,243,236,.12);font-family:var(--sans);font-size:1.05vw;color:#f6f3ec;text-align:left;min-width:12vw}
+  .sb-history .sb-h .g{display:block;font-weight:800;font-size:.9vw;letter-spacing:.14em;text-transform:uppercase;color:var(--rp-seafoam);margin-bottom:.4vh}
+  .sb-history .sb-h b{color:var(--rp-gold);font-weight:800}
+  .sb-history .sb-h .sc{opacity:.75;font-variant-numeric:tabular-nums;margin-left:.4vw}
+  .sb-history .sb-h.new{border-color:rgba(216,184,121,.55)}
+  /* backdrop: the words — a kicker, the template's headline, the guest's name, a second line */
+  .bd-copy{position:relative;z-index:2;padding:5vh 6vw;background:radial-gradient(closest-side,rgba(3,18,24,.42),rgba(3,18,24,0));display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;-webkit-box-align:center;align-items:center;text-align:center;max-width:74vw}
+  .bd-kicker{font-family:var(--sans);font-weight:800;font-size:1.15vw;letter-spacing:.32em;text-transform:uppercase;color:rgba(246,243,236,.82);margin-bottom:2.4vh;text-shadow:0 .2vw 1vw rgba(0,0,0,.5)}
+  .bd-copy .backdrop-text{padding:0;max-width:74vw}
+  .backdrop-wrap.has-name .backdrop-text{font-size:6.2vw !important}
+  .backdrop-text em{font-style:italic}
+  .bd-name{font-family:var(--serif);font-weight:600;font-size:7.4vw;line-height:1.02;color:#f6f3ec;margin-top:1.2vh;max-width:74vw;word-break:break-word;text-shadow:0 .4vw 3vw rgba(0,0,0,.55),0 0 2vw rgba(216,184,121,.35)}
+  .bd-name.long{font-size:5.4vw}
+  .bd-sub{font-family:var(--sans);font-weight:600;font-size:2.1vw;color:#f6f3ec;opacity:.92;margin-top:2.6vh;letter-spacing:.01em;max-width:60vw;text-shadow:0 .2vw 1.4vw rgba(0,0,0,.6)}
+  .bd-name[hidden],.bd-sub[hidden]{display:none}
+  .bd-copy::after{content:'';display:block;width:8vw;height:2px;margin-top:3vh;background:linear-gradient(90deg,transparent,var(--rp-gold),transparent);opacity:.8}
+  .backdrop-wrap.t-stars .bd-bulbs,.backdrop-wrap.t-ocean .bd-bulbs,.backdrop-wrap.t-glow .bd-bulbs{display:none}
+  .backdrop-wrap.t-stars .backdrop-text{color:#f6f3ec !important;text-shadow:0 0 .4vw #fff,0 0 1.6vw #7fd8ff,0 0 4vw #3d6dff !important}
+  .backdrop-wrap.t-ocean .backdrop-text{color:#f6f3ec !important;-webkit-animation:none;animation:none;text-shadow:0 .4vw 2.4vw rgba(2,30,36,.7) !important}
+  .backdrop-wrap.t-ocean .backdrop-text em{color:#F7DFA4}
+  .backdrop-wrap.t-ocean .bd-palm{color:rgba(3,28,33,.9)}
+  /* balloons: drifting up with a slow sway, built once in JS */
+  .backdrop-bg.balloons{background:radial-gradient(120% 130% at 50% 0%, #1d5866 0%, #0a3b44 45%, #041f25 100%)}
+  #balloonField,#starField,#oceanField{position:absolute;top:0;right:0;bottom:0;left:0;overflow:hidden}
+  .backdrop-bg:not(.balloons) #balloonField,.backdrop-bg:not(.stars) #starField,.backdrop-bg:not(.ocean) #oceanField{display:none}
+  .bl-rise{position:absolute;top:100%;-webkit-animation:bl-rise linear infinite;animation:bl-rise linear infinite;will-change:transform}
+  @-webkit-keyframes bl-rise{to{-webkit-transform:translateY(-145vh)}} @keyframes bl-rise{to{transform:translateY(-145vh)}}
+  .bl-sway{display:block;-webkit-animation:bl-sway ease-in-out infinite alternate;animation:bl-sway ease-in-out infinite alternate}
+  @-webkit-keyframes bl-sway{from{-webkit-transform:translateX(-1.6vw) rotate(-4deg)}to{-webkit-transform:translateX(1.6vw) rotate(4deg)}}
+  @keyframes bl-sway{from{transform:translateX(-1.6vw) rotate(-4deg)}to{transform:translateX(1.6vw) rotate(4deg)}}
+  .bl-sway svg{display:block;width:100%;height:auto;-webkit-filter:drop-shadow(0 1vw 1.4vw rgba(0,0,0,.3));filter:drop-shadow(0 1vw 1.4vw rgba(0,0,0,.3))}
+  /* stars: a twinkling night sky with the odd shooting star */
+  .backdrop-bg.stars{background:radial-gradient(ellipse at 50% 120%, #0d4450 0%, #052530 45%, #020d12 100%)}
+  .st{position:absolute;border-radius:50%;background:#fff;-webkit-animation:st-tw ease-in-out infinite alternate;animation:st-tw ease-in-out infinite alternate}
+  @-webkit-keyframes st-tw{from{opacity:.15}to{opacity:1}} @keyframes st-tw{from{opacity:.15}to{opacity:1}}
+  .shoot{position:absolute;width:14vw;height:2px;background:linear-gradient(90deg,rgba(255,255,255,0),#fff);border-radius:2px;opacity:0;-webkit-transform:rotate(-24deg);transform:rotate(-24deg);-webkit-animation:st-shoot 11s linear infinite;animation:st-shoot 11s linear infinite}
+  .shoot.s1{top:12%;left:8%} .shoot.s2{top:26%;left:52%;-webkit-animation-delay:4.2s;animation-delay:4.2s} .shoot.s3{top:6%;left:70%;-webkit-animation-delay:7.6s;animation-delay:7.6s}
+  @-webkit-keyframes st-shoot{0%{opacity:0;-webkit-transform:rotate(-24deg) translateX(0)}2%{opacity:1}8%{opacity:0;-webkit-transform:rotate(-24deg) translateX(-22vw)}100%{opacity:0;-webkit-transform:rotate(-24deg) translateX(-22vw)}}
+  @keyframes st-shoot{0%{opacity:0;transform:rotate(-24deg) translateX(0)}2%{opacity:1}8%{opacity:0;transform:rotate(-24deg) translateX(-22vw)}100%{opacity:0;transform:rotate(-24deg) translateX(-22vw)}}
+  /* ocean: dusk sky, a low sun and three rolling waves */
+  .backdrop-bg.ocean{background:linear-gradient(180deg,#041f25 0%,#0a3b44 38%,#2a7680 64%,#d9b77c 78%,#0d5560 79%,#07333b 100%)}
+  #oceanField .sun{position:absolute;left:50%;top:79%;width:22vw;height:22vw;margin:-11vw 0 0 -11vw;border-radius:50%;background:radial-gradient(circle,#ffe7b0 0%,#F7DFA4 22%,rgba(216,184,121,.55) 40%,rgba(216,184,121,0) 70%);-webkit-animation:oc-sun 9s ease-in-out infinite alternate;animation:oc-sun 9s ease-in-out infinite alternate}
+  @-webkit-keyframes oc-sun{to{-webkit-transform:scale(1.08);opacity:.85}} @keyframes oc-sun{to{transform:scale(1.08);opacity:.85}}
+  .wave{position:absolute;left:0;bottom:0;width:200%;-webkit-animation:oc-roll linear infinite;animation:oc-roll linear infinite}
+  .wave.w1{height:30vh;fill:rgba(169,207,197,.18);-webkit-animation-duration:26s;animation-duration:26s}
+  .wave.w2{height:24vh;fill:rgba(13,85,96,.75);-webkit-animation-duration:18s;animation-duration:18s;-webkit-animation-direction:reverse;animation-direction:reverse}
+  .wave.w3{height:16vh;fill:#06303a;-webkit-animation-duration:12s;animation-duration:12s}
+  @-webkit-keyframes oc-roll{to{-webkit-transform:translateX(-50%)}} @keyframes oc-roll{to{transform:translateX(-50%)}}
+  @media (prefers-reduced-motion:reduce){ .bl-rise,.bl-sway,.st,.shoot,.wave,#oceanField .sun,.scoreboard-col .p-score.pop{-webkit-animation:none;animation:none} }
 </style>
 </head>
 <body>
@@ -972,8 +1039,11 @@
 
   <section class="screen rp-stage" id="screen-scoreboard">
     <div class="rp-frame">
-      <h2>Scoreboard</h2>
+      <h2 class="s4-title">Score<em>board</em></h2>
+      <div class="s4-match" id="sbGame">&nbsp;</div>
       <div class="scoreboard-layout" id="scoreboardCols"></div>
+      <div class="sb-history" id="sbHistory"></div>
+      <div class="s4-win" id="sbWin" hidden><div class="s4-win-card"><div class="s4-kicker" id="sbWinKicker">Game over</div><div class="s4-win-av" id="sbWinAv"></div><div class="s4-big" id="sbWinBig"></div><div class="s4-meta" id="sbWinMeta"></div></div></div>
     </div>
   </section>
 
@@ -1003,11 +1073,19 @@
       <div class="backdrop-bg party" id="backdropBg">
         <span class="plight l1"></span><span class="plight l2"></span><span class="plight l3"></span><span class="plight l4"></span><span class="plight l5"></span>
         <div id="confettiField"></div>
+        <div id="balloonField"></div>
+        <div id="starField"><i class="shoot s1"></i><i class="shoot s2"></i><i class="shoot s3"></i></div>
+        <div id="oceanField"><span class="sun"></span><svg class="wave w1" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 80C130 40 270 40 400 80C530 120 670 120 800 80C930 40 1070 40 1200 80C1330 120 1470 120 1600 80V200H0Z"/></svg><svg class="wave w2" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 100C130 70 270 70 400 100C530 130 670 130 800 100C930 70 1070 70 1200 100C1330 130 1470 130 1600 100V200H0Z"/></svg><svg class="wave w3" viewBox="0 0 1600 200" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120C130 98 270 98 400 120C530 142 670 142 800 120C930 98 1070 98 1200 120C1330 142 1470 142 1600 120V200H0Z"/></svg></div>
       </div>
       <div class="bd-bulbs" aria-hidden="true"></div>
       <svg class="bd-palm l" viewBox="0 0 200 400" aria-hidden="true"><g fill="currentColor"><path d="M30 400C45 300 52 220 76 150l7 2C62 222 54 300 44 400Z"/><path d="M80 152C50 110 15 104-20 120c40-34 80-24 104 28Z"/><path d="M82 150C70 100 36 64-10 56c50-4 88 30 96 90Z"/><path d="M86 148c12-54 50-84 104-88-50 16-80 50-96 92Z"/><path d="M88 152c30-30 72-30 106-8-42-8-76 0-102 14Z"/><path d="M84 150c-4-50 4-100 34-136-14 44-22 90-26 136Z"/></g></svg>
       <svg class="bd-palm r" viewBox="0 0 200 400" aria-hidden="true"><g fill="currentColor"><path d="M30 400C45 300 52 220 76 150l7 2C62 222 54 300 44 400Z"/><path d="M80 152C50 110 15 104-20 120c40-34 80-24 104 28Z"/><path d="M82 150C70 100 36 64-10 56c50-4 88 30 96 90Z"/><path d="M86 148c12-54 50-84 104-88-50 16-80 50-96 92Z"/><path d="M88 152c30-30 72-30 106-8-42-8-76 0-102 14Z"/><path d="M84 150c-4-50 4-100 34-136-14 44-22 90-26 136Z"/></g></svg>
-      <div class="backdrop-text" id="backdropText">Let's Celebrate!</div>
+      <div class="bd-copy">
+        <div class="bd-kicker" id="backdropKicker">RYST 109A &middot; Beach Villa</div>
+        <div class="backdrop-text" id="backdropText">Let's Celebrate!</div>
+        <div class="bd-name" id="backdropName" hidden></div>
+        <div class="bd-sub" id="backdropSub" hidden></div>
+      </div>
     </div>
   </section>
 
@@ -1265,18 +1343,70 @@ function renderGame(g){
   } else { win.hidden = true; win.dataset.id = ''; }
 }
 
-// Player names are arbitrary guest-typed text going into innerHTML, so they
-// go through escHtml — unlike play.html's own render, which only ever sets
-// input.value/textContent and never needs to.
+// Scoreboard: four persistent columns (built once) re-ordered by score with a FLIP slide, so a
+// rank change moves the column rather than redrawing it. Guest names go in via textContent/escHtml.
+const SB_ORD = ['1st', '2nd', '3rd', '4th'];
+const SB_STAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7.1L12 17.3 5.8 21l1.6-7.1L2 9.2l7.1-.6z"/></svg>';
+let sbLastAt = null;
 function renderScoreboard(g){
-  const players = (g.players || []).slice(0, g.playerCount || 2);
-  const top = Math.max.apply(null, players.map(p => Number(p.score) || 0).concat([0]));
-  $('#scoreboardCols').innerHTML = players.map((p, i) => `
-    <div class="scoreboard-col p${i + 1}${top > 0 && Number(p.score) === top ? ' lead' : ''}">
-      <svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>
-      <div class="p-name">${escHtml(p.name || ('Player ' + (i+1)))}</div>
-      <div class="p-score">${p.score}</div>
-    </div>`).join('');
+  const n = Math.min(4, Math.max(1, g.playerCount || 2));
+  const all = (g.players || []).slice(0, 4), sb = g.scoreboard || { game: '', round: 1, history: [] };
+  const scores = all.map(p => Number(p.score) || 0), shown = scores.slice(0, n);
+  const top = Math.max.apply(null, shown.concat([0]));
+  const wrap = $('#scoreboardCols');
+  if (!wrap.querySelector('.sb-av')) {
+    wrap.innerHTML = [0, 1, 2, 3].map(i => '<div class="scoreboard-col p' + (i + 1) + '" data-i="' + i + '"><svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg>'
+      + '<div class="sb-rank"></div><div class="sb-av"></div><div class="p-name"></div><div class="p-score"></div><div class="sb-wins"></div></div>').join('');
+  }
+  const cols = Array.prototype.slice.call(wrap.querySelectorAll('.scoreboard-col')).sort((x, y) => x.dataset.i - y.dataset.i);
+  const live = $('#screen-scoreboard').classList.contains('active') && wrap.offsetWidth > 0;
+  const before = cols.map(el => live && el.style.display !== 'none' ? el.getBoundingClientRect().left : null);
+  cols.forEach((el, i) => {
+    const p = all[i] || {}, on = i < n, sc = scores[i], rank = 1 + shown.filter(o => o > sc).length;
+    el.style.display = on ? '' : 'none';
+    if (!on) return;
+    el.classList.toggle('lead', top > 0 && sc === top);
+    el.querySelector('.sb-rank').textContent = top > 0 ? SB_ORD[rank - 1] : '';
+    const av = el.querySelector('.sb-av');
+    if (av.dataset.a !== p.avatar) { av.dataset.a = p.avatar || ''; av.innerHTML = (window.RYST_AVATARS || {})[p.avatar] || ''; }
+    el.querySelector('.p-name').textContent = p.name || ('Player ' + (i + 1));
+    const se = el.querySelector('.p-score');
+    if (se.textContent !== String(sc)) { const had = se.textContent !== ''; se.textContent = sc; if (had) { se.classList.remove('pop'); void se.offsetWidth; se.classList.add('pop'); } }
+    const w = Number(p.wins) || 0;
+    el.querySelector('.sb-wins').innerHTML = w ? SB_STAR + w + (w === 1 ? ' game won' : ' games won') : '';
+  });
+  // highest score first; a tie keeps seat order, so columns don't shuffle needlessly
+  const order = [0, 1, 2, 3].slice(0, n).sort((x, y) => scores[y] - scores[x] || x - y);
+  const cur = Array.prototype.slice.call(wrap.children).filter(el => el.style.display !== 'none').map(el => Number(el.dataset.i));
+  if (cur.join() !== order.join()) {
+    order.forEach(i => wrap.appendChild(cols[i]));
+    cols.forEach((el, i) => { if (i >= n) wrap.appendChild(el); });
+    if (live) cols.forEach((el, i) => {
+      if (i >= n || before[i] == null) return;
+      const dx = before[i] - el.getBoundingClientRect().left;
+      if (!dx) return;
+      el.style.transition = 'none'; el.style.transform = 'translateX(' + dx + 'px)'; void el.offsetWidth;
+      el.style.transition = 'transform .7s cubic-bezier(.2,.8,.2,1)'; el.style.transform = '';
+    });
+  }
+  $('#sbGame').textContent = (sb.game ? sb.game + ' · ' : '') + 'Game ' + (sb.round || 1);
+  const hist = (sb.history || []).slice(0, 4);
+  $('#sbHistory').innerHTML = hist.map((h, k) => {
+    const win = h.winners.map(i => escHtml(h.names[i] || ('Player ' + (i + 1)))).join(' & ');
+    return '<div class="sb-h' + (k === 0 && Date.now() - h.at < 15000 ? ' new' : '') + '"><span class="g">' + escHtml(h.game) + '</span><b>' + win + '</b><span class="sc">' + h.scores.join('–') + '</span></div>';
+  }).join('');
+  // the moment a game is finished: a winner card for a few seconds (not on first load)
+  const last = (sb.history || [])[0], at = last ? last.at : 0, card = $('#sbWin');
+  if (sbLastAt !== null && at && at !== sbLastAt && Date.now() - at < 20000) {
+    const w0 = last.winners[0], tie = last.winners.length > 1, pw = all[w0] || {};
+    $('#sbWinKicker').textContent = last.game + ' · final';
+    $('#sbWinAv').innerHTML = tie ? '<span class="ini">=</span>' : ((window.RYST_AVATARS || {})[pw.avatar] || '');
+    $('#sbWinBig').innerHTML = tie ? 'A <em>tie</em>' : escHtml(last.names[w0] || '') + ' <em>wins</em>';
+    $('#sbWinMeta').textContent = last.scores.join(' – ');
+    card.hidden = false; clearTimeout(renderScoreboard.t); renderScoreboard.t = setTimeout(() => { card.hidden = true; }, 5000);
+  }
+  if (!at) card.hidden = true;
+  sbLastAt = at;
 }
 
 // Mirrors play.html's own reveal timing exactly — a mismatched pair isn't
@@ -1329,16 +1459,51 @@ setInterval(() => { const m = currentGame && currentGame.memory, el = document.g
 // Guest-typed free text, so it goes through textContent (never innerHTML)
 // — same safety property escHtml gives the other screens, without needing
 // the helper at all.
-const BACKDROP_PRESETS = ['party', 'confetti', 'glow'];
+const BACKDROP_PRESETS = ['party', 'confetti', 'glow', 'balloons', 'stars', 'ocean'];
+// a template's headline is fixed copy (safe markup); the guest's name and second line are text only
+const BACKDROP_HEAD = { birthday: 'Happy <em>Birthday</em>', anniversary: 'Happy <em>Anniversary</em>', welcome: 'A warm <em>welcome</em>', congrats: '<em>Congratulations</em>' };
 function renderBackdropDisplay(g){
   const b = g.backdrop || { text: '', preset: 'party' };
   const preset = BACKDROP_PRESETS.includes(b.preset) ? b.preset : 'party';
-  // Only touch the class list, not innerHTML — the drifting lights and the
-  // confetti field are persistent children of #backdropBg, shown/hidden by
-  // CSS on this class, so they must survive a preset change.
+  const head = BACKDROP_HEAD[b.template], name = (b.name || '').trim(), text = (b.text || '').trim();
+  // Only touch the class list, not innerHTML — the lights, confetti, balloons, stars and waves are
+  // persistent children of #backdropBg, shown/hidden by CSS on this class, so they survive a change.
   $('#backdropBg').className = 'backdrop-bg ' + preset;
-  $('#backdropText').textContent = (b.text && b.text.trim()) ? b.text : "Let's Celebrate!";
+  const wrap = $('#backdropBg').parentNode;
+  wrap.className = 'backdrop-wrap t-' + preset + (name ? ' has-name' : '');
+  const h = $('#backdropText'), nm = $('#backdropName'), sub = $('#backdropSub');
+  if (head) { h.innerHTML = head; sub.textContent = text; sub.hidden = !text; }
+  else { h.textContent = text || "Let's Celebrate!"; sub.hidden = true; }
+  nm.textContent = name; nm.hidden = !name; nm.classList.toggle('long', name.length > 18);
 }
+
+// Balloons and stars are built once, like the confetti below; each balloon has its own size,
+// colour, speed and sway, and a negative delay so the sky is already full when the theme opens.
+(function buildBalloonsAndStars(){
+  const bf = document.getElementById('balloonField'), sf = document.getElementById('starField');
+  if (bf) {
+    const cols = ['#D8B879', '#F6F3EC', '#A9CFC5', '#ff7a4d', '#ff5fa2', '#4dd0e1', '#F7DFA4'];
+    let html = '';
+    for (let i = 0; i < 18; i++) {
+      const c = cols[i % cols.length], w = (4.2 + Math.random() * 3.4).toFixed(1), left = (2 + Math.random() * 92).toFixed(1);
+      const rise = (16 + Math.random() * 12).toFixed(1), delay = (-Math.random() * rise).toFixed(1), sway = (3 + Math.random() * 3).toFixed(1);
+      html += '<span class="bl-rise" style="left:' + left + '%;width:' + w + 'vw;animation-duration:' + rise + 's;-webkit-animation-duration:' + rise + 's;animation-delay:' + delay + 's;-webkit-animation-delay:' + delay + 's">'
+        + '<span class="bl-sway" style="animation-duration:' + sway + 's;-webkit-animation-duration:' + sway + 's"><svg viewBox="0 0 40 70" aria-hidden="true">'
+        + '<path d="M20 2C9 2 2 11 2 21c0 12 10 22 18 25 8-3 18-13 18-25C38 11 31 2 20 2z" fill="' + c + '"/>'
+        + '<ellipse cx="13" cy="14" rx="4" ry="7" transform="rotate(-20 13 14)" fill="#fff" opacity=".45"/>'
+        + '<path d="M17 46h6l-3 4z" fill="' + c + '"/><path d="M20 50c-3 6 3 10 0 19" stroke="rgba(246,243,236,.6)" stroke-width="1" fill="none"/></svg></span></span>';
+    }
+    bf.innerHTML = html;
+  }
+  if (sf) {
+    let html = '';
+    for (let i = 0; i < 110; i++) {
+      const sz = (Math.random() < 0.12 ? 3 : Math.random() < 0.5 ? 2 : 1), d = (1.6 + Math.random() * 3.4).toFixed(1), dl = (-Math.random() * 5).toFixed(1);
+      html += '<i class="st" style="left:' + (Math.random() * 100).toFixed(1) + '%;top:' + (Math.random() * 78).toFixed(1) + '%;width:' + sz + 'px;height:' + sz + 'px;animation-duration:' + d + 's;-webkit-animation-duration:' + d + 's;animation-delay:' + dl + 's;-webkit-animation-delay:' + dl + 's"></i>';
+    }
+    sf.insertAdjacentHTML('afterbegin', html);
+  }
+})();
 
 // Build the confetti pieces once — each gets a randomised fall speed, sway
 // distance, tumble speed, colour and size so no two move alike (that's the

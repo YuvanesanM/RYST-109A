@@ -544,6 +544,58 @@
   .mem-board .mc.matched .fc{box-shadow:0 0 12px rgba(216,184,121,.5)}
   .mem-board .mc:disabled{cursor:default}
   @media (prefers-reduced-motion:reduce){ .mem-board .mc{transition:none} }
+  /* ── Stage 5: scoreboard avatars, ranks, history; backdrop occasions, themes, live preview ── */
+  .sb-round{margin-left:auto;font-size:11.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--rp-seafoam,#a9cfc5)}
+  .count-row{justify-content:flex-start}
+  .player-row{gap:10px;padding:9px 10px}
+  .sb-avbtn{width:40px;height:40px;flex-shrink:0;border-radius:50%;border:0;padding:0;background:none;cursor:pointer;box-shadow:0 0 0 2px var(--pc,#d8b879)}
+  .sb-avbtn svg{display:block;width:100%;height:100%}
+  .player-row:nth-child(1){--pc:#ff7a4d} .player-row:nth-child(2){--pc:#ffd166} .player-row:nth-child(3){--pc:#4dd0e1} .player-row:nth-child(4){--pc:#a6e35a}
+  .player-row.open .sb-avbtn{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--pc)}
+  .sb-mid{flex:1;min-width:0;display:flex;flex-direction:column;text-align:left}
+  .sb-rk{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-text);min-height:13px}
+  .player-row.lead .sb-rk{color:var(--gold-hi,#f7dfa4)}
+  .player-row.lead{border-color:rgba(216,184,121,.55)}
+  .score-ctrl{gap:6px}
+  .score-btn{width:34px;height:34px;font-family:var(--sans)}
+  .score-btn.p5{width:38px;font-size:13px;font-weight:800}
+  .player-score{font-family:var(--sans) !important;font-weight:800;font-size:20px;min-width:30px;font-variant-numeric:tabular-nums}
+  .player-score.pop{animation:sbp .45s cubic-bezier(.2,1.6,.4,1)} @keyframes sbp{35%{transform:scale(1.25)}}
+  .sb-avpick{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin:-4px 0 12px;padding:10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line)}
+  .sb-avpick[hidden]{display:none}
+  .sb-avpick button{border:0;padding:0;background:none;border-radius:50%;aspect-ratio:1;cursor:pointer}
+  .sb-avpick button svg{display:block;width:100%;height:100%}
+  .sb-avpick button.on{box-shadow:0 0 0 2px #d8b879}
+  .sb-actions{display:flex;gap:10px} .sb-actions .btn{flex:1}
+  .sb-hist{margin-top:18px;display:flex;flex-direction:column;gap:8px}
+  .sb-hist:empty{display:none}
+  .sb-hist .h{display:flex;align-items:baseline;gap:8px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid var(--line);font-size:13px}
+  .sb-hist .h .g{font-size:10.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--rp-seafoam,#a9cfc5);flex-shrink:0}
+  .sb-hist .h b{color:var(--gold-hi,#f7dfa4);font-weight:800;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sb-hist .h .sc{color:var(--muted-text);font-variant-numeric:tabular-nums;flex-shrink:0}
+  .sb-hist .t{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted-text);margin-bottom:-2px}
+  .sb-clear{display:block;margin:16px auto 0;background:none;border:0;color:var(--muted-text);font:600 12.5px/1.4 var(--sans);text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:8px}
+  .bd-tpls{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+  .bd-tpls button{border:1.5px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:var(--ink);border-radius:999px;padding:8px 13px;font:700 13px/1 var(--sans);cursor:pointer}
+  .bd-tpls button.on{border-color:#d8b879;background:rgba(216,184,121,.16);color:#f7dfa4}
+  .bd-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .bd-grid .bd-preset{padding:10px;gap:10px;font-size:13px}
+  .bd-grid .bd-preset.active{border-color:#d8b879}
+  .bd-swatch-balloons{background:radial-gradient(circle at 30% 35%,#ff5fa2 0 18%,transparent 19%),radial-gradient(circle at 68% 30%,#d8b879 0 20%,transparent 21%),radial-gradient(circle at 50% 70%,#a9cfc5 0 18%,transparent 19%),linear-gradient(#1d5866,#041f25)}
+  .bd-swatch-stars{background:radial-gradient(circle at 25% 30%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 70% 22%,#fff 0 1px,transparent 1.5px),radial-gradient(circle at 55% 62%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 18% 75%,#fff 0 1px,transparent 1.5px),radial-gradient(ellipse at 50% 120%,#0d4450,#020d12 70%)}
+  .bd-swatch-ocean{background:radial-gradient(circle at 50% 62%,#f7dfa4 0 16%,transparent 34%),linear-gradient(#0a3b44 0,#2a7680 55%,#d9b77c 60%,#0d5560 62%,#07333b)}
+  .bd-preview{position:relative;overflow:hidden;border-radius:16px;padding:22px 16px 20px;margin:0 0 18px;text-align:center;border:1px solid rgba(246,243,236,.14);min-height:132px;display:flex;flex-direction:column;justify-content:center;
+    background:radial-gradient(120% 130% at 50% 15%,#0b2f3f,#04121a)}
+  .bd-preview .k{font-size:9.5px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:rgba(246,243,236,.7);margin-bottom:6px}
+  .bd-preview .h{font-family:var(--serif,'Cormorant Garamond',serif);font-style:italic;font-weight:600;font-size:28px;line-height:1.05;color:#ffe9f6;text-shadow:0 0 10px #ff5fd2;overflow-wrap:anywhere}
+  .bd-preview .n{font-family:var(--serif,'Cormorant Garamond',serif);font-weight:600;font-size:30px;line-height:1.05;color:#f6f3ec;margin-top:2px;overflow-wrap:anywhere}
+  .bd-preview .s{font-size:13px;font-weight:600;color:#f6f3ec;opacity:.85;margin-top:6px}
+  .bd-preview .n:empty,.bd-preview .s:empty{display:none}
+  .bd-preview.t-glow{background:radial-gradient(circle at 50% 45%,#f3ddae,#d4ad6a 45%,#0b3d52 85%,#040f15)} .bd-preview.t-glow .h{color:#fff7e0;text-shadow:0 0 10px #f2a63c}
+  .bd-preview.t-confetti{background:radial-gradient(circle at 15% 20%,#e2794a 0 3px,transparent 4px),radial-gradient(circle at 80% 30%,#e8c17e 0 3px,transparent 4px),radial-gradient(circle at 30% 80%,#17a6b8 0 3px,transparent 4px),radial-gradient(circle at 88% 75%,#d6318f 0 3px,transparent 4px),radial-gradient(120% 130% at 50% 15%,#0b2f3f,#04121a)}
+  .bd-preview.t-balloons{background:radial-gradient(circle at 10% 70%,rgba(255,95,162,.8) 0 10px,transparent 11px),radial-gradient(circle at 90% 35%,rgba(216,184,121,.85) 0 12px,transparent 13px),radial-gradient(120% 130% at 50% 0,#1d5866,#041f25)}
+  .bd-preview.t-stars{background:radial-gradient(circle at 12% 20%,#fff 0 1px,transparent 2px),radial-gradient(circle at 80% 15%,#fff 0 1.5px,transparent 2px),radial-gradient(circle at 65% 80%,#fff 0 1px,transparent 2px),radial-gradient(circle at 25% 85%,#fff 0 1px,transparent 2px),radial-gradient(ellipse at 50% 120%,#0d4450,#020d12 70%)} .bd-preview.t-stars .h{color:#f6f3ec;text-shadow:0 0 10px #7fd8ff}
+  .bd-preview.t-ocean{background:linear-gradient(#041f25,#0a3b44 40%,#2a7680 70%,#d9b77c 82%,#0d5560 84%,#07333b)} .bd-preview.t-ocean .h{color:#f6f3ec;text-shadow:0 2px 12px rgba(2,30,36,.7)} .bd-preview.t-ocean .h em{color:#f7dfa4}
 </style>
 </head>
 <body>
@@ -677,7 +729,9 @@
     <section class="screen" id="screen-scoreboard">
       <button type="button" class="back-btn" data-back>&larr; Back</button>
       <h1>Scoreboard</h1>
-      <p class="sub">Tap a name to rename it — shown live on the pool screen too.</p>
+      <p class="sub">Keep score for any game by the pool. It shows live on the big screen.</p>
+      <label class="bd-label" for="sbGameName">What are you playing?</label>
+      <input type="text" id="sbGameName" class="bd-text" maxlength="28" placeholder="Carrom, cards, pool volleyball">
       <div class="count-row">
         <span>Players</span>
         <div class="count-btns">
@@ -686,18 +740,29 @@
           <button type="button" class="count-btn" data-count="3">3</button>
           <button type="button" class="count-btn" data-count="4">4</button>
         </div>
+        <span class="sb-round" id="sbRoundP"></span>
       </div>
       <div class="players" id="players">
-        <div class="player-row" data-i="0"><input type="text" class="player-name" maxlength="24" placeholder="Player 1">
-          <div class="score-ctrl"><button type="button" class="score-btn" data-i="0" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="0" data-delta="1">+</button></div></div>
-        <div class="player-row" data-i="1"><input type="text" class="player-name" maxlength="24" placeholder="Player 2">
-          <div class="score-ctrl"><button type="button" class="score-btn" data-i="1" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="1" data-delta="1">+</button></div></div>
-        <div class="player-row" data-i="2"><input type="text" class="player-name" maxlength="24" placeholder="Player 3">
-          <div class="score-ctrl"><button type="button" class="score-btn" data-i="2" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="2" data-delta="1">+</button></div></div>
-        <div class="player-row" data-i="3"><input type="text" class="player-name" maxlength="24" placeholder="Player 4">
-          <div class="score-ctrl"><button type="button" class="score-btn" data-i="3" data-delta="-1">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="3" data-delta="1">+</button></div></div>
+        <div class="player-row" data-i="0"><button type="button" class="sb-avbtn" data-i="0" aria-label="Change player 1's avatar"></button>
+          <div class="sb-mid"><input type="text" class="player-name" maxlength="24" placeholder="Player 1" aria-label="Player 1 name"><span class="sb-rk"></span></div>
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="0" data-delta="-1" aria-label="Minus one">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="0" data-delta="1" aria-label="Plus one">+</button><button type="button" class="score-btn p5" data-i="0" data-delta="5" aria-label="Plus five">+5</button></div></div>
+        <div class="player-row" data-i="1"><button type="button" class="sb-avbtn" data-i="1" aria-label="Change player 2's avatar"></button>
+          <div class="sb-mid"><input type="text" class="player-name" maxlength="24" placeholder="Player 2" aria-label="Player 2 name"><span class="sb-rk"></span></div>
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="1" data-delta="-1" aria-label="Minus one">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="1" data-delta="1" aria-label="Plus one">+</button><button type="button" class="score-btn p5" data-i="1" data-delta="5" aria-label="Plus five">+5</button></div></div>
+        <div class="player-row" data-i="2"><button type="button" class="sb-avbtn" data-i="2" aria-label="Change player 3's avatar"></button>
+          <div class="sb-mid"><input type="text" class="player-name" maxlength="24" placeholder="Player 3" aria-label="Player 3 name"><span class="sb-rk"></span></div>
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="2" data-delta="-1" aria-label="Minus one">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="2" data-delta="1" aria-label="Plus one">+</button><button type="button" class="score-btn p5" data-i="2" data-delta="5" aria-label="Plus five">+5</button></div></div>
+        <div class="player-row" data-i="3"><button type="button" class="sb-avbtn" data-i="3" aria-label="Change player 4's avatar"></button>
+          <div class="sb-mid"><input type="text" class="player-name" maxlength="24" placeholder="Player 4" aria-label="Player 4 name"><span class="sb-rk"></span></div>
+          <div class="score-ctrl"><button type="button" class="score-btn" data-i="3" data-delta="-1" aria-label="Minus one">&minus;</button><div class="player-score">0</div><button type="button" class="score-btn" data-i="3" data-delta="1" aria-label="Plus one">+</button><button type="button" class="score-btn p5" data-i="3" data-delta="5" aria-label="Plus five">+5</button></div></div>
       </div>
-      <button type="button" class="btn ghost" id="scoreboardResetBtn" style="width:100%">Reset scores</button>
+      <div class="sb-avpick" id="sbAvPick" hidden role="group" aria-label="Pick an avatar"></div>
+      <div class="actions sb-actions">
+        <button type="button" class="btn primary" id="sbFinishBtn">Finish game</button>
+        <button type="button" class="btn ghost" id="scoreboardResetBtn">Reset scores</button>
+      </div>
+      <div class="sb-hist" id="sbHistP"></div>
+      <button type="button" class="sb-clear" id="sbClearBtn">Start over: clear names, wins and history</button>
     </section>
 
     <section class="screen" id="screen-memory">
@@ -721,18 +786,21 @@
       <button type="button" class="back-btn" data-back>&larr; Back</button>
       <h1>Party Backdrop</h1>
       <p class="sub">Turn the pool screen into a custom backdrop for a birthday, anniversary or celebration.</p>
-      <label class="bd-label" for="backdropText">Message</label>
-      <input type="text" id="backdropText" class="bd-text" maxlength="40" placeholder="Happy Birthday, Priya!">
-      <div class="bd-presets" id="bdPresets">
-        <button type="button" class="bd-preset" data-preset="party">
-          <span class="bd-swatch bd-swatch-party"></span><span>Party Lights</span>
-        </button>
-        <button type="button" class="bd-preset" data-preset="confetti">
-          <span class="bd-swatch bd-swatch-confetti"></span><span>Confetti</span>
-        </button>
-        <button type="button" class="bd-preset" data-preset="glow">
-          <span class="bd-swatch bd-swatch-glow"></span><span>Golden Glow</span>
-        </button>
+      <div class="bd-preview" id="bdPreview" aria-hidden="true"><div class="k">RYST 109A</div><div class="h" id="bdPvHead"></div><div class="n" id="bdPvName"></div><div class="s" id="bdPvSub"></div></div>
+      <label class="bd-label">Occasion</label>
+      <div class="bd-tpls" id="bdTpls" role="group" aria-label="Occasion"><button type="button" data-template="birthday">Birthday</button><button type="button" data-template="anniversary">Anniversary</button><button type="button" data-template="welcome">Welcome</button><button type="button" data-template="congrats">Congrats</button><button type="button" data-template="custom">Own words</button></div>
+      <label class="bd-label" for="backdropName" id="bdNameLbl">Whose birthday?</label>
+      <input type="text" id="backdropName" class="bd-text" maxlength="32" placeholder="Priya">
+      <label class="bd-label" for="backdropText" id="bdTextLbl">A line underneath (optional)</label>
+      <input type="text" id="backdropText" class="bd-text" maxlength="40" placeholder="Thirty and fabulous">
+      <label class="bd-label">Theme</label>
+      <div class="bd-presets bd-grid" id="bdPresets">
+        <button type="button" class="bd-preset" data-preset="party"><span class="bd-swatch bd-swatch-party"></span><span>Party Lights</span></button>
+        <button type="button" class="bd-preset" data-preset="confetti"><span class="bd-swatch bd-swatch-confetti"></span><span>Confetti</span></button>
+        <button type="button" class="bd-preset" data-preset="glow"><span class="bd-swatch bd-swatch-glow"></span><span>Golden Glow</span></button>
+        <button type="button" class="bd-preset" data-preset="balloons"><span class="bd-swatch bd-swatch-balloons"></span><span>Balloons</span></button>
+        <button type="button" class="bd-preset" data-preset="stars"><span class="bd-swatch bd-swatch-stars"></span><span>Starry Night</span></button>
+        <button type="button" class="bd-preset" data-preset="ocean"><span class="bd-swatch bd-swatch-ocean"></span><span>Ocean Dusk</span></button>
       </div>
     </section>
 
@@ -889,7 +957,8 @@ let state = {
   mode: null, board: Array(9).fill(null), turn: 'X', winner: null, scoreX: 0, scoreO: 0,
   players: [{name:'Player 1',score:0},{name:'Player 2',score:0},{name:'Player 3',score:0},{name:'Player 4',score:0}], playerCount: 2,
   memory: { cards: Array(16).fill(''), matched: Array(16).fill(false), flipped: [], mismatchAt: 0, turn: 1, scores: [0,0], winner: null },
-  backdrop: { text: '', preset: 'party' },
+  scoreboard: { game: '', round: 1, history: [] },
+  backdrop: { template: 'custom', name: '', text: '', preset: 'party' },
   viz: { preset: 'spectrum', palette: 'neon', bpm: 120 },
 };
 let busy = false; // guards every activity against double-taps firing two actions before the poll catches up
@@ -1037,15 +1106,43 @@ function renderTicTacToe(){
 // static DOM nodes (not innerHTML'd away each time) and only have their
 // .value touched when NOT focused — otherwise a poll landing mid-keystroke
 // would yank the cursor and overwrite whatever someone's currently typing.
+const SB_AVATARS = ['crab', 'turtle', 'fish', 'octopus', 'starfish', 'shell', 'sun', 'palm'];
+const SB_ORD = ['1st', '2nd', '3rd', '4th'];
 function renderScoreboard(){
-  document.querySelectorAll('.count-btn').forEach(b => b.classList.toggle('active', Number(b.dataset.count) === state.playerCount));
+  const n = state.playerCount || 2, sb = state.scoreboard || { game: '', round: 1, history: [] };
+  const scores = state.players.map(p => Number(p.score) || 0), shown = scores.slice(0, n), top = Math.max(0, ...shown);
+  document.querySelectorAll('.count-btn').forEach(b => b.classList.toggle('active', Number(b.dataset.count) === n));
   document.querySelectorAll('.player-row').forEach((row, i) => {
     const p = state.players[i] || { name:'', score:0 };
-    row.style.display = i < state.playerCount ? 'flex' : 'none';
+    row.style.display = i < n ? 'flex' : 'none';
     const input = row.querySelector('.player-name');
     if(document.activeElement !== input) input.value = p.name === `Player ${i+1}` ? '' : p.name;
-    row.querySelector('.player-score').textContent = p.score;
+    const se = row.querySelector('.player-score');
+    if (se.textContent !== String(p.score)) { se.textContent = p.score; se.classList.remove('pop'); void se.offsetWidth; se.classList.add('pop'); }
+    const av = row.querySelector('.sb-avbtn');
+    if (av.dataset.a !== p.avatar) { av.dataset.a = p.avatar || ''; av.innerHTML = (window.RYST_AVATARS || {})[p.avatar] || ''; }
+    const lead = top > 0 && scores[i] === top;
+    row.classList.toggle('lead', lead);
+    const w = Number(p.wins) || 0;
+    row.querySelector('.sb-rk').textContent = (top > 0 ? SB_ORD[shown.filter(o => o > scores[i]).length] : '') + (w ? (top > 0 ? ' · ' : '') + w + (w === 1 ? ' win' : ' wins') : '');
   });
+  const gi = $('#sbGameName'); if (document.activeElement !== gi) gi.value = sb.game || '';
+  $('#sbRoundP').textContent = 'Game ' + (sb.round || 1);
+  $('#sbFinishBtn').disabled = !(top > 0);
+  const hist = sb.history || [];
+  const hp = $('#sbHistP'); hp.textContent = '';
+  if (hist.length) {
+    const t = document.createElement('div'); t.className = 't'; t.textContent = 'Played today'; hp.appendChild(t);
+    hist.forEach(h => {
+      const el = document.createElement('div'); el.className = 'h';
+      const g = document.createElement('span'); g.className = 'g'; g.textContent = h.game;
+      const b = document.createElement('b'); b.textContent = h.winners.map(i => h.names[i] || `Player ${i+1}`).join(' & ') + (h.winners.length > 1 ? ' tie' : ' won');
+      const sc = document.createElement('span'); sc.className = 'sc'; sc.textContent = h.scores.join('–');
+      el.append(g, b, sc); hp.appendChild(el);
+    });
+  }
+  const pick = $('#sbAvPick');
+  if (!pick.hidden) { const i = Number(pick.dataset.i); pick.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.a === (state.players[i] || {}).avatar)); }
 }
 
 // A mismatched pair isn't cleared server-side until the *next* flip attempt
@@ -1104,11 +1201,32 @@ $('#memNewRoundBtn').addEventListener('click', async () => {
 // The text <input> only has its value touched when not focused — same
 // reasoning as renderScoreboard's name inputs — so a poll landing mid-keystroke
 // never yanks the cursor or overwrites what's being typed right now.
+// the pool screen draws a template's headline; the same copy here feeds the little preview
+const BD_HEAD = { birthday: 'Happy <em>Birthday</em>', anniversary: 'Happy <em>Anniversary</em>', welcome: 'A warm <em>welcome</em>', congrats: '<em>Congratulations</em>' };
+const BD_COPY = {
+  birthday: ['Whose birthday?', 'Priya', 'A line underneath (optional)', 'Thirty and fabulous'],
+  anniversary: ["Who's celebrating?", 'Meera & Arjun', 'A line underneath (optional)', '25 years together'],
+  welcome: ['Who are we welcoming?', 'The Kumar family', 'A line underneath (optional)', 'Enjoy your stay by the sea'],
+  congrats: ['Who are we cheering?', 'Ananya', 'What for? (optional)', 'On your graduation'],
+  custom: ['A name underneath (optional)', '', 'Your message', "Let's celebrate!"],
+};
+function bdPreview(b){
+  const pv = $('#bdPreview'), head = BD_HEAD[b.template];
+  pv.className = 'bd-preview t-' + (b.preset || 'party');
+  if (head) { $('#bdPvHead').innerHTML = head; $('#bdPvSub').textContent = b.text || ''; }
+  else { $('#bdPvHead').textContent = b.text || "Let's Celebrate!"; $('#bdPvSub').textContent = ''; }
+  $('#bdPvName').textContent = b.name || '';
+}
 function renderBackdrop(){
-  const b = state.backdrop || { text: '', preset: 'party' };
-  const input = $('#backdropText');
-  if(document.activeElement !== input) input.value = b.text || '';
+  const b = Object.assign({ template: 'custom', name: '', text: '', preset: 'party' }, state.backdrop || {});
+  const tx = $('#backdropText'), nm = $('#backdropName'), c = BD_COPY[b.template] || BD_COPY.custom;
+  if(document.activeElement !== tx) tx.value = b.text || '';
+  if(document.activeElement !== nm) nm.value = b.name || '';
+  $('#bdNameLbl').textContent = c[0]; nm.placeholder = c[1]; $('#bdTextLbl').textContent = c[2]; tx.placeholder = c[3];
+  document.querySelectorAll('#bdTpls [data-template]').forEach(btn => btn.classList.toggle('on', btn.dataset.template === b.template));
   document.querySelectorAll('.bd-preset').forEach(btn => btn.classList.toggle('active', btn.dataset.preset === b.preset));
+  // while typing, the preview follows the field rather than the last saved state
+  bdPreview(Object.assign({}, b, { text: tx.value.trim(), name: nm.value.trim() }));
 }
 
 function renderViz(){
@@ -1183,9 +1301,37 @@ document.querySelectorAll('.player-name').forEach(input => {
   });
 });
 $('#scoreboardResetBtn').addEventListener('click', async () => {
-  if(!confirm('Reset all scores to 0?')) return;
+  if(!confirm('Reset this game\'s scores to 0? Finished games stay in the history.')) return;
   try{ state = await postJson('/game/scoreboard/reset'); render(); }catch(e){}
 });
+$('#sbGameName').addEventListener('change', async () => {
+  try{ state = await postJson('/game/scoreboard/game', { game: $('#sbGameName').value }); render(); }catch(e){}
+});
+$('#sbFinishBtn').addEventListener('click', async () => {
+  const sb = state.scoreboard || {};
+  if(!confirm(`Finish ${sb.game || 'this game'} and record the result? Scores go back to 0 for the next game.`)) return;
+  try{ state = await postJson('/game/scoreboard/finish', {}); render(); if (navigator.vibrate) navigator.vibrate([30, 40, 60]); }catch(e){}
+});
+$('#sbClearBtn').addEventListener('click', async () => {
+  if(!confirm('Start over? This clears every name, avatar, win and the games played.')) return;
+  try{ state = await postJson('/game/scoreboard/clear', {}); render(); }catch(e){}
+});
+// avatar picker: opens under the row whose avatar was tapped
+(function(){
+  const pick = $('#sbAvPick');
+  pick.innerHTML = SB_AVATARS.map(a => `<button type="button" data-a="${a}" aria-label="${a}">${(window.RYST_AVATARS || {})[a] || ''}</button>`).join('');
+  const close = () => { pick.hidden = true; document.querySelectorAll('.player-row.open').forEach(r => r.classList.remove('open')); };
+  document.querySelectorAll('.sb-avbtn').forEach(btn => btn.addEventListener('click', () => {
+    const row = btn.closest('.player-row'), i = btn.dataset.i;
+    if (!pick.hidden && pick.dataset.i === i) { close(); return; }
+    close(); pick.dataset.i = i; row.after(pick); row.classList.add('open'); pick.hidden = false; renderScoreboard();
+  }));
+  pick.addEventListener('click', async e => {
+    const b = e.target.closest('[data-a]'); if (!b) return;
+    const i = Number(pick.dataset.i); close();
+    try{ state = await postJson('/game/scoreboard/avatar', { i, avatar: b.dataset.a }); render(); }catch(err){}
+  });
+})();
 
 // Text only pushes on change (blur/Enter), not per keystroke — this takes
 // over a screen everyone at the pool can see, so it shouldn't flicker with
@@ -1193,6 +1339,16 @@ $('#scoreboardResetBtn').addEventListener('click', async () => {
 // one-tap controls above.
 $('#backdropText').addEventListener('change', async () => {
   try{ state = await postJson('/game/backdrop/set', { text: $('#backdropText').value }); render(); }catch(e){}
+});
+$('#backdropName').addEventListener('change', async () => {
+  try{ state = await postJson('/game/backdrop/set', { name: $('#backdropName').value }); render(); }catch(e){}
+});
+// the preview on this phone follows each keystroke; the pool screen waits for the change
+['#backdropText', '#backdropName'].forEach(sel => $(sel).addEventListener('input', () => renderBackdrop()));
+document.querySelectorAll('#bdTpls [data-template]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    try{ state = await postJson('/game/backdrop/set', { template: btn.dataset.template, text: $('#backdropText').value, name: $('#backdropName').value }); render(); }catch(e){}
+  });
 });
 document.querySelectorAll('.bd-preset').forEach(btn => {
   btn.addEventListener('click', async () => {

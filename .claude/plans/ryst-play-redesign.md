@@ -50,8 +50,8 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
 | 2 | Ludo Lounge flagship | Done (see below) |
 | 3 | Claw Catch v2 | Done (see below) |
 | 4 | Tic-Tac-Toe (best of three, winning line, draw, replay) + Memory Match (3D flips, difficulty, timer, moves) | Done (see below) |
-| 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Next |
-| 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Planned |
+| 5 | Scoreboard (avatars, per-game, ranks, reset) + Party Backdrop (templates, themes) | Done (see below) |
+| 6 | DJ Visuals (cinematic, audio-reactive, ambient) | Next |
 | 7 | Mobile controller + TV pass across all games (1080p/4K, 4:3) | Planned |
 | 8 | New games, one at a time: Quiz categories + live leaderboard, Darts 301/501, then Poolside Music (licensed source only), Movie Night (authorised content only), Villa Photo Booth | Planned |
 | 9 | Shared components + unified admin console (respecting guest.html/harbour architecture) | Planned |
@@ -108,6 +108,26 @@ Canvas 2D, CSS 3D, Web Audio are enough for every planned game. No new libraries
   your turn, "You win the match 2–1!". Memory: Easy/Classic/Hard picker, 3D flips, moves, timer and pairs.
 - QA: new shoot.js fixtures (ttt-tv-win/-draw/-match/-4x3, ttt-phone-match, memory-tv-hard/-win, memory-phone-hard), plus a
   two-phones-and-screen run against the real rules.
+
+### Stage 5 — Scoreboard and Party Backdrop (delivered)
+- Proxy: pure modules with unit tests. `scoreboard.js`: players carry an avatar and game wins; ranks with ties (1, 1, 3);
+  a game name; "Finish game" files the game into a history of the last six (name, names, scores, winners), gives each
+  winner a game win and starts the next game at zero (nothing is filed while nobody has scored); "Reset scores" zeroes
+  only the current game; "Start over" clears names, avatars, wins and history. New routes `/game/scoreboard/avatar`,
+  `/game`, `/finish`, `/clear`; the existing ones keep their contract. `backdrop.js`: templates (birthday, anniversary,
+  welcome, congrats, own words), a name, a second line and six themes (party, confetti, glow, balloons, stars, ocean),
+  each checked against an allowlist and merged field by field. Route suite `test/suites/play-party.js`.
+- Pool screen: "Score*board*" title with the game and its number, columns with rank, avatar, name, score and games won,
+  re-ordered by score with a slide (FLIP), a pop on a score change, the leader raised in gold with the crown, a strip of
+  finished games, and a winner card when a game is finished. Backdrop: the template's headline (fixed copy), the guest's
+  name large in Cormorant, a second line, a "RYST 109A · Beach Villa" kicker, and three new built-in scenes: rising
+  balloons, a twinkling sky with shooting stars, and an ocean dusk with a low sun and rolling waves. Guest text only via
+  textContent/escHtml.
+- Phones: game name, avatar picker under the row, −1/+1/+5, rank and wins per row, Finish game / Reset scores, a "Played
+  today" list, Start over. Backdrop: occasion chips with copy and placeholders to match, name and line fields, a live
+  preview that follows typing (the screen updates on change), and a 2 × 3 theme grid.
+- QA: shoot.js fixtures (scoreboard-tv/-fhd/-4x3/-two, scoreboard-phone-picker, backdrop-tv/-4x3/-balloons/-stars/-ocean/
+  -glow-custom/-confetti-long, backdrop-phone/-ocean) and a two-phones-and-screen run against the real rules.
 
 ### Remaining after Stage 2
 Everything in Stages 3–10. Ludo extras for Stage 8/9: tournaments and lifetime stats (needs a
